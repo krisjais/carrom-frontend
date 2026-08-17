@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-main: #070B16;
+  --bg-surface: #0E1626;
+  --bg-surface-elevated: #141F36;
+  --border-subtle: #1C2B48;
+  --border-focus: #334A75;
+  --accent-gold: #D4AF37;
+  --accent-gold-hover: #E5C358;
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+}
+
+body {
+  background-color: #070B16;
+  color: #F8FAFC;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+  min-height: 100vh;
+  letter-spacing: -0.01em;
+}
+
+h1, h2, h3, h4, h5, h6, .font-display {
+  font-family: 'Outfit', 'Inter', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* Subtle clean card styling */
+.sport-card {
+  background-color: #0E1626;
+  border: 1px solid #1C2B48;
+  border-radius: 1rem;
+}
+
+.sport-card-hover {
+  transition: border-color 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
+}
+
+.sport-card-hover:hover {
+  background-color: #121D33;
+  border-color: #2D426B;
+  transform: translateY(-2px);
+}
+
+/* Gold Gradient Heading Accent */
+.gold-text {
+  color: #D4AF37;
+}
+
+/* Clean Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #070B16;
+}
+::-webkit-scrollbar-thumb {
+  background: #1C2B48;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #D4AF37;
+}
