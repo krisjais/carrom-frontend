@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { CATEGORIES } from '@/lib/constants';
 import { BracketView } from '@/components/bracket/BracketView';
-import { GitFork, RefreshCw } from 'lucide-react';
+import { GitFork, RefreshCw, Trophy } from 'lucide-react';
 
 function BracketsContent() {
   const searchParams = useSearchParams();
@@ -35,29 +35,32 @@ function BracketsContent() {
   }, [selectedCategory]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
       {/* Header */}
-      <div className="text-center max-w-2xl mx-auto space-y-2">
-        <h1 className="text-3xl sm:text-4xl font-black font-display text-white">
+      <div className="text-center max-w-2xl mx-auto space-y-3">
+        <span className="text-xs font-mono text-[#FFBA00] font-bold uppercase tracking-widest block">
+          Knockout Draw Architecture
+        </span>
+        <h1 className="text-4xl sm:text-5xl font-black font-display text-white tracking-tight">
           Championship Brackets
         </h1>
-        <p className="text-xs sm:text-sm text-[#94A3B8]">
-          Dynamic knockout single-elimination brackets for all 5 tournament divisions.
+        <p className="text-xs sm:text-sm text-[#D8C7F0]">
+          Dynamic single-elimination brackets with real-time winner advancement across all 5 tournament divisions.
         </p>
       </div>
 
       {/* Category Tabs */}
-      <div className="flex items-center justify-center gap-2 flex-wrap pb-2 border-b border-[#1C2B48]">
+      <div className="flex items-center justify-center gap-2 flex-wrap pb-2 border-b border-[#4A138C]">
         {CATEGORIES.map((cat) => {
           const isSelected = selectedCategory === cat.id;
           return (
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                 isSelected
-                  ? 'bg-[#D4AF37] text-[#070B16] shadow-sm'
-                  : 'bg-[#0E1626] text-[#94A3B8] hover:text-white hover:bg-[#141F36]'
+                  ? 'bg-[#FFBA00] text-[#210440] shadow-md shadow-[#FFBA00]/20'
+                  : 'bg-[#2C0854] text-[#D8C7F0] hover:text-white'
               }`}
             >
               {cat.name}
@@ -68,8 +71,8 @@ function BracketsContent() {
 
       {/* Bracket Component Display */}
       {loading ? (
-        <div className="py-20 text-center text-[#94A3B8] text-xs flex items-center justify-center gap-2">
-          <RefreshCw className="w-4 h-4 animate-spin text-[#D4AF37]" />
+        <div className="py-20 text-center text-[#D8C7F0] text-xs flex items-center justify-center gap-2">
+          <RefreshCw className="w-4 h-4 animate-spin text-[#FFBA00]" />
           <span>Loading dynamic bracket...</span>
         </div>
       ) : (
@@ -86,7 +89,7 @@ function BracketsContent() {
 
 export default function BracketsPage() {
   return (
-    <Suspense fallback={<div className="py-20 text-center text-[#94A3B8] text-xs">Loading brackets...</div>}>
+    <Suspense fallback={<div className="py-20 text-center text-[#D8C7F0] text-xs">Loading brackets...</div>}>
       <BracketsContent />
     </Suspense>
   );

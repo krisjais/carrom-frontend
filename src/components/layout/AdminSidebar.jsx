@@ -22,21 +22,19 @@ export const AdminSidebar = () => {
   const pathname = usePathname();
   const { logout } = useAuth();
 
-  const isTournamentActive = pathname.startsWith('/admin/draws') || pathname.startsWith('/admin/matches');
-
   return (
-    <aside className="w-64 bg-[#070B16] border-r border-[#1C2B48] flex flex-col shrink-0 min-h-screen">
+    <aside className="w-64 bg-[#17022E] border-r border-[#4A138C] flex flex-col shrink-0 sticky top-0 h-screen overflow-y-auto z-30 shadow-2xl">
       {/* Brand Header */}
-      <div className="p-5 border-b border-[#1C2B48] flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[#D4AF37] flex items-center justify-center text-[#070B16] font-display font-black text-sm">
+      <div className="p-6 border-b border-[#4A138C]/80 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-2xl bg-[#FFBA00] flex items-center justify-center text-[#210440] font-display font-black text-base shadow-md shadow-[#FFBA00]/20">
             C
           </div>
           <div>
-            <span className="font-display font-bold text-white text-sm block leading-none">
-              CARROM<span className="text-[#D4AF37]">PRO</span>
+            <span className="font-display font-black text-white text-base block leading-none tracking-tight">
+              CARROM<span className="text-[#FFBA00]">PRO</span>
             </span>
-            <span className="text-[10px] text-[#D4AF37] font-mono font-bold tracking-wider uppercase">
+            <span className="text-[10px] text-[#FDB095] font-mono font-bold tracking-wider uppercase">
               Admin Console
             </span>
           </div>
@@ -44,73 +42,73 @@ export const AdminSidebar = () => {
       </div>
 
       {/* Nav List */}
-      <nav className="p-3 space-y-1 flex-1 text-xs font-semibold">
+      <nav className="p-3.5 space-y-1.5 flex-1 text-xs font-semibold">
         {/* 1. Dashboard */}
         <Link
           href="/admin"
-          className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all ${
+          className={`flex items-center gap-3 px-3.5 py-2.5 rounded-2xl transition-all ${
             pathname === '/admin'
-              ? 'bg-[#0E1626] text-[#D4AF37] border border-[#1C2B48]'
-              : 'text-[#94A3B8] hover:text-white hover:bg-[#0E1626]/50'
+              ? 'bg-[#FFBA00] text-[#210440] font-black shadow-md shadow-[#FFBA00]/15'
+              : 'text-[#D8C7F0] hover:text-white hover:bg-[#2C0854]'
           }`}
         >
-          <LayoutDashboard className={`w-4 h-4 ${pathname === '/admin' ? 'text-[#D4AF37]' : 'text-[#64748B]'}`} />
+          <LayoutDashboard className={`w-4 h-4 ${pathname === '/admin' ? 'text-[#210440]' : 'text-[#FDB095]'}`} />
           <span>Dashboard</span>
         </Link>
 
         {/* 2. Participants */}
         <Link
           href="/admin/registrations"
-          className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all ${
+          className={`flex items-center gap-3 px-3.5 py-2.5 rounded-2xl transition-all ${
             pathname.startsWith('/admin/registrations')
-              ? 'bg-[#0E1626] text-[#D4AF37] border border-[#1C2B48]'
-              : 'text-[#94A3B8] hover:text-white hover:bg-[#0E1626]/50'
+              ? 'bg-[#FFBA00] text-[#210440] font-black shadow-md shadow-[#FFBA00]/15'
+              : 'text-[#D8C7F0] hover:text-white hover:bg-[#2C0854]'
           }`}
         >
-          <Users className={`w-4 h-4 ${pathname.startsWith('/admin/registrations') ? 'text-[#D4AF37]' : 'text-[#64748B]'}`} />
+          <Users className={`w-4 h-4 ${pathname.startsWith('/admin/registrations') ? 'text-[#210440]' : 'text-[#FDB095]'}`} />
           <span>Participants</span>
         </Link>
 
         {/* 3. Teams */}
         <Link
           href="/admin/teams"
-          className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all ${
+          className={`flex items-center gap-3 px-3.5 py-2.5 rounded-2xl transition-all ${
             pathname.startsWith('/admin/teams')
-              ? 'bg-[#0E1626] text-[#D4AF37] border border-[#1C2B48]'
-              : 'text-[#94A3B8] hover:text-white hover:bg-[#0E1626]/50'
+              ? 'bg-[#FFBA00] text-[#210440] font-black shadow-md shadow-[#FFBA00]/15'
+              : 'text-[#D8C7F0] hover:text-white hover:bg-[#2C0854]'
           }`}
         >
-          <Layers className={`w-4 h-4 ${pathname.startsWith('/admin/teams') ? 'text-[#D4AF37]' : 'text-[#64748B]'}`} />
+          <Layers className={`w-4 h-4 ${pathname.startsWith('/admin/teams') ? 'text-[#210440]' : 'text-[#FDB095]'}`} />
           <span>Teams</span>
         </Link>
 
         {/* 4. Tournament Group */}
-        <div className="pt-2 pb-1">
-          <div className="px-3 py-1 text-[10px] uppercase font-mono tracking-wider text-[#64748B] font-bold">
+        <div className="pt-3 pb-1">
+          <div className="px-3.5 py-1 text-[10px] uppercase font-mono tracking-widest text-[#FDB095] font-bold">
             Tournament
           </div>
-          <div className="space-y-0.5 mt-1 pl-2 border-l border-[#1C2B48] ml-3">
+          <div className="space-y-1 mt-1 pl-2 border-l-2 border-[#4A138C] ml-3.5">
             <Link
               href="/admin/draws"
-              className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all ${
+              className={`flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all ${
                 pathname.startsWith('/admin/draws')
-                  ? 'bg-[#0E1626] text-[#D4AF37] font-bold'
-                  : 'text-[#94A3B8] hover:text-white hover:bg-[#0E1626]/50'
+                  ? 'bg-[#FFBA00] text-[#210440] font-black shadow-sm'
+                  : 'text-[#D8C7F0] hover:text-white hover:bg-[#2C0854]'
               }`}
             >
-              <GitFork className={`w-3.5 h-3.5 ${pathname.startsWith('/admin/draws') ? 'text-[#D4AF37]' : 'text-[#64748B]'}`} />
+              <GitFork className={`w-3.5 h-3.5 ${pathname.startsWith('/admin/draws') ? 'text-[#210440]' : 'text-[#E5958E]'}`} />
               <span>Draws & Brackets</span>
             </Link>
 
             <Link
               href="/admin/matches"
-              className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all ${
+              className={`flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all ${
                 pathname.startsWith('/admin/matches')
-                  ? 'bg-[#0E1626] text-[#D4AF37] font-bold'
-                  : 'text-[#94A3B8] hover:text-white hover:bg-[#0E1626]/50'
+                  ? 'bg-[#FFBA00] text-[#210440] font-black shadow-sm'
+                  : 'text-[#D8C7F0] hover:text-white hover:bg-[#2C0854]'
               }`}
             >
-              <Calendar className={`w-3.5 h-3.5 ${pathname.startsWith('/admin/matches') ? 'text-[#D4AF37]' : 'text-[#64748B]'}`} />
+              <Calendar className={`w-3.5 h-3.5 ${pathname.startsWith('/admin/matches') ? 'text-[#210440]' : 'text-[#E5958E]'}`} />
               <span>Matches</span>
             </Link>
           </div>
@@ -119,44 +117,44 @@ export const AdminSidebar = () => {
         {/* 5. Announcements */}
         <Link
           href="/admin/announcements"
-          className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all ${
+          className={`flex items-center gap-3 px-3.5 py-2.5 rounded-2xl transition-all ${
             pathname.startsWith('/admin/announcements')
-              ? 'bg-[#0E1626] text-[#D4AF37] border border-[#1C2B48]'
-              : 'text-[#94A3B8] hover:text-white hover:bg-[#0E1626]/50'
+              ? 'bg-[#FFBA00] text-[#210440] font-black shadow-md shadow-[#FFBA00]/15'
+              : 'text-[#D8C7F0] hover:text-white hover:bg-[#2C0854]'
           }`}
         >
-          <Bell className={`w-4 h-4 ${pathname.startsWith('/admin/announcements') ? 'text-[#D4AF37]' : 'text-[#64748B]'}`} />
+          <Bell className={`w-4 h-4 ${pathname.startsWith('/admin/announcements') ? 'text-[#210440]' : 'text-[#FDB095]'}`} />
           <span>Announcements</span>
         </Link>
 
         {/* 6. Settings */}
         <Link
           href="/admin/rules"
-          className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all ${
+          className={`flex items-center gap-3 px-3.5 py-2.5 rounded-2xl transition-all ${
             pathname.startsWith('/admin/rules')
-              ? 'bg-[#0E1626] text-[#D4AF37] border border-[#1C2B48]'
-              : 'text-[#94A3B8] hover:text-white hover:bg-[#0E1626]/50'
+              ? 'bg-[#FFBA00] text-[#210440] font-black shadow-md shadow-[#FFBA00]/15'
+              : 'text-[#D8C7F0] hover:text-white hover:bg-[#2C0854]'
           }`}
         >
-          <Settings className={`w-4 h-4 ${pathname.startsWith('/admin/rules') ? 'text-[#D4AF37]' : 'text-[#64748B]'}`} />
+          <Settings className={`w-4 h-4 ${pathname.startsWith('/admin/rules') ? 'text-[#210440]' : 'text-[#FDB095]'}`} />
           <span>Settings</span>
         </Link>
       </nav>
 
       {/* Footer Actions */}
-      <div className="p-3 border-t border-[#1C2B48] space-y-1 text-xs">
+      <div className="p-3.5 border-t border-[#4A138C] space-y-1.5 text-xs">
         <Link
           href="/"
           target="_blank"
-          className="flex items-center justify-between px-3 py-2 rounded-lg text-[#94A3B8] hover:text-white hover:bg-[#0E1626] transition-colors"
+          className="flex items-center justify-between px-3 py-2 rounded-xl text-[#D8C7F0] hover:text-white hover:bg-[#2C0854] transition-colors"
         >
           <span>View Public Site</span>
-          <ExternalLink className="w-3.5 h-3.5" />
+          <ExternalLink className="w-3.5 h-3.5 text-[#FDB095]" />
         </Link>
 
         <button
           onClick={logout}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:text-red-400 hover:bg-[#0E1626] transition-colors font-semibold"
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-[#E5958E] hover:text-rose-300 hover:bg-[#2C0854] transition-colors font-bold cursor-pointer"
         >
           <LogOut className="w-3.5 h-3.5" />
           <span>Sign Out</span>

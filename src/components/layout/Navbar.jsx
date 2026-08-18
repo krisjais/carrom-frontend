@@ -16,7 +16,8 @@ import {
   GitFork,
   BookOpen,
   Trophy,
-  Bell
+  Bell,
+  Sparkles
 } from 'lucide-react';
 
 export const Navbar = () => {
@@ -52,32 +53,32 @@ export const Navbar = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#070B16]/95 backdrop-blur-md border-b border-[#1C2B48]">
+    <header className="sticky top-0 z-40 w-full bg-[#210440]/95 backdrop-blur-lg border-b border-[#4A138C]/80 shadow-lg shadow-[#140129]/40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-9 h-9 rounded-xl bg-[#D4AF37] flex items-center justify-center text-[#070B16] font-display font-black text-lg shadow-sm group-hover:bg-[#E5C358] transition-colors">
+            <div className="w-10 h-10 rounded-2xl bg-[#FFBA00] flex items-center justify-center text-[#210440] font-display font-black text-xl shadow-md shadow-[#FFBA00]/20 group-hover:scale-105 group-hover:bg-[#FFC933] transition-all">
               C
             </div>
             <div>
-              <span className="font-display font-bold text-lg tracking-tight text-white block leading-none">
-                CARROM<span className="text-[#D4AF37]">PRO</span>
+              <span className="font-display font-black text-xl tracking-tight text-white block leading-none">
+                CARROM<span className="text-[#FFBA00]">PRO</span>
               </span>
-              <span className="text-[10px] text-[#94A3B8] font-medium tracking-wide">
+              <span className="text-[10px] text-[#FDB095] font-mono font-bold tracking-widest uppercase">
                 Championship 2026
               </span>
             </div>
           </Link>
 
-          {/* Desktop Nav - Clean & Minimal 4-5 Items */}
-          <nav className="hidden md:flex items-center gap-1 lg:gap-2">
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex items-center gap-1.5 lg:gap-2 bg-[#17022E]/80 p-1.5 rounded-full border border-[#4A138C]">
             <Link
               href="/"
-              className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
                 isActive('/') && pathname === '/'
-                  ? 'text-[#D4AF37] bg-[#0E1626]'
-                  : 'text-[#94A3B8] hover:text-white hover:bg-[#0E1626]/60'
+                  ? 'text-[#210440] bg-[#FFBA00] shadow-sm'
+                  : 'text-[#D8C7F0] hover:text-white hover:bg-[#2C0854]'
               }`}
             >
               Home
@@ -85,10 +86,10 @@ export const Navbar = () => {
 
             <Link
               href="/tournament"
-              className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
                 isActive('/tournament')
-                  ? 'text-[#D4AF37] bg-[#0E1626]'
-                  : 'text-[#94A3B8] hover:text-white hover:bg-[#0E1626]/60'
+                  ? 'text-[#210440] bg-[#FFBA00] shadow-sm'
+                  : 'text-[#D8C7F0] hover:text-white hover:bg-[#2C0854]'
               }`}
             >
               Tournament
@@ -96,43 +97,43 @@ export const Navbar = () => {
 
             <Link
               href="/live"
-              className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+              className={`px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-2 ${
                 isActive('/live')
-                  ? 'text-[#D4AF37] bg-[#0E1626]'
-                  : 'text-[#94A3B8] hover:text-white hover:bg-[#0E1626]/60'
+                  ? 'text-[#210440] bg-[#FFBA00] shadow-sm'
+                  : 'text-[#D8C7F0] hover:text-white hover:bg-[#2C0854]'
               }`}
             >
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Live</span>
+              <span>Live Arena</span>
             </Link>
 
             <Link
               href="/results"
-              className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
                 isActive('/results')
-                  ? 'text-[#D4AF37] bg-[#0E1626]'
-                  : 'text-[#94A3B8] hover:text-white hover:bg-[#0E1626]/60'
+                  ? 'text-[#210440] bg-[#FFBA00] shadow-sm'
+                  : 'text-[#D8C7F0] hover:text-white hover:bg-[#2C0854]'
               }`}
             >
               Results
             </Link>
 
-            {/* "More" Dropdown for secondary tournament features */}
+            {/* "More" Dropdown */}
             <div className="relative" ref={moreRef}>
               <button
                 onClick={() => setMoreOpen(!moreOpen)}
-                className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${
                   moreOpen || moreLinks.some((l) => isActive(l.href))
-                    ? 'text-[#D4AF37] bg-[#0E1626]'
-                    : 'text-[#94A3B8] hover:text-white hover:bg-[#0E1626]/60'
+                    ? 'text-[#FFBA00] bg-[#2C0854]'
+                    : 'text-[#D8C7F0] hover:text-white hover:bg-[#2C0854]'
                 }`}
               >
                 <span>More</span>
-                <ChevronDown className={`w-4 h-4 transition-transform ${moreOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${moreOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {moreOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-[#0E1626] border border-[#1C2B48] rounded-xl shadow-xl p-2 space-y-0.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="absolute right-0 mt-3 w-56 bg-[#210440] border border-[#4A138C] rounded-2xl shadow-2xl p-2 space-y-1 z-50 animate-in fade-in zoom-in-95 duration-150">
                   {moreLinks.map((link) => {
                     const Icon = link.icon;
                     return (
@@ -140,13 +141,13 @@ export const Navbar = () => {
                         key={link.name}
                         href={link.href}
                         onClick={() => setMoreOpen(false)}
-                        className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                        className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
                           isActive(link.href)
-                            ? 'text-[#D4AF37] bg-[#141F36]'
-                            : 'text-[#94A3B8] hover:text-white hover:bg-[#141F36]'
+                            ? 'text-[#210440] bg-[#FFBA00] font-bold'
+                            : 'text-[#D8C7F0] hover:text-white hover:bg-[#2C0854]'
                         }`}
                       >
-                        <Icon className="w-4 h-4 text-[#64748B]" />
+                        <Icon className={`w-4 h-4 ${isActive(link.href) ? 'text-[#210440]' : 'text-[#FDB095]'}`} />
                         <span>{link.name}</span>
                       </Link>
                     );
@@ -162,14 +163,14 @@ export const Navbar = () => {
               <div className="flex items-center gap-2">
                 <Link
                   href="/admin"
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0E1626] border border-[#D4AF37]/40 text-[#D4AF37] text-xs font-semibold hover:bg-[#141F36] transition-colors"
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#2C0854] border border-[#FFBA00]/40 text-[#FFBA00] text-xs font-bold hover:bg-[#380E6B] transition-colors"
                 >
                   <Shield className="w-3.5 h-3.5" />
                   <span>Admin Panel</span>
                 </Link>
                 <button
                   onClick={logout}
-                  className="p-2 rounded-lg text-[#64748B] hover:text-white hover:bg-[#0E1626] transition-colors"
+                  className="p-2.5 rounded-xl text-[#D8C7F0] hover:text-rose-400 hover:bg-[#2C0854] transition-colors"
                   title="Logout"
                 >
                   <LogOut className="w-4 h-4" />
@@ -179,32 +180,32 @@ export const Navbar = () => {
               <div className="flex items-center gap-2">
                 <Link
                   href="/participant/dashboard"
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0E1626] border border-[#1C2B48] text-slate-200 text-xs font-semibold hover:border-[#D4AF37]/50 transition-colors"
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#2C0854] border border-[#4A138C] text-white text-xs font-bold hover:border-[#FFBA00] transition-colors"
                 >
-                  <User className="w-3.5 h-3.5 text-[#D4AF37]" />
+                  <User className="w-3.5 h-3.5 text-[#FFBA00]" />
                   <span>My Portal</span>
                 </Link>
                 <button
                   onClick={logout}
-                  className="p-2 rounded-lg text-[#64748B] hover:text-white hover:bg-[#0E1626] transition-colors"
+                  className="p-2.5 rounded-xl text-[#D8C7F0] hover:text-rose-400 hover:bg-[#2C0854] transition-colors"
                   title="Logout"
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <Link
                   href="/participant/login"
-                  className="px-3 py-2 rounded-lg text-[#94A3B8] hover:text-white text-xs font-medium transition-colors"
+                  className="px-4 py-2 rounded-xl text-[#D8C7F0] hover:text-white text-xs font-semibold transition-colors"
                 >
                   Login
                 </Link>
                 <Link
                   href="/registration"
-                  className="px-4 py-2 rounded-xl bg-[#D4AF37] hover:bg-[#E5C358] text-[#070B16] font-bold text-xs shadow-sm transition-colors"
+                  className="px-5 py-2.5 rounded-xl btn-gold text-xs font-black tracking-wide shadow-md transition-all"
                 >
-                  Register
+                  REGISTER NOW
                 </Link>
               </div>
             )}
@@ -214,7 +215,7 @@ export const Navbar = () => {
           <div className="md:hidden flex items-center gap-2">
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="p-2 rounded-lg text-[#94A3B8] hover:text-white hover:bg-[#0E1626]"
+              className="p-2.5 rounded-xl text-[#D8C7F0] hover:text-white hover:bg-[#2C0854]"
             >
               {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -224,108 +225,109 @@ export const Navbar = () => {
 
       {/* Mobile Drawer */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-[#1C2B48] bg-[#0E1626] px-4 py-4 space-y-3">
-          <div className="grid grid-cols-2 gap-2 text-xs">
+        <div className="md:hidden border-t border-[#4A138C] bg-[#210440] px-4 py-5 space-y-4">
+          <div className="grid grid-cols-2 gap-2 text-xs font-bold">
             <Link
               href="/"
               onClick={() => setMobileOpen(false)}
-              className={`p-2.5 rounded-lg font-medium ${isActive('/') && pathname === '/' ? 'text-[#D4AF37] bg-[#141F36]' : 'text-slate-300'}`}
+              className={`p-3 rounded-xl ${isActive('/') && pathname === '/' ? 'text-[#210440] bg-[#FFBA00]' : 'text-slate-200 bg-[#2C0854]'}`}
             >
               Home
             </Link>
             <Link
               href="/tournament"
               onClick={() => setMobileOpen(false)}
-              className={`p-2.5 rounded-lg font-medium ${isActive('/tournament') ? 'text-[#D4AF37] bg-[#141F36]' : 'text-slate-300'}`}
+              className={`p-3 rounded-xl ${isActive('/tournament') ? 'text-[#210440] bg-[#FFBA00]' : 'text-slate-200 bg-[#2C0854]'}`}
             >
               Tournament
             </Link>
             <Link
               href="/live"
               onClick={() => setMobileOpen(false)}
-              className={`p-2.5 rounded-lg font-medium ${isActive('/live') ? 'text-[#D4AF37] bg-[#141F36]' : 'text-slate-300'}`}
+              className={`p-3 rounded-xl flex items-center gap-1.5 ${isActive('/live') ? 'text-[#210440] bg-[#FFBA00]' : 'text-slate-200 bg-[#2C0854]'}`}
             >
-              Live Matches
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Live Arena</span>
             </Link>
             <Link
               href="/results"
               onClick={() => setMobileOpen(false)}
-              className={`p-2.5 rounded-lg font-medium ${isActive('/results') ? 'text-[#D4AF37] bg-[#141F36]' : 'text-slate-300'}`}
+              className={`p-3 rounded-xl ${isActive('/results') ? 'text-[#210440] bg-[#FFBA00]' : 'text-slate-200 bg-[#2C0854]'}`}
             >
               Results
             </Link>
             <Link
               href="/brackets"
               onClick={() => setMobileOpen(false)}
-              className="p-2.5 rounded-lg font-medium text-slate-300"
+              className="p-3 rounded-xl text-slate-200 bg-[#2C0854]"
             >
               Brackets
             </Link>
             <Link
               href="/categories"
               onClick={() => setMobileOpen(false)}
-              className="p-2.5 rounded-lg font-medium text-slate-300"
+              className="p-3 rounded-xl text-slate-200 bg-[#2C0854]"
             >
               Categories
             </Link>
             <Link
               href="/rules"
               onClick={() => setMobileOpen(false)}
-              className="p-2.5 rounded-lg font-medium text-slate-300"
+              className="p-3 rounded-xl text-slate-200 bg-[#2C0854]"
             >
               Rules
             </Link>
             <Link
-              href="/announcements"
+              href="/champions"
               onClick={() => setMobileOpen(false)}
-              className="p-2.5 rounded-lg font-medium text-slate-300"
+              className="p-3 rounded-xl text-slate-200 bg-[#2C0854]"
             >
-              Notices
+              Champions
             </Link>
           </div>
 
-          <div className="pt-3 border-t border-[#1C2B48] flex flex-col gap-2">
+          <div className="pt-3 border-t border-[#4A138C] flex flex-col gap-2.5">
             {!user ? (
               <>
                 <Link
                   href="/registration"
                   onClick={() => setMobileOpen(false)}
-                  className="w-full py-2.5 rounded-xl bg-[#D4AF37] text-[#070B16] font-bold text-xs text-center"
+                  className="w-full py-3 rounded-xl btn-gold text-xs text-center font-black"
                 >
-                  Register for Tournament
+                  REGISTER FOR TOURNAMENT
                 </Link>
                 <div className="flex gap-2">
                   <Link
                     href="/participant/login"
                     onClick={() => setMobileOpen(false)}
-                    className="flex-1 py-2 rounded-lg bg-[#141F36] text-slate-300 text-xs text-center font-medium"
+                    className="flex-1 py-2.5 rounded-xl bg-[#2C0854] text-[#D8C7F0] text-xs text-center font-bold"
                   >
                     Participant Login
                   </Link>
                   <Link
                     href="/admin/login"
                     onClick={() => setMobileOpen(false)}
-                    className="flex-1 py-2 rounded-lg bg-[#141F36] text-slate-300 text-xs text-center font-medium"
+                    className="flex-1 py-2.5 rounded-xl bg-[#2C0854] text-[#D8C7F0] text-xs text-center font-bold"
                   >
                     Admin Login
                   </Link>
                 </div>
               </>
             ) : (
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-[#2C0854]">
                 <Link
                   href={isAdmin ? '/admin' : '/participant/dashboard'}
                   onClick={() => setMobileOpen(false)}
-                  className="text-xs font-bold text-[#D4AF37]"
+                  className="text-xs font-bold text-[#FFBA00]"
                 >
-                  {isAdmin ? 'Open Admin Panel' : 'My Participant Portal'}
+                  {isAdmin ? 'Open Admin Panel →' : 'My Participant Portal →'}
                 </Link>
                 <button
                   onClick={() => {
                     logout();
                     setMobileOpen(false);
                   }}
-                  className="text-xs text-[#94A3B8]"
+                  className="text-xs text-rose-300 font-semibold"
                 >
                   Logout
                 </button>

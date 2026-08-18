@@ -150,7 +150,6 @@ export default function AdminMatchesPage() {
     }
   };
 
-  // Sync sub-category when main tier changes
   const handleMainTabChange = (tab) => {
     setMainTab(tab);
     setSelectedRoundStage('all');
@@ -230,35 +229,35 @@ export default function AdminMatchesPage() {
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
       {/* 1. Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#1C2B48]">
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#4A138C]">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[11px] font-mono text-[#D4AF37] font-bold uppercase tracking-widest">
+            <span className="text-[11px] font-mono text-[#FFBA00] font-bold uppercase tracking-widest">
               Sequential Arena Scheduler
             </span>
             <MainBoardBadge />
           </div>
-          <h1 className="text-2xl font-bold font-display text-white">Matches & Fixtures Manager</h1>
-          <p className="text-xs text-[#94A3B8]">
+          <h1 className="text-3xl sm:text-4xl font-black font-display text-white">Matches & Fixtures Manager</h1>
+          <p className="text-xs text-[#D8C7F0]">
             Sequential timeline manager, cross-category player rest monitor, and live scoring control.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-3">
           <button
             onClick={() => setSchedulerModalOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#0E1626] border border-[#1C2B48] hover:border-[#D4AF37]/50 text-xs font-semibold text-white transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#2C0854] border border-[#4A138C] hover:border-[#FFBA00] text-xs font-bold text-white transition-colors cursor-pointer"
           >
-            <Settings className="w-3.5 h-3.5 text-[#D4AF37]" />
-            <span>Configure Sequential Schedule</span>
+            <Settings className="w-3.5 h-3.5 text-[#FFBA00]" />
+            <span>Configure Schedule</span>
           </button>
 
           <button
             onClick={fetchMatchesAndTeams}
             disabled={loading}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#0E1626] border border-[#1C2B48] hover:border-[#D4AF37]/50 text-xs font-semibold text-[#94A3B8] hover:text-white transition-colors"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#2C0854] border border-[#4A138C] hover:border-[#FFBA00] text-xs font-bold text-[#D8C7F0] hover:text-white transition-colors cursor-pointer"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[#D4AF37]' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[#FFBA00]' : ''}`} />
             <span>Refresh</span>
           </button>
         </div>
@@ -266,13 +265,13 @@ export default function AdminMatchesPage() {
 
       {/* 2. CATEGORY TABS */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2 border-b border-[#1C2B48] pb-2">
+        <div className="flex items-center gap-2 border-b border-[#4A138C] pb-2">
           <button
             onClick={() => handleMainTabChange('singles')}
-            className={`px-5 py-2.5 rounded-xl font-display font-bold text-xs sm:text-sm transition-all ${
+            className={`px-5 py-2.5 rounded-full font-display font-bold text-xs sm:text-sm transition-all cursor-pointer ${
               mainTab === 'singles'
-                ? 'bg-[#D4AF37] text-[#070B16] shadow-sm'
-                : 'bg-[#0E1626] text-[#94A3B8] hover:text-white hover:bg-[#141F36]'
+                ? 'bg-[#FFBA00] text-[#210440] shadow-md shadow-[#FFBA00]/20'
+                : 'bg-[#2C0854] text-[#D8C7F0] hover:text-white'
             }`}
           >
             SINGLES
@@ -280,10 +279,10 @@ export default function AdminMatchesPage() {
 
           <button
             onClick={() => handleMainTabChange('doubles')}
-            className={`px-5 py-2.5 rounded-xl font-display font-bold text-xs sm:text-sm transition-all ${
+            className={`px-5 py-2.5 rounded-full font-display font-bold text-xs sm:text-sm transition-all cursor-pointer ${
               mainTab === 'doubles'
-                ? 'bg-[#D4AF37] text-[#070B16] shadow-sm'
-                : 'bg-[#0E1626] text-[#94A3B8] hover:text-white hover:bg-[#141F36]'
+                ? 'bg-[#FFBA00] text-[#210440] shadow-md shadow-[#FFBA00]/20'
+                : 'bg-[#2C0854] text-[#D8C7F0] hover:text-white'
             }`}
           >
             DOUBLES
@@ -291,10 +290,10 @@ export default function AdminMatchesPage() {
 
           <button
             onClick={() => handleMainTabChange('mixed')}
-            className={`px-5 py-2.5 rounded-xl font-display font-bold text-xs sm:text-sm transition-all ${
+            className={`px-5 py-2.5 rounded-full font-display font-bold text-xs sm:text-sm transition-all cursor-pointer ${
               mainTab === 'mixed'
-                ? 'bg-[#D4AF37] text-[#070B16] shadow-sm'
-                : 'bg-[#0E1626] text-[#94A3B8] hover:text-white hover:bg-[#141F36]'
+                ? 'bg-[#FFBA00] text-[#210440] shadow-md shadow-[#FFBA00]/20'
+                : 'bg-[#2C0854] text-[#D8C7F0] hover:text-white'
             }`}
           >
             MIXED DOUBLES
@@ -308,10 +307,10 @@ export default function AdminMatchesPage() {
               <button
                 key={c.id}
                 onClick={() => handleSubCategoryChange(c.id)}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${
+                className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-[#0E1626] border-[#D4AF37] text-white shadow-sm'
-                    : 'bg-[#070B16] border-[#1C2B48] text-[#94A3B8] hover:text-white hover:border-[#2D426B]'
+                    ? 'bg-[#2C0854] border-[#FFBA00] text-white shadow-sm'
+                    : 'bg-[#140129] border-[#4A138C] text-[#D8C7F0] hover:text-white hover:border-[#FFBA00]/50'
                 }`}
               >
                 {c.name}
@@ -322,15 +321,15 @@ export default function AdminMatchesPage() {
       </div>
 
       {/* 3. CATEGORY STATS BANNER */}
-      <div className="sport-card p-6 space-y-5">
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[#1C2B48]">
+      <div className="sport-card p-6 space-y-5 rounded-3xl border border-[#4A138C]">
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#4A138C]">
           <div className="flex items-center gap-3">
             <CategoryBadge category={activeCategory} />
             <div>
-              <h2 className="text-xl font-bold font-display text-white">
+              <h2 className="text-xl font-black font-display text-white">
                 {CATEGORIES.find((c) => c.id === activeCategory)?.name}
               </h2>
-              <p className="text-xs text-[#94A3B8]">
+              <p className="text-xs text-[#D8C7F0]">
                 {categoryStats.totalPlayers} Approved Entries • {roundGroups.length} Knockout Rounds
               </p>
             </div>
@@ -339,46 +338,46 @@ export default function AdminMatchesPage() {
           <div className="flex items-center gap-2 text-xs">
             <Link
               href={`/admin/draws?category=${activeCategory}`}
-              className="px-3.5 py-1.5 rounded-xl bg-[#070B16] border border-[#1C2B48] hover:border-[#D4AF37]/50 text-[#D4AF37] font-semibold transition-colors flex items-center gap-1"
+              className="px-4 py-2 rounded-xl bg-[#140129] border border-[#4A138C] hover:border-[#FFBA00] text-[#FFBA00] font-bold transition-colors flex items-center gap-1.5"
             >
               <span>View Bracket Tree</span>
-              <ArrowRight className="w-3 h-3" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-          <div className="p-3 rounded-xl bg-[#070B16] border border-[#1C2B48]">
-            <span className="text-[10px] text-[#94A3B8] uppercase font-semibold block">Total Entries</span>
-            <span className="text-2xl font-bold font-mono text-white">{categoryStats.totalPlayers}</span>
+          <div className="p-3.5 rounded-2xl bg-[#140129] border border-[#4A138C]">
+            <span className="text-[10px] text-[#D8C7F0] uppercase font-bold block">Total Entries</span>
+            <span className="text-2xl font-black font-mono text-white">{categoryStats.totalPlayers}</span>
           </div>
 
-          <div className="p-3 rounded-xl bg-[#070B16] border border-[#1C2B48]">
-            <span className="text-[10px] text-blue-400 uppercase font-semibold block">READY in Queue</span>
-            <span className="text-2xl font-bold font-mono text-blue-400">{categoryStats.ready}</span>
+          <div className="p-3.5 rounded-2xl bg-[#140129] border border-[#4A138C]">
+            <span className="text-[10px] text-[#FDB095] uppercase font-bold block">READY in Queue</span>
+            <span className="text-2xl font-black font-mono text-[#FDB095]">{categoryStats.ready}</span>
           </div>
 
-          <div className="p-3 rounded-xl bg-[#070B16] border border-[#1C2B48]">
-            <span className="text-[10px] text-amber-400 uppercase font-semibold block">WAITING (TBD)</span>
-            <span className="text-2xl font-bold font-mono text-amber-400">{categoryStats.waiting}</span>
+          <div className="p-3.5 rounded-2xl bg-[#140129] border border-[#4A138C]">
+            <span className="text-[10px] text-amber-300 uppercase font-bold block">WAITING (TBD)</span>
+            <span className="text-2xl font-black font-mono text-amber-300">{categoryStats.waiting}</span>
           </div>
 
-          <div className="p-3 rounded-xl bg-[#070B16] border border-[#1C2B48]">
-            <span className="text-[10px] text-emerald-400 uppercase font-semibold block">Completed</span>
-            <span className="text-2xl font-bold font-mono text-emerald-400">{categoryStats.completed}</span>
+          <div className="p-3.5 rounded-2xl bg-[#140129] border border-[#4A138C]">
+            <span className="text-[10px] text-emerald-300 uppercase font-bold block">Completed</span>
+            <span className="text-2xl font-black font-mono text-emerald-300">{categoryStats.completed}</span>
           </div>
         </div>
 
         {roundGroups.length > 0 && (
-          <div className="pt-2 border-t border-[#1C2B48]/80">
-            <div className="text-[11px] text-[#94A3B8] font-semibold mb-2">Tournament Stages:</div>
+          <div className="pt-2 border-t border-[#4A138C]">
+            <div className="text-[11px] text-[#D8C7F0] font-bold mb-2 uppercase tracking-wider">Tournament Stages:</div>
             <div className="flex items-center gap-2 flex-wrap">
               <button
                 onClick={() => setSelectedRoundStage('all')}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                   selectedRoundStage === 'all'
-                    ? 'bg-[#D4AF37] text-[#070B16]'
-                    : 'bg-[#070B16] text-[#94A3B8] hover:text-white border border-[#1C2B48]'
+                    ? 'bg-[#FFBA00] text-[#210440]'
+                    : 'bg-[#140129] text-[#D8C7F0] hover:text-white border border-[#4A138C]'
                 }`}
               >
                 All Rounds ({roundGroups.length})
@@ -390,10 +389,10 @@ export default function AdminMatchesPage() {
                   <button
                     key={rg.roundNumber}
                     onClick={() => setSelectedRoundStage(String(rg.roundNumber))}
-                    className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${
+                    className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-[#D4AF37] text-[#070B16]'
-                        : 'bg-[#070B16] text-[#94A3B8] hover:text-white border border-[#1C2B48]'
+                        ? 'bg-[#FFBA00] text-[#210440]'
+                        : 'bg-[#140129] text-[#D8C7F0] hover:text-white border border-[#4A138C]'
                     }`}
                   >
                     <span>{rg.roundName}</span>
@@ -408,23 +407,23 @@ export default function AdminMatchesPage() {
 
       {/* 4. ROUND-BY-ROUND FIXTURES BREAKDOWN */}
       {loading ? (
-        <div className="py-20 text-center text-xs text-[#94A3B8] flex items-center justify-center gap-2">
-          <RefreshCw className="w-4 h-4 animate-spin text-[#D4AF37]" />
+        <div className="py-20 text-center text-xs text-[#D8C7F0] flex items-center justify-center gap-2">
+          <RefreshCw className="w-4 h-4 animate-spin text-[#FFBA00]" />
           <span>Loading tournament rounds...</span>
         </div>
       ) : roundGroups.length === 0 ? (
-        <div className="p-12 text-center sport-card">
-          <Calendar className="w-8 h-8 text-[#64748B] mx-auto mb-2" />
-          <h3 className="text-sm font-bold text-white mb-1">No Draw Generated for {activeCategory.replace('_', ' ').toUpperCase()}</h3>
-          <p className="text-xs text-[#94A3B8] max-w-sm mx-auto">
+        <div className="p-12 text-center sport-card rounded-3xl space-y-3">
+          <Calendar className="w-8 h-8 text-[#FDB095] mx-auto mb-2 opacity-70" />
+          <h3 className="text-base font-black text-white font-display">No Draw Generated for {activeCategory.replace('_', ' ').toUpperCase()}</h3>
+          <p className="text-xs text-[#D8C7F0] max-w-sm mx-auto">
             Please generate and publish the knockout draw in the Draws section to create the bracket and match fixtures.
           </p>
           <div className="mt-4">
             <Link
               href={`/admin/draws?category=${activeCategory}`}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#D4AF37] text-[#070B16] font-bold text-xs shadow-sm"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl btn-gold font-black text-xs shadow-md"
             >
-              Generate Draw Now
+              Generate Draw Now →
             </Link>
           </div>
         </div>
@@ -434,24 +433,24 @@ export default function AdminMatchesPage() {
             .filter((rg) => selectedRoundStage === 'all' || String(rg.roundNumber) === selectedRoundStage)
             .map((rg) => (
               <div key={rg.roundNumber} className="space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#1C2B48]">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#D4AF37]" />
-                    <h3 className="text-lg font-bold font-display text-white">
+                <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#4A138C]">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#FFBA00]" />
+                    <h3 className="text-lg font-black font-display text-white">
                       {rg.roundName}
                     </h3>
-                    <span className="text-xs text-[#94A3B8] font-mono">
+                    <span className="text-xs text-[#D8C7F0] font-mono">
                       (Round {rg.roundNumber} of {roundGroups.length})
                     </span>
                   </div>
 
-                  <div className="text-xs text-[#94A3B8] font-mono flex items-center gap-3">
+                  <div className="text-xs text-[#D8C7F0] font-mono flex items-center gap-3">
                     <span>
                       <strong className="text-white">{rg.matches.length}</strong> Playable Matches
                     </span>
                     {rg.byes.length > 0 && (
-                      <span className="text-purple-300">
-                        <strong className="text-purple-300">{rg.byes.length}</strong> Automatic Advances
+                      <span className="text-[#FDB095]">
+                        <strong className="text-[#FDB095]">{rg.byes.length}</strong> Automatic Advances
                       </span>
                     )}
                   </div>
@@ -468,82 +467,78 @@ export default function AdminMatchesPage() {
                       const isT1Win =
                         m.winnerTeam &&
                         (m.winnerTeam._id === m.team1?._id || m.winnerTeam === m.team1?._id);
-                        const isT2Win =
+                      const isT2Win =
                         m.winnerTeam &&
                         (m.winnerTeam._id === m.team2?._id || m.winnerTeam === m.team2?._id);
 
                       return (
                         <div
                           key={m._id}
-                          className={`sport-card p-5 space-y-4 flex flex-col justify-between transition-all ${
+                          className={`sport-card p-5 space-y-4 rounded-3xl flex flex-col justify-between transition-all ${
                             isLive
-                              ? 'border-emerald-500/50 bg-[#0E1626]'
+                              ? 'border-emerald-500/60 bg-[#2C0854]'
                               : isCompleted
-                              ? 'border-blue-500/30'
+                              ? 'border-[#FFBA00]/40'
                               : isWaiting
-                              ? 'opacity-70 bg-[#070B16]/60 border-[#1C2B48]'
-                              : 'border-[#1C2B48]'
+                              ? 'opacity-70 bg-[#140129]/60 border-[#4A138C]'
+                              : 'border-[#4A138C]'
                           }`}
                         >
                           <div className="space-y-3">
-                            <div className="flex items-center justify-between text-xs pb-2 border-b border-[#1C2B48]">
+                            <div className="flex items-center justify-between text-xs pb-2 border-b border-[#4A138C]">
                               <div className="flex items-center gap-1.5">
-                                <span className="font-mono font-bold text-[#D4AF37] text-[11px]">
+                                <span className="font-mono font-black text-[#FFBA00] text-[11px]">
                                   M#{m.matchNumber}
                                 </span>
                                 <StatusBadge status={m.status} queuePosition={m.queuePosition} />
                               </div>
-                              <span className="text-[10px] font-mono text-slate-400">
+                              <span className="text-[10px] font-mono text-[#D8C7F0]">
                                 Main Carrom Board
                               </span>
                             </div>
 
-                            <div className="space-y-1.5 text-xs">
+                            <div className="space-y-2 text-xs">
                               {/* Team 1 */}
                               <div
-                                className={`p-2.5 rounded-lg flex items-center justify-between ${
+                                className={`p-3 rounded-2xl flex items-center justify-between ${
                                   isT1Win
-                                    ? 'bg-[#D4AF37]/10 text-[#D4AF37] font-bold border border-[#D4AF37]/20'
+                                    ? 'bg-[#FFBA00]/20 text-[#FFBA00] font-black border border-[#FFBA00]/40'
                                     : m.team1
-                                    ? 'bg-[#070B16] text-white font-medium'
-                                    : 'bg-[#070B16]/50 text-[#64748B] italic'
+                                    ? 'bg-[#140129] text-white font-bold'
+                                    : 'bg-[#140129]/50 text-slate-500 italic'
                                 }`}
                               >
                                 <span className="truncate pr-2">{m.team1 ? m.team1.name : 'Waiting for winner...'}</span>
-                                {isCompleted && (
-                                  <span className="font-mono font-bold">{m.finalScore?.team1BoardsWon || 0}</span>
-                                )}
+                                {isT1Win && <span className="font-mono text-[10px] text-[#FFBA00] font-bold">✓ WINNER</span>}
                               </div>
 
-                              <div className="text-center text-[10px] text-[#64748B] uppercase font-semibold">VS</div>
+                              <div className="text-center text-[10px] text-[#D8C7F0] font-black font-mono">VS</div>
 
                               {/* Team 2 */}
                               <div
-                                className={`p-2.5 rounded-lg flex items-center justify-between ${
+                                className={`p-3 rounded-2xl flex items-center justify-between ${
                                   isT2Win
-                                    ? 'bg-[#D4AF37]/10 text-[#D4AF37] font-bold border border-[#D4AF37]/20'
+                                    ? 'bg-[#FFBA00]/20 text-[#FFBA00] font-black border border-[#FFBA00]/40'
                                     : m.team2
-                                    ? 'bg-[#070B16] text-white font-medium'
-                                    : 'bg-[#070B16]/50 text-[#64748B] italic'
+                                    ? 'bg-[#140129] text-white font-bold'
+                                    : 'bg-[#140129]/50 text-slate-500 italic'
                                 }`}
                               >
                                 <span className="truncate pr-2">{m.team2 ? m.team2.name : 'Waiting for winner...'}</span>
-                                {isCompleted && (
-                                  <span className="font-mono font-bold">{m.finalScore?.team2BoardsWon || 0}</span>
-                                )}
+                                {isT2Win && <span className="font-mono text-[10px] text-[#FFBA00] font-bold">✓ WINNER</span>}
                               </div>
                             </div>
 
                             {/* Schedule Time & Queue Info */}
                             {!isWaiting && (
-                              <div className="pt-2 border-t border-[#1C2B48] flex items-center justify-between text-[11px] text-[#94A3B8]">
+                              <div className="pt-2 border-t border-[#4A138C] flex items-center justify-between text-[11px] text-[#D8C7F0]">
                                 <div className="font-mono">
                                   {m.queuePosition ? (
-                                    <span className="text-blue-300 font-semibold">Queue #{m.queuePosition}</span>
+                                    <span className="text-[#FDB095] font-bold">Queue #{m.queuePosition}</span>
                                   ) : isCompleted ? (
-                                    <span className="text-slate-400">Completed</span>
+                                    <span className="text-slate-300">Completed</span>
                                   ) : (
-                                    <span className="text-emerald-400">In Play</span>
+                                    <span className="text-emerald-300 font-bold">In Play</span>
                                   )}
                                 </div>
                                 {m.scheduledTime ? (
@@ -554,18 +549,18 @@ export default function AdminMatchesPage() {
                                     })}
                                   </span>
                                 ) : (
-                                  <span className="text-[#64748B]">Time TBD</span>
+                                  <span className="text-[#D8C7F0]/60">Time TBD</span>
                                 )}
                               </div>
                             )}
                           </div>
 
                           {/* Contextual Action Button */}
-                          <div className="pt-3 border-t border-[#1C2B48]">
+                          <div className="pt-3 border-t border-[#4A138C]">
                             {isLive ? (
                               <Link
                                 href={`/admin/matches/${m._id}/score`}
-                                className="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm flex items-center justify-center gap-1.5 transition-colors"
+                                className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                               >
                                 <span>Open Scorekeeper Desk</span>
                                 <ArrowRight className="w-3.5 h-3.5" />
@@ -575,45 +570,39 @@ export default function AdminMatchesPage() {
                                 <button
                                   onClick={() => handleStartMatch(m._id)}
                                   disabled={isBoardOccupied || startingMatchId === m._id}
-                                  className="flex-1 py-2 rounded-xl bg-[#D4AF37] hover:bg-[#E5C358] disabled:bg-[#141F36] disabled:text-[#64748B] text-[#070B16] font-bold text-xs shadow-sm transition-colors flex items-center justify-center gap-1"
+                                  className="flex-1 py-2 rounded-xl btn-gold text-xs font-black shadow-sm transition-colors flex items-center justify-center gap-1 disabled:opacity-50 cursor-pointer"
                                 >
                                   <Play className="w-3 h-3 fill-current" />
                                   <span>{isBoardOccupied ? 'Queued' : 'Start Match'}</span>
                                 </button>
                                 <button
                                   onClick={() => handleOpenEditTime(m)}
-                                  className="px-2.5 py-2 rounded-xl bg-[#070B16] hover:bg-[#141F36] border border-[#1C2B48] text-[11px] text-slate-300 font-mono"
+                                  className="px-3 py-2 rounded-xl bg-[#140129] hover:bg-[#2C0854] border border-[#4A138C] text-[11px] text-[#D8C7F0] font-mono cursor-pointer"
                                   title="Adjust estimated time"
                                 >
                                   Time
                                 </button>
                                 <Link
                                   href={`/admin/matches/${m._id}/score`}
-                                  className="px-2.5 py-2 rounded-xl bg-[#070B16] hover:bg-[#141F36] border border-[#1C2B48] text-xs font-semibold text-[#D4AF37] transition-colors"
+                                  className="px-3 py-2 rounded-xl bg-[#140129] hover:bg-[#2C0854] border border-[#4A138C] text-xs font-bold text-[#FFBA00] transition-colors"
                                 >
                                   <ExternalLink className="w-3.5 h-3.5" />
                                 </Link>
                               </div>
                             ) : isCompleted ? (
                               <div className="flex items-center justify-between">
-                                <button
-                                  onClick={() => {
-                                    setViewMatch(m);
-                                    setResultModalOpen(true);
-                                  }}
-                                  className="text-xs font-semibold text-blue-400 hover:underline"
-                                >
-                                  View Scorecard →
-                                </button>
+                                <span className="text-xs text-emerald-300 font-bold">
+                                  ✓ Result Confirmed
+                                </span>
                                 <Link
                                   href={`/admin/matches/${m._id}/score`}
-                                  className="text-[11px] text-[#94A3B8] hover:text-[#D4AF37] font-mono"
+                                  className="text-[11px] text-[#FFBA00] hover:underline font-mono font-bold"
                                 >
-                                  Edit / Correct
+                                  Edit Winner →
                                 </Link>
                               </div>
                             ) : (
-                              <div className="text-center text-[11px] text-[#64748B] italic py-1">
+                              <div className="text-center text-[11px] text-[#D8C7F0]/60 italic py-1">
                                 WAITING (Opponents TBD)
                               </div>
                             )}
@@ -627,8 +616,8 @@ export default function AdminMatchesPage() {
                 {/* Byes / Automatic Advances in this Round */}
                 {rg.byes.length > 0 && (
                   <div className="space-y-3 pt-2">
-                    <div className="flex items-center gap-2 text-xs text-purple-300 font-semibold">
-                      <Crown className="w-3.5 h-3.5 text-purple-400" />
+                    <div className="flex items-center gap-2 text-xs text-[#FDB095] font-bold">
+                      <Crown className="w-3.5 h-3.5 text-[#FDB095]" />
                       <span>Automatic Advances in {rg.roundName} ({rg.byes.length})</span>
                     </div>
 
@@ -638,13 +627,13 @@ export default function AdminMatchesPage() {
                         return (
                           <div
                             key={m._id}
-                            className="p-4 rounded-xl bg-[#0E1626]/80 border border-purple-500/30 space-y-2"
+                            className="p-4 rounded-2xl bg-[#140129] border border-[#E5958E]/40 space-y-2"
                           >
                             <div className="flex items-center justify-between text-xs">
-                              <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold text-[10px] uppercase font-mono">
+                              <span className="px-2.5 py-0.5 rounded-full bg-[#E5958E]/20 text-[#F5B7B1] font-bold text-[10px] uppercase font-mono">
                                 BYE
                               </span>
-                              <span className="text-[10px] text-[#64748B] font-mono">
+                              <span className="text-[10px] text-[#D8C7F0] font-mono">
                                 Slot #{m.matchNumber}
                               </span>
                             </div>
@@ -653,7 +642,7 @@ export default function AdminMatchesPage() {
                               <h4 className="font-bold text-white text-xs truncate">
                                 {advancingTeam?.name || 'Advancing Team'}
                               </h4>
-                              <p className="text-[11px] text-purple-300">
+                              <p className="text-[11px] text-[#F5B7B1]">
                                 BYE — Automatically Advanced
                               </p>
                             </div>
@@ -675,30 +664,30 @@ export default function AdminMatchesPage() {
         title="Configure Sequential Schedule — Main Carrom Board"
       >
         <form onSubmit={handleGenerateSchedule} className="space-y-4">
-          <div className="p-3.5 rounded-xl bg-[#070B16] border border-[#1C2B48] text-xs space-y-1.5 text-[#94A3B8]">
+          <div className="p-4 rounded-2xl bg-[#140129] border border-[#4A138C] text-xs space-y-1.5 text-[#D8C7F0]">
             <p className="font-bold text-white">Single-Arena Sequential Rules:</p>
             <ul className="list-disc list-inside space-y-1">
               <li>All matches are scheduled sequentially on the <strong>Main Carrom Board</strong>.</li>
-              <li>Participant rest times are verified across all categories (both doubles players checked).</li>
+              <li>Participant rest times are verified across all categories.</li>
               <li>Only <strong>READY</strong> matches with determined opponents are scheduled.</li>
             </ul>
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-[#94A3B8] block mb-1.5">
+            <label className="text-xs font-bold text-[#D8C7F0] block mb-1.5">
               Tournament Match Start Time:
             </label>
             <input
               type="datetime-local"
               value={scheduleSettings.startTime}
               onChange={(e) => setScheduleSettings({ ...scheduleSettings, startTime: e.target.value })}
-              className="w-full h-10 bg-[#070B16] px-3 text-xs text-slate-200 rounded-xl border border-[#1C2B48] focus:outline-none focus:border-[#D4AF37]"
+              className="w-full h-11 bg-[#140129] px-4 text-xs text-white rounded-xl border border-[#4A138C] focus:outline-none focus:border-[#FFBA00]"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="text-xs font-semibold text-[#94A3B8] block mb-1.5">
+              <label className="text-xs font-bold text-[#D8C7F0] block mb-1.5">
                 Match Duration (min):
               </label>
               <input
@@ -707,12 +696,12 @@ export default function AdminMatchesPage() {
                 max="120"
                 value={scheduleSettings.matchDurationMinutes}
                 onChange={(e) => setScheduleSettings({ ...scheduleSettings, matchDurationMinutes: Number(e.target.value) })}
-                className="w-full h-10 bg-[#070B16] px-3 text-xs text-slate-200 rounded-xl border border-[#1C2B48] focus:outline-none focus:border-[#D4AF37]"
+                className="w-full h-11 bg-[#140129] px-4 text-xs text-white rounded-xl border border-[#4A138C] focus:outline-none focus:border-[#FFBA00]"
               />
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-[#94A3B8] block mb-1.5">
+              <label className="text-xs font-bold text-[#D8C7F0] block mb-1.5">
                 Break Time (min):
               </label>
               <input
@@ -721,12 +710,12 @@ export default function AdminMatchesPage() {
                 max="60"
                 value={scheduleSettings.breakTimeMinutes}
                 onChange={(e) => setScheduleSettings({ ...scheduleSettings, breakTimeMinutes: Number(e.target.value) })}
-                className="w-full h-10 bg-[#070B16] px-3 text-xs text-slate-200 rounded-xl border border-[#1C2B48] focus:outline-none focus:border-[#D4AF37]"
+                className="w-full h-11 bg-[#140129] px-4 text-xs text-white rounded-xl border border-[#4A138C] focus:outline-none focus:border-[#FFBA00]"
               />
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-[#94A3B8] block mb-1.5">
+              <label className="text-xs font-bold text-[#D8C7F0] block mb-1.5">
                 Min Rest Time (min):
               </label>
               <input
@@ -735,23 +724,23 @@ export default function AdminMatchesPage() {
                 max="60"
                 value={scheduleSettings.minRestTimeMinutes}
                 onChange={(e) => setScheduleSettings({ ...scheduleSettings, minRestTimeMinutes: Number(e.target.value) })}
-                className="w-full h-10 bg-[#070B16] px-3 text-xs text-slate-200 rounded-xl border border-[#1C2B48] focus:outline-none focus:border-[#D4AF37]"
+                className="w-full h-11 bg-[#140129] px-4 text-xs text-white rounded-xl border border-[#4A138C] focus:outline-none focus:border-[#FFBA00]"
               />
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#1C2B48]">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#4A138C]">
             <button
               type="button"
               onClick={() => setSchedulerModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-xs text-[#94A3B8] hover:text-white"
+              className="px-4 py-2 rounded-xl text-xs text-[#D8C7F0] hover:text-white"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={generatingSchedule}
-              className="px-5 py-2.5 rounded-xl bg-[#D4AF37] hover:bg-[#E5C358] text-[#070B16] font-bold text-xs shadow-sm transition-colors"
+              className="px-6 py-2.5 rounded-xl btn-gold text-xs font-black shadow-md transition-all cursor-pointer"
             >
               {generatingSchedule ? 'Generating Sequential Schedule...' : 'Generate Sequential Schedule'}
             </button>
@@ -766,100 +755,40 @@ export default function AdminMatchesPage() {
         title={`Adjust Estimated Time — Match #${selectedMatch?.matchNumber}`}
       >
         <form onSubmit={handleSaveCustomTime} className="space-y-4">
-          <div className="p-3 rounded-xl bg-[#070B16] border border-[#1C2B48] text-xs">
-            <div className="font-bold text-white mb-1">{selectedMatch?.team1?.name} vs {selectedMatch?.team2?.name}</div>
-            <div className="text-[#94A3B8] font-mono">Queue Position: #{selectedMatch?.queuePosition || 'N/A'}</div>
+          <div className="p-4 rounded-2xl bg-[#140129] border border-[#4A138C] text-xs">
+            <div className="font-black text-white mb-1">{selectedMatch?.team1?.name} vs {selectedMatch?.team2?.name}</div>
+            <div className="text-[#FFBA00] font-mono font-bold">Queue Position: #{selectedMatch?.queuePosition || 'N/A'}</div>
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-[#94A3B8] block mb-1.5">
+            <label className="text-xs font-bold text-[#D8C7F0] block mb-1.5">
               Estimated Scheduled Start Time:
             </label>
             <input
               type="datetime-local"
               value={customTime}
               onChange={(e) => setCustomTime(e.target.value)}
-              className="w-full h-10 bg-[#070B16] px-3 text-xs text-slate-200 rounded-xl border border-[#1C2B48] focus:outline-none focus:border-[#D4AF37]"
+              className="w-full h-11 bg-[#140129] px-4 text-xs text-white rounded-xl border border-[#4A138C] focus:outline-none focus:border-[#FFBA00]"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#1C2B48]">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#4A138C]">
             <button
               type="button"
               onClick={() => setEditTimeModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-xs text-[#94A3B8] hover:text-white"
+              className="px-4 py-2 rounded-xl text-xs text-[#D8C7F0] hover:text-white"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={savingTime}
-              className="px-5 py-2 rounded-xl bg-[#D4AF37] hover:bg-[#E5C358] text-[#070B16] font-bold text-xs shadow-sm transition-colors"
+              className="px-6 py-2.5 rounded-xl btn-gold text-xs font-black shadow-md transition-all cursor-pointer"
             >
               {savingTime ? 'Saving...' : 'Save Time'}
             </button>
           </div>
         </form>
-      </Modal>
-
-      {/* MODAL 3: View Detailed Scorecard */}
-      <Modal
-        isOpen={resultModalOpen}
-        onClose={() => setResultModalOpen(false)}
-        title={`Match Result Scorecard — Match #${viewMatch?.matchNumber}`}
-      >
-        {viewMatch && (
-          <div className="space-y-4">
-            <div className="p-4 rounded-xl bg-[#070B16] border border-[#1C2B48] text-center space-y-2">
-              <div className="text-xs font-mono text-[#D4AF37] font-bold">
-                {viewMatch.roundName}
-              </div>
-              <div className="flex items-center justify-center gap-4 text-base font-bold text-white">
-                <span className={viewMatch.winnerTeam?._id === viewMatch.team1?._id ? 'text-[#D4AF37]' : ''}>
-                  {viewMatch.team1?.name}
-                </span>
-                <span className="font-mono text-2xl text-[#D4AF37]">
-                  {viewMatch.finalScore?.team1BoardsWon} - {viewMatch.finalScore?.team2BoardsWon}
-                </span>
-                <span className={viewMatch.winnerTeam?._id === viewMatch.team2?._id ? 'text-[#D4AF37]' : ''}>
-                  {viewMatch.team2?.name}
-                </span>
-              </div>
-              <div className="text-xs text-emerald-400 font-semibold">
-                Winner: {viewMatch.winnerTeam?.name} (Advanced)
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                Board-by-Board Breakdown
-              </h4>
-              <div className="space-y-2">
-                {viewMatch.boards?.map((b) => (
-                  <div
-                    key={b.boardNumber}
-                    className="p-3 rounded-lg bg-[#070B16] border border-[#1C2B48] flex items-center justify-between text-xs"
-                  >
-                    <div>
-                      <span className="font-bold text-white">Board {b.boardNumber}</span>
-                      <span className="text-[#94A3B8] block text-[11px]">
-                        Queen: {b.queenPocketedBy === 'none' ? 'None' : b.queenPocketedBy} {b.queenCovered ? '(Covered)' : ''}
-                      </span>
-                    </div>
-                    <div className="text-right">
-                      <span className="font-mono font-bold text-[#D4AF37] text-sm">
-                        {b.team1Score} - {b.team2Score}
-                      </span>
-                      <span className="text-[#94A3B8] block text-[11px]">
-                        Winner: {b.boardWinner === 'team1' ? viewMatch.team1?.name : b.boardWinner === 'team2' ? viewMatch.team2?.name : 'Tied/None'}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
       </Modal>
     </div>
   );

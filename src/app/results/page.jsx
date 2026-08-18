@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { CATEGORIES } from '@/lib/constants';
-import { Trophy, CheckCircle2 } from 'lucide-react';
-import { CategoryBadge } from '@/components/ui/Badge';
+import { Trophy, CheckCircle2, Crown, Sparkles } from 'lucide-react';
+import { CategoryBadge, MainBoardBadge } from '@/components/ui/Badge';
 
 export default function ResultsPage() {
   const [matches, setMatches] = useState([]);
@@ -29,37 +29,40 @@ export default function ResultsPage() {
   }, [selectedCategory]);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
       {/* Header */}
-      <div className="text-center max-w-2xl mx-auto space-y-2">
-        <h1 className="text-3xl sm:text-4xl font-black font-display text-white">
+      <div className="text-center max-w-2xl mx-auto space-y-3">
+        <span className="text-xs font-mono text-[#FFBA00] font-bold uppercase tracking-widest block">
+          Official Tournament Records
+        </span>
+        <h1 className="text-4xl sm:text-5xl font-black font-display text-white tracking-tight">
           Match Results
         </h1>
-        <p className="text-xs sm:text-sm text-[#94A3B8]">
-          Official confirmed outcomes and board scores from completed tournament matches.
+        <p className="text-xs sm:text-sm text-[#D8C7F0]">
+          Confirmed outcomes and advancing winners from completed tournament matches on the Main Carrom Board.
         </p>
       </div>
 
       {/* Category Filter Tabs */}
-      <div className="flex items-center justify-center gap-2 flex-wrap pb-2 border-b border-[#1C2B48]">
+      <div className="flex items-center justify-center gap-2 flex-wrap pb-2 border-b border-[#4A138C]">
         <button
           onClick={() => setSelectedCategory('')}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+          className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
             selectedCategory === ''
-              ? 'bg-[#D4AF37] text-[#070B16]'
-              : 'bg-[#0E1626] text-[#94A3B8] hover:text-white'
+              ? 'bg-[#FFBA00] text-[#210440] shadow-md'
+              : 'bg-[#2C0854] text-[#D8C7F0] hover:text-white'
           }`}
         >
-          All
+          All Divisions
         </button>
         {CATEGORIES.map((c) => (
           <button
             key={c.id}
             onClick={() => setSelectedCategory(c.id)}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
               selectedCategory === c.id
-                ? 'bg-[#D4AF37] text-[#070B16]'
-                : 'bg-[#0E1626] text-[#94A3B8] hover:text-white'
+                ? 'bg-[#FFBA00] text-[#210440] shadow-md'
+                : 'bg-[#2C0854] text-[#D8C7F0] hover:text-white'
             }`}
           >
             {c.name}
@@ -69,54 +72,49 @@ export default function ResultsPage() {
 
       {/* Results Cards Grid */}
       {loading ? (
-        <div className="py-20 text-center text-[#94A3B8] text-xs">Loading results...</div>
+        <div className="py-20 text-center text-[#D8C7F0] text-xs">Loading championship results...</div>
       ) : matches.length === 0 ? (
-        <div className="p-12 text-center sport-card">
-          <Trophy className="w-8 h-8 text-[#64748B] mx-auto mb-2" />
-          <p className="text-xs text-[#94A3B8]">No completed matches found in this category yet.</p>
+        <div className="p-12 text-center sport-card rounded-3xl space-y-3">
+          <Trophy className="w-10 h-10 text-[#FDB095] mx-auto opacity-70" />
+          <p className="text-xs text-[#D8C7F0]">No completed matches found in this category yet.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {matches.map((m) => {
             const isT1Win = m.winnerTeam && (m.winnerTeam._id === m.team1?._id || m.winnerTeam === m.team1?._id);
             const isT2Win = m.winnerTeam && (m.winnerTeam._id === m.team2?._id || m.winnerTeam === m.team2?._id);
 
             return (
-              <div key={m._id} className="sport-card p-5 space-y-4">
+              <div key={m._id} className="sport-card p-6 space-y-5 rounded-3xl">
                 {/* Header */}
-                <div className="flex items-center justify-between pb-2 border-b border-[#1C2B48] text-[11px]">
+                <div className="flex items-center justify-between pb-3 border-b border-[#4A138C] text-[11px]">
                   <CategoryBadge category={m.category} />
-                  <span className="font-mono text-[#94A3B8]">{m.roundName} • M#{m.matchNumber}</span>
+                  <span className="font-mono text-[#D8C7F0]">{m.roundName} • M#{m.matchNumber}</span>
                 </div>
 
                 {/* Match Winner Summary */}
-                <div className="grid grid-cols-3 items-center gap-2 text-center">
-                  <div className={`p-2 rounded-lg ${isT1Win ? 'bg-[#D4AF37]/10 text-[#D4AF37] font-bold' : 'text-slate-300'}`}>
-                    <span className="text-xs truncate block">{m.team1?.name}</span>
-                    {isT1Win && <span className="text-[9px] text-[#D4AF37] font-bold block">WON</span>}
+                <div className="grid grid-cols-3 items-center gap-2.5 text-center py-1">
+                  <div className={`p-3 rounded-2xl border transition-all ${isT1Win ? 'bg-[#FFBA00]/20 border-[#FFBA00] text-white font-bold shadow-sm' : 'bg-[#140129] border-[#4A138C] text-slate-400'}`}>
+                    <span className="text-xs truncate block font-bold">{m.team1?.name}</span>
+                    {isT1Win && <span className="text-[10px] text-[#FFBA00] font-mono font-black block mt-1">🏆 WINNER</span>}
                   </div>
 
-                  <div>
-                    <div className="font-mono text-xl font-black text-[#D4AF37]">
-                      {m.finalScore?.team1BoardsWon} - {m.finalScore?.team2BoardsWon}
-                    </div>
-                    <span className="text-[9px] text-[#64748B] uppercase">Best of 3</span>
+                  <div className="text-center">
+                    <span className="text-xs font-mono font-black text-[#FDB095] block">VS</span>
+                    <span className="text-[9px] text-[#D8C7F0] uppercase font-mono font-bold">Knockout</span>
                   </div>
 
-                  <div className={`p-2 rounded-lg ${isT2Win ? 'bg-[#D4AF37]/10 text-[#D4AF37] font-bold' : 'text-slate-300'}`}>
-                    <span className="text-xs truncate block">{m.team2?.name}</span>
-                    {isT2Win && <span className="text-[9px] text-[#D4AF37] font-bold block">WON</span>}
+                  <div className={`p-3 rounded-2xl border transition-all ${isT2Win ? 'bg-[#FFBA00]/20 border-[#FFBA00] text-white font-bold shadow-sm' : 'bg-[#140129] border-[#4A138C] text-slate-400'}`}>
+                    <span className="text-xs truncate block font-bold">{m.team2?.name}</span>
+                    {isT2Win && <span className="text-[10px] text-[#FFBA00] font-mono font-black block mt-1">🏆 WINNER</span>}
                   </div>
                 </div>
 
-                {/* Board Breakdown */}
-                <div className="pt-2 border-t border-[#1C2B48] flex items-center justify-around text-xs text-[#94A3B8]">
-                  {m.boards.map((b) => (
-                    <div key={b.boardNumber} className="text-center font-mono">
-                      <span className="text-[10px] text-[#64748B] block">B{b.boardNumber}</span>
-                      <span className="text-white text-xs font-semibold">{b.team1Score}-{b.team2Score}</span>
-                    </div>
-                  ))}
+                <div className="pt-3 border-t border-[#4A138C] flex items-center justify-between text-xs">
+                  <span className="font-mono text-[11px] text-[#D8C7F0]">Main Carrom Board</span>
+                  <span className="text-emerald-300 text-[11px] font-bold">
+                    ✓ {m.winnerTeam?.name || (isT1Win ? m.team1?.name : m.team2?.name)} Advanced
+                  </span>
                 </div>
               </div>
             );

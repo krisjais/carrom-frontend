@@ -23,18 +23,18 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = 'max-w-2xl'
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-950/80 backdrop-blur-md overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#140129]/85 backdrop-blur-md overflow-y-auto">
       <div
         className="fixed inset-0"
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className={`relative w-full ${maxWidth} glass-card bg-navy-900 border border-gold-500/30 rounded-2xl shadow-2xl p-6 my-8 z-10 animate-in fade-in zoom-in-95 duration-200`}>
-        <div className="flex items-center justify-between pb-4 border-b border-navy-700">
-          <h3 className="text-xl font-bold font-display text-white">{title}</h3>
+      <div className={`relative w-full ${maxWidth} bg-[#210440] border border-[#FFBA00]/40 rounded-3xl shadow-2xl p-6 sm:p-7 my-8 z-10 animate-in fade-in zoom-in-95 duration-200`}>
+        <div className="flex items-center justify-between pb-4 border-b border-[#4A138C]">
+          <h3 className="text-xl font-black font-display text-white">{title}</h3>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-navy-800 transition-colors"
+            className="p-1.5 rounded-xl text-[#D8C7F0] hover:text-white hover:bg-[#2C0854] transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>

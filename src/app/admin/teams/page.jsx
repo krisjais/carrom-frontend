@@ -42,30 +42,30 @@ export default function AdminTeamsPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-navy-800">
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#4A138C]">
         <div>
-          <span className="text-xs font-mono text-gold-400 font-bold uppercase tracking-widest">
+          <span className="text-xs font-mono text-[#FFBA00] font-bold uppercase tracking-widest">
             Approved Category Rosters
           </span>
-          <h1 className="text-3xl font-black font-display text-white mt-1">Teams & Entries</h1>
-          <p className="text-xs text-slate-400">
+          <h1 className="text-3xl sm:text-4xl font-black font-display text-white mt-1">Teams & Entries</h1>
+          <p className="text-xs text-[#D8C7F0]">
             View all approved singles entries and paired doubles teams for tournament draw generation.
           </p>
         </div>
       </div>
 
       {/* Category Tabs */}
-      <div className="flex items-center gap-2 flex-wrap pb-2 border-b border-navy-800">
+      <div className="flex items-center gap-2 flex-wrap pb-2 border-b border-[#4A138C]">
         {CATEGORIES.map((cat) => {
           const isSelected = selectedCat === cat.id;
           return (
             <button
               key={cat.id}
               onClick={() => setSelectedCat(cat.id)}
-              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-display font-bold transition-all ${
+              className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-display font-bold transition-all cursor-pointer ${
                 isSelected
-                  ? 'bg-gold-500 text-navy-950 shadow-md'
-                  : 'bg-navy-900 text-slate-400 hover:text-white'
+                  ? 'bg-[#FFBA00] text-[#210440] shadow-md shadow-[#FFBA00]/20'
+                  : 'bg-[#2C0854] text-[#D8C7F0] hover:text-white'
               }`}
             >
               {cat.name}
@@ -75,9 +75,9 @@ export default function AdminTeamsPage() {
       </div>
 
       {/* Teams Table */}
-      <div className="glass-card rounded-3xl p-6 border border-navy-800 space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+      <div className="sport-card rounded-3xl p-6 border border-[#4A138C] space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[#4A138C]">
+          <div className="flex items-center gap-2.5">
             <CategoryBadge category={selectedCat} />
             <h3 className="font-bold text-white text-base">
               Roster ({teams.length} Teams)
@@ -86,33 +86,33 @@ export default function AdminTeamsPage() {
         </div>
 
         {loading ? (
-          <div className="py-16 text-center text-slate-400 text-sm">Loading teams...</div>
+          <div className="py-16 text-center text-[#D8C7F0] text-sm">Loading teams...</div>
         ) : teams.length === 0 ? (
-          <div className="py-16 text-center text-slate-400 text-sm">
+          <div className="py-16 text-center text-[#D8C7F0] text-sm">
             No approved teams found in this category. Approve registrations or create pairs in the Registrations tab.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-navy-800 text-slate-400 font-mono uppercase text-[11px]">
+              <thead className="border-b border-[#4A138C] text-[#D8C7F0] font-mono uppercase text-[11px]">
                 <tr>
-                  <th className="pb-3 font-semibold">#</th>
-                  <th className="pb-3 font-semibold">Team Name</th>
-                  <th className="pb-3 font-semibold">Player 1</th>
-                  <th className="pb-3 font-semibold">Player 2</th>
-                  <th className="pb-3 font-semibold">Verification</th>
-                  <th className="pb-3 font-semibold text-right">Action</th>
+                  <th className="pb-3 font-bold">#</th>
+                  <th className="pb-3 font-bold">Team Name</th>
+                  <th className="pb-3 font-bold">Player 1</th>
+                  <th className="pb-3 font-bold">Player 2</th>
+                  <th className="pb-3 font-bold">Verification</th>
+                  <th className="pb-3 font-bold text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-navy-800/60">
+              <tbody className="divide-y divide-[#4A138C]/60">
                 {teams.map((t, idx) => (
-                  <tr key={t._id} className="hover:bg-navy-900/40">
-                    <td className="py-3.5 font-mono text-slate-500 font-bold">{idx + 1}</td>
+                  <tr key={t._id} className="hover:bg-[#2C0854]/40 transition-colors">
+                    <td className="py-3.5 font-mono text-[#FFBA00] font-bold">{idx + 1}</td>
                     <td className="py-3.5 font-bold text-white text-xs">{t.name}</td>
                     <td className="py-3.5">
                       <div className="space-y-0.5">
-                        <span className="text-slate-200">{t.player1?.fullName}</span>
-                        <span className="text-[10px] text-slate-400 block font-mono">
+                        <span className="text-slate-200 font-bold">{t.player1?.fullName}</span>
+                        <span className="text-[10px] text-[#D8C7F0] block font-mono">
                           {t.player1?.studentId} • {t.player1?.department}
                         </span>
                       </div>
@@ -120,8 +120,8 @@ export default function AdminTeamsPage() {
                     <td className="py-3.5">
                       {t.player2 ? (
                         <div className="space-y-0.5">
-                          <span className="text-slate-200">{t.player2?.fullName}</span>
-                          <span className="text-[10px] text-slate-400 block font-mono">
+                          <span className="text-slate-200 font-bold">{t.player2?.fullName}</span>
+                          <span className="text-[10px] text-[#D8C7F0] block font-mono">
                             {t.player2?.studentId} • {t.player2?.department}
                           </span>
                         </div>
@@ -130,14 +130,14 @@ export default function AdminTeamsPage() {
                       )}
                     </td>
                     <td className="py-3.5">
-                      <span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                        <CheckCircle2 className="w-3 h-3" /> Approved
+                      <span className="inline-flex items-center gap-1 text-[10px] text-emerald-300 bg-emerald-500/15 px-2.5 py-0.5 rounded-full border border-emerald-500/30 font-bold">
+                        <CheckCircle2 className="w-3 h-3" /> Approved ✓
                       </span>
                     </td>
                     <td className="py-3.5 text-right">
                       <button
                         onClick={() => handleDeleteTeam(t._id, t.name)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-navy-800 transition-colors"
+                        className="p-1.5 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 transition-colors cursor-pointer"
                         title="Delete Team"
                       >
                         <Trash2 className="w-4 h-4" />

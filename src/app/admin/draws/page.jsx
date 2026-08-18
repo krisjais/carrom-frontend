@@ -16,6 +16,7 @@ import {
   Trophy
 } from 'lucide-react';
 import { CategoryBadge } from '@/components/ui/Badge';
+import { Modal } from '@/components/ui/Modal';
 
 function AdminDrawsContent() {
   const searchParams = useSearchParams();
@@ -26,6 +27,16 @@ function AdminDrawsContent() {
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState(null);
+
+  // In-app Modals
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmText: 'Confirm',
+    action: null
+  });
 
   const fetchCategoryData = async () => {
     setLoading(true);
@@ -53,111 +64,107 @@ function AdminDrawsContent() {
   const r1Byes = N >= 2 ? N % 2 : 0;
   const r2Advancing = N >= 2 ? r1Matches + r1Byes : 0;
 
-  const handleGenerateDraw = async () => {
+  const handleGenerateDraw = () => {
     if (N < 2) {
-      alert(`At least 2 approved teams are required to generate a draw. Currently have ${N}.`);
+      setFeedbackMessage({
+        type: 'error',
+        text: `At least 2 approved teams are required to generate a draw. Currently have ${N}.`
+      });
       return;
     }
 
     if (bracketData?.isLocked) {
-      alert('This draw is already locked and cannot be regenerated.');
-      return;
-    }
-
-    if (!confirm(`Generate a random dynamic knockout draw for ${selectedCat.replace('_', ' ').toUpperCase()} with ${N} teams?`)) {
-      return;
-    }
-
-    setActionLoading(true);
-    try {
-      const res = await api.generateCategoryDraw(selectedCat);
-      if (res.success) {
-        alert(res.message);
-        fetchCategoryData();
-      }
-    } catch (err) {
-      alert(err.message || 'Failed to generate draw.');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handlePublishAndLock = async () => {
-    if (!confirm(`Publish and LOCK the draw for ${selectedCat.replace('_', ' ').toUpperCase()}? Once locked, the draw cannot be regenerated.`)) {
-      return;
-    }
-
-    setActionLoading(true);
-    try {
-      const res = await api.publishAndLockDraw(selectedCat);
-      if (res.success) {
-        alert(res.message);
-        fetchCategoryData();
-      }
-    } catch (err) {
-      alert(err.message || 'Failed to publish & lock draw.');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleAdvanceRound = async (roundNumber = 1, forceAuto = false) => {
-    setActionLoading(true);
-    try {
-      const res = await api.advanceRound({
-        category: selectedCat,
-        roundNumber,
-        autoConfirmLeaders: forceAuto
+      setFeedbackMessage({
+        type: 'error',
+        text: 'This draw is already locked and cannot be regenerated.'
       });
-      if (res.success) {
-        alert(res.message);
-        fetchCategoryData();
-      }
-    } catch (err) {
-      if (err.data?.incompleteCount && !forceAuto) {
-        const proceed = confirm(
-          `${err.message}\n\nWould you like to auto-confirm the winners of the leading players and advance to the next round immediately?`
-        );
-        if (proceed) {
-          handleAdvanceRound(roundNumber, true);
-          return;
-        }
-      } else {
-        alert(err.message || 'Failed to advance round.');
-      }
-    } finally {
-      setActionLoading(false);
+      return;
     }
+
+    setConfirmModal({
+      isOpen: true,
+      title: 'Generate Random Draw?',
+      message: `This will randomly shuffle all ${N} approved entries in ${selectedCat.replace('_', ' ').toUpperCase()} and create the single-elimination tournament matchups.`,
+      confirmText: 'Generate Draw',
+      action: async () => {
+        setActionLoading(true);
+        try {
+          const res = await api.generateCategoryDraw(selectedCat);
+          if (res.success) {
+            setFeedbackMessage({ type: 'success', text: res.message });
+            fetchCategoryData();
+          }
+        } catch (err) {
+          setFeedbackMessage({ type: 'error', text: err.message || 'Failed to generate draw.' });
+        } finally {
+          setActionLoading(false);
+          setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+        }
+      }
+    });
   };
 
-  // Find active round status for advancement
-  const currentR1 = bracketData?.rounds?.find((r) => r.roundNumber === 1);
-  const currentR2 = bracketData?.rounds?.find((r) => r.roundNumber === 2);
-  const r1MatchesList = currentR1?.matches?.filter((m) => !m.isBye) || [];
-  const r1CompletedCount = r1MatchesList.filter((m) => m.status === 'completed' && m.winnerTeam).length;
-  const isR2Waiting = currentR2 && currentR2.matches?.every((m) => !m.team1 || !m.team2);
+  const handlePublishAndLock = () => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Publish & Lock Draw?',
+      message: `Lock the draw for ${selectedCat.replace('_', ' ').toUpperCase()}? Once locked, the tournament draw cannot be regenerated.`,
+      confirmText: 'Lock & Publish',
+      action: async () => {
+        setActionLoading(true);
+        try {
+          const res = await api.publishAndLockDraw(selectedCat);
+          if (res.success) {
+            setFeedbackMessage({ type: 'success', text: res.message });
+            fetchCategoryData();
+          }
+        } catch (err) {
+          setFeedbackMessage({ type: 'error', text: err.message || 'Failed to lock draw.' });
+        } finally {
+          setActionLoading(false);
+          setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+        }
+      }
+    });
+  };
 
   return (
     <div className="space-y-8">
+      {/* Feedback Banner */}
+      {feedbackMessage && (
+        <div
+          className={`p-4 rounded-2xl text-xs font-semibold flex items-center justify-between shadow-md ${
+            feedbackMessage.type === 'success'
+              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+              : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+          }`}
+        >
+          <span>{feedbackMessage.text}</span>
+          <button onClick={() => setFeedbackMessage(null)} className="text-xs opacity-70 hover:opacity-100 font-bold px-2">
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#1C2B48]">
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#4A138C]">
         <div>
-          <span className="text-xs font-mono text-[#D4AF37] font-bold uppercase tracking-widest">
+          <span className="text-xs font-mono text-[#FFBA00] font-bold uppercase tracking-widest">
             Knockout Draw Engine
           </span>
-          <h1 className="text-3xl font-black font-display text-white mt-1">Dynamic Bracket Manager</h1>
-          <p className="text-xs text-[#94A3B8]">
-            Sequential pairing algorithm: Even entries produce 0 byes, Odd entries produce 1 bye per round.
+          <h1 className="text-3xl sm:text-4xl font-black font-display text-white mt-1">Dynamic Bracket Manager</h1>
+          <p className="text-xs text-[#D8C7F0]">
+            Single-game knockout tournament bracket. Winners advance automatically to the next round as each match is played.
           </p>
         </div>
 
-        {/* Generate / Lock / Advance Action Buttons */}
+        {/* Generate / Lock Action Buttons */}
         <div className="flex items-center gap-3">
           {!bracketData?.isLocked && (
             <button
               onClick={handleGenerateDraw}
               disabled={actionLoading || N < 2}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#D4AF37] text-[#070B16] font-bold text-xs shadow-md hover:bg-[#E5C358] disabled:opacity-50 transition-all"
+              className="flex items-center gap-2 px-6 py-3 rounded-2xl btn-gold text-xs font-black shadow-md transition-all cursor-pointer disabled:opacity-50"
             >
               <Sparkles className="w-4 h-4" />
               <span>{actionLoading ? 'Generating...' : 'Generate Random Draw'}</span>
@@ -168,7 +175,7 @@ function AdminDrawsContent() {
             <button
               onClick={handlePublishAndLock}
               disabled={actionLoading}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition-all"
+              className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition-all cursor-pointer"
             >
               <Lock className="w-4 h-4" />
               <span>Publish & Lock Draw</span>
@@ -176,7 +183,7 @@ function AdminDrawsContent() {
           )}
 
           {bracketData?.isLocked && (
-            <div className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#D4AF37]/15 border border-[#D4AF37]/30 text-[#D4AF37] text-xs font-bold font-mono">
+            <div className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#FFBA00]/15 border border-[#FFBA00]/40 text-[#FFBA00] text-xs font-bold font-mono">
               <Shield className="w-4 h-4" />
               <span>DRAW LOCKED & PUBLISHED</span>
             </div>
@@ -185,17 +192,17 @@ function AdminDrawsContent() {
       </div>
 
       {/* Category Tabs */}
-      <div className="flex items-center gap-2 flex-wrap pb-2 border-b border-[#1C2B48]">
+      <div className="flex items-center gap-2 flex-wrap pb-2 border-b border-[#4A138C]">
         {CATEGORIES.map((cat) => {
           const isSelected = selectedCat === cat.id;
           return (
             <button
               key={cat.id}
               onClick={() => setSelectedCat(cat.id)}
-              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-display font-bold transition-all ${
+              className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-display font-bold transition-all cursor-pointer ${
                 isSelected
-                  ? 'bg-[#D4AF37] text-[#070B16] shadow-md'
-                  : 'bg-[#0E1626] text-[#94A3B8] hover:text-white'
+                  ? 'bg-[#FFBA00] text-[#210440] shadow-md shadow-[#FFBA00]/20'
+                  : 'bg-[#2C0854] text-[#D8C7F0] hover:text-white'
               }`}
             >
               {cat.name}
@@ -204,75 +211,44 @@ function AdminDrawsContent() {
         })}
       </div>
 
-      {/* Round 1 -> Round 2 (Quarterfinals) Advancement Action Banner */}
-      {isR2Waiting && r1MatchesList.length > 0 && (
-        <div className="sport-card p-5 border-2 border-[#D4AF37]/40 bg-gradient-to-r from-[#0E1626] to-[#141F36] flex flex-wrap items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-[#D4AF37]" />
-              <h3 className="text-sm font-bold text-white font-display uppercase tracking-wide">
-                Advance {selectedCat.replace('_', ' ').toUpperCase()} to Round 2 ({currentR2.roundName})
-              </h3>
-            </div>
-            <p className="text-xs text-[#94A3B8]">
-              Round 1 Progress: <span className="font-mono font-bold text-white">{r1CompletedCount} / {r1MatchesList.length}</span> matches completed.
-              {r1CompletedCount === r1MatchesList.length
-                ? ' All Round 1 winners are confirmed! Click below to populate and start Quarterfinals.'
-                : ' Finish Round 1 matches in Scorekeeper or click below to advance winners.'}
-            </p>
-          </div>
-
-          <button
-            onClick={() => handleAdvanceRound(1, false)}
-            disabled={actionLoading}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#D4AF37] hover:bg-[#E5C358] text-[#070B16] font-bold text-xs shadow-lg shadow-[#D4AF37]/20 transition-all cursor-pointer"
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            <span>{actionLoading ? 'Advancing...' : `Advance Winners to ${currentR2.roundName} (Round 2)`}</span>
-          </button>
-        </div>
-      )}
-
-      {/* Bracket Mathematical Calculation Overview Card */}
-      <div className="sport-card p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+      {/* Pairing Summary Parameters */}
+      <div className="sport-card p-6 space-y-4 rounded-3xl border border-[#4A138C]">
+        <div className="flex items-center justify-between text-xs pb-3 border-b border-[#4A138C]">
+          <div className="flex items-center gap-2.5">
             <CategoryBadge category={selectedCat} />
-            <h3 className="font-bold text-white text-base">
-              Tournament Pairing Parameters ({N} Approved Entries)
-            </h3>
+            <span className="font-bold text-white font-display">Tournament Pairing Parameters ({N} Approved Entries)</span>
           </div>
-          <span className="text-xs font-mono text-[#94A3B8]">Sequential Pairing Rule</span>
+          <span className="font-mono text-[#FFBA00] text-xs font-bold">Sequential Single-Game Knockout</span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
-          <div className="p-3.5 rounded-xl bg-[#070B16] border border-[#1C2B48]">
-            <span className="text-[11px] text-[#94A3B8] block font-mono">Approved Entries (N)</span>
-            <span className="text-xl font-black font-mono text-white">{N}</span>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+          <div className="p-4 rounded-2xl bg-[#140129] border border-[#4A138C]">
+            <span className="text-[11px] text-[#D8C7F0] block">Approved Entries (N)</span>
+            <span className="font-mono font-black text-white text-xl">{N}</span>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-[#070B16] border border-[#1C2B48]">
-            <span className="text-[11px] text-[#94A3B8] block font-mono">Round 1 Playable Matches</span>
-            <span className="text-xl font-black font-mono text-[#D4AF37]">{r1Matches} Matches</span>
+          <div className="p-4 rounded-2xl bg-[#140129] border border-[#4A138C]">
+            <span className="text-[11px] text-[#D8C7F0] block">Round 1 Matches</span>
+            <span className="font-mono font-black text-[#FFBA00] text-xl">{r1Matches} Matches</span>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-[#070B16] border border-[#1C2B48]">
-            <span className="text-[11px] text-[#94A3B8] block font-mono">Round 1 Byes (N % 2)</span>
-            <span className="text-xl font-black font-mono text-purple-400">{r1Byes} Bye</span>
+          <div className="p-4 rounded-2xl bg-[#140129] border border-[#4A138C]">
+            <span className="text-[11px] text-[#D8C7F0] block">Round 1 Byes (N % 2)</span>
+            <span className="font-mono font-black text-[#FDB095] text-xl">{r1Byes} Bye</span>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-[#070B16] border border-[#1C2B48]">
-            <span className="text-[11px] text-[#94A3B8] block font-mono">Advancing to Round 2</span>
-            <span className="text-xl font-black font-mono text-emerald-400">{r2Advancing} Entries</span>
+          <div className="p-4 rounded-2xl bg-[#140129] border border-[#4A138C]">
+            <span className="text-[11px] text-[#D8C7F0] block">Advancing to Round 2</span>
+            <span className="font-mono font-black text-emerald-300 text-xl">{r2Advancing} Entries</span>
           </div>
         </div>
       </div>
 
-      {/* Interactive Bracket Viewer */}
+      {/* Bracket Tree View */}
       {loading ? (
-        <div className="py-24 text-center text-[#94A3B8] text-sm flex items-center justify-center gap-2">
-          <RefreshCw className="w-5 h-5 animate-spin text-[#D4AF37]" />
-          <span>Loading dynamic bracket...</span>
+        <div className="py-20 text-center text-[#D8C7F0] text-xs flex items-center justify-center gap-2">
+          <RefreshCw className="w-4 h-4 animate-spin text-[#FFBA00]" />
+          <span>Loading bracket tree...</span>
         </div>
       ) : (
         <BracketView
@@ -282,13 +258,43 @@ function AdminDrawsContent() {
           isPublished={bracketData?.isPublished}
         />
       )}
+
+      {/* In-App Confirmation Modal */}
+      <Modal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+        title={confirmModal.title}
+        maxWidth="max-w-md"
+      >
+        <div className="space-y-4 py-1">
+          <p className="text-xs text-slate-200 leading-relaxed">
+            {confirmModal.message}
+          </p>
+
+          <div className="flex items-center justify-end gap-3 pt-3">
+            <button
+              onClick={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#D8C7F0] hover:text-white"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmModal.action}
+              disabled={actionLoading}
+              className="px-6 py-2.5 rounded-xl btn-gold text-xs font-black shadow-lg transition-all cursor-pointer"
+            >
+              {actionLoading ? 'Processing...' : confirmModal.confirmText}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
 
 export default function AdminDrawsPage() {
   return (
-    <Suspense fallback={<div className="py-24 text-center text-[#94A3B8] text-sm">Loading draw engine...</div>}>
+    <Suspense fallback={<div className="py-20 text-center text-[#D8C7F0] text-xs">Loading admin draws...</div>}>
       <AdminDrawsContent />
     </Suspense>
   );

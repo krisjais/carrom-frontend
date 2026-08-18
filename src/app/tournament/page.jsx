@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
-import { Trophy, MapPin, Shield, CheckCircle2 } from 'lucide-react';
-import { StatusBadge } from '@/components/ui/Badge';
+import { Trophy, MapPin, Shield, CheckCircle2, ArrowRight } from 'lucide-react';
+import { StatusBadge, MainBoardBadge } from '@/components/ui/Badge';
 
 export default function TournamentPage() {
   const [tournament, setTournament] = useState(null);
@@ -27,74 +27,78 @@ export default function TournamentPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
       {/* Header */}
-      <div className="text-center max-w-2xl mx-auto space-y-2">
-        <h1 className="text-3xl sm:text-4xl font-black font-display text-white">
+      <div className="text-center max-w-2xl mx-auto space-y-3">
+        <span className="text-xs font-mono text-[#FFBA00] font-bold uppercase tracking-widest block">
+          Championship Overview
+        </span>
+        <h1 className="text-4xl sm:text-5xl font-black font-display text-white tracking-tight">
           {tournament?.title || 'Annual Inter-College Carrom Championship'}
         </h1>
-        <p className="text-xs sm:text-sm text-[#94A3B8]">
-          Edition {tournament?.edition || '2026'} • 6 Tournament Boards
+        <p className="text-xs sm:text-sm text-[#D8C7F0]">
+          Edition {tournament?.edition || '2026'} • Main Carrom Board Arena
         </p>
-        <div className="pt-1">
+        <div className="pt-1 flex items-center justify-center gap-2">
+          <MainBoardBadge />
           <StatusBadge status={tournament?.status || 'ongoing'} />
         </div>
       </div>
 
       {/* 3 Main Highlights */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="sport-card p-5 space-y-2">
-          <div className="flex items-center gap-2 text-[#D4AF37]">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="sport-card p-6 space-y-3 rounded-3xl border border-[#4A138C]">
+          <div className="flex items-center gap-2.5 text-[#FFBA00]">
             <Trophy className="w-5 h-5" />
-            <h3 className="font-bold text-white text-sm font-display">Knockout Format</h3>
+            <h3 className="font-black text-white text-base font-display">Knockout Format</h3>
           </div>
-          <p className="text-xs text-[#94A3B8] leading-relaxed">
-            Single-elimination knockout in all 5 categories. Matches are Best of 3 Boards (2–0 or 2–1). Random byes are generated dynamically based on actual entries.
+          <p className="text-xs text-[#D8C7F0] leading-relaxed">
+            Single-elimination knockout in all 5 categories. Each match is decided by 1 single game. Winners advance directly to the next round.
           </p>
         </div>
 
-        <div className="sport-card p-5 space-y-2">
-          <div className="flex items-center gap-2 text-[#D4AF37]">
+        <div className="sport-card p-6 space-y-3 rounded-3xl border border-[#4A138C]">
+          <div className="flex items-center gap-2.5 text-[#FDB095]">
             <MapPin className="w-5 h-5" />
-            <h3 className="font-bold text-white text-sm font-display">Arena & Boards</h3>
+            <h3 className="font-black text-white text-base font-display">Single Board Arena</h3>
           </div>
-          <p className="text-xs text-[#94A3B8] leading-relaxed">
-            Indoor Sports Complex. Features 6 championship Carrom boards with standard lighting and championship strikers.
+          <p className="text-xs text-[#D8C7F0] leading-relaxed">
+            All matches are played on the <strong>Main Carrom Board</strong> with sequential FIFO queuing and spectator tracking.
           </p>
         </div>
 
-        <div className="sport-card p-5 space-y-2">
-          <div className="flex items-center gap-2 text-[#D4AF37]">
+        <div className="sport-card p-6 space-y-3 rounded-3xl border border-[#4A138C]">
+          <div className="flex items-center gap-2.5 text-[#E5958E]">
             <Shield className="w-5 h-5" />
-            <h3 className="font-bold text-white text-sm font-display">Official Scoring</h3>
+            <h3 className="font-black text-white text-base font-display">Official Scoring</h3>
           </div>
-          <p className="text-xs text-[#94A3B8] leading-relaxed">
-            Tournament Rules: Coin = 1 pt, Queen = 3 pts (if covered), Striker foul = -1 pt. Admin records points and manually confirms board winners.
+          <p className="text-xs text-[#D8C7F0] leading-relaxed">
+            Referee desk confirms board winners in 1 click, instantly propagating advancing teams downstream to the bracket.
           </p>
         </div>
       </div>
 
       {/* 5 Categories Summary */}
-      <div className="sport-card p-6 space-y-4">
-        <h3 className="font-bold text-white text-base font-display">Categories Contested</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
-          <div className="p-3 rounded-lg bg-[#070B16] border border-[#1C2B48]">
-            <span className="font-bold text-white block mb-0.5">1. Boys Singles</span>
-            <p className="text-[#94A3B8]">Individual knockout for male participants.</p>
+      <div className="sport-card p-8 space-y-6 rounded-4xl border border-[#4A138C]">
+        <h3 className="font-black text-white text-xl font-display">5 Championship Divisions</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+          <div className="p-4 rounded-2xl bg-[#140129] border border-[#4A138C]">
+            <span className="font-bold text-white block mb-1">1. Boys Singles</span>
+            <p className="text-[#D8C7F0]">Individual knockout for male participants.</p>
           </div>
-          <div className="p-3 rounded-lg bg-[#070B16] border border-[#1C2B48]">
-            <span className="font-bold text-white block mb-0.5">2. Girls Singles</span>
-            <p className="text-[#94A3B8]">Individual knockout for female participants.</p>
+          <div className="p-4 rounded-2xl bg-[#140129] border border-[#4A138C]">
+            <span className="font-bold text-white block mb-1">2. Girls Singles</span>
+            <p className="text-[#D8C7F0]">Individual knockout for female participants.</p>
           </div>
-          <div className="p-3 rounded-lg bg-[#070B16] border border-[#1C2B48]">
-            <span className="font-bold text-white block mb-0.5">3. Boys Doubles</span>
-            <p className="text-[#94A3B8]">2 male participants per team.</p>
+          <div className="p-4 rounded-2xl bg-[#140129] border border-[#4A138C]">
+            <span className="font-bold text-white block mb-1">3. Boys Doubles</span>
+            <p className="text-[#D8C7F0]">2 male participants per team.</p>
           </div>
-          <div className="p-3 rounded-lg bg-[#070B16] border border-[#1C2B48]">
-            <span className="font-bold text-white block mb-0.5">4. Girls Doubles</span>
-            <p className="text-[#94A3B8]">2 female participants per team.</p>
+          <div className="p-4 rounded-2xl bg-[#140129] border border-[#4A138C]">
+            <span className="font-bold text-white block mb-1">4. Girls Doubles</span>
+            <p className="text-[#D8C7F0]">2 female participants per team.</p>
           </div>
-          <div className="p-3 rounded-lg bg-[#070B16] border border-[#1C2B48]">
-            <span className="font-bold text-white block mb-0.5">5. Mixed Doubles</span>
-            <p className="text-[#94A3B8]">1 male and 1 female participant per team.</p>
+          <div className="p-4 rounded-2xl bg-[#140129] border border-[#4A138C]">
+            <span className="font-bold text-white block mb-1">5. Mixed Doubles</span>
+            <p className="text-[#D8C7F0]">1 male and 1 female participant per team.</p>
           </div>
         </div>
       </div>
@@ -103,9 +107,9 @@ export default function TournamentPage() {
       <div className="text-center pt-2">
         <Link
           href="/registration"
-          className="inline-block px-8 py-3.5 rounded-xl bg-[#D4AF37] hover:bg-[#E5C358] text-[#070B16] font-bold text-xs shadow-sm transition-all"
+          className="inline-block px-10 py-4 rounded-2xl btn-gold font-black text-xs tracking-wider shadow-lg transition-all"
         >
-          Register for Tournament
+          REGISTER FOR TOURNAMENT →
         </Link>
       </div>
     </div>
