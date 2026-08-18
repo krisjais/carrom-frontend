@@ -3,26 +3,25 @@
 @tailwind utilities;
 
 :root {
-  --bg-main: #210440;
-  --bg-surface: #2C0854;
-  --bg-surface-elevated: #380E6B;
-  --border-subtle: #4A138C;
-  --border-focus: #FFBA00;
-  --accent-gold: #FFBA00;
-  --accent-gold-hover: #FFC933;
-  --accent-coral: #FDB095;
-  --accent-rose: #E5958E;
+  --bg-main: #233A66;
+  --bg-surface: #1E3258;
+  --bg-surface-elevated: #2A457A;
+  --border-subtle: #35538C;
+  --border-focus: #D7A859;
+  --accent-cream: #FFD691;
+  --accent-gold: #D7A859;
+  --accent-coral: #FF6E80;
   --text-primary: #FFFFFF;
-  --text-secondary: #D8C7F0;
-  --text-muted: #9E82C2;
+  --text-secondary: #D4DEEE;
+  --text-muted: #9BB0D3;
 }
 
 body {
-  background-color: #140129;
+  background-color: #233A66;
   background-image: 
-    radial-gradient(circle at 10% 20%, rgba(253, 176, 149, 0.04) 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, rgba(229, 149, 142, 0.05) 0%, transparent 40%),
-    radial-gradient(circle at 50% 50%, rgba(33, 4, 64, 0.8) 0%, #140129 100%);
+    radial-gradient(circle at 15% 15%, rgba(255, 214, 145, 0.05) 0%, transparent 45%),
+    radial-gradient(circle at 85% 85%, rgba(215, 168, 89, 0.04) 0%, transparent 45%),
+    radial-gradient(circle at 50% 50%, #233A66 0%, #152442 100%);
   color: #FFFFFF;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
@@ -35,13 +34,13 @@ h1, h2, h3, h4, h5, h6, .font-display {
   letter-spacing: -0.025em;
 }
 
-/* Sports Editorial Card System */
+/* Sports Championship Card System */
 .sport-card {
-  background-color: #240547;
-  background-image: linear-gradient(180deg, rgba(56, 14, 107, 0.5) 0%, rgba(36, 5, 71, 0.9) 100%);
-  border: 1px solid #4A138C;
+  background-color: #1E3258;
+  background-image: linear-gradient(180deg, rgba(42, 69, 122, 0.6) 0%, rgba(30, 50, 88, 0.95) 100%);
+  border: 1px solid #35538C;
   border-radius: 1.5rem;
-  box-shadow: 0 10px 30px -10px rgba(18, 1, 36, 0.5);
+  box-shadow: 0 10px 30px -10px rgba(15, 26, 48, 0.5);
 }
 
 .sport-card-hover {
@@ -49,87 +48,87 @@ h1, h2, h3, h4, h5, h6, .font-display {
 }
 
 .sport-card-hover:hover {
-  background-color: #2D0A57;
-  border-color: #E5958E;
-  transform: translateY(-3px);
-  box-shadow: 0 16px 36px -10px rgba(253, 176, 149, 0.15);
+  background-color: #243C6B;
+  border-color: #D7A859;
+  transform: translateY(-2px);
+  box-shadow: 0 16px 36px -10px rgba(15, 26, 48, 0.6);
 }
 
 /* Editorial Glass & Surface Cards */
 .glass-card {
-  background: linear-gradient(135deg, rgba(44, 8, 84, 0.85) 0%, rgba(26, 3, 53, 0.95) 100%);
-  border: 1px solid rgba(229, 149, 142, 0.25);
+  background: linear-gradient(135deg, rgba(30, 50, 88, 0.9) 0%, rgba(21, 36, 66, 0.95) 100%);
+  border: 1px solid rgba(215, 168, 89, 0.3);
   backdrop-filter: blur(12px);
   border-radius: 1.75rem;
 }
 
-/* Buttons */
-.btn-gold {
-  background-color: #FFBA00;
-  color: #140129;
+/* Primary Button: Cream #FFD691 with Navy #233A66 text */
+.btn-primary, .btn-cream {
+  background-color: #FFD691;
+  color: #233A66;
   font-family: 'Outfit', sans-serif;
   font-weight: 800;
+  border: none;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 20px rgba(255, 186, 0, 0.25);
+  box-shadow: 0 4px 18px rgba(255, 214, 145, 0.25);
 }
 
-.btn-gold:hover {
-  background-color: #FFC933;
+.btn-primary:hover, .btn-cream:hover {
+  background-color: #FFE2AA;
   transform: translateY(-1px);
-  box-shadow: 0 6px 25px rgba(255, 186, 0, 0.35);
+  box-shadow: 0 6px 22px rgba(255, 214, 145, 0.35);
 }
 
-.btn-purple {
-  background-color: #2C0854;
-  border: 1px solid #4A138C;
+/* Secondary Button: Navy #233A66 with Cream #FFD691 / Gold #D7A859 border & text */
+.btn-secondary {
+  background-color: #1E3258;
+  border: 1.5px solid #D7A859;
   color: #FFFFFF;
   font-weight: 700;
   transition: all 0.2s ease;
 }
 
-.btn-purple:hover {
-  background-color: #380E6B;
-  border-color: #FDB095;
-  color: #FDB095;
+.btn-secondary:hover {
+  background-color: #2A457A;
+  border-color: #FFD691;
+  color: #FFD691;
 }
 
 /* Carrom Board Decorative Patterns */
 .carrom-radial-circle {
-  background: radial-gradient(circle, rgba(255, 186, 0, 0.08) 0%, rgba(253, 176, 149, 0.03) 50%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 214, 145, 0.07) 0%, rgba(215, 168, 89, 0.03) 50%, transparent 70%);
 }
 
 .carrom-grid-pattern {
-  background-image: radial-gradient(circle at 1px 1px, rgba(255, 186, 0, 0.08) 1px, transparent 0);
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 214, 145, 0.08) 1px, transparent 0);
   background-size: 24px 24px;
 }
 
-/* Gold Text Utility */
+/* Color Utilities */
+.cream-text {
+  color: #FFD691;
+}
+
 .gold-text {
-  color: #FFBA00;
+  color: #D7A859;
 }
 
-/* Coral Text Utility */
 .coral-text {
-  color: #FDB095;
+  color: #FF6E80;
 }
 
-/* Rose Text Utility */
-.rose-text {
-  color: #E5958E;
-}
-
-/* Custom Championship Scrollbar */
+/* Custom Sports Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #140129;
+  background: #152442;
 }
 ::-webkit-scrollbar-thumb {
-  background: #380E6B;
+  background: #35538C;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #FFBA00;
+  background: #D7A859;
 }

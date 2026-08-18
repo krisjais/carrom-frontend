@@ -42,20 +42,20 @@ export default function AdminTeamsPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#4A138C]">
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#35538C]">
         <div>
-          <span className="text-xs font-mono text-[#FFBA00] font-bold uppercase tracking-widest">
+          <span className="text-xs font-mono text-[#FFD691] font-bold uppercase tracking-widest">
             Approved Category Rosters
           </span>
           <h1 className="text-3xl sm:text-4xl font-black font-display text-white mt-1">Teams & Entries</h1>
-          <p className="text-xs text-[#D8C7F0]">
+          <p className="text-xs text-[#D4DEEE]">
             View all approved singles entries and paired doubles teams for tournament draw generation.
           </p>
         </div>
       </div>
 
       {/* Category Tabs */}
-      <div className="flex items-center gap-2 flex-wrap pb-2 border-b border-[#4A138C]">
+      <div className="flex items-center gap-2 flex-wrap pb-2 border-b border-[#35538C]">
         {CATEGORIES.map((cat) => {
           const isSelected = selectedCat === cat.id;
           return (
@@ -64,8 +64,8 @@ export default function AdminTeamsPage() {
               onClick={() => setSelectedCat(cat.id)}
               className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-display font-bold transition-all cursor-pointer ${
                 isSelected
-                  ? 'bg-[#FFBA00] text-[#210440] shadow-md shadow-[#FFBA00]/20'
-                  : 'bg-[#2C0854] text-[#D8C7F0] hover:text-white'
+                  ? 'bg-[#FFD691] text-[#233A66] shadow-md shadow-[#FFD691]/20 font-black'
+                  : 'bg-[#1E3258] text-[#D4DEEE] hover:text-white'
               }`}
             >
               {cat.name}
@@ -75,8 +75,8 @@ export default function AdminTeamsPage() {
       </div>
 
       {/* Teams Table */}
-      <div className="sport-card rounded-3xl p-6 border border-[#4A138C] space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-[#4A138C]">
+      <div className="sport-card rounded-3xl p-6 border border-[#35538C] space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[#35538C]">
           <div className="flex items-center gap-2.5">
             <CategoryBadge category={selectedCat} />
             <h3 className="font-bold text-white text-base">
@@ -86,33 +86,33 @@ export default function AdminTeamsPage() {
         </div>
 
         {loading ? (
-          <div className="py-16 text-center text-[#D8C7F0] text-sm">Loading teams...</div>
+          <div className="py-16 text-center text-[#D4DEEE] text-sm">Loading teams...</div>
         ) : teams.length === 0 ? (
-          <div className="py-16 text-center text-[#D8C7F0] text-sm">
+          <div className="py-16 text-center text-[#D4DEEE] text-sm">
             No approved teams found in this category. Approve registrations or create pairs in the Registrations tab.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-[#4A138C] text-[#D8C7F0] font-mono uppercase text-[11px]">
+              <thead className="border-b border-[#35538C] text-[#D4DEEE] font-bold uppercase text-[11px]">
                 <tr>
-                  <th className="pb-3 font-bold">#</th>
-                  <th className="pb-3 font-bold">Team Name</th>
-                  <th className="pb-3 font-bold">Player 1</th>
-                  <th className="pb-3 font-bold">Player 2</th>
-                  <th className="pb-3 font-bold">Verification</th>
-                  <th className="pb-3 font-bold text-right">Action</th>
+                  <th className="pb-3">#</th>
+                  <th className="pb-3">Team Name</th>
+                  <th className="pb-3">Player 1</th>
+                  <th className="pb-3">Player 2</th>
+                  <th className="pb-3">Verification</th>
+                  <th className="pb-3 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#4A138C]/60">
+              <tbody className="divide-y divide-[#35538C]/60">
                 {teams.map((t, idx) => (
-                  <tr key={t._id} className="hover:bg-[#2C0854]/40 transition-colors">
-                    <td className="py-3.5 font-mono text-[#FFBA00] font-bold">{idx + 1}</td>
+                  <tr key={t._id} className="hover:bg-[#1E3258]/40 transition-colors">
+                    <td className="py-3.5 font-mono text-[#FFD691] font-bold">{idx + 1}</td>
                     <td className="py-3.5 font-bold text-white text-xs">{t.name}</td>
                     <td className="py-3.5">
                       <div className="space-y-0.5">
                         <span className="text-slate-200 font-bold">{t.player1?.fullName}</span>
-                        <span className="text-[10px] text-[#D8C7F0] block font-mono">
+                        <span className="text-[10px] text-[#D4DEEE] block font-mono">
                           {t.player1?.studentId} • {t.player1?.department}
                         </span>
                       </div>
@@ -121,12 +121,12 @@ export default function AdminTeamsPage() {
                       {t.player2 ? (
                         <div className="space-y-0.5">
                           <span className="text-slate-200 font-bold">{t.player2?.fullName}</span>
-                          <span className="text-[10px] text-[#D8C7F0] block font-mono">
+                          <span className="text-[10px] text-[#D4DEEE] block font-mono">
                             {t.player2?.studentId} • {t.player2?.department}
                           </span>
                         </div>
                       ) : (
-                        <span className="text-slate-500 italic">Singles Entry</span>
+                        <span className="text-slate-400 italic">Singles Entry</span>
                       )}
                     </td>
                     <td className="py-3.5">

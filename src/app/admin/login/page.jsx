@@ -35,24 +35,24 @@ export default function AdminLoginPage() {
   return (
     <div className="max-w-md mx-auto px-4 py-16 space-y-6">
       <div className="text-center space-y-2">
-        <div className="w-12 h-12 rounded-2xl bg-[#0E1626] border border-[#D4AF37]/30 text-[#D4AF37] flex items-center justify-center mx-auto">
-          <Shield className="w-6 h-6" />
+        <div className="w-14 h-14 rounded-2xl bg-[#1E3258] border border-[#D7A859]/50 text-[#FFD691] flex items-center justify-center mx-auto shadow-lg shadow-[#FFD691]/10">
+          <Shield className="w-7 h-7" />
         </div>
-        <h1 className="text-2xl font-black font-display text-white">Administrator Console</h1>
-        <p className="text-xs text-[#94A3B8]">
+        <h1 className="text-3xl font-black font-display text-white mt-2">Administrator Console</h1>
+        <p className="text-xs text-[#D4DEEE]">
           Sign in with administrator credentials to manage tournament operations.
         </p>
       </div>
 
       {error && (
-        <div className="p-3.5 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 text-xs font-medium">
+        <div className="p-4 rounded-2xl bg-rose-500/15 text-rose-300 border border-rose-500/30 text-xs font-semibold">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="sport-card p-6 space-y-4">
+      <form onSubmit={handleSubmit} className="sport-card p-8 space-y-5 rounded-3xl border border-[#35538C]">
         <div>
-          <label className="text-xs text-[#94A3B8] font-medium block mb-1">
+          <label className="text-xs text-[#D4DEEE] font-bold block mb-1.5">
             Admin Email
           </label>
           <input
@@ -60,12 +60,12 @@ export default function AdminLoginPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full h-10 bg-[#070B16] px-3 text-xs text-white rounded-lg border border-[#1C2B48] focus:outline-none focus:border-[#D4AF37]"
+            className="w-full h-11 bg-[#152442] px-4 text-xs text-white rounded-xl border border-[#35538C] focus:outline-none focus:border-[#FFD691]"
           />
         </div>
 
         <div>
-          <label className="text-xs text-[#94A3B8] font-medium block mb-1">
+          <label className="text-xs text-[#D4DEEE] font-bold block mb-1.5">
             Admin Password
           </label>
           <input
@@ -73,22 +73,22 @@ export default function AdminLoginPage() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full h-10 bg-[#070B16] px-3 text-xs text-white rounded-lg border border-[#1C2B48] focus:outline-none focus:border-[#D4AF37]"
+            className="w-full h-11 bg-[#152442] px-4 text-xs text-white rounded-xl border border-[#35538C] focus:outline-none focus:border-[#FFD691]"
           />
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-2.5 rounded-xl bg-[#D4AF37] hover:bg-[#E5C358] text-[#070B16] font-bold text-xs shadow-sm transition-all"
+          className="w-full py-3.5 rounded-xl btn-cream text-xs font-black shadow-lg transition-all cursor-pointer disabled:opacity-50"
         >
-          {loading ? 'Authenticating...' : 'Access Admin Panel'}
+          {loading ? 'Authenticating...' : 'ACCESS ADMIN PANEL'}
         </button>
 
-        <div className="p-3 rounded-lg bg-[#070B16] border border-[#1C2B48] text-[11px] text-[#94A3B8] space-y-2">
+        <div className="p-4 rounded-2xl bg-[#152442] border border-[#35538C] text-[11px] text-[#D4DEEE] space-y-2">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-semibold text-slate-300">Default Admin Credentials:</p>
+              <p className="font-bold text-white">Default Admin Credentials:</p>
               <p className="font-mono text-[10px]">Email: admin@carrom.edu</p>
               <p className="font-mono text-[10px]">Pass: admincarrom2026</p>
             </div>
@@ -100,9 +100,9 @@ export default function AdminLoginPage() {
                 handleSubmit({ preventDefault: () => {} });
               }}
               disabled={loading}
-              className="px-3 py-1.5 rounded-lg bg-[#D4AF37]/15 border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/25 text-[11px] font-bold transition-colors shrink-0"
+              className="px-3 py-1.5 rounded-xl bg-[#FFD691]/15 border border-[#D7A859]/50 text-[#FFD691] hover:bg-[#FFD691]/25 text-[11px] font-bold transition-colors shrink-0 cursor-pointer"
             >
-              ⚡ 1-Click Login
+              1-Click Login
             </button>
           </div>
         </div>

@@ -147,13 +147,13 @@ function AdminDrawsContent() {
       )}
 
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#4A138C]">
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#35538C]">
         <div>
-          <span className="text-xs font-mono text-[#FFBA00] font-bold uppercase tracking-widest">
+          <span className="text-xs font-mono text-[#FFD691] font-bold uppercase tracking-widest">
             Knockout Draw Engine
           </span>
           <h1 className="text-3xl sm:text-4xl font-black font-display text-white mt-1">Dynamic Bracket Manager</h1>
-          <p className="text-xs text-[#D8C7F0]">
+          <p className="text-xs text-[#D4DEEE]">
             Single-game knockout tournament bracket. Winners advance automatically to the next round as each match is played.
           </p>
         </div>
@@ -164,7 +164,7 @@ function AdminDrawsContent() {
             <button
               onClick={handleGenerateDraw}
               disabled={actionLoading || N < 2}
-              className="flex items-center gap-2 px-6 py-3 rounded-2xl btn-gold text-xs font-black shadow-md transition-all cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-2 px-6 py-3 rounded-2xl btn-cream text-xs font-black shadow-md transition-all cursor-pointer disabled:opacity-50"
             >
               <Sparkles className="w-4 h-4" />
               <span>{actionLoading ? 'Generating...' : 'Generate Random Draw'}</span>
@@ -183,7 +183,7 @@ function AdminDrawsContent() {
           )}
 
           {bracketData?.isLocked && (
-            <div className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#FFBA00]/15 border border-[#FFBA00]/40 text-[#FFBA00] text-xs font-bold font-mono">
+            <div className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#FFD691]/15 border border-[#D7A859]/50 text-[#FFD691] text-xs font-bold font-mono">
               <Shield className="w-4 h-4" />
               <span>DRAW LOCKED & PUBLISHED</span>
             </div>
@@ -192,7 +192,7 @@ function AdminDrawsContent() {
       </div>
 
       {/* Category Tabs */}
-      <div className="flex items-center gap-2 flex-wrap pb-2 border-b border-[#4A138C]">
+      <div className="flex items-center gap-2 flex-wrap pb-2 border-b border-[#35538C]">
         {CATEGORIES.map((cat) => {
           const isSelected = selectedCat === cat.id;
           return (
@@ -201,8 +201,8 @@ function AdminDrawsContent() {
               onClick={() => setSelectedCat(cat.id)}
               className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-display font-bold transition-all cursor-pointer ${
                 isSelected
-                  ? 'bg-[#FFBA00] text-[#210440] shadow-md shadow-[#FFBA00]/20'
-                  : 'bg-[#2C0854] text-[#D8C7F0] hover:text-white'
+                  ? 'bg-[#FFD691] text-[#233A66] shadow-md shadow-[#FFD691]/20 font-black'
+                  : 'bg-[#1E3258] text-[#D4DEEE] hover:text-white'
               }`}
             >
               {cat.name}
@@ -212,33 +212,33 @@ function AdminDrawsContent() {
       </div>
 
       {/* Pairing Summary Parameters */}
-      <div className="sport-card p-6 space-y-4 rounded-3xl border border-[#4A138C]">
-        <div className="flex items-center justify-between text-xs pb-3 border-b border-[#4A138C]">
+      <div className="sport-card p-6 space-y-4 rounded-3xl border border-[#35538C]">
+        <div className="flex items-center justify-between text-xs pb-3 border-b border-[#35538C]">
           <div className="flex items-center gap-2.5">
             <CategoryBadge category={selectedCat} />
             <span className="font-bold text-white font-display">Tournament Pairing Parameters ({N} Approved Entries)</span>
           </div>
-          <span className="font-mono text-[#FFBA00] text-xs font-bold">Sequential Single-Game Knockout</span>
+          <span className="font-mono text-[#FFD691] text-xs font-bold">Sequential Single-Game Knockout</span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-          <div className="p-4 rounded-2xl bg-[#140129] border border-[#4A138C]">
-            <span className="text-[11px] text-[#D8C7F0] block">Approved Entries (N)</span>
+          <div className="p-4 rounded-2xl bg-[#152442] border border-[#35538C]">
+            <span className="text-[11px] text-[#D4DEEE] block">Approved Entries (N)</span>
             <span className="font-mono font-black text-white text-xl">{N}</span>
           </div>
 
-          <div className="p-4 rounded-2xl bg-[#140129] border border-[#4A138C]">
-            <span className="text-[11px] text-[#D8C7F0] block">Round 1 Matches</span>
-            <span className="font-mono font-black text-[#FFBA00] text-xl">{r1Matches} Matches</span>
+          <div className="p-4 rounded-2xl bg-[#152442] border border-[#35538C]">
+            <span className="text-[11px] text-[#D4DEEE] block">Round 1 Matches</span>
+            <span className="font-mono font-black text-[#FFD691] text-xl">{r1Matches} Matches</span>
           </div>
 
-          <div className="p-4 rounded-2xl bg-[#140129] border border-[#4A138C]">
-            <span className="text-[11px] text-[#D8C7F0] block">Round 1 Byes (N % 2)</span>
-            <span className="font-mono font-black text-[#FDB095] text-xl">{r1Byes} Bye</span>
+          <div className="p-4 rounded-2xl bg-[#152442] border border-[#35538C]">
+            <span className="text-[11px] text-[#D4DEEE] block">Round 1 Byes (N % 2)</span>
+            <span className="font-mono font-black text-[#D7A859] text-xl">{r1Byes} Bye</span>
           </div>
 
-          <div className="p-4 rounded-2xl bg-[#140129] border border-[#4A138C]">
-            <span className="text-[11px] text-[#D8C7F0] block">Advancing to Round 2</span>
+          <div className="p-4 rounded-2xl bg-[#152442] border border-[#35538C]">
+            <span className="text-[11px] text-[#D4DEEE] block">Advancing to Round 2</span>
             <span className="font-mono font-black text-emerald-300 text-xl">{r2Advancing} Entries</span>
           </div>
         </div>
@@ -246,8 +246,8 @@ function AdminDrawsContent() {
 
       {/* Bracket Tree View */}
       {loading ? (
-        <div className="py-20 text-center text-[#D8C7F0] text-xs flex items-center justify-center gap-2">
-          <RefreshCw className="w-4 h-4 animate-spin text-[#FFBA00]" />
+        <div className="py-20 text-center text-[#D4DEEE] text-xs flex items-center justify-center gap-2">
+          <RefreshCw className="w-4 h-4 animate-spin text-[#FFD691]" />
           <span>Loading bracket tree...</span>
         </div>
       ) : (
@@ -271,17 +271,17 @@ function AdminDrawsContent() {
             {confirmModal.message}
           </p>
 
-          <div className="flex items-center justify-end gap-3 pt-3">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#35538C]">
             <button
               onClick={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#D8C7F0] hover:text-white"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#D4DEEE] hover:text-white"
             >
               Cancel
             </button>
             <button
               onClick={confirmModal.action}
               disabled={actionLoading}
-              className="px-6 py-2.5 rounded-xl btn-gold text-xs font-black shadow-lg transition-all cursor-pointer"
+              className="px-6 py-2.5 rounded-xl btn-cream text-xs font-black shadow-lg transition-all cursor-pointer"
             >
               {actionLoading ? 'Processing...' : confirmModal.confirmText}
             </button>
@@ -294,7 +294,7 @@ function AdminDrawsContent() {
 
 export default function AdminDrawsPage() {
   return (
-    <Suspense fallback={<div className="py-20 text-center text-[#D8C7F0] text-xs">Loading admin draws...</div>}>
+    <Suspense fallback={<div className="py-20 text-center text-[#D4DEEE] text-xs">Loading admin draws...</div>}>
       <AdminDrawsContent />
     </Suspense>
   );

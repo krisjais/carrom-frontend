@@ -116,13 +116,13 @@ export default function AdminRegistrationsPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#4A138C]">
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#35538C]">
         <div>
-          <span className="text-xs font-mono text-[#FFBA00] font-bold uppercase tracking-widest">
+          <span className="text-xs font-mono text-[#FFD691] font-bold uppercase tracking-widest">
             Participant Verification
           </span>
           <h1 className="text-3xl sm:text-4xl font-black font-display text-white mt-1">Registrations & Partners</h1>
-          <p className="text-xs text-[#D8C7F0]">
+          <p className="text-xs text-[#D4DEEE]">
             Verify student identity, approve singles entries, and match verified doubles partners.
           </p>
         </div>
@@ -149,8 +149,8 @@ export default function AdminRegistrationsPage() {
 
       {/* Top Validation Stats Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="sport-card p-5 rounded-2xl border border-[#4A138C] space-y-1">
-          <span className="text-[10px] text-[#D8C7F0] font-mono uppercase font-bold">Registered Athletes</span>
+        <div className="sport-card p-5 rounded-2xl border border-[#35538C] space-y-1">
+          <span className="text-[10px] text-[#D4DEEE] font-mono uppercase font-bold">Registered Athletes</span>
           <div className="text-2xl font-black font-mono text-white">
             {registrations.length} Students
           </div>
@@ -159,40 +159,40 @@ export default function AdminRegistrationsPage() {
           </span>
         </div>
 
-        <div className="sport-card p-5 rounded-2xl border border-[#4A138C] space-y-1">
-          <span className="text-[10px] text-[#D8C7F0] font-mono uppercase font-bold">Approved Status</span>
-          <div className="text-2xl font-black font-mono text-[#FFBA00]">
+        <div className="sport-card p-5 rounded-2xl border border-[#35538C] space-y-1">
+          <span className="text-[10px] text-[#D4DEEE] font-mono uppercase font-bold">Approved Status</span>
+          <div className="text-2xl font-black font-mono text-[#FFD691]">
             {registrations.filter((r) => r.status === 'approved').length} Approved
           </div>
-          <span className="text-[11px] text-[#D8C7F0]">
+          <span className="text-[11px] text-[#D4DEEE]">
             {registrations.filter((r) => r.status === 'pending').length} Pending Review
           </span>
         </div>
 
-        <div className="sport-card p-5 rounded-2xl border border-[#4A138C] space-y-1">
-          <span className="text-[10px] text-[#D8C7F0] font-mono uppercase font-bold">Partner Validation Status</span>
-          <div className="text-sm font-bold text-[#FDB095] flex items-center gap-1.5 pt-1">
-            <Shield className="w-4 h-4 text-[#FFBA00] shrink-0" />
+        <div className="sport-card p-5 rounded-2xl border border-[#35538C] space-y-1">
+          <span className="text-[10px] text-[#D4DEEE] font-mono uppercase font-bold">Partner Validation Status</span>
+          <div className="text-sm font-bold text-[#FFD691] flex items-center gap-1.5 pt-1">
+            <Shield className="w-4 h-4 text-[#FFD691] shrink-0" />
             <span>Admin Partner Verification Active</span>
           </div>
-          <span className="text-[10px] text-[#D8C7F0]/80 block font-mono">
+          <span className="text-[10px] text-[#D4DEEE]/80 block font-mono">
             Requires exact full name match
           </span>
         </div>
       </div>
 
       {/* Filters Bar */}
-      <div className="sport-card p-4 rounded-2xl border border-[#4A138C] flex flex-wrap items-center justify-between gap-4">
+      <div className="sport-card p-4 rounded-2xl border border-[#35538C] flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3 flex-1">
           {/* Search box */}
           <div className="relative flex-1 min-w-[200px] max-w-md">
-            <Search className="w-4 h-4 text-[#D8C7F0] absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-[#D4DEEE] absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Search by student name, roll number, email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full h-11 bg-[#140129] pl-10 pr-4 text-xs text-white rounded-xl border border-[#4A138C] focus:outline-none focus:border-[#FFBA00]"
+              className="w-full h-11 bg-[#152442] pl-10 pr-4 text-xs text-white rounded-xl border border-[#35538C] focus:outline-none focus:border-[#FFD691]"
             />
           </div>
 
@@ -200,7 +200,7 @@ export default function AdminRegistrationsPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-11 bg-[#140129] text-xs text-white px-4 rounded-xl border border-[#4A138C] focus:outline-none focus:border-[#FFBA00]"
+            className="h-11 bg-[#152442] text-xs text-white px-4 rounded-xl border border-[#35538C] focus:outline-none focus:border-[#FFD691]"
           >
             <option value="">All Statuses</option>
             <option value="pending">Pending Review</option>
@@ -212,7 +212,7 @@ export default function AdminRegistrationsPage() {
           <select
             value={genderFilter}
             onChange={(e) => setGenderFilter(e.target.value)}
-            className="h-11 bg-[#140129] text-xs text-white px-4 rounded-xl border border-[#4A138C] focus:outline-none focus:border-[#FFBA00]"
+            className="h-11 bg-[#152442] text-xs text-white px-4 rounded-xl border border-[#35538C] focus:outline-none focus:border-[#FFD691]"
           >
             <option value="">All Genders</option>
             <option value="male">Male (Boys)</option>
@@ -220,47 +220,47 @@ export default function AdminRegistrationsPage() {
           </select>
         </div>
 
-        <div className="text-xs text-[#D8C7F0] font-mono">
-          Showing <span className="text-[#FFBA00] font-bold">{registrations.length}</span> registrations
+        <div className="text-xs text-[#D4DEEE] font-mono">
+          Showing <span className="text-[#FFD691] font-bold">{registrations.length}</span> registrations
         </div>
       </div>
 
       {/* Registrations Table */}
-      <div className="sport-card rounded-3xl p-6 border border-[#4A138C] space-y-4">
+      <div className="sport-card rounded-3xl p-6 border border-[#35538C] space-y-4">
         {loading ? (
-          <div className="py-16 text-center text-[#D8C7F0] text-sm">Loading registrations & partner validations...</div>
+          <div className="py-16 text-center text-[#D4DEEE] text-sm">Loading registrations & partner validations...</div>
         ) : registrations.length === 0 ? (
-          <div className="py-16 text-center text-[#D8C7F0] text-sm">No registrations match the selected filters.</div>
+          <div className="py-16 text-center text-[#D4DEEE] text-sm">No registrations match the selected filters.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-[#4A138C] text-[#D8C7F0] font-mono uppercase text-[11px]">
+              <thead className="border-b border-[#35538C] text-[#D4DEEE] font-bold uppercase text-[11px]">
                 <tr>
-                  <th className="pb-3 font-bold w-12 text-center">#</th>
-                  <th className="pb-3 font-bold">Participant Details</th>
-                  <th className="pb-3 font-bold">Department & Roll</th>
-                  <th className="pb-3 font-bold">Requested Doubles Partner</th>
-                  <th className="pb-3 font-bold">Requested Mixed Partner</th>
-                  <th className="pb-3 font-bold">Status</th>
-                  <th className="pb-3 font-bold text-right">Actions</th>
+                  <th className="pb-3 w-12 text-center">#</th>
+                  <th className="pb-3">Participant Details</th>
+                  <th className="pb-3">Department & Roll</th>
+                  <th className="pb-3">Requested Doubles Partner</th>
+                  <th className="pb-3">Requested Mixed Partner</th>
+                  <th className="pb-3">Status</th>
+                  <th className="pb-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#4A138C]/60">
+              <tbody className="divide-y divide-[#35538C]/60">
                 {registrations.map((reg, index) => {
                   const p = reg.participantId;
                   if (!p) return null;
 
                   return (
-                    <tr key={reg._id} className="hover:bg-[#2C0854]/40 transition-colors">
+                    <tr key={reg._id} className="hover:bg-[#1E3258]/40 transition-colors">
                       <td className="py-3.5 text-center">
-                        <span className="inline-flex items-center justify-center min-w-[24px] h-6 px-1.5 rounded-lg bg-[#140129] text-[#FFBA00] font-mono font-bold text-xs border border-[#4A138C]">
+                        <span className="inline-flex items-center justify-center min-w-[24px] h-6 px-1.5 rounded-lg bg-[#152442] text-[#FFD691] font-mono font-bold text-xs border border-[#35538C]">
                           {index + 1}
                         </span>
                       </td>
                       <td className="py-3.5">
                         <div className="space-y-0.5">
                           <span className="font-bold text-white text-xs">{p.fullName}</span>
-                          <span className="text-[11px] text-[#D8C7F0] block font-mono capitalize">
+                          <span className="text-[11px] text-[#D4DEEE] block font-mono capitalize">
                             {p.gender} • {p.email}
                           </span>
                         </div>
@@ -268,21 +268,21 @@ export default function AdminRegistrationsPage() {
 
                       <td className="py-3.5">
                         <div className="space-y-0.5">
-                          <span className="font-mono text-[#FFBA00] font-bold">{p.studentId}</span>
-                          <span className="text-[11px] text-[#D8C7F0] block">{p.department}</span>
+                          <span className="font-mono text-[#FFD691] font-bold">{p.studentId}</span>
+                          <span className="text-[11px] text-[#D4DEEE] block">{p.department}</span>
                         </div>
                       </td>
 
                       {/* Requested Doubles Partner */}
                       <td className="py-3.5">
-                        <span className="text-slate-200 font-bold bg-[#140129] px-3 py-1 rounded-xl border border-[#4A138C] inline-block">
+                        <span className="text-slate-200 font-bold bg-[#152442] px-3 py-1 rounded-xl border border-[#35538C] inline-block">
                           {reg.doublesPartnerName || 'Not specified'}
                         </span>
                       </td>
 
                       {/* Requested Mixed Partner */}
                       <td className="py-3.5">
-                        <span className="text-slate-200 font-bold bg-[#140129] px-3 py-1 rounded-xl border border-[#4A138C] inline-block">
+                        <span className="text-slate-200 font-bold bg-[#152442] px-3 py-1 rounded-xl border border-[#35538C] inline-block">
                           {reg.mixedDoublesPartnerName || 'Not specified'}
                         </span>
                       </td>
@@ -322,7 +322,7 @@ export default function AdminRegistrationsPage() {
                                 setSelectedPairCategory(p.gender === 'male' ? 'boys_doubles' : 'girls_doubles');
                                 setPairModalOpen(true);
                               }}
-                              className="px-3 py-1.5 rounded-xl bg-[#2C0854] hover:bg-[#380E6B] text-[#FFBA00] font-bold text-[11px] border border-[#FFBA00]/40 transition-colors cursor-pointer"
+                              className="px-3 py-1.5 rounded-xl bg-[#1E3258] hover:bg-[#2A457A] text-[#FFD691] font-bold text-[11px] border border-[#FFD691]/40 transition-colors cursor-pointer"
                             >
                               Pair Team
                             </button>
@@ -369,7 +369,7 @@ export default function AdminRegistrationsPage() {
               <p className="text-sm font-black text-white truncate">
                 {regToDelete?.participantId?.fullName || 'Participant'}
               </p>
-              <p className="text-[11px] text-[#D8C7F0]">
+              <p className="text-[11px] text-[#D4DEEE]">
                 {regToDelete?.participantId?.studentId} · {regToDelete?.participantId?.email}
               </p>
             </div>
@@ -385,12 +385,12 @@ export default function AdminRegistrationsPage() {
             <p>
               Are you sure you want to permanently delete <strong className="text-white font-bold">{regToDelete?.participantId?.fullName}</strong>?
             </p>
-            <div className="p-3 rounded-xl bg-[#140129] border border-[#4A138C] text-[11px] text-[#D8C7F0]">
+            <div className="p-3 rounded-xl bg-[#152442] border border-[#35538C] text-[11px] text-[#D4DEEE]">
               ⚠️ This will remove their tournament registration, login credentials, and any generated singles/doubles team slots.
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#4A138C]">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#35538C]">
             <button
               type="button"
               disabled={actionLoading}
@@ -398,7 +398,7 @@ export default function AdminRegistrationsPage() {
                 setDeleteModalOpen(false);
                 setDeleteError('');
               }}
-              className="px-4 py-2.5 rounded-xl text-xs font-bold text-[#D8C7F0] hover:text-white transition-colors cursor-pointer"
+              className="px-4 py-2.5 rounded-xl text-xs font-bold text-[#D4DEEE] hover:text-white transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -428,29 +428,29 @@ export default function AdminRegistrationsPage() {
         title={`Pair Doubles Team for ${selectedReg?.participantId?.fullName}`}
       >
         <form onSubmit={handleCreatePairSubmit} className="space-y-4">
-          <div className="p-4 rounded-2xl bg-[#140129] border border-[#4A138C] space-y-1 text-xs">
-            <p className="text-[#D8C7F0]">
+          <div className="p-4 rounded-2xl bg-[#152442] border border-[#35538C] space-y-1 text-xs">
+            <p className="text-[#D4DEEE]">
               <span className="text-slate-400 font-bold">Player 1:</span>{' '}
               <span className="font-bold text-white">{selectedReg?.participantId?.fullName}</span> ({selectedReg?.participantId?.gender})
             </p>
-            <p className="text-[#D8C7F0]">
+            <p className="text-[#D4DEEE]">
               <span className="text-slate-400 font-bold">Requested Doubles Partner:</span>{' '}
-              <span className="font-bold text-[#FFBA00]">{selectedReg?.doublesPartnerName}</span>
+              <span className="font-bold text-[#FFD691]">{selectedReg?.doublesPartnerName}</span>
             </p>
-            <p className="text-[#D8C7F0]">
+            <p className="text-[#D4DEEE]">
               <span className="text-slate-400 font-bold">Requested Mixed Partner:</span>{' '}
-              <span className="font-bold text-[#FFBA00]">{selectedReg?.mixedDoublesPartnerName}</span>
+              <span className="font-bold text-[#FFD691]">{selectedReg?.mixedDoublesPartnerName}</span>
             </p>
           </div>
 
           <div>
-            <label className="text-xs font-bold text-[#D8C7F0] block mb-1.5">
+            <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5">
               Category
             </label>
             <select
               value={selectedPairCategory}
               onChange={(e) => setSelectedPairCategory(e.target.value)}
-              className="w-full h-11 bg-[#140129] px-4 text-xs text-white rounded-xl border border-[#4A138C]"
+              className="w-full h-11 bg-[#152442] px-4 text-xs text-white rounded-xl border border-[#35538C]"
             >
               {selectedReg?.participantId?.gender === 'male' && (
                 <option value="boys_doubles">Boys Doubles</option>
@@ -463,14 +463,14 @@ export default function AdminRegistrationsPage() {
           </div>
 
           <div>
-            <label className="text-xs font-bold text-[#D8C7F0] block mb-1.5">
+            <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5">
               Select Player 2 (From Approved Participants)
             </label>
             <select
               value={selectedPartnerId}
               onChange={(e) => setSelectedPartnerId(e.target.value)}
               required
-              className="w-full h-11 bg-[#140129] px-4 text-xs text-white rounded-xl border border-[#4A138C]"
+              className="w-full h-11 bg-[#152442] px-4 text-xs text-white rounded-xl border border-[#35538C]"
             >
               <option value="">-- Choose Partner --</option>
               {registrations
@@ -483,18 +483,18 @@ export default function AdminRegistrationsPage() {
             </select>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#4A138C]">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#35538C]">
             <button
               type="button"
               onClick={() => setPairModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-xs text-[#D8C7F0] hover:text-white cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs text-[#D4DEEE] hover:text-white cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={actionLoading}
-              className="px-6 py-2.5 rounded-xl btn-gold font-black text-xs shadow-md transition-colors cursor-pointer"
+              className="px-6 py-2.5 rounded-xl btn-cream font-black text-xs shadow-md transition-colors cursor-pointer"
             >
               {actionLoading ? 'Creating Team...' : 'Confirm & Approve Team'}
             </button>

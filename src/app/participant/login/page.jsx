@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { Shield } from 'lucide-react';
+import { Shield, Lock } from 'lucide-react';
 
 export default function ParticipantLoginPage() {
   const router = useRouter();
@@ -33,21 +33,24 @@ export default function ParticipantLoginPage() {
   return (
     <div className="max-w-md mx-auto px-4 py-16 space-y-6">
       <div className="text-center space-y-2">
-        <h1 className="text-2xl font-black font-display text-white">Participant Login</h1>
-        <p className="text-xs text-[#94A3B8]">
+        <span className="text-xs font-mono text-[#FFD691] font-bold uppercase tracking-widest block">
+          Athlete Portal
+        </span>
+        <h1 className="text-3xl font-black font-display text-white">Participant Login</h1>
+        <p className="text-xs text-[#D4DEEE]">
           Sign in to view your approved tournament teams and personal match schedule.
         </p>
       </div>
 
       {error && (
-        <div className="p-3.5 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 text-xs font-medium">
+        <div className="p-4 rounded-2xl bg-rose-500/15 text-rose-300 border border-rose-500/30 text-xs font-semibold">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="sport-card p-6 space-y-4">
+      <form onSubmit={handleSubmit} className="sport-card p-8 space-y-5 rounded-3xl border border-[#35538C]">
         <div>
-          <label className="text-xs text-[#94A3B8] font-medium block mb-1">
+          <label className="text-xs text-[#D4DEEE] font-bold block mb-1.5">
             Student Email
           </label>
           <input
@@ -55,13 +58,13 @@ export default function ParticipantLoginPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="e.g. aryan@carrom.edu"
-            className="w-full h-10 bg-[#070B16] px-3 text-xs text-white rounded-lg border border-[#1C2B48] focus:outline-none focus:border-[#D4AF37]"
+            placeholder="e.g. aryan@college.edu"
+            className="w-full h-11 bg-[#152442] px-4 text-xs text-white rounded-xl border border-[#35538C] focus:outline-none focus:border-[#FFD691]"
           />
         </div>
 
         <div>
-          <label className="text-xs text-[#94A3B8] font-medium block mb-1">
+          <label className="text-xs text-[#D4DEEE] font-bold block mb-1.5">
             Password
           </label>
           <input
@@ -70,22 +73,22 @@ export default function ParticipantLoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter your password"
-            className="w-full h-10 bg-[#070B16] px-3 text-xs text-white rounded-lg border border-[#1C2B48] focus:outline-none focus:border-[#D4AF37]"
+            className="w-full h-11 bg-[#152442] px-4 text-xs text-white rounded-xl border border-[#35538C] focus:outline-none focus:border-[#FFD691]"
           />
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-2.5 rounded-xl bg-[#D4AF37] hover:bg-[#E5C358] text-[#070B16] font-bold text-xs shadow-sm transition-all"
+          className="w-full py-3.5 rounded-xl btn-cream text-xs font-black shadow-lg transition-all cursor-pointer disabled:opacity-50"
         >
-          {loading ? 'Signing in...' : 'Sign In to Portal'}
+          {loading ? 'Signing in...' : 'SIGN IN TO PORTAL'}
         </button>
 
-        <div className="pt-2 text-center text-xs text-[#94A3B8]">
+        <div className="pt-2 text-center text-xs text-[#D4DEEE]">
           <span>Not registered yet? </span>
-          <Link href="/registration" className="text-[#D4AF37] font-semibold hover:underline">
-            Register Now
+          <Link href="/registration" className="text-[#FFD691] font-bold hover:underline">
+            Register Now →
           </Link>
         </div>
       </form>

@@ -9,55 +9,51 @@ module.exports = {
     extend: {
       colors: {
         brand: {
-          purple: '#210440',      // Deep Championship Purple (Primary)
-          'purple-dark': '#140129', // Deeper page base
-          'purple-deep': '#0D001C', // Deepest background
-          'purple-surface': '#2C0854', // Card base
-          'purple-elevated': '#380E6B', // Elevated interactive surface
-          'purple-border': '#4A138C',  // Subtle purple border
-          coral: '#FDB095',       // Soft Coral (Secondary)
-          'coral-light': '#FFCDBE',
-          'coral-dark': '#E59278',
-          rose: '#E5958E',        // Muted Rose (Accent)
-          'rose-light': '#F5B7B1',
-          gold: '#FFBA00',        // Championship Gold (Highlight)
-          'gold-hover': '#FFC933',
-          'gold-dark': '#E6A700',
-          'gold-subtle': 'rgba(255, 186, 0, 0.15)',
+          navy: '#233A66',        // Primary Navy (Main background & dark surfaces)
+          'navy-dark': '#152442', // Deepest background tone
+          'navy-deep': '#0F1A30', // Extra deep base
+          'navy-surface': '#1E3258', // Card base
+          'navy-elevated': '#2A457A', // Elevated interactive surface
+          'navy-border': '#35538C',  // Subtle navy border
+          cream: '#FFD691',       // Primary Cream (CTA, highlights, winners, active states)
+          'cream-light': '#FFE7BA',
+          'cream-dark': '#ECC177',
+          gold: '#D7A859',        // Secondary Gold (Borders, decorative accents)
+          'gold-light': '#E5BD78',
+          'gold-dark': '#BA8D42',
+          coral: '#FF6E80',       // Accent Coral (Special notices, urgent alerts, sparingly)
+          'coral-light': '#FF96A4',
+          'coral-dark': '#E65366',
         },
         navy: {
-          950: '#140129',
-          900: '#210440',
-          850: '#2C0854',
-          800: '#380E6B',
-          700: '#4A138C',
-          600: '#611EB5',
+          950: '#0F1A30',
+          900: '#152442',
+          850: '#1E3258',
+          800: '#233A66',
+          700: '#2A457A',
+          600: '#35538C',
+          500: '#4A6FA5',
+        },
+        cream: {
+          100: '#FFF6E5',
+          200: '#FFECC7',
+          300: '#FFE2AA',
+          400: '#FFD691',
+          500: '#ECC177',
+          600: '#D7A859',
         },
         gold: {
-          50: '#FFFDF5',
-          100: '#FFF8E1',
-          200: '#FFECB3',
-          300: '#FFDF80',
-          400: '#FFCD4D',
-          500: '#FFBA00',
-          600: '#E6A700',
-          700: '#B88500',
-          800: '#8A6400',
-          900: '#5C4200',
+          300: '#F0D199',
+          400: '#E5BD78',
+          500: '#D7A859',
+          600: '#BA8D42',
+          700: '#9E7430',
         },
         coral: {
-          300: '#FFD7CC',
-          400: '#FFC4B0',
-          500: '#FDB095',
-          600: '#E6977D',
-          700: '#C77960',
-        },
-        rose: {
-          300: '#F7C6C2',
-          400: '#F0ADA7',
-          500: '#E5958E',
-          600: '#CC7B74',
-          700: '#AD5F58',
+          400: '#FF96A4',
+          500: '#FF6E80',
+          600: '#E65366',
+          700: '#C7384A',
         }
       },
       fontFamily: {
@@ -72,13 +68,6 @@ module.exports = {
       },
       animation: {
         'pulse-subtle': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'float': 'float 6s ease-in-out infinite',
-      },
-      keyframes: {
-        float: {
-          '0%, 100%': { transform: 'translateY(0px)' },
-          '50%': { transform: 'translateY(-8px)' },
-        }
       }
     },
   },

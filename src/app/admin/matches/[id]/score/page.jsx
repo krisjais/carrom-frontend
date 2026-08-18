@@ -37,8 +37,8 @@ export default function MatchScoringDeskPage() {
 
   if (loading) {
     return (
-      <div className="py-24 text-center text-slate-400 text-sm flex items-center justify-center gap-2">
-        <RefreshCw className="w-5 h-5 animate-spin text-gold-400" />
+      <div className="py-24 text-center text-[#D4DEEE] text-sm flex items-center justify-center gap-2">
+        <RefreshCw className="w-5 h-5 animate-spin text-[#FFD691]" />
         <span>Loading live scorekeeper desk...</span>
       </div>
     );
@@ -46,9 +46,9 @@ export default function MatchScoringDeskPage() {
 
   if (!match) {
     return (
-      <div className="py-16 text-center text-slate-400 text-sm space-y-3">
+      <div className="py-16 text-center text-[#D4DEEE] text-sm space-y-3">
         <p>Match fixture not found.</p>
-        <Link href="/admin/matches" className="text-gold-400 hover:underline text-xs">
+        <Link href="/admin/matches" className="text-[#FFD691] hover:underline text-xs">
           Back to match list
         </Link>
       </div>
@@ -58,18 +58,18 @@ export default function MatchScoringDeskPage() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       {/* Top Breadcrumb Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-navy-800">
+      <div className="flex items-center justify-between pb-4 border-b border-[#35538C]">
         <div className="flex items-center gap-3">
           <Link
             href="/admin/matches"
-            className="p-2 rounded-xl bg-navy-900 text-slate-400 hover:text-white border border-navy-800 transition-colors"
+            className="p-2 rounded-xl bg-[#152442] text-[#D4DEEE] hover:text-white border border-[#35538C] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
             <div className="flex items-center gap-2">
               <CategoryBadge category={match.category} />
-              <span className="text-xs font-mono text-gold-400 font-bold">
+              <span className="text-xs font-mono text-[#FFD691] font-bold">
                 Match #{match.matchNumber} ({match.roundName})
               </span>
             </div>

@@ -67,28 +67,28 @@ export default function AdminAnnouncementsPage() {
   return (
     <div className="space-y-8 max-w-5xl">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-navy-800">
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#35538C]">
         <div>
-          <span className="text-xs font-mono text-gold-400 font-bold uppercase tracking-widest">
+          <span className="text-xs font-mono text-[#FFD691] font-bold uppercase tracking-widest">
             Tournament Communications
           </span>
-          <h1 className="text-3xl font-black font-display text-white mt-1">Announcements & Notices</h1>
-          <p className="text-xs text-slate-400">
-            Publish urgent alerts, board schedules, and official rulings to all participants and viewers.
+          <h1 className="text-3xl sm:text-4xl font-black font-display text-white mt-1">Announcements & Notices</h1>
+          <p className="text-xs text-[#D4DEEE]">
+            Publish alerts, board schedules, and official rulings to all participants and viewers.
           </p>
         </div>
       </div>
 
       {/* Create New Announcement Form */}
-      <form onSubmit={handleCreate} className="glass-card rounded-3xl p-6 border border-navy-800 space-y-4">
+      <form onSubmit={handleCreate} className="sport-card rounded-3xl p-6 border border-[#35538C] space-y-4">
         <h3 className="font-bold text-white text-base font-display flex items-center gap-2">
-          <Plus className="w-4 h-4 text-gold-400" />
+          <Plus className="w-4 h-4 text-[#FFD691]" />
           <span>Publish New Notice</span>
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="sm:col-span-2">
-            <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+            <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5">
               Notice Title *
             </label>
             <input
@@ -97,108 +97,108 @@ export default function AdminAnnouncementsPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Schedule Update for Quarterfinals"
-              className="w-full h-11 bg-navy-950 px-3.5 text-xs text-slate-200 rounded-xl border border-navy-700 focus:outline-none focus:border-gold-400"
+              className="w-full h-11 bg-[#152442] px-4 text-xs text-white rounded-xl border border-[#35538C] focus:outline-none focus:border-[#FFD691]"
             />
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-              Priority Level
+            <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5">
+              Priority
             </label>
             <select
               value={priority}
               onChange={(e) => setPriority(e.target.value)}
-              className="w-full h-11 bg-navy-950 px-3.5 text-xs text-slate-200 rounded-xl border border-navy-700"
+              className="w-full h-11 bg-[#152442] px-4 text-xs text-white rounded-xl border border-[#35538C]"
             >
-              <option value="normal">Normal Announcement</option>
+              <option value="normal">Normal</option>
               <option value="urgent">Urgent Alert</option>
             </select>
           </div>
+        </div>
 
-          <div className="sm:col-span-3">
-            <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-              Notice Message *
-            </label>
-            <textarea
-              rows="3"
-              required
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Write the full announcement text here..."
-              className="w-full bg-navy-950 p-3 text-xs text-slate-200 rounded-xl border border-navy-700 focus:outline-none focus:border-gold-400"
-            />
-          </div>
+        <div>
+          <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5">
+            Notice Content *
+          </label>
+          <textarea
+            required
+            rows="3"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Write official tournament details here..."
+            className="w-full bg-[#152442] p-4 text-xs text-white rounded-xl border border-[#35538C] focus:outline-none focus:border-[#FFD691]"
+          />
         </div>
 
         <div className="flex items-center justify-between pt-2">
-          <label className="flex items-center gap-2 text-xs font-semibold text-slate-300 cursor-pointer">
+          <label className="flex items-center gap-2 text-xs text-[#D4DEEE] cursor-pointer">
             <input
               type="checkbox"
               checked={isPinned}
               onChange={(e) => setIsPinned(e.target.checked)}
-              className="rounded text-gold-500"
+              className="rounded bg-[#152442] border-[#35538C] text-[#FFD691] focus:ring-0"
             />
-            <span>Pin this notice to top of public board</span>
+            <span>Pin this notice to top of board</span>
           </label>
 
           <button
             type="submit"
             disabled={submitting}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gold-500 text-navy-950 font-bold text-xs shadow-md hover:bg-gold-400 transition-colors"
+            className="px-6 py-2.5 rounded-xl btn-cream text-xs font-black shadow-md flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
           >
             <Send className="w-3.5 h-3.5" />
-            <span>{submitting ? 'Publishing...' : 'Publish Announcement'}</span>
+            <span>{submitting ? 'Publishing...' : 'Publish Notice'}</span>
           </button>
         </div>
       </form>
 
-      {/* Announcements List */}
-      <div className="space-y-4">
-        <h3 className="font-bold text-white text-base font-display">Published Announcements ({announcements.length})</h3>
+      {/* Published Notices List */}
+      <div className="sport-card rounded-3xl p-6 border border-[#35538C] space-y-4">
+        <h3 className="font-bold text-white text-base font-display">
+          Active Notices ({announcements.length})
+        </h3>
 
         {loading ? (
-          <div className="py-12 text-center text-slate-400 text-xs">Loading notices...</div>
+          <div className="py-12 text-center text-xs text-[#D4DEEE]">Loading notices...</div>
         ) : announcements.length === 0 ? (
-          <div className="py-8 text-center text-slate-400 text-xs">No announcements published yet.</div>
+          <div className="py-12 text-center text-xs text-[#D4DEEE]">No notices published yet.</div>
         ) : (
-          announcements.map((ann) => (
-            <div
-              key={ann._id}
-              className="glass-card rounded-2xl p-5 border border-navy-800 flex items-start justify-between gap-4"
-            >
-              <div className="space-y-1.5 flex-1">
-                <div className="flex items-center gap-2">
-                  {ann.isPinned && (
-                    <span className="flex items-center gap-1 text-[10px] text-gold-400 font-bold bg-gold-500/10 px-2 py-0.5 rounded border border-gold-500/20">
-                      <Pin className="w-3 h-3" /> PINNED
-                    </span>
-                  )}
-                  <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
-                      ann.priority === 'urgent'
-                        ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                        : 'bg-navy-800 text-slate-400'
-                    }`}
-                  >
-                    {ann.priority}
-                  </span>
-                  <span className="text-[11px] text-slate-500 font-mono">
-                    {new Date(ann.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-                <h4 className="font-bold text-white text-sm">{ann.title}</h4>
-                <p className="text-xs text-slate-300 whitespace-pre-line leading-relaxed">{ann.content}</p>
-              </div>
-
-              <button
-                onClick={() => handleDelete(ann._id)}
-                className="p-2 text-slate-500 hover:text-red-400 transition-colors"
-                title="Delete Announcement"
+          <div className="space-y-3">
+            {announcements.map((ann) => (
+              <div
+                key={ann._id}
+                className="p-4 rounded-2xl bg-[#152442] border border-[#35538C] flex items-start justify-between gap-4"
               >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          ))
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    {ann.isPinned && (
+                      <span className="text-[10px] text-[#FFD691] font-bold bg-[#FFD691]/15 px-2 py-0.5 rounded-full border border-[#FFD691]/30">
+                        PINNED
+                      </span>
+                    )}
+                    {ann.priority === 'urgent' && (
+                      <span className="text-[10px] font-bold bg-[#FF6E80]/20 text-[#FF96A4] px-2 py-0.5 rounded-full uppercase border border-[#FF6E80]/30 font-mono">
+                        Urgent
+                      </span>
+                    )}
+                    <span className="text-[10px] text-[#D4DEEE] font-mono">
+                      {new Date(ann.createdAt).toLocaleString()}
+                    </span>
+                  </div>
+                  <h4 className="font-bold text-white text-sm">{ann.title}</h4>
+                  <p className="text-xs text-[#D4DEEE] whitespace-pre-line leading-relaxed">{ann.content}</p>
+                </div>
+
+                <button
+                  onClick={() => handleDelete(ann._id)}
+                  className="p-1.5 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 transition-colors cursor-pointer"
+                  title="Delete Notice"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>
