@@ -1,8 +1,6 @@
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
-import { Navbar } from '@/components/layout/Navbar';
-import { LiveTicker } from '@/components/layout/LiveTicker';
-import { Footer } from '@/components/layout/Footer';
+import { AppShell } from '@/components/layout/AppShell';
 
 export const metadata = {
   title: 'Carrom Tournament Championship 2026 | Inter-College Management System',
@@ -12,14 +10,19 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className="dark">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className="bg-navy-950 text-slate-100 flex flex-col min-h-screen antialiased selection:bg-gold-500 selection:text-navy-950">
         <AuthProvider>
-          <Navbar />
-          <LiveTicker />
-          <main className="flex-1 flex flex-col">
+          <AppShell>
             {children}
-          </main>
-          <Footer />
+          </AppShell>
         </AuthProvider>
       </body>
     </html>

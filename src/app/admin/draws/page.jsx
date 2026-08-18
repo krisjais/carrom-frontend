@@ -101,6 +101,42 @@ function AdminDrawsContent() {
     }
   };
 
+  const handleAdvanceRound = async (roundNumber = 1, forceAuto = false) => {
+    setActionLoading(true);
+    try {
+      const res = await api.advanceRound({
+        category: selectedCat,
+        roundNumber,
+        autoConfirmLeaders: forceAuto
+      });
+      if (res.success) {
+        alert(res.message);
+        fetchCategoryData();
+      }
+    } catch (err) {
+      if (err.data?.incompleteCount && !forceAuto) {
+        const proceed = confirm(
+          `${err.message}\n\nWould you like to auto-confirm the winners of the leading players and advance to the next round immediately?`
+        );
+        if (proceed) {
+          handleAdvanceRound(roundNumber, true);
+          return;
+        }
+      } else {
+        alert(err.message || 'Failed to advance round.');
+      }
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Find active round status for advancement
+  const currentR1 = bracketData?.rounds?.find((r) => r.roundNumber === 1);
+  const currentR2 = bracketData?.rounds?.find((r) => r.roundNumber === 2);
+  const r1MatchesList = currentR1?.matches?.filter((m) => !m.isBye) || [];
+  const r1CompletedCount = r1MatchesList.filter((m) => m.status === 'completed' && m.winnerTeam).length;
+  const isR2Waiting = currentR2 && currentR2.matches?.every((m) => !m.team1 || !m.team2);
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -115,7 +151,7 @@ function AdminDrawsContent() {
           </p>
         </div>
 
-        {/* Generate / Lock Action Buttons */}
+        {/* Generate / Lock / Advance Action Buttons */}
         <div className="flex items-center gap-3">
           {!bracketData?.isLocked && (
             <button
@@ -167,6 +203,35 @@ function AdminDrawsContent() {
           );
         })}
       </div>
+
+      {/* Round 1 -> Round 2 (Quarterfinals) Advancement Action Banner */}
+      {isR2Waiting && r1MatchesList.length > 0 && (
+        <div className="sport-card p-5 border-2 border-[#D4AF37]/40 bg-gradient-to-r from-[#0E1626] to-[#141F36] flex flex-wrap items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-[#D4AF37]" />
+              <h3 className="text-sm font-bold text-white font-display uppercase tracking-wide">
+                Advance {selectedCat.replace('_', ' ').toUpperCase()} to Round 2 ({currentR2.roundName})
+              </h3>
+            </div>
+            <p className="text-xs text-[#94A3B8]">
+              Round 1 Progress: <span className="font-mono font-bold text-white">{r1CompletedCount} / {r1MatchesList.length}</span> matches completed.
+              {r1CompletedCount === r1MatchesList.length
+                ? ' All Round 1 winners are confirmed! Click below to populate and start Quarterfinals.'
+                : ' Finish Round 1 matches in Scorekeeper or click below to advance winners.'}
+            </p>
+          </div>
+
+          <button
+            onClick={() => handleAdvanceRound(1, false)}
+            disabled={actionLoading}
+            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#D4AF37] hover:bg-[#E5C358] text-[#070B16] font-bold text-xs shadow-lg shadow-[#D4AF37]/20 transition-all cursor-pointer"
+          >
+            <CheckCircle2 className="w-4 h-4" />
+            <span>{actionLoading ? 'Advancing...' : `Advance Winners to ${currentR2.roundName} (Round 2)`}</span>
+          </button>
+        </div>
+      )}
 
       {/* Bracket Mathematical Calculation Overview Card */}
       <div className="sport-card p-6 space-y-4">

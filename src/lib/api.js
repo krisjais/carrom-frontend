@@ -104,6 +104,13 @@ export const api = {
     return handleResponse(res);
   },
 
+  getValidationSummary: async () => {
+    const res = await fetch(`${API_BASE}/registrations/validation-summary`, {
+      headers: getHeaders(true)
+    });
+    return handleResponse(res);
+  },
+
   getMyRegistration: async () => {
     const res = await fetch(`${API_BASE}/registrations/my`, {
       headers: getHeaders(true)
@@ -116,6 +123,14 @@ export const api = {
       method: 'PUT',
       headers: getHeaders(true),
       body: JSON.stringify({ status, adminNotes })
+    });
+    return handleResponse(res);
+  },
+
+  deleteRegistration: async (id) => {
+    const res = await fetch(`${API_BASE}/registrations/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(true)
     });
     return handleResponse(res);
   },
@@ -168,6 +183,15 @@ export const api = {
     return handleResponse(res);
   },
 
+  advanceRound: async (advanceData) => {
+    const res = await fetch(`${API_BASE}/draws/advance-round`, {
+      method: 'POST',
+      headers: getHeaders(true),
+      body: JSON.stringify(advanceData)
+    });
+    return handleResponse(res);
+  },
+
   // Matches & Live Scoring
   getMatches: async (params = {}) => {
     const query = new URLSearchParams(params).toString();
@@ -202,10 +226,11 @@ export const api = {
     return handleResponse(res);
   },
 
-  confirmMatch: async (id) => {
+  confirmMatch: async (id, data = {}) => {
     const res = await fetch(`${API_BASE}/matches/${id}/confirm`, {
       method: 'POST',
-      headers: getHeaders(true)
+      headers: getHeaders(true),
+      body: JSON.stringify(data)
     });
     return handleResponse(res);
   },

@@ -110,30 +110,55 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
     }
   };
 
-  // Confirm Match Winner and auto advance
-  const handleConfirmMatch = async () => {
-    if (!isMatchDecided) {
-      alert('A team must win 2 boards before confirming the match winner.');
-      return;
+  const [postMatchData, setPostMatchData] = useState(null);
+  const [isPostMatchModalOpen, setIsPostMatchModalOpen] = useState(false);
+  const [winnerToConfirm, setWinnerToConfirm] = useState(null);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [correctionError, setCorrectionError] = useState('');
+
+  // Open confirmation modal for match winner
+  const handleConfirmMatch = (specificWinnerId = null) => {
+    let winnerId = specificWinnerId;
+    if (!winnerId) {
+      if (team1Wins > team2Wins) winnerId = match.team1?._id;
+      else if (team2Wins > team1Wins) winnerId = match.team2?._id;
+      else winnerId = match.team1?._id;
     }
 
-    if (!confirm(`Confirm ${matchWinnerTeam.name} as the match winner? This will automatically advance them to the next round in the bracket.`)) {
-      return;
-    }
+    const winnerName = winnerId === match.team1?._id ? match.team1?.name : match.team2?.name;
+    const isTeam1 = winnerId === match.team1?._id;
+
+    setWinnerToConfirm({
+      id: winnerId,
+      name: winnerName || 'Winner',
+      teamKey: isTeam1 ? 'team1' : 'team2',
+      scoreSummary: `${match.team1?.name || 'Team 1'} (${team1Wins}) vs ${match.team2?.name || 'Team 2'} (${team2Wins})`
+    });
+    setIsConfirmModalOpen(true);
+  };
+
+  // Execute confirmation once approved in website modal
+  const executeConfirmMatch = async () => {
+    if (!winnerToConfirm) return;
+    const winnerId = winnerToConfirm.id;
 
     setLoading(true);
     setMessage(null);
     try {
-      // first save boards
+      // save current boards first
       await api.updateScore(match._id, { boards, carromBoardNumber: Number(carromBoardNumber) });
-      // then confirm
-      const res = await api.confirmMatch(match._id);
+      // confirm winner
+      const res = await api.confirmMatch(match._id, { winnerTeamId: winnerId });
       if (res.success) {
-        setMessage({ type: 'success', text: `Match completed! ${matchWinnerTeam.name} advanced to next round.` });
+        setIsConfirmModalOpen(false);
+        setWinnerToConfirm(null);
+        setPostMatchData(res);
+        setIsPostMatchModalOpen(true);
         if (onUpdate) onUpdate(res.match);
       }
     } catch (err) {
       setMessage({ type: 'error', text: err.message || 'Failed to confirm match winner.' });
+      setIsConfirmModalOpen(false);
     } finally {
       setLoading(false);
     }
@@ -142,10 +167,11 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
   // Correction confirmation
   const handleCorrectResult = async () => {
     if (!correctionReason.trim()) {
-      alert('Please provide a reason for correcting the match result.');
+      setCorrectionError('Please provide a reason for correcting the match result.');
       return;
     }
 
+    setCorrectionError('');
     setLoading(true);
     try {
       const res = await api.correctMatch(match._id, boards, correctionReason.trim());
@@ -156,7 +182,7 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
         if (onUpdate) onUpdate(res.match);
       }
     } catch (err) {
-      alert(err.message || 'Failed to correct match.');
+      setCorrectionError(err.message || 'Failed to correct match.');
     } finally {
       setLoading(false);
     }
@@ -180,7 +206,7 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
         </div>
       )}
 
-      {/* Match Overview & Boards Won Scoreboard */}
+      {/* Match Overview & Quick Confirmation Action Bar */}
       <div className="glass-card rounded-2xl p-6 border border-gold-500/30 relative overflow-hidden">
         <div className="absolute top-0 right-0 p-4 flex items-center gap-2">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-navy-950 text-gold-400 border border-gold-500/30 font-mono font-bold text-xs">
@@ -195,7 +221,7 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
           </span>
           <h2 className="text-2xl font-bold font-display text-white mt-1">Live Scorekeeper Desk</h2>
           <p className="text-xs text-slate-400">
-            Tournament Rules: Best of 3 Boards (2–0 or 2–1). Admin manually selects board winner.
+            Select board winners below or click directly to declare match winner.
           </p>
         </div>
 
@@ -215,7 +241,7 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
               <span>{team2Wins}</span>
             </div>
             <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-              Boards Won (Best of 3)
+              Boards Won
             </span>
           </div>
 
@@ -227,34 +253,46 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
           </div>
         </div>
 
-        {/* Match Result Banner if decided */}
-        {isMatchDecided && (
-          <div className="mt-4 p-3 rounded-xl bg-gold-500/15 border border-gold-500/30 flex flex-wrap items-center justify-between gap-3 max-w-2xl mx-auto">
-            <div className="flex items-center gap-2 text-gold-300 text-sm font-bold">
-              <Trophy className="w-5 h-5 text-gold-400" />
-              <span>{matchWinnerTeam.name} leads {team1Wins}–{team2Wins}</span>
+        {/* Quick Instant Winner Confirmation Buttons */}
+        {match.status !== 'completed' ? (
+          <div className="mt-5 p-4 rounded-xl bg-gradient-to-r from-gold-500/10 via-navy-900 to-gold-500/10 border border-gold-500/30 max-w-2xl mx-auto space-y-3">
+            <div className="text-center">
+              <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-gold-400">
+                ⚡ Instant Match Winner Actions
+              </span>
             </div>
-            {match.status !== 'completed' ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
-                onClick={handleConfirmMatch}
+                onClick={() => handleConfirmMatch(match.team1?._id)}
                 disabled={loading}
-                className="px-4 py-1.5 rounded-lg bg-gold-500 text-navy-950 font-bold text-xs shadow-md hover:bg-gold-400 transition-colors"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gold-500 hover:bg-gold-400 text-navy-950 font-bold text-xs shadow-md transition-all cursor-pointer"
               >
-                Confirm Match Winner & Advance
+                <Trophy className="w-4 h-4 text-navy-950" />
+                <span className="truncate">Confirm {match.team1?.name} as Winner</span>
               </button>
-            ) : (
-              <div className="flex items-center gap-2">
-                <span className="px-3 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 text-xs font-bold border border-emerald-500/30">
-                  Match Confirmed & Completed
-                </span>
-                <Link
-                  href="/admin"
-                  className="px-3.5 py-1 rounded-lg bg-[#D4AF37] hover:bg-[#E5C358] text-[#070B16] font-bold text-xs transition-colors"
-                >
-                  Arena Desk (Next Match) →
-                </Link>
-              </div>
-            )}
+
+              <button
+                onClick={() => handleConfirmMatch(match.team2?._id)}
+                disabled={loading}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gold-500 hover:bg-gold-400 text-navy-950 font-bold text-xs shadow-md transition-all cursor-pointer"
+              >
+                <Trophy className="w-4 h-4 text-navy-950" />
+                <span className="truncate">Confirm {match.team2?.name} as Winner</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-4 p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex flex-wrap items-center justify-between gap-3 max-w-2xl mx-auto">
+            <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Match Completed · Winner Confirmed & Advanced</span>
+            </div>
+            <button
+              onClick={() => setIsPostMatchModalOpen(true)}
+              className="px-3.5 py-1.5 rounded-lg bg-gold-500 text-navy-950 font-bold text-xs hover:bg-gold-400 transition-colors"
+            >
+              Start Next Match →
+            </button>
           </div>
         )}
       </div>
@@ -594,10 +632,158 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
         </div>
       </div>
 
+      {/* Website Confirmation Modal for Winner Confirmation */}
+      <Modal
+        isOpen={isConfirmModalOpen}
+        onClose={() => {
+          if (!loading) setIsConfirmModalOpen(false);
+        }}
+        title="Confirm Match Winner"
+        maxWidth="max-w-lg"
+      >
+        <div className="space-y-5 py-1">
+          <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-[#D4AF37]/15 to-[#D4AF37]/5 border border-[#D4AF37]/30">
+            <div className="w-12 h-12 rounded-xl bg-[#D4AF37]/20 border border-[#D4AF37]/40 text-[#D4AF37] flex items-center justify-center shrink-0 shadow-lg shadow-[#D4AF37]/10">
+              <Trophy className="w-6 h-6 text-[#D4AF37]" />
+            </div>
+            <div className="min-w-0">
+              <span className="text-[10px] font-mono font-bold uppercase text-[#D4AF37] tracking-wider block">
+                Selected Winner
+              </span>
+              <h4 className="text-base font-black text-white truncate font-display">
+                {winnerToConfirm?.name}
+              </h4>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Match #{match.matchNumber} · {match.category?.replace('_', ' ').toUpperCase()}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3 text-xs text-slate-300">
+            <p className="leading-relaxed">
+              Confirm <strong className="text-white font-bold">{winnerToConfirm?.name}</strong> as the official winner of this match?
+            </p>
+            <div className="p-3.5 rounded-xl bg-[#070B16] border border-[#1C2B48] text-[11px] text-slate-400 space-y-1">
+              <div className="flex items-center gap-1.5 text-slate-200 font-semibold">
+                <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
+                <span>Automated Draw & Bracket Impact</span>
+              </div>
+              <p className="text-slate-400 leading-normal">
+                This will officially lock the match result, calculate tournament statistics, and advance <span className="text-[#D4AF37] font-semibold">{winnerToConfirm?.name}</span> to the next round in the bracket.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => setIsConfirmModalOpen(false)}
+              className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-navy-800 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={loading}
+              onClick={executeConfirmMatch}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#D4AF37] hover:bg-[#E5C358] text-navy-950 font-black text-xs shadow-lg shadow-[#D4AF37]/20 transition-all disabled:opacity-50"
+            >
+              {loading ? (
+                <span>Confirming...</span>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Confirm & Advance Winner</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Post Match Next Round Progression Modal */}
+      <Modal
+        isOpen={isPostMatchModalOpen}
+        onClose={() => setIsPostMatchModalOpen(false)}
+        title="🏆 Match Completed & Confirmed"
+      >
+        <div className="space-y-5 text-center py-2">
+          <div className="w-14 h-14 rounded-2xl bg-[#D4AF37]/20 border border-[#D4AF37]/40 text-[#D4AF37] flex items-center justify-center mx-auto shadow-lg shadow-[#D4AF37]/10">
+            <Trophy className="w-7 h-7" />
+          </div>
+
+          <div className="space-y-1">
+            <h3 className="text-xl font-bold font-display text-white">
+              Match #{match.matchNumber} Completed!
+            </h3>
+            <p className="text-xs text-[#94A3B8]">
+              Winner confirmed and recorded. The tournament draw has been updated automatically.
+            </p>
+          </div>
+
+          {postMatchData?.roundAdvanced && (
+            <div className="p-3.5 rounded-xl bg-gradient-to-r from-[#D4AF37]/20 to-emerald-500/20 border border-[#D4AF37]/40 text-left space-y-1">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-[#D4AF37]">
+                <Sparkles className="w-4 h-4" />
+                <span>Round Progression Completed!</span>
+              </div>
+              <p className="text-[11px] text-slate-200">
+                All matches for this round are complete. Winners have been automatically paired into the next round (Quarterfinals) and queued on the Main Carrom Board!
+              </p>
+            </div>
+          )}
+
+          {postMatchData?.nextReadyMatch && (
+            <div className="p-4 rounded-xl bg-[#070B16] border border-[#1C2B48] text-left space-y-2">
+              <span className="text-[10px] font-mono uppercase font-bold text-[#D4AF37]">
+                Next Scheduled Match on Main Carrom Board:
+              </span>
+              <div className="flex items-center justify-between text-xs font-bold text-white">
+                <span className="truncate">{postMatchData.nextReadyMatch.team1?.name}</span>
+                <span className="text-[#D4AF37] font-mono px-2">vs</span>
+                <span className="truncate">{postMatchData.nextReadyMatch.team2?.name}</span>
+              </div>
+              <span className="text-[10px] text-[#94A3B8] block">
+                {postMatchData.nextReadyMatch.category.replace('_', ' ').toUpperCase()} · Match #{postMatchData.nextReadyMatch.matchNumber} ({postMatchData.nextReadyMatch.roundName})
+              </span>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-2 pt-2">
+            {postMatchData?.nextReadyMatch && (
+              <a
+                href={`/admin/matches/${postMatchData.nextReadyMatch._id}/score`}
+                className="w-full py-3 rounded-xl bg-[#D4AF37] hover:bg-[#E5C358] text-[#070B16] font-black text-xs shadow-lg shadow-[#D4AF37]/20 transition-all flex items-center justify-center gap-2"
+              >
+                <span>▶ Start Next Match Scorekeeper</span>
+              </a>
+            )}
+
+            <a
+              href="/admin"
+              className="w-full py-2.5 rounded-xl bg-[#0E1626] hover:bg-[#141F36] border border-[#1C2B48] text-slate-200 font-bold text-xs transition-colors text-center"
+            >
+              Return to Arena Desk (Dashboard)
+            </a>
+
+            <a
+              href={`/admin/draws?category=${match.category}`}
+              className="w-full py-2 rounded-xl text-[#94A3B8] hover:text-[#D4AF37] text-xs font-semibold transition-colors text-center"
+            >
+              View Updated Dynamic Bracket →
+            </a>
+          </div>
+        </div>
+      </Modal>
+
       {/* Result Correction Modal */}
       <Modal
         isOpen={isCorrectModalOpen}
-        onClose={() => setIsCorrectModalOpen(false)}
+        onClose={() => {
+          setIsCorrectModalOpen(false);
+          setCorrectionError('');
+        }}
         title="Admin Match Result Correction"
       >
         <div className="space-y-4">
@@ -608,6 +794,12 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
             </p>
           </div>
 
+          {correctionError && (
+            <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs">
+              {correctionError}
+            </div>
+          )}
+
           <div>
             <label className="text-xs font-semibold text-slate-300 block mb-1.5">
               Reason for Result Correction (Mandatory):
@@ -615,7 +807,10 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
             <textarea
               rows="3"
               value={correctionReason}
-              onChange={(e) => setCorrectionReason(e.target.value)}
+              onChange={(e) => {
+                setCorrectionReason(e.target.value);
+                if (correctionError) setCorrectionError('');
+              }}
               placeholder="e.g., Scorekeeper coin miscount on Board 2 verified by tournament referee."
               className="w-full bg-navy-950 text-slate-200 text-sm p-3 rounded-xl border border-navy-700 focus:outline-none focus:border-gold-400"
             />
@@ -623,7 +818,10 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
 
           <div className="flex items-center justify-end gap-3 pt-3">
             <button
-              onClick={() => setIsCorrectModalOpen(false)}
+              onClick={() => {
+                setIsCorrectModalOpen(false);
+                setCorrectionError('');
+              }}
               className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white"
             >
               Cancel

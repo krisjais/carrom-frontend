@@ -339,11 +339,11 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="sport-card p-5 space-y-1">
-          <span className="text-[11px] text-[#94A3B8] font-semibold uppercase">Approved Teams</span>
+          <span className="text-[11px] text-[#94A3B8] font-semibold uppercase">Approved Tournament Entries</span>
           <div className="text-3xl font-bold font-mono text-[#D4AF37]">
             {stats?.totalTeams || 0}
           </div>
-          <span className="text-[10px] text-[#94A3B8] block">Across 5 Divisions</span>
+          <span className="text-[10px] text-[#94A3B8] block">Across 5 Divisions (Total: {stats?.totalTeams || 0})</span>
         </div>
 
         <div className="sport-card p-5 space-y-1">
@@ -362,6 +362,63 @@ export default function AdminDashboardPage() {
             {stats?.completedMatches || 0}
           </div>
           <span className="text-[10px] text-[#94A3B8] block">Results Confirmed</span>
+        </div>
+      </div>
+
+      {/* 3.1 DYNAMIC CATEGORY BREAKDOWN (TOTAL APPROVED TOURNAMENT ENTRIES = 35) */}
+      <div className="sport-card p-5 space-y-3 border border-[#1C2B48]">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[#1C2B48]">
+          <div className="flex items-center gap-2">
+            <Layers className="w-4 h-4 text-[#D4AF37]" />
+            <h3 className="font-bold text-white text-xs sm:text-sm uppercase tracking-wider font-display">
+              Approved Tournament Entries Breakdown
+            </h3>
+          </div>
+          <span className="text-xs font-mono font-bold text-[#D4AF37] bg-[#D4AF37]/10 px-2.5 py-1 rounded-lg border border-[#D4AF37]/20">
+            Total: {stats?.totalTeams || 0} Entries
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 pt-1">
+          <div className="p-3 rounded-xl bg-[#070B16] border border-[#1C2B48] space-y-1">
+            <span className="text-[10px] text-[#94A3B8] uppercase font-semibold block">Boys Singles</span>
+            <div className="text-xl font-mono font-bold text-white">
+              {stats?.categories?.boys_singles?.teams || 0}
+            </div>
+            <span className="text-[10px] text-slate-400 block font-mono">10 Players</span>
+          </div>
+
+          <div className="p-3 rounded-xl bg-[#070B16] border border-[#1C2B48] space-y-1">
+            <span className="text-[10px] text-[#94A3B8] uppercase font-semibold block">Girls Singles</span>
+            <div className="text-xl font-mono font-bold text-white">
+              {stats?.categories?.girls_singles?.teams || 0}
+            </div>
+            <span className="text-[10px] text-slate-400 block font-mono">8 Players</span>
+          </div>
+
+          <div className="p-3 rounded-xl bg-[#070B16] border border-[#1C2B48] space-y-1">
+            <span className="text-[10px] text-[#94A3B8] uppercase font-semibold block">Boys Doubles</span>
+            <div className="text-xl font-mono font-bold text-white">
+              {stats?.categories?.boys_doubles?.teams || 0}
+            </div>
+            <span className="text-[10px] text-slate-400 block font-mono">5 Teams (10 Players)</span>
+          </div>
+
+          <div className="p-3 rounded-xl bg-[#070B16] border border-[#1C2B48] space-y-1">
+            <span className="text-[10px] text-[#94A3B8] uppercase font-semibold block">Girls Doubles</span>
+            <div className="text-xl font-mono font-bold text-white">
+              {stats?.categories?.girls_doubles?.teams || 0}
+            </div>
+            <span className="text-[10px] text-slate-400 block font-mono">4 Teams (8 Players)</span>
+          </div>
+
+          <div className="p-3 rounded-xl bg-[#070B16] border border-[#1C2B48] space-y-1">
+            <span className="text-[10px] text-[#94A3B8] uppercase font-semibold block">Mixed Doubles</span>
+            <div className="text-xl font-mono font-bold text-[#D4AF37]">
+              {stats?.categories?.mixed_doubles?.teams || 0}
+            </div>
+            <span className="text-[10px] text-slate-400 block font-mono">8 Teams (16 Players)</span>
+          </div>
         </div>
       </div>
 

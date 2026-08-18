@@ -85,10 +85,26 @@ export default function AdminLoginPage() {
           {loading ? 'Authenticating...' : 'Access Admin Panel'}
         </button>
 
-        <div className="p-3 rounded-lg bg-[#070B16] border border-[#1C2B48] text-[11px] text-[#94A3B8] space-y-1">
-          <p className="font-semibold text-slate-300">Default Admin Credentials:</p>
-          <p className="font-mono">Email: admin@carrom.edu</p>
-          <p className="font-mono">Pass: admincarrom2026</p>
+        <div className="p-3 rounded-lg bg-[#070B16] border border-[#1C2B48] text-[11px] text-[#94A3B8] space-y-2">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-semibold text-slate-300">Default Admin Credentials:</p>
+              <p className="font-mono text-[10px]">Email: admin@carrom.edu</p>
+              <p className="font-mono text-[10px]">Pass: admincarrom2026</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setEmail('admin@carrom.edu');
+                setPassword('admincarrom2026');
+                handleSubmit({ preventDefault: () => {} });
+              }}
+              disabled={loading}
+              className="px-3 py-1.5 rounded-lg bg-[#D4AF37]/15 border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/25 text-[11px] font-bold transition-colors shrink-0"
+            >
+              ⚡ 1-Click Login
+            </button>
+          </div>
         </div>
       </form>
     </div>
