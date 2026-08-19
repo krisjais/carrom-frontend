@@ -96,6 +96,11 @@ export const api = {
     return handleResponse(res);
   },
 
+  lookupRegistration: async (studentId) => {
+    const res = await fetch(`${API_BASE}/registrations/lookup/${encodeURIComponent(studentId)}`);
+    return handleResponse(res);
+  },
+
   getAllRegistrations: async (params = {}) => {
     const query = new URLSearchParams(params).toString();
     const res = await fetch(`${API_BASE}/registrations?${query}`, {
@@ -123,6 +128,15 @@ export const api = {
       method: 'PUT',
       headers: getHeaders(true),
       body: JSON.stringify({ status, adminNotes })
+    });
+    return handleResponse(res);
+  },
+
+  adminEditRegistration: async (id, editData) => {
+    const res = await fetch(`${API_BASE}/registrations/${id}/admin-edit`, {
+      method: 'PUT',
+      headers: getHeaders(true),
+      body: JSON.stringify(editData)
     });
     return handleResponse(res);
   },

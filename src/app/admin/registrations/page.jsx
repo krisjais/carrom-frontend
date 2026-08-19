@@ -17,7 +17,9 @@ import {
   CheckCircle2,
   Clock,
   XCircle,
-  UserPlus
+  UserPlus,
+  Edit3,
+  Lock
 } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
@@ -43,6 +45,16 @@ export default function AdminRegistrationsPage() {
   const [selectedReg, setSelectedReg] = useState(null);
   const [selectedPartnerId, setSelectedPartnerId] = useState('');
   const [selectedPairCategory, setSelectedPairCategory] = useState('boys_doubles');
+
+  // Admin Edit Override modal
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    fullName: '',
+    department: '',
+    doublesPartnerName: '',
+    mixedDoublesPartnerName: '',
+    adminNotes: ''
+  });
 
   const fetchRegistrations = async () => {
     setLoading(true);
@@ -70,7 +82,7 @@ export default function AdminRegistrationsPage() {
     try {
       const res = await api.updateRegistrationStatus(id, newStatus);
       if (res.success) {
-        toast.success(`Registration ${newStatus} successfully.`);
+        toast.success(`Registration marked as ${newStatus}.`);
         fetchRegistrations();
       }
     } catch (err) {
@@ -101,6 +113,37 @@ export default function AdminRegistrationsPage() {
     } catch (err) {
       setDeleteError(err.message || 'Failed to delete registration.');
       toast.error(err.message || 'Failed to delete registration.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleOpenEditModal = (reg) => {
+    setSelectedReg(reg);
+    setEditFormData({
+      fullName: reg.participantId?.fullName || '',
+      department: reg.participantId?.department || '',
+      doublesPartnerName: reg.doublesPartnerName || '',
+      mixedDoublesPartnerName: reg.mixedDoublesPartnerName || '',
+      adminNotes: reg.adminNotes || ''
+    });
+    setEditModalOpen(true);
+  };
+
+  const handleAdminEditSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedReg) return;
+
+    setActionLoading(true);
+    try {
+      const res = await api.adminEditRegistration(selectedReg._id, editFormData);
+      if (res.success) {
+        toast.success('Registration details updated by admin.');
+        setEditModalOpen(false);
+        fetchRegistrations();
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to update registration.');
     } finally {
       setActionLoading(false);
     }
@@ -233,13 +276,13 @@ export default function AdminRegistrationsPage() {
       <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#35538C]">
         <div>
           <span className="eyebrow-label">
-            PARTICIPANT VERIFICATION & PAIRING
+            ADMIN VERIFICATION & PAIRING CONSOLE
           </span>
           <h1 className="text-3xl sm:text-4xl font-black font-display text-white mt-1 tracking-wide">
             Registrations & Partner Verification
           </h1>
           <p className="text-xs text-[#D4DEEE] mt-1">
-            Verify student athlete registration, approve entries, and pair registered doubles partners.
+            Review registrations, lock approved participants, correct errors, and pair doubles teams.
           </p>
         </div>
       </div>
@@ -257,9 +300,9 @@ export default function AdminRegistrationsPage() {
         </div>
 
         <div className="sport-card p-5 rounded-2xl border border-[#35538C] space-y-1">
-          <span className="text-[10px] text-[#D4DEEE] font-mono uppercase font-bold">Approval Status</span>
+          <span className="text-[10px] text-[#D4DEEE] font-mono uppercase font-bold">Approval & Lock Status</span>
           <div className="text-2xl font-black font-mono text-[#FFD691]">
-            {registrations.filter((r) => r.status === 'approved').length} Approved
+            {registrations.filter((r) => r.status === 'approved').length} Locked / Approved
           </div>
           <span className="text-[11px] text-[#D4DEEE] font-mono">
             {registrations.filter((r) => r.status === 'pending').length} Pending Review
@@ -273,7 +316,7 @@ export default function AdminRegistrationsPage() {
             <span className="font-display tracking-wider uppercase">Auto-Matching by Name</span>
           </div>
           <span className="text-[10px] text-[#D4DEEE]/80 block font-mono">
-            Partners match once both athletes register
+            Independent partner registration flow
           </span>
         </div>
       </div>
@@ -286,7 +329,7 @@ export default function AdminRegistrationsPage() {
             <Search className="w-4 h-4 text-[#D4DEEE] absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search athlete, department, partner..."
+              placeholder="Search athlete, student ID, department, partner..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full h-11 bg-[#152442] pl-10 pr-4 text-xs text-white rounded-xl border border-[#35538C] focus:outline-none focus:border-[#FFD691]"
@@ -301,7 +344,7 @@ export default function AdminRegistrationsPage() {
           >
             <option value="">All Statuses</option>
             <option value="pending">Pending Review</option>
-            <option value="approved">Approved</option>
+            <option value="approved">Approved & Locked</option>
             <option value="rejected">Rejected</option>
           </select>
 
@@ -335,7 +378,7 @@ export default function AdminRegistrationsPage() {
                 <tr>
                   <th className="pb-3 w-12 text-center">#</th>
                   <th className="pb-3">Athlete Details</th>
-                  <th className="pb-3">Department</th>
+                  <th className="pb-3">Student ID & Dept</th>
                   <th className="pb-3">Doubles Partner Request</th>
                   <th className="pb-3">Mixed Partner Request</th>
                   <th className="pb-3">Status</th>
@@ -371,7 +414,10 @@ export default function AdminRegistrationsPage() {
                       </td>
 
                       <td className="py-4 align-top">
-                        <span className="text-xs text-white font-mono font-bold">{p.department}</span>
+                        <div className="space-y-0.5">
+                          <span className="font-mono text-[#FFD691] font-bold block">{p.studentId}</span>
+                          <span className="text-[11px] text-[#D4DEEE] block">{p.department}</span>
+                        </div>
                       </td>
 
                       {/* Doubles Partner Status */}
@@ -402,7 +448,7 @@ export default function AdminRegistrationsPage() {
                                 onClick={() => handleUpdateStatus(reg._id, 'approved')}
                                 disabled={actionLoading}
                                 className="px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/30 text-[11px] font-bold font-mono transition-colors cursor-pointer flex items-center gap-1"
-                                title="Approve Athlete (Auto-creates Singles Entry)"
+                                title="Approve & Lock Registration"
                               >
                                 <Check className="w-3.5 h-3.5" />
                                 <span>Approve</span>
@@ -421,12 +467,21 @@ export default function AdminRegistrationsPage() {
                             )}
 
                             <button
+                              onClick={() => handleOpenEditModal(reg)}
+                              disabled={actionLoading}
+                              className="p-1.5 rounded-xl bg-[#1E3258] hover:bg-[#2A4476] text-[#FFD691] border border-[#35538C] transition-colors cursor-pointer"
+                              title="Admin Edit Override"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
+
+                            <button
                               onClick={() => promptDeleteUser(reg)}
                               disabled={actionLoading}
                               className="p-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 hover:text-rose-300 border border-rose-500/30 transition-colors cursor-pointer"
                               title={`Delete ${p.fullName} registration`}
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
 
@@ -486,16 +541,6 @@ export default function AdminRegistrationsPage() {
                                   <span>{mixedVal?.status === 'valid_paired' ? 'Mixed Paired' : 'Pair Mixed'}</span>
                                 </button>
                               )}
-
-                              {/* General Manual Pair */}
-                              {!reg.doublesPartnerName && !reg.mixedDoublesPartnerName && (
-                                <button
-                                  onClick={() => handleOpenPairModal(reg)}
-                                  className="px-3 py-1 rounded-full bg-[#152442] hover:bg-[#1E3258] border border-[#35538C] text-[#FFD691] text-[10px] font-mono font-bold cursor-pointer transition-colors"
-                                >
-                                  + Manual Pair
-                                </button>
-                              )}
                             </div>
                           )}
                         </div>
@@ -508,6 +553,102 @@ export default function AdminRegistrationsPage() {
           </div>
         )}
       </div>
+
+      {/* Admin Edit Modal (Override for Genuine Mistakes) */}
+      <Modal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        title={`Admin Edit: ${selectedReg?.participantId?.fullName} (${selectedReg?.participantId?.studentId})`}
+      >
+        <form onSubmit={handleAdminEditSubmit} className="space-y-4">
+          <div className="p-3 rounded-xl bg-[#152442] border border-[#35538C] text-xs text-[#D4DEEE] font-mono flex items-center gap-2">
+            <Lock className="w-4 h-4 text-[#FFD691] shrink-0" />
+            <span>Admin Authority: Modify details if a student made an honest error during entry.</span>
+          </div>
+
+          <div>
+            <label className="text-xs font-bold text-[#D4DEEE] block mb-1 uppercase font-mono">
+              Athlete Legal Name
+            </label>
+            <input
+              type="text"
+              required
+              value={editFormData.fullName}
+              onChange={(e) => setEditFormData({ ...editFormData, fullName: e.target.value })}
+              className="w-full h-11 bg-[#152442] px-4 text-xs text-white rounded-xl border border-[#35538C]"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-bold text-[#D4DEEE] block mb-1 uppercase font-mono">
+              Department
+            </label>
+            <input
+              type="text"
+              required
+              value={editFormData.department}
+              onChange={(e) => setEditFormData({ ...editFormData, department: e.target.value })}
+              className="w-full h-11 bg-[#152442] px-4 text-xs text-white rounded-xl border border-[#35538C]"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-bold text-[#D4DEEE] block mb-1 uppercase font-mono">
+              Doubles Partner Name
+            </label>
+            <input
+              type="text"
+              required
+              value={editFormData.doublesPartnerName}
+              onChange={(e) => setEditFormData({ ...editFormData, doublesPartnerName: e.target.value })}
+              className="w-full h-11 bg-[#152442] px-4 text-xs text-white rounded-xl border border-[#35538C]"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-bold text-[#D4DEEE] block mb-1 uppercase font-mono">
+              Mixed Doubles Partner Name
+            </label>
+            <input
+              type="text"
+              required
+              value={editFormData.mixedDoublesPartnerName}
+              onChange={(e) => setEditFormData({ ...editFormData, mixedDoublesPartnerName: e.target.value })}
+              className="w-full h-11 bg-[#152442] px-4 text-xs text-white rounded-xl border border-[#35538C]"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-bold text-[#D4DEEE] block mb-1 uppercase font-mono">
+              Admin Notes (Optional)
+            </label>
+            <input
+              type="text"
+              value={editFormData.adminNotes}
+              onChange={(e) => setEditFormData({ ...editFormData, adminNotes: e.target.value })}
+              placeholder="e.g. Corrected partner name spelling per student email"
+              className="w-full h-11 bg-[#152442] px-4 text-xs text-white rounded-xl border border-[#35538C]"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#35538C]">
+            <button
+              type="button"
+              onClick={() => setEditModalOpen(false)}
+              className="px-4 py-2 rounded-full text-xs text-[#D4DEEE] hover:text-white cursor-pointer font-mono"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={actionLoading}
+              className="px-6 py-2.5 rounded-full bg-[#FFD691] text-[#1E3258] font-black text-xs shadow-md transition-colors cursor-pointer font-display uppercase tracking-wider hover:bg-[#FFE2AA]"
+            >
+              {actionLoading ? 'Saving...' : 'Save Corrections'}
+            </button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Delete User In-App Confirmation Modal */}
       <Modal
@@ -532,7 +673,7 @@ export default function AdminRegistrationsPage() {
                 {regToDelete?.participantId?.fullName || 'Participant'}
               </p>
               <p className="text-[11px] text-[#D4DEEE] font-mono">
-                {regToDelete?.participantId?.department}
+                {regToDelete?.participantId?.studentId} · {regToDelete?.participantId?.department}
               </p>
             </div>
           </div>
@@ -594,7 +735,7 @@ export default function AdminRegistrationsPage() {
           <div className="p-4 rounded-2xl bg-[#152442] border border-[#35538C] space-y-1 text-xs font-mono">
             <p className="text-[#D4DEEE]">
               <span className="text-slate-400 font-bold">Player 1:</span>{' '}
-              <span className="font-bold text-white">{selectedReg?.participantId?.fullName}</span> ({selectedReg?.participantId?.gender}, {selectedReg?.participantId?.department})
+              <span className="font-bold text-white">{selectedReg?.participantId?.fullName}</span> ({selectedReg?.participantId?.gender}, {selectedReg?.participantId?.studentId})
             </p>
             {selectedReg?.doublesPartnerName && (
               <p className="text-[#D4DEEE]">
@@ -648,7 +789,7 @@ export default function AdminRegistrationsPage() {
                 )
                 .map((r) => (
                   <option key={r.participantId._id} value={r.participantId._id}>
-                    {r.participantId.fullName} ({r.participantId.gender}, {r.participantId.department})
+                    {r.participantId.fullName} ({r.participantId.gender}, {r.participantId.studentId} - {r.participantId.department})
                   </option>
                 ))}
             </select>
