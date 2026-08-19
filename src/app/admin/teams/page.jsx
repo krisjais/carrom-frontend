@@ -14,6 +14,7 @@ export default function AdminTeamsPage() {
   const [selectedCat, setSelectedCat] = useState('boys_singles');
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [clearing, setClearing] = useState(false);
 
   const fetchTeams = async () => {
     setLoading(true);
@@ -51,6 +52,55 @@ export default function AdminTeamsPage() {
     }
   };
 
+  const handleDeleteAllInCurrentCategory = async () => {
+    if (teams.length === 0) return;
+    const catName = CATEGORIES.find((c) => c.id === selectedCat)?.name || selectedCat;
+
+    const isConfirmed = await confirm({
+      title: `Delete All Players in ${catName}?`,
+      message: `Are you sure you want to remove all ${teams.length} teams/players from ${catName}? This cannot be undone.`,
+      confirmText: `Delete All (${teams.length} Players)`,
+      type: 'danger'
+    });
+    if (!isConfirmed) return;
+
+    setClearing(true);
+    try {
+      const res = await api.deleteAllTeams(selectedCat);
+      if (res.success) {
+        toast.success(res.message || `Deleted all players in ${catName}.`);
+        fetchTeams();
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to delete players.');
+    } finally {
+      setClearing(false);
+    }
+  };
+
+  const handleDeleteAllAcrossAllCategories = async () => {
+    const isConfirmed = await confirm({
+      title: 'Delete ALL Players Across ALL Categories?',
+      message: 'Are you sure you want to completely remove all approved players and teams across all 5 divisions? This cannot be undone.',
+      confirmText: 'Clear Entire Tournament Roster',
+      type: 'danger'
+    });
+    if (!isConfirmed) return;
+
+    setClearing(true);
+    try {
+      const res = await api.deleteAllTeams();
+      if (res.success) {
+        toast.success(res.message || 'All players across all categories have been removed.');
+        fetchTeams();
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to clear roster.');
+    } finally {
+      setClearing(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -63,6 +113,18 @@ export default function AdminTeamsPage() {
           <p className="text-xs text-[#D4DEEE]">
             View all approved singles entries and paired doubles teams for tournament draw generation.
           </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleDeleteAllAcrossAllCategories}
+            disabled={clearing}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 hover:text-rose-200 text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+            title="Delete all teams and entries across all categories"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>{clearing ? 'Deleting...' : 'Delete All Players'}</span>
+          </button>
         </div>
       </div>
 
@@ -88,13 +150,24 @@ export default function AdminTeamsPage() {
 
       {/* Teams Table */}
       <div className="sport-card rounded-3xl p-6 border border-[#35538C] space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-[#35538C]">
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#35538C]">
           <div className="flex items-center gap-2.5">
             <CategoryBadge category={selectedCat} />
             <h3 className="font-bold text-white text-base">
-              Roster ({teams.length} Teams)
+              Roster ({teams.length} {teams.length === 1 ? 'Team' : 'Teams'})
             </h3>
           </div>
+
+          {teams.length > 0 && (
+            <button
+              onClick={handleDeleteAllInCurrentCategory}
+              disabled={clearing}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 hover:text-rose-200 text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Clear {CATEGORIES.find((c) => c.id === selectedCat)?.name || 'Category'} ({teams.length})</span>
+            </button>
+          )}
         </div>
 
         {loading ? (

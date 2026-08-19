@@ -159,6 +159,15 @@ export const api = {
     return handleResponse(res);
   },
 
+  deleteAllTeams: async (category = '') => {
+    const query = category ? `?category=${category}` : '';
+    const res = await fetch(`${API_BASE}/teams/bulk-clear${query}`, {
+      method: 'DELETE',
+      headers: getHeaders(true)
+    });
+    return handleResponse(res);
+  },
+
   // Draws & Dynamic Knockout Brackets
   generateCategoryDraw: async (category) => {
     const res = await fetch(`${API_BASE}/draws/generate`, {
