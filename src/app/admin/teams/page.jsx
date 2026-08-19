@@ -5,8 +5,12 @@ import { api } from '@/lib/api';
 import { CATEGORIES } from '@/lib/constants';
 import { Users, Trash2, Shield, Plus, CheckCircle2 } from 'lucide-react';
 import { CategoryBadge } from '@/components/ui/Badge';
+import { useToast, useConfirm } from '@/context/ToastContext';
 
 export default function AdminTeamsPage() {
+  const toast = useToast();
+  const confirm = useConfirm();
+
   const [selectedCat, setSelectedCat] = useState('boys_singles');
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,14 +32,22 @@ export default function AdminTeamsPage() {
   }, [selectedCat]);
 
   const handleDeleteTeam = async (id, name) => {
-    if (!confirm(`Delete team "${name}" from this category?`)) return;
+    const isConfirmed = await confirm({
+      title: 'Delete Team Entry',
+      message: `Delete team "${name}" from this category?`,
+      confirmText: 'Delete Team',
+      type: 'danger'
+    });
+    if (!isConfirmed) return;
+
     try {
       const res = await api.deleteTeam(id);
       if (res.success) {
+        toast.success(`Team "${name}" deleted successfully.`);
         fetchTeams();
       }
     } catch (err) {
-      alert(err.message || 'Failed to delete team.');
+      toast.error(err.message || 'Failed to delete team.');
     }
   };
 

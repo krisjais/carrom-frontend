@@ -1,5 +1,6 @@
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
+import { ToastProvider } from '@/context/ToastContext';
 import { AppShell } from '@/components/layout/AppShell';
 
 export const metadata = {
@@ -20,9 +21,11 @@ export default function RootLayout({ children }) {
       </head>
       <body className="bg-navy-950 text-slate-100 flex flex-col min-h-screen antialiased selection:bg-gold-500 selection:text-navy-950">
         <AuthProvider>
-          <AppShell>
-            {children}
-          </AppShell>
+          <ToastProvider>
+            <AppShell>
+              {children}
+            </AppShell>
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>

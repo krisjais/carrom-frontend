@@ -26,9 +26,11 @@ import {
 } from 'lucide-react';
 import { StatusBadge, MainBoardBadge, CategoryBadge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
+import { useToast } from '@/context/ToastContext';
 
 export default function AdminMatchesPage() {
   const router = useRouter();
+  const toast = useToast();
   const [matches, setMatches] = useState([]);
   const [teams, setTeams] = useState([]);
   const [arenaState, setArenaState] = useState(null);
@@ -100,7 +102,7 @@ export default function AdminMatchesPage() {
         router.push(`/admin/matches/${matchId}/score`);
       }
     } catch (err) {
-      alert(err.message || 'Failed to start match.');
+      toast.error(err.message || 'Failed to start match.');
       fetchMatchesAndTeams();
     } finally {
       setStartingMatchId(null);
@@ -113,12 +115,12 @@ export default function AdminMatchesPage() {
     try {
       const res = await api.generateSchedule(scheduleSettings);
       if (res.success) {
-        alert('Sequential schedule generated successfully for Main Carrom Board!');
+        toast.success('Sequential schedule generated successfully for Main Carrom Board!');
         setSchedulerModalOpen(false);
         fetchMatchesAndTeams();
       }
     } catch (err) {
-      alert(err.message || 'Failed to generate schedule.');
+      toast.error(err.message || 'Failed to generate schedule.');
     } finally {
       setGeneratingSchedule(false);
     }
@@ -140,11 +142,12 @@ export default function AdminMatchesPage() {
         scheduledTime: customTime ? new Date(customTime) : null
       });
       if (res.success) {
+        toast.success('Match scheduled time updated.');
         setEditTimeModalOpen(false);
         fetchMatchesAndTeams();
       }
     } catch (err) {
-      alert(err.message || 'Failed to update scheduled time.');
+      toast.error(err.message || 'Failed to update scheduled time.');
     } finally {
       setSavingTime(false);
     }

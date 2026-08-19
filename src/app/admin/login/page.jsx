@@ -3,14 +3,15 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { Shield } from 'lucide-react';
+import { Shield, Eye, EyeOff } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const router = useRouter();
   const { login } = useAuth();
 
-  const [email, setEmail] = useState('admin@carrom.edu');
-  const [password, setPassword] = useState('admincarrom2026');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -60,6 +61,8 @@ export default function AdminLoginPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            placeholder="admin@example.com"
+            autoComplete="email"
             className="w-full h-11 bg-[#152442] px-4 text-xs text-white rounded-xl border border-[#35538C] focus:outline-none focus:border-[#FFD691]"
           />
         </div>
@@ -68,13 +71,29 @@ export default function AdminLoginPage() {
           <label className="text-xs text-[#D4DEEE] font-bold block mb-1.5">
             Admin Password
           </label>
-          <input
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full h-11 bg-[#152442] px-4 text-xs text-white rounded-xl border border-[#35538C] focus:outline-none focus:border-[#FFD691]"
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••••••"
+              autoComplete="current-password"
+              className="w-full h-11 bg-[#152442] pl-4 pr-11 text-xs text-white rounded-xl border border-[#35538C] focus:outline-none focus:border-[#FFD691]"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#D4DEEE] hover:text-[#FFD691] transition-colors p-1 cursor-pointer"
+            >
+              {showPassword ? (
+                <EyeOff className="w-4 h-4" />
+              ) : (
+                <Eye className="w-4 h-4" />
+              )}
+            </button>
+          </div>
         </div>
 
         <button
@@ -84,28 +103,6 @@ export default function AdminLoginPage() {
         >
           {loading ? 'Authenticating...' : 'ACCESS ADMIN PANEL'}
         </button>
-
-        <div className="p-4 rounded-2xl bg-[#152442] border border-[#35538C] text-[11px] text-[#D4DEEE] space-y-2">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-bold text-white">Default Admin Credentials:</p>
-              <p className="font-mono text-[10px]">Email: admin@carrom.edu</p>
-              <p className="font-mono text-[10px]">Pass: admincarrom2026</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                setEmail('admin@carrom.edu');
-                setPassword('admincarrom2026');
-                handleSubmit({ preventDefault: () => {} });
-              }}
-              disabled={loading}
-              className="px-3 py-1.5 rounded-xl bg-[#FFD691]/15 border border-[#D7A859]/50 text-[#FFD691] hover:bg-[#FFD691]/25 text-[11px] font-bold transition-colors shrink-0 cursor-pointer"
-            >
-              1-Click Login
-            </button>
-          </div>
-        </div>
       </form>
     </div>
   );

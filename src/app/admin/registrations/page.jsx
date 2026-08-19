@@ -5,8 +5,11 @@ import { api } from '@/lib/api';
 import { UserCheck, Search, Filter, Check, X, Shield, Users, AlertCircle, Trash2, Trophy } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
+import { useToast } from '@/context/ToastContext';
 
 export default function AdminRegistrationsPage() {
+  const toast = useToast();
+
   const [registrations, setRegistrations] = useState([]);
   const [statusFilter, setStatusFilter] = useState('');
   const [genderFilter, setGenderFilter] = useState('');
@@ -52,11 +55,11 @@ export default function AdminRegistrationsPage() {
     try {
       const res = await api.updateRegistrationStatus(id, newStatus);
       if (res.success) {
-        setFeedbackMessage({ type: 'success', text: `Registration ${newStatus} successfully.` });
+        toast.success(`Registration ${newStatus} successfully.`);
         fetchRegistrations();
       }
     } catch (err) {
-      setFeedbackMessage({ type: 'error', text: err.message || 'Failed to update registration status.' });
+      toast.error(err.message || 'Failed to update registration status.');
     } finally {
       setActionLoading(false);
     }
@@ -77,11 +80,12 @@ export default function AdminRegistrationsPage() {
       if (res.success) {
         setDeleteModalOpen(false);
         setRegToDelete(null);
-        setFeedbackMessage({ type: 'success', text: res.message || 'User deleted successfully.' });
+        toast.success(res.message || 'User deleted successfully.');
         fetchRegistrations();
       }
     } catch (err) {
       setDeleteError(err.message || 'Failed to delete user.');
+      toast.error(err.message || 'Failed to delete user.');
     } finally {
       setActionLoading(false);
     }
@@ -90,7 +94,7 @@ export default function AdminRegistrationsPage() {
   const handleCreatePairSubmit = async (e) => {
     e.preventDefault();
     if (!selectedReg?.participantId?._id || !selectedPartnerId) {
-      alert('Please select a valid partner from the approved participants.');
+      toast.warning('Please select a valid partner from the approved participants.');
       return;
     }
 
@@ -102,12 +106,12 @@ export default function AdminRegistrationsPage() {
         category: selectedPairCategory
       });
       if (res.success) {
-        alert(res.message);
+        toast.success(res.message || 'Doubles team created successfully.');
         setPairModalOpen(false);
         fetchRegistrations();
       }
     } catch (err) {
-      alert(err.message || 'Failed to create doubles team.');
+      toast.error(err.message || 'Failed to create doubles team.');
     } finally {
       setActionLoading(false);
     }

@@ -4,8 +4,11 @@ import React, { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { BookOpen, Shield, Save, Settings, CheckCircle2 } from 'lucide-react';
 import { StatusBadge, MainBoardBadge } from '@/components/ui/Badge';
+import { useToast } from '@/context/ToastContext';
 
 export default function AdminRulesPage() {
+  const toast = useToast();
+
   const [tournament, setTournament] = useState(null);
   const [rulesContent, setRulesContent] = useState('');
   const [status, setStatus] = useState('ongoing');
@@ -50,10 +53,9 @@ export default function AdminRulesPage() {
         api.updateTournamentStatus(status),
         api.updateTournamentSettings({ title, edition, boardCount: 1 })
       ]);
-      setSavedMessage('Tournament rules and settings saved successfully.');
-      setTimeout(() => setSavedMessage(null), 3000);
+      toast.success('Tournament rules and arena settings saved successfully!');
     } catch (err) {
-      alert(err.message || 'Failed to save tournament settings.');
+      toast.error(err.message || 'Failed to save tournament settings.');
     } finally {
       setSaving(false);
     }

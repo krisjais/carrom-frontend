@@ -3,8 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { Bell, Pin, Trash2, Plus, Send } from 'lucide-react';
+import { useToast, useConfirm } from '@/context/ToastContext';
 
 export default function AdminAnnouncementsPage() {
+  const toast = useToast();
+  const confirm = useConfirm();
+
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState('');
@@ -42,25 +46,36 @@ export default function AdminAnnouncementsPage() {
         isPinned
       });
       if (res.success) {
+        toast.success('Announcement published successfully!');
         setTitle('');
         setContent('');
         setIsPinned(false);
         fetchAnnouncements();
       }
     } catch (err) {
-      alert(err.message || 'Failed to post announcement.');
+      toast.error(err.message || 'Failed to post announcement.');
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this announcement?')) return;
+    const isConfirmed = await confirm({
+      title: 'Delete Announcement',
+      message: 'Are you sure you want to permanently delete this announcement?',
+      confirmText: 'Delete Notice',
+      type: 'danger'
+    });
+    if (!isConfirmed) return;
+
     try {
       const res = await api.deleteAnnouncement(id);
-      if (res.success) fetchAnnouncements();
+      if (res.success) {
+        toast.success('Announcement deleted.');
+        fetchAnnouncements();
+      }
     } catch (err) {
-      alert(err.message || 'Failed to delete.');
+      toast.error(err.message || 'Failed to delete announcement.');
     }
   };
 

@@ -21,9 +21,11 @@ import {
   Timer
 } from 'lucide-react';
 import { CategoryBadge, StatusBadge, MainBoardBadge } from '@/components/ui/Badge';
+import { useToast } from '@/context/ToastContext';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
+  const toast = useToast();
   const [stats, setStats] = useState(null);
   const [arenaState, setArenaState] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -58,7 +60,7 @@ export default function AdminDashboardPage() {
         router.push(`/admin/matches/${matchId}/score`);
       }
     } catch (err) {
-      alert(err.message || 'Failed to start match.');
+      toast.error(err.message || 'Failed to start match.');
       fetchDashboardData();
     } finally {
       setStartingMatchId(null);
