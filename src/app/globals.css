@@ -2,161 +2,138 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --bg-darkest: #0B0D0E;
-  --bg-dark: #14171A;
-  --bg-surface: #1A1E24;
-  --bg-card: #1F242C;
-  --border-hairline: rgba(212, 169, 76, 0.2);
-  --border-subtle: #2A313C;
-  --gold-primary: #F2C94C;
-  --gold-dark: #D4A94C;
-  --text-warm: #F5F1E8;
-  --text-muted: #9BB0D3;
-  --navy-bg: #0F1A30;
-  --navy-card: #1E3258;
+:root, html.light {
+  --bg-canvas: #F7F7F7;
+  --bg-card: #FFFFFF;
+  --bg-hover: #F2F2F2;
+  --text-primary: #111111;
+  --text-muted: #666666;
+  --border-color: #E5E5E5;
+  --accent-gold: #C9A227;
+  --btn-black-bg: #000000;
+  --btn-black-text: #FFFFFF;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+html.dark {
+  --bg-canvas: #09090B;
+  --bg-card: #121215;
+  --bg-hover: #1A1A1E;
+  --text-primary: #F4F4F5;
+  --text-muted: #A1A1AA;
+  --border-color: #27272A;
+  --accent-gold: #D4AF37;
+  --btn-black-bg: #F4F4F5;
+  --btn-black-text: #09090B;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* Global Disable Text Selection */
+*, body, html {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+/* Theme Smooth Transitions */
+body, div, header, main, footer, table, tr, td, th, input, select, button, a {
+  transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 body {
-  background-color: #0B0D0E;
-  color: #F5F1E8;
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
   min-height: 100vh;
   letter-spacing: -0.01em;
 }
 
-/* Headings with Athletic Display Energy */
+/* Dark Mode Comprehensive Overrides */
+html.dark {
+  background-color: #09090B !important;
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #09090B !important;
+  color: #F4F4F5 !important;
+}
+
+html.dark .bg-\[\#F7F7F7\] {
+  background-color: #09090B !important;
+}
+
+html.dark .bg-white {
+  background-color: #121215 !important;
+  color: #F4F4F5 !important;
+}
+
+html.dark .bg-gray-50 {
+  background-color: #18181C !important;
+}
+
+html.dark .bg-gray-100 {
+  background-color: #202026 !important;
+}
+
+html.dark .bg-gray-900 {
+  background-color: #000000 !important;
+}
+
+html.dark .border-\[\#E5E5E5\] {
+  border-color: #27272A !important;
+}
+
+html.dark .divide-\[\#E5E5E5\] > :not([hidden]) ~ :not([hidden]) {
+  border-color: #27272A !important;
+}
+
+html.dark .text-\[\#111111\] {
+  color: #F4F4F5 !important;
+}
+
+html.dark .text-\[\#666666\] {
+  color: #A1A1AA !important;
+}
+
+html.dark .hover\:bg-gray-50:hover {
+  background-color: #1A1A1E !important;
+}
+
+html.dark input, 
+html.dark select, 
+html.dark textarea {
+  background-color: #18181C !important;
+  color: #F4F4F5 !important;
+  border-color: #27272A !important;
+}
+
+html.dark input::placeholder {
+  color: #71717A !important;
+}
+
+/* Reference Typography */
 h1, h2, h3, h4, h5, h6, .font-display {
   font-family: 'Oswald', 'Outfit', sans-serif;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 
-/* Signature Gold Eyebrow Pattern */
-.eyebrow-label {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.75rem;
-  line-height: 1rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: #F2C94C;
-  display: block;
+/* Badges */
+.badge-live {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
-/* Public Arena Card System */
-.arena-card {
-  background: linear-gradient(180deg, #1A1E24 0%, #14171A 100%);
-  border: 1px solid rgba(212, 169, 76, 0.18);
-  border-radius: 1.5rem;
-  box-shadow: 0 12px 36px -8px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.03);
-}
-
-.arena-card-hover {
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.arena-card-hover:hover {
-  border-color: #F2C94C;
-  transform: translateY(-2px);
-  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.8), 0 0 20px rgba(242, 201, 76, 0.15);
-}
-
-/* Admin Navy Card System (Matches Reference Screenshot) */
-.sport-card {
-  background-color: #1E3258;
-  background-image: linear-gradient(180deg, rgba(30, 50, 88, 0.98) 0%, rgba(21, 36, 66, 0.98) 100%);
-  border: 1px solid #35538C;
-  border-radius: 1.5rem;
-  box-shadow: 0 10px 30px -10px rgba(15, 26, 48, 0.6);
-}
-
-.sport-card-hover {
-  transition: all 0.15s ease-out;
-}
-
-.sport-card-hover:hover {
-  background-color: #243C6B;
-  border-color: #D4A94C;
-  transform: translateY(-1px);
-}
-
-/* Arena Stadium Scoreboard Strip */
-.scoreboard-strip {
-  background: linear-gradient(90deg, #14171A 0%, #1A1E24 50%, #14171A 100%);
-  border: 1px solid rgba(212, 169, 76, 0.3);
-  border-radius: 1.25rem;
-  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(242, 201, 76, 0.2);
-}
-
-/* Primary Button: Solid Championship Gold with Dark Ink text */
-.btn-primary, .btn-gold, .btn-cream {
-  background-color: #F2C94C;
-  color: #0B0D0E;
-  font-family: 'Oswald', 'Outfit', sans-serif;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  border: none;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 18px rgba(242, 201, 76, 0.28);
-}
-
-.btn-primary:hover, .btn-gold:hover, .btn-cream:hover {
-  background-color: #F7DB82;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(242, 201, 76, 0.42);
-}
-
-/* Secondary Button: Outlined Ghost */
-.btn-ghost, .btn-secondary {
-  background-color: rgba(20, 23, 26, 0.6);
-  border: 1.5px solid rgba(212, 169, 76, 0.45);
-  color: #F5F1E8;
-  font-family: 'Oswald', 'Outfit', sans-serif;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(8px);
-}
-
-.btn-ghost:hover, .btn-secondary:hover {
-  background-color: #1A1E24;
-  border-color: #F2C94C;
-  color: #F2C94C;
-  box-shadow: 0 0 16px rgba(242, 201, 76, 0.2);
-}
-
-/* Pill Tabs (Signature Component from Reference) */
-.pill-tab {
-  padding: 0.625rem 1.25rem;
-  border-radius: 9999px;
-  font-family: 'Oswald', 'Outfit', sans-serif;
-  font-weight: 700;
-  font-size: 0.8125rem;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  transition: all 0.15s ease-out;
-  cursor: pointer;
-}
-
-.pill-tab-active {
-  background-color: #F2C94C;
-  color: #1E3258;
-  box-shadow: 0 4px 14px rgba(242, 201, 76, 0.25);
-  font-weight: 800;
-}
-
-.pill-tab-inactive {
-  background-color: #1E3258;
-  color: #D4DEEE;
-}
-
-.pill-tab-inactive:hover {
-  background-color: #2A457A;
-  color: #FFFFFF;
+.badge-completed {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 /* Live Pulse Indicator */
@@ -172,41 +149,26 @@ h1, h2, h3, h4, h5, h6, .font-display {
 }
 
 .live-dot {
-  width: 0.5rem;
-  height: 0.5rem;
+  width: 0.45rem;
+  height: 0.45rem;
   border-radius: 9999px;
   background-color: #EF4444;
   display: inline-block;
   animation: live-pulse 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Carrom Board Decorative Patterns */
-.carrom-wood-pattern {
-  background-image: 
-    radial-gradient(circle at 50% 50%, rgba(212, 169, 76, 0.06) 0%, transparent 65%),
-    radial-gradient(circle at 10% 10%, rgba(242, 201, 76, 0.04) 0%, transparent 40%),
-    radial-gradient(circle at 90% 90%, rgba(212, 169, 76, 0.04) 0%, transparent 40%);
-}
-
-.carrom-board-lines {
-  background-image: 
-    linear-gradient(rgba(212, 169, 76, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(212, 169, 76, 0.04) 1px, transparent 1px);
-  background-size: 40px 40px;
-}
-
-/* Custom Sports Arena Scrollbar */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0B0D0E;
+  background: var(--bg-canvas);
 }
 ::-webkit-scrollbar-thumb {
-  background: #2A313C;
+  background: #71717A;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #D4A94C;
+  background: var(--accent-gold);
 }
