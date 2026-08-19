@@ -23,10 +23,11 @@ import {
 } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
-import { useToast } from '@/context/ToastContext';
+import { useToast, useConfirm } from '@/context/ToastContext';
 
 export default function AdminRegistrationsPage() {
   const toast = useToast();
+  const confirm = useConfirm();
 
   const [registrations, setRegistrations] = useState([]);
   const [statusFilter, setStatusFilter] = useState('');
@@ -34,6 +35,7 @@ export default function AdminRegistrationsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
 
   // Delete user modal
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -76,6 +78,87 @@ export default function AdminRegistrationsPage() {
   useEffect(() => {
     fetchRegistrations();
   }, [statusFilter, genderFilter, searchTerm]);
+
+  const handleToggleSelect = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedIds.length === registrations.length && registrations.length > 0) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(registrations.map((r) => r._id));
+    }
+  };
+
+  const handleDeleteAllRegistrations = async () => {
+    if (registrations.length === 0) return;
+    const isConfirmed = await confirm({
+      title: `Delete ALL (${registrations.length}) Registrations?`,
+      message: 'Are you sure you want to completely delete all participant entries, student profiles, and generated teams? This action cannot be undone.',
+      confirmText: `Delete All (${registrations.length})`,
+      type: 'danger'
+    });
+    if (!isConfirmed) return;
+
+    setActionLoading(true);
+    try {
+      const res = await api.bulkDeleteRegistrations([]);
+      if (res.success) {
+        toast.success(res.message || 'All participant registrations deleted.');
+        setSelectedIds([]);
+        fetchRegistrations();
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to delete registrations.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeleteSelectedRegistrations = async () => {
+    if (selectedIds.length === 0) return;
+    const isConfirmed = await confirm({
+      title: `Delete ${selectedIds.length} Selected Registrations?`,
+      message: `Are you sure you want to remove the ${selectedIds.length} selected participant entries and their associated records?`,
+      confirmText: `Delete Selected (${selectedIds.length})`,
+      type: 'danger'
+    });
+    if (!isConfirmed) return;
+
+    setActionLoading(true);
+    try {
+      const res = await api.bulkDeleteRegistrations(selectedIds);
+      if (res.success) {
+        toast.success(res.message || `Deleted ${selectedIds.length} registrations.`);
+        setSelectedIds([]);
+        fetchRegistrations();
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to delete selected registrations.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleApproveSelected = async () => {
+    if (selectedIds.length === 0) return;
+    setActionLoading(true);
+    try {
+      for (const id of selectedIds) {
+        await api.updateRegistrationStatus(id, 'approved');
+      }
+      toast.success(`Approved ${selectedIds.length} participant registrations.`);
+      setSelectedIds([]);
+      fetchRegistrations();
+    } catch (err) {
+      toast.error(err.message || 'Failed to approve selected registrations.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   const handleUpdateStatus = async (id, newStatus) => {
     setActionLoading(true);
@@ -188,7 +271,7 @@ export default function AdminRegistrationsPage() {
   const renderPartnerStatusBadge = (validation, requestedName) => {
     if (!requestedName) {
       return (
-        <span className="text-[10px] text-[#D4DEEE]/60 font-mono italic block">
+        <span className="text-[10px] text-[#7E7060] dark:text-[#817B72] font-mono italic block">
           Singles Only
         </span>
       );
@@ -197,8 +280,8 @@ export default function AdminRegistrationsPage() {
     if (!validation) {
       return (
         <div className="space-y-1 font-mono">
-          <span className="text-white font-bold block">{requestedName}</span>
-          <span className="inline-flex items-center gap-1 text-[10px] bg-amber-500/15 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/30">
+          <span className="text-[#3E342B] dark:text-[#F5F1E8] font-bold block">{requestedName}</span>
+          <span className="inline-flex items-center gap-1 text-[10px] bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800/40">
             <Clock className="w-2.5 h-2.5" /> Pending Verification
           </span>
         </div>
@@ -210,8 +293,8 @@ export default function AdminRegistrationsPage() {
     if (status === 'valid_paired') {
       return (
         <div className="space-y-1 font-mono">
-          <span className="text-white font-bold block">{requestedName || partner?.fullName}</span>
-          <span className="inline-flex items-center gap-1 text-[10px] bg-[#FFD691]/20 text-[#FFD691] px-2 py-0.5 rounded-full border border-[#FFD691]/40 font-bold">
+          <span className="text-[#3E342B] dark:text-[#F5F1E8] font-bold block">{requestedName || partner?.fullName}</span>
+          <span className="inline-flex items-center gap-1 text-[10px] bg-[#FAF9F6] dark:bg-[#181C1F] text-[#E74C3C] dark:text-[#D4A94C] px-2 py-0.5 rounded-full border border-[#D5C4A1] dark:border-[#2B3034] font-bold">
             <Trophy className="w-2.5 h-2.5" /> Team Paired
           </span>
         </div>
@@ -221,8 +304,8 @@ export default function AdminRegistrationsPage() {
     if (status === 'partner_registered') {
       return (
         <div className="space-y-1 font-mono">
-          <span className="text-white font-bold block">{partner?.fullName || requestedName}</span>
-          <span className="inline-flex items-center gap-1 text-[10px] bg-emerald-500/15 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30 font-bold">
+          <span className="text-[#3E342B] dark:text-[#F5F1E8] font-bold block">{partner?.fullName || requestedName}</span>
+          <span className="inline-flex items-center gap-1 text-[10px] bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800/40 font-bold">
             <CheckCircle2 className="w-2.5 h-2.5" /> Partner Registered
           </span>
         </div>
@@ -232,8 +315,8 @@ export default function AdminRegistrationsPage() {
     if (status === 'pending_approval') {
       return (
         <div className="space-y-1 font-mono">
-          <span className="text-white font-bold block">{partner?.fullName || requestedName}</span>
-          <span className="inline-flex items-center gap-1 text-[10px] bg-amber-500/15 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/30">
+          <span className="text-[#3E342B] dark:text-[#F5F1E8] font-bold block">{partner?.fullName || requestedName}</span>
+          <span className="inline-flex items-center gap-1 text-[10px] bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800/40">
             <Clock className="w-2.5 h-2.5" /> Partner Awaiting Approval
           </span>
         </div>
@@ -243,8 +326,8 @@ export default function AdminRegistrationsPage() {
     if (status === 'partner_not_registered') {
       return (
         <div className="space-y-1 font-mono">
-          <span className="text-white font-bold block">{requestedName}</span>
-          <span className="inline-flex items-center gap-1 text-[10px] bg-amber-500/15 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/30">
+          <span className="text-[#3E342B] dark:text-[#F5F1E8] font-bold block">{requestedName}</span>
+          <span className="inline-flex items-center gap-1 text-[10px] bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800/40">
             <Clock className="w-2.5 h-2.5" /> Partner Not Registered
           </span>
         </div>
@@ -254,9 +337,9 @@ export default function AdminRegistrationsPage() {
     if (status === 'invalid_gender') {
       return (
         <div className="space-y-1 font-mono">
-          <span className="text-white font-bold block">{requestedName}</span>
-          <span className="inline-flex items-center gap-1 text-[10px] bg-rose-500/15 text-rose-300 px-2 py-0.5 rounded-full border border-rose-500/30">
-            <XCircle className="w-2.5 h-2.5 text-rose-400" /> Invalid Gender
+          <span className="text-[#3E342B] dark:text-[#F5F1E8] font-bold block">{requestedName}</span>
+          <span className="inline-flex items-center gap-1 text-[10px] bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 px-2 py-0.5 rounded-full border border-rose-200 dark:border-rose-800/40">
+            <XCircle className="w-2.5 h-2.5 text-rose-600" /> Invalid Gender
           </span>
         </div>
       );
@@ -264,75 +347,126 @@ export default function AdminRegistrationsPage() {
 
     return (
       <div className="space-y-1 font-mono">
-        <span className="text-white font-bold block">{requestedName}</span>
-        <span className="text-[10px] text-[#D4DEEE]/80 block">{validation.message}</span>
+        <span className="text-[#3E342B] dark:text-[#F5F1E8] font-bold block">{requestedName}</span>
+        <span className="text-[10px] text-[#7E7060] dark:text-[#817B72] block">{validation.message}</span>
       </div>
     );
   };
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto">
+    <div className="space-y-8 max-w-6xl mx-auto text-[#4A4238] dark:text-[#F5F1E8] transition-colors duration-200">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#35538C]">
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#E8E1D5] dark:border-[#2B3034]">
         <div>
           <span className="eyebrow-label">
             ADMIN VERIFICATION & PAIRING CONSOLE
           </span>
-          <h1 className="text-3xl sm:text-4xl font-black font-display text-white mt-1 tracking-wide">
+          <h1 className="text-3xl sm:text-4xl font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] mt-1">
             Registrations & Partner Verification
           </h1>
-          <p className="text-xs text-[#D4DEEE] mt-1">
+          <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] mt-1">
             Review registrations, lock approved participants, correct errors, and pair doubles teams.
           </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleDeleteAllRegistrations}
+            disabled={actionLoading || registrations.length === 0}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#FDEDEC] dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-200 dark:border-rose-800/40 text-[#E74C3C] text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+            title="Delete all registered participants and their login accounts"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>Delete All Registrations</span>
+          </button>
         </div>
       </div>
 
       {/* Top Validation Stats Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="sport-card p-5 rounded-2xl border border-[#35538C] space-y-1">
-          <span className="text-[10px] text-[#D4DEEE] font-mono uppercase font-bold">Registered Athletes</span>
-          <div className="text-2xl font-black font-mono text-white">
+        <div className="editorial-card p-5 rounded-2xl border border-[#E8E1D5] dark:border-[#2B3034] bg-white dark:bg-[#15191C] space-y-1 shadow-xs">
+          <span className="text-[10px] text-[#7E7060] dark:text-[#817B72] font-mono uppercase font-bold">Registered Athletes</span>
+          <div className="text-2xl font-black font-mono text-[#3E342B] dark:text-[#F5F1E8]">
             {registrations.length} Students
           </div>
-          <span className="text-[11px] text-emerald-300 font-bold font-mono">
+          <span className="text-[11px] text-emerald-800 dark:text-emerald-300 font-bold font-mono">
             {registrations.filter((r) => r.gender === 'male').length} Male · {registrations.filter((r) => r.gender === 'female').length} Female
           </span>
         </div>
 
-        <div className="sport-card p-5 rounded-2xl border border-[#35538C] space-y-1">
-          <span className="text-[10px] text-[#D4DEEE] font-mono uppercase font-bold">Approval & Lock Status</span>
-          <div className="text-2xl font-black font-mono text-[#FFD691]">
+        <div className="editorial-card p-5 rounded-2xl border border-[#E8E1D5] dark:border-[#2B3034] bg-white dark:bg-[#15191C] space-y-1 shadow-xs">
+          <span className="text-[10px] text-[#7E7060] dark:text-[#817B72] font-mono uppercase font-bold">Approval & Lock Status</span>
+          <div className="text-2xl font-black font-mono text-[#E74C3C] dark:text-[#D4A94C]">
             {registrations.filter((r) => r.status === 'approved').length} Locked / Approved
           </div>
-          <span className="text-[11px] text-[#D4DEEE] font-mono">
+          <span className="text-[11px] text-[#7E7060] dark:text-[#817B72] font-mono">
             {registrations.filter((r) => r.status === 'pending').length} Pending Review
           </span>
         </div>
 
-        <div className="sport-card p-5 rounded-2xl border border-[#35538C] space-y-1">
-          <span className="text-[10px] text-[#D4DEEE] font-mono uppercase font-bold">Partner Verification Engine</span>
-          <div className="text-sm font-bold text-[#FFD691] flex items-center gap-1.5 pt-1">
-            <Shield className="w-4 h-4 text-[#FFD691] shrink-0" />
-            <span className="font-display tracking-wider uppercase">Auto-Matching by Name</span>
+        <div className="editorial-card p-5 rounded-2xl border border-[#E8E1D5] dark:border-[#2B3034] bg-white dark:bg-[#15191C] space-y-1 shadow-xs">
+          <span className="text-[10px] text-[#7E7060] dark:text-[#817B72] font-mono uppercase font-bold">Partner Verification Engine</span>
+          <div className="text-sm font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] flex items-center gap-1.5 pt-1">
+            <Shield className="w-4 h-4 text-[#E74C3C] dark:text-[#D4A94C] shrink-0" />
+            <span className="tracking-wider uppercase">Auto-Matching by Name</span>
           </div>
-          <span className="text-[10px] text-[#D4DEEE]/80 block font-mono">
+          <span className="text-[10px] text-[#7E7060] dark:text-[#817B72] block font-mono">
             Independent partner registration flow
           </span>
         </div>
       </div>
 
+      {/* Bulk Action Toolbar when Participants are Selected */}
+      {selectedIds.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-white dark:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] shadow-md">
+          <div className="flex items-center gap-2.5 text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] font-mono">
+            <span className="w-6 h-6 rounded-full bg-[#E74C3C] text-white flex items-center justify-center font-black text-xs">
+              {selectedIds.length}
+            </span>
+            <span>Participants Selected</span>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={handleApproveSelected}
+              disabled={actionLoading}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>Approve Selected ({selectedIds.length})</span>
+            </button>
+
+            <button
+              onClick={handleDeleteSelectedRegistrations}
+              disabled={actionLoading}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Delete Selected ({selectedIds.length})</span>
+            </button>
+
+            <button
+              onClick={() => setSelectedIds([])}
+              className="px-3 py-1.5 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] hover:bg-white dark:hover:bg-[#121517] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] text-xs font-bold transition-all cursor-pointer"
+            >
+              Deselect
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Filters Bar */}
-      <div className="sport-card p-4 rounded-2xl border border-[#35538C] flex flex-wrap items-center justify-between gap-4">
+      <div className="editorial-card p-4 rounded-2xl border border-[#E8E1D5] dark:border-[#2B3034] bg-white dark:bg-[#15191C] flex flex-wrap items-center justify-between gap-4 shadow-xs">
         <div className="flex flex-wrap items-center gap-3 flex-1">
           {/* Search box */}
           <div className="relative flex-1 min-w-[200px] max-w-md">
-            <Search className="w-4 h-4 text-[#D4DEEE] absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-[#7E7060] dark:text-[#817B72] absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Search athlete, student ID, department, partner..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full h-11 bg-[#152442] pl-10 pr-4 text-xs text-white rounded-xl border border-[#35538C] focus:outline-none focus:border-[#FFD691]"
+              className="w-full h-11 bg-white dark:bg-[#181C1F] pl-10 pr-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
             />
           </div>
 
@@ -340,7 +474,7 @@ export default function AdminRegistrationsPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-11 bg-[#152442] text-xs text-white px-4 rounded-xl border border-[#35538C] focus:outline-none focus:border-[#FFD691]"
+            className="h-11 bg-white dark:bg-[#181C1F] text-xs text-[#3E342B] dark:text-[#F5F1E8] px-4 rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
           >
             <option value="">All Statuses</option>
             <option value="pending">Pending Review</option>
@@ -352,7 +486,7 @@ export default function AdminRegistrationsPage() {
           <select
             value={genderFilter}
             onChange={(e) => setGenderFilter(e.target.value)}
-            className="h-11 bg-[#152442] text-xs text-white px-4 rounded-xl border border-[#35538C] focus:outline-none focus:border-[#FFD691]"
+            className="h-11 bg-white dark:bg-[#181C1F] text-xs text-[#3E342B] dark:text-[#F5F1E8] px-4 rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
           >
             <option value="">All Genders</option>
             <option value="male">Male (Boys)</option>
@@ -360,22 +494,31 @@ export default function AdminRegistrationsPage() {
           </select>
         </div>
 
-        <div className="text-xs text-[#D4DEEE] font-mono">
-          Showing <span className="text-[#FFD691] font-bold">{registrations.length}</span> registrations
+        <div className="text-xs text-[#7E7060] dark:text-[#817B72] font-mono">
+          Showing <span className="text-[#3E342B] dark:text-[#F5F1E8] font-bold">{registrations.length}</span> registrations
         </div>
       </div>
 
       {/* Registrations Table */}
-      <div className="sport-card rounded-3xl p-6 border border-[#35538C] space-y-4">
+      <div className="editorial-card rounded-2xl p-6 border border-[#E8E1D5] dark:border-[#2B3034] bg-white dark:bg-[#15191C] space-y-4 shadow-xs">
         {loading ? (
-          <div className="py-16 text-center text-[#D4DEEE] text-xs font-mono">Loading registrations & partner validations...</div>
+          <div className="py-16 text-center text-[#7E7060] dark:text-[#B8B1A5] text-xs font-mono">Loading registrations & partner validations...</div>
         ) : registrations.length === 0 ? (
-          <div className="py-16 text-center text-[#D4DEEE] text-xs font-mono">No registrations match the selected filters.</div>
+          <div className="py-16 text-center text-[#7E7060] dark:text-[#B8B1A5] text-xs font-mono">No registrations match the selected filters.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-[#35538C] text-[#D4DEEE] font-bold uppercase text-[11px] font-mono">
+              <thead className="border-b border-[#E8E1D5] dark:border-[#2B3034] text-[#7E7060] dark:text-[#817B72] font-bold uppercase text-[11px] font-mono">
                 <tr>
+                  <th className="pb-3 w-10 text-center">
+                    <input
+                      type="checkbox"
+                      checked={registrations.length > 0 && selectedIds.length === registrations.length}
+                      onChange={handleSelectAll}
+                      className="w-4 h-4 rounded border-[#D5C4A1] dark:border-[#2B3034] text-[#E74C3C] focus:ring-0 cursor-pointer accent-[#E74C3C]"
+                      aria-label="Select all registrations"
+                    />
+                  </th>
                   <th className="pb-3 w-12 text-center">#</th>
                   <th className="pb-3">Athlete Details</th>
                   <th className="pb-3">Student ID & Dept</th>
@@ -385,7 +528,7 @@ export default function AdminRegistrationsPage() {
                   <th className="pb-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#35538C]/60">
+              <tbody className="divide-y divide-[#E8E1D5] dark:divide-[#2B3034]">
                 {registrations.map((reg, index) => {
                   const p = reg.participantId;
                   if (!p) return null;
@@ -397,17 +540,34 @@ export default function AdminRegistrationsPage() {
                   const canPairMixed = mixedVal?.canPair;
 
                   return (
-                    <tr key={reg._id} className="hover:bg-[#152442]/60 transition-colors">
+                    <tr
+                      key={reg._id}
+                      className={`transition-colors ${
+                        selectedIds.includes(reg._id)
+                          ? 'bg-[#FAF9F6] dark:bg-[#181C1F] hover:bg-[#FAF9F6] dark:hover:bg-[#181C1F]'
+                          : 'hover:bg-[#FAF9F6]/60 dark:hover:bg-[#181C1F]/60'
+                      }`}
+                    >
                       <td className="py-4 text-center align-top">
-                        <span className="inline-flex items-center justify-center min-w-[24px] h-6 px-1.5 rounded-lg bg-[#152442] text-[#FFD691] font-mono font-bold text-xs border border-[#35538C]">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(reg._id)}
+                          onChange={() => handleToggleSelect(reg._id)}
+                          className="w-4 h-4 rounded border-[#D5C4A1] dark:border-[#2B3034] text-[#E74C3C] focus:ring-0 cursor-pointer accent-[#E74C3C]"
+                          aria-label={`Select ${p.fullName}`}
+                        />
+                      </td>
+
+                      <td className="py-4 text-center align-top">
+                        <span className="inline-flex items-center justify-center min-w-[24px] h-6 px-1.5 rounded-lg bg-[#FAF9F6] dark:bg-[#181C1F] text-[#3E342B] dark:text-[#F5F1E8] font-mono font-bold text-xs border border-[#D5C4A1] dark:border-[#2B3034]">
                           {index + 1}
                         </span>
                       </td>
 
                       <td className="py-4 align-top">
                         <div className="space-y-0.5">
-                          <span className="font-bold text-white text-sm font-display">{p.fullName}</span>
-                          <span className="text-[11px] text-[#D4DEEE] block font-mono capitalize">
+                          <span className="font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] text-sm">{p.fullName}</span>
+                          <span className="text-[11px] text-[#7E7060] dark:text-[#817B72] block font-mono capitalize">
                             {p.gender}
                           </span>
                         </div>
@@ -415,8 +575,8 @@ export default function AdminRegistrationsPage() {
 
                       <td className="py-4 align-top">
                         <div className="space-y-0.5">
-                          <span className="font-mono text-[#FFD691] font-bold block">{p.studentId}</span>
-                          <span className="text-[11px] text-[#D4DEEE] block">{p.department}</span>
+                          <span className="font-mono text-[#3E342B] dark:text-[#F5F1E8] font-bold block">{p.studentId}</span>
+                          <span className="text-[11px] text-[#7E7060] dark:text-[#817B72] block">{p.department}</span>
                         </div>
                       </td>
 
@@ -447,10 +607,10 @@ export default function AdminRegistrationsPage() {
                               <button
                                 onClick={() => handleUpdateStatus(reg._id, 'approved')}
                                 disabled={actionLoading}
-                                className="px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/30 text-[11px] font-bold font-mono transition-colors cursor-pointer flex items-center gap-1"
+                                className="px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800/40 text-[11px] font-bold font-mono transition-colors cursor-pointer flex items-center gap-1"
                                 title="Approve & Lock Registration"
                               >
-                                <Check className="w-3.5 h-3.5" />
+                                <Check className="w-3.5 h-3.5 text-emerald-600" />
                                 <span>Approve</span>
                               </button>
                             )}
@@ -459,7 +619,7 @@ export default function AdminRegistrationsPage() {
                               <button
                                 onClick={() => handleUpdateStatus(reg._id, 'rejected')}
                                 disabled={actionLoading}
-                                className="p-1.5 rounded-xl bg-rose-500/15 text-rose-300 hover:bg-rose-500/25 border border-rose-500/30 transition-colors cursor-pointer"
+                                className="p-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-200 dark:border-rose-800/40 transition-colors cursor-pointer"
                                 title="Reject Registration"
                               >
                                 <X className="w-3.5 h-3.5" />
@@ -469,7 +629,7 @@ export default function AdminRegistrationsPage() {
                             <button
                               onClick={() => handleOpenEditModal(reg)}
                               disabled={actionLoading}
-                              className="p-1.5 rounded-xl bg-[#1E3258] hover:bg-[#2A4476] text-[#FFD691] border border-[#35538C] transition-colors cursor-pointer"
+                              className="p-1.5 rounded-xl bg-white dark:bg-[#181C1F] hover:bg-[#FAF9F6] dark:hover:bg-[#15191C] text-[#3E342B] dark:text-[#F5F1E8] border border-[#D5C4A1] dark:border-[#2B3034] transition-colors cursor-pointer"
                               title="Admin Edit Override"
                             >
                               <Edit3 className="w-3.5 h-3.5" />
@@ -478,7 +638,7 @@ export default function AdminRegistrationsPage() {
                             <button
                               onClick={() => promptDeleteUser(reg)}
                               disabled={actionLoading}
-                              className="p-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 hover:text-rose-300 border border-rose-500/30 transition-colors cursor-pointer"
+                              className="p-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-600 border border-rose-200 dark:border-rose-800/40 transition-colors cursor-pointer"
                               title={`Delete ${p.fullName} registration`}
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -499,10 +659,10 @@ export default function AdminRegistrationsPage() {
                                     )
                                   }
                                   disabled={!canPairDoubles}
-                                  className={`px-3 py-1 rounded-full text-[10px] font-black uppercase font-display tracking-wider transition-all flex items-center gap-1 ${
+                                  className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase font-mono tracking-wider transition-all flex items-center gap-1 ${
                                     canPairDoubles
-                                      ? 'bg-[#FFD691] hover:bg-[#FFE2AA] text-[#1E3258] shadow-sm cursor-pointer'
-                                      : 'bg-[#152442] text-[#D4DEEE]/40 border border-[#35538C] cursor-not-allowed opacity-60'
+                                      ? 'btn-primary shadow-2xs cursor-pointer'
+                                      : 'bg-[#FAF9F6] dark:bg-[#181C1F] text-[#7E7060]/50 dark:text-[#817B72]/50 border border-[#E8E1D5] dark:border-[#2B3034] cursor-not-allowed opacity-60'
                                   }`}
                                   title={
                                     canPairDoubles
@@ -526,10 +686,10 @@ export default function AdminRegistrationsPage() {
                                     )
                                   }
                                   disabled={!canPairMixed}
-                                  className={`px-3 py-1 rounded-full text-[10px] font-black uppercase font-display tracking-wider transition-all flex items-center gap-1 ${
+                                  className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase font-mono tracking-wider transition-all flex items-center gap-1 ${
                                     canPairMixed
-                                      ? 'bg-[#FFD691] hover:bg-[#FFE2AA] text-[#1E3258] shadow-sm cursor-pointer'
-                                      : 'bg-[#152442] text-[#D4DEEE]/40 border border-[#35538C] cursor-not-allowed opacity-60'
+                                      ? 'btn-primary shadow-2xs cursor-pointer'
+                                      : 'bg-[#FAF9F6] dark:bg-[#181C1F] text-[#7E7060]/50 dark:text-[#817B72]/50 border border-[#E8E1D5] dark:border-[#2B3034] cursor-not-allowed opacity-60'
                                   }`}
                                   title={
                                     canPairMixed
@@ -561,13 +721,13 @@ export default function AdminRegistrationsPage() {
         title={`Admin Edit: ${selectedReg?.participantId?.fullName} (${selectedReg?.participantId?.studentId})`}
       >
         <form onSubmit={handleAdminEditSubmit} className="space-y-4">
-          <div className="p-3 rounded-xl bg-[#152442] border border-[#35538C] text-xs text-[#D4DEEE] font-mono flex items-center gap-2">
-            <Lock className="w-4 h-4 text-[#FFD691] shrink-0" />
+          <div className="p-3 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-xs text-[#7E7060] dark:text-[#B8B1A5] font-mono flex items-center gap-2">
+            <Lock className="w-4 h-4 text-[#E74C3C] dark:text-[#D4A94C] shrink-0" />
             <span>Admin Authority: Modify details if a student made an honest error during entry.</span>
           </div>
 
           <div>
-            <label className="text-xs font-bold text-[#D4DEEE] block mb-1 uppercase font-mono">
+            <label className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] block mb-1 uppercase font-mono">
               Athlete Legal Name
             </label>
             <input
@@ -575,12 +735,12 @@ export default function AdminRegistrationsPage() {
               required
               value={editFormData.fullName}
               onChange={(e) => setEditFormData({ ...editFormData, fullName: e.target.value })}
-              className="w-full h-11 bg-[#152442] px-4 text-xs text-white rounded-xl border border-[#35538C]"
+              className="w-full h-11 bg-white dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
             />
           </div>
 
           <div>
-            <label className="text-xs font-bold text-[#D4DEEE] block mb-1 uppercase font-mono">
+            <label className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] block mb-1 uppercase font-mono">
               Department
             </label>
             <input
@@ -588,12 +748,12 @@ export default function AdminRegistrationsPage() {
               required
               value={editFormData.department}
               onChange={(e) => setEditFormData({ ...editFormData, department: e.target.value })}
-              className="w-full h-11 bg-[#152442] px-4 text-xs text-white rounded-xl border border-[#35538C]"
+              className="w-full h-11 bg-white dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
             />
           </div>
 
           <div>
-            <label className="text-xs font-bold text-[#D4DEEE] block mb-1 uppercase font-mono">
+            <label className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] block mb-1 uppercase font-mono">
               Doubles Partner Name
             </label>
             <input
@@ -601,12 +761,12 @@ export default function AdminRegistrationsPage() {
               required
               value={editFormData.doublesPartnerName}
               onChange={(e) => setEditFormData({ ...editFormData, doublesPartnerName: e.target.value })}
-              className="w-full h-11 bg-[#152442] px-4 text-xs text-white rounded-xl border border-[#35538C]"
+              className="w-full h-11 bg-white dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
             />
           </div>
 
           <div>
-            <label className="text-xs font-bold text-[#D4DEEE] block mb-1 uppercase font-mono">
+            <label className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] block mb-1 uppercase font-mono">
               Mixed Doubles Partner Name
             </label>
             <input
@@ -614,12 +774,12 @@ export default function AdminRegistrationsPage() {
               required
               value={editFormData.mixedDoublesPartnerName}
               onChange={(e) => setEditFormData({ ...editFormData, mixedDoublesPartnerName: e.target.value })}
-              className="w-full h-11 bg-[#152442] px-4 text-xs text-white rounded-xl border border-[#35538C]"
+              className="w-full h-11 bg-white dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
             />
           </div>
 
           <div>
-            <label className="text-xs font-bold text-[#D4DEEE] block mb-1 uppercase font-mono">
+            <label className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] block mb-1 uppercase font-mono">
               Admin Notes (Optional)
             </label>
             <input
@@ -627,22 +787,22 @@ export default function AdminRegistrationsPage() {
               value={editFormData.adminNotes}
               onChange={(e) => setEditFormData({ ...editFormData, adminNotes: e.target.value })}
               placeholder="e.g. Corrected partner name spelling per student email"
-              className="w-full h-11 bg-[#152442] px-4 text-xs text-white rounded-xl border border-[#35538C]"
+              className="w-full h-11 bg-white dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#35538C]">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#E8E1D5] dark:border-[#2B3034]">
             <button
               type="button"
               onClick={() => setEditModalOpen(false)}
-              className="px-4 py-2 rounded-full text-xs text-[#D4DEEE] hover:text-white cursor-pointer font-mono"
+              className="px-4 py-2 rounded-xl text-xs text-[#7E7060] dark:text-[#817B72] hover:text-[#3E342B] dark:hover:text-[#F5F1E8] cursor-pointer font-mono"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={actionLoading}
-              className="px-6 py-2.5 rounded-full bg-[#FFD691] text-[#1E3258] font-black text-xs shadow-md transition-colors cursor-pointer font-display uppercase tracking-wider hover:bg-[#FFE2AA]"
+              className="btn-primary px-6 py-2.5 rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer uppercase tracking-wider"
             >
               {actionLoading ? 'Saving...' : 'Save Corrections'}
             </button>
@@ -663,38 +823,38 @@ export default function AdminRegistrationsPage() {
         maxWidth="max-w-md"
       >
         <div className="space-y-4 py-1">
-          <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-rose-500/15 border border-rose-500/30">
-            <div className="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
+          <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/40">
+            <div className="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-300 flex items-center justify-center shrink-0">
               <Trash2 className="w-5 h-5" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs text-rose-300 font-bold font-mono uppercase">Confirm Deletion</p>
-              <p className="text-sm font-black text-white truncate font-display">
+              <p className="text-xs text-rose-800 dark:text-rose-300 font-bold font-mono uppercase">Confirm Deletion</p>
+              <p className="text-sm font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] truncate">
                 {regToDelete?.participantId?.fullName || 'Participant'}
               </p>
-              <p className="text-[11px] text-[#D4DEEE] font-mono">
+              <p className="text-[11px] text-[#7E7060] dark:text-[#817B72] font-mono">
                 {regToDelete?.participantId?.studentId} · {regToDelete?.participantId?.department}
               </p>
             </div>
           </div>
 
           {deleteError && (
-            <div className="p-3 rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-mono">
+            <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/40 text-rose-700 dark:text-rose-300 text-xs font-mono">
               {deleteError}
             </div>
           )}
 
-          <div className="text-xs text-slate-200 space-y-2">
+          <div className="text-xs text-[#4A4238] dark:text-[#F5F1E8] space-y-2">
             <p>
-              Are you sure you want to remove the tournament registration for <strong className="text-white font-bold">{regToDelete?.participantId?.fullName}</strong>?
+              Are you sure you want to remove the tournament registration for <strong className="text-[#3E342B] dark:text-[#F5F1E8] font-bold">{regToDelete?.participantId?.fullName}</strong>?
             </p>
-            <div className="p-3 rounded-xl bg-[#152442] border border-[#35538C] text-[11px] text-[#D4DEEE] flex items-center gap-1.5 font-mono">
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <div className="p-3 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-[11px] text-[#7E7060] dark:text-[#B8B1A5] flex items-center gap-1.5 font-mono">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
               <span>This will remove their registration and any created tournament team entries.</span>
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#35538C]">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E8E1D5] dark:border-[#2B3034]">
             <button
               type="button"
               disabled={actionLoading}
@@ -702,7 +862,7 @@ export default function AdminRegistrationsPage() {
                 setDeleteModalOpen(false);
                 setDeleteError('');
               }}
-              className="px-4 py-2.5 rounded-full text-xs font-bold text-[#D4DEEE] hover:text-white transition-colors cursor-pointer font-mono"
+              className="px-4 py-2.5 rounded-xl text-xs font-bold text-[#7E7060] dark:text-[#817B72] hover:text-[#3E342B] dark:hover:text-[#F5F1E8] transition-colors cursor-pointer font-mono"
             >
               Cancel
             </button>
@@ -710,7 +870,7 @@ export default function AdminRegistrationsPage() {
               type="button"
               disabled={actionLoading}
               onClick={executeDeleteUser}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-rose-600 hover:bg-rose-500 text-white font-black text-xs shadow-lg transition-all disabled:opacity-50 cursor-pointer font-display uppercase tracking-wider"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#E74C3C] hover:bg-[#C0392B] text-white font-bold text-xs shadow-xs transition-all disabled:opacity-50 cursor-pointer uppercase tracking-wider"
             >
               {actionLoading ? (
                 <span>Deleting...</span>
@@ -732,33 +892,33 @@ export default function AdminRegistrationsPage() {
         title={`Pair Doubles Team for ${selectedReg?.participantId?.fullName}`}
       >
         <form onSubmit={handleCreatePairSubmit} className="space-y-4">
-          <div className="p-4 rounded-2xl bg-[#152442] border border-[#35538C] space-y-1 text-xs font-mono">
-            <p className="text-[#D4DEEE]">
-              <span className="text-slate-400 font-bold">Player 1:</span>{' '}
-              <span className="font-bold text-white">{selectedReg?.participantId?.fullName}</span> ({selectedReg?.participantId?.gender}, {selectedReg?.participantId?.studentId})
+          <div className="p-4 rounded-2xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] space-y-1 text-xs font-mono">
+            <p className="text-[#7E7060] dark:text-[#B8B1A5]">
+              <span className="text-[#3E342B] dark:text-[#F5F1E8] font-bold">Player 1:</span>{' '}
+              <span className="font-bold text-[#3E342B] dark:text-[#F5F1E8]">{selectedReg?.participantId?.fullName}</span> ({selectedReg?.participantId?.gender}, {selectedReg?.participantId?.studentId})
             </p>
             {selectedReg?.doublesPartnerName && (
-              <p className="text-[#D4DEEE]">
-                <span className="text-slate-400 font-bold">Requested Doubles Partner:</span>{' '}
-                <span className="font-bold text-[#FFD691]">{selectedReg?.doublesPartnerName}</span>
+              <p className="text-[#7E7060] dark:text-[#B8B1A5]">
+                <span className="text-[#3E342B] dark:text-[#F5F1E8] font-bold">Requested Doubles Partner:</span>{' '}
+                <span className="font-bold text-[#E74C3C] dark:text-[#D4A94C]">{selectedReg?.doublesPartnerName}</span>
               </p>
             )}
             {selectedReg?.mixedDoublesPartnerName && (
-              <p className="text-[#D4DEEE]">
-                <span className="text-slate-400 font-bold">Requested Mixed Partner:</span>{' '}
-                <span className="font-bold text-[#FFD691]">{selectedReg?.mixedDoublesPartnerName}</span>
+              <p className="text-[#7E7060] dark:text-[#B8B1A5]">
+                <span className="text-[#3E342B] dark:text-[#F5F1E8] font-bold">Requested Mixed Partner:</span>{' '}
+                <span className="font-bold text-[#E74C3C] dark:text-[#D4A94C]">{selectedReg?.mixedDoublesPartnerName}</span>
               </p>
             )}
           </div>
 
           <div>
-            <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5 uppercase font-mono">
+            <label className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] block mb-1.5 uppercase font-mono">
               Division Category *
             </label>
             <select
               value={selectedPairCategory}
               onChange={(e) => setSelectedPairCategory(e.target.value)}
-              className="w-full h-11 bg-[#152442] px-4 text-xs text-white rounded-xl border border-[#35538C]"
+              className="w-full h-11 bg-white dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
             >
               {selectedReg?.participantId?.gender === 'male' && (
                 <option value="boys_doubles">Boys Doubles</option>
@@ -771,14 +931,14 @@ export default function AdminRegistrationsPage() {
           </div>
 
           <div>
-            <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5 uppercase font-mono">
+            <label className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] block mb-1.5 uppercase font-mono">
               Select Player 2 (From Approved Athletes) *
             </label>
             <select
               value={selectedPartnerId}
               onChange={(e) => setSelectedPartnerId(e.target.value)}
               required
-              className="w-full h-11 bg-[#152442] px-4 text-xs text-white rounded-xl border border-[#35538C]"
+              className="w-full h-11 bg-white dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
             >
               <option value="">-- Choose Partner --</option>
               {registrations
@@ -795,18 +955,18 @@ export default function AdminRegistrationsPage() {
             </select>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#35538C]">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#E8E1D5] dark:border-[#2B3034]">
             <button
               type="button"
               onClick={() => setPairModalOpen(false)}
-              className="px-4 py-2 rounded-full text-xs text-[#D4DEEE] hover:text-white cursor-pointer font-mono"
+              className="px-4 py-2 rounded-xl text-xs text-[#7E7060] dark:text-[#817B72] hover:text-[#3E342B] dark:hover:text-[#F5F1E8] cursor-pointer font-mono"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={actionLoading}
-              className="px-6 py-2.5 rounded-full bg-[#FFD691] text-[#1E3258] font-black text-xs shadow-md transition-colors cursor-pointer font-display uppercase tracking-wider hover:bg-[#FFE2AA]"
+              className="btn-primary px-6 py-2.5 rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer uppercase tracking-wider"
             >
               {actionLoading ? 'Creating Team Entry...' : 'Confirm & Create Team Entry'}
             </button>
@@ -816,3 +976,5 @@ export default function AdminRegistrationsPage() {
     </div>
   );
 }
+
+

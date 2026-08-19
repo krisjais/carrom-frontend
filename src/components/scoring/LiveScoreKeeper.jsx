@@ -14,6 +14,7 @@ import {
   Check
 } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
+import { CarromCoin } from '@/components/ui/CarromElements';
 
 export const LiveScoreKeeper = ({ match, onUpdate }) => {
   const [loading, setLoading] = useState(false);
@@ -118,18 +119,18 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className="space-y-6 max-w-4xl mx-auto text-[#4A4238] dark:text-[#F5F1E8] transition-colors duration-200">
       {/* Feedback Messages */}
       {message && (
         <div
-          className={`p-4 rounded-2xl text-xs font-semibold flex items-center justify-between animate-in fade-in duration-200 shadow-md font-mono ${
+          className={`p-4 rounded-xl text-xs font-semibold flex items-center justify-between shadow-xs font-mono ${
             message.type === 'success'
-              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-              : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+              ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40'
+              : 'bg-[#FDEDEC] dark:bg-[#E74C3C]/15 text-[#E74C3C] border border-[#E74C3C]/30'
           }`}
         >
           <div className="flex items-center gap-2">
-            {message.type === 'success' ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <AlertTriangle className="w-4 h-4 text-rose-400" />}
+            {message.type === 'success' ? <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> : <AlertTriangle className="w-4 h-4 text-[#E74C3C]" />}
             <span>{message.text}</span>
           </div>
           <button onClick={() => setMessage(null)} className="text-xs opacity-70 hover:opacity-100 font-bold px-2 cursor-pointer">
@@ -139,21 +140,21 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
       )}
 
       {/* Main Match Arena Card */}
-      <div className="sport-card rounded-4xl p-6 sm:p-8 border border-[#35538C] bg-gradient-to-br from-[#1E3258] to-[#152442] text-center space-y-6 shadow-2xl relative overflow-hidden">
+      <div className="editorial-card rounded-2xl p-6 sm:p-8 border border-[#E8E1D5] dark:border-[#2B3034] bg-white dark:bg-[#15191C] text-center space-y-6 shadow-xs relative overflow-hidden">
         {/* Header Badges */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[#35538C]">
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[#E8E1D5] dark:border-[#2B3034]">
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#152442] border border-rose-500/50 text-rose-300 font-mono font-bold text-xs tracking-wider shadow-sm">
+            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-[#E74C3C] font-mono font-bold text-xs tracking-wider shadow-2xs">
               <span className="live-dot" />
               MAIN CARROM BOARD · LIVE
             </span>
           </div>
 
           <div className="text-right">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#FFD691]">
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#3E342B] dark:text-[#F5F1E8]">
               {match.category?.replace('_', ' ').toUpperCase()}
             </span>
-            <span className="text-xs text-[#D4DEEE] font-mono block">
+            <span className="text-xs text-[#7E7060] dark:text-[#817B72] font-mono block">
               {match.roundName} · Match #{match.matchNumber}
             </span>
           </div>
@@ -164,27 +165,27 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
           <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
             {/* Team 1 */}
             <div className="flex-1 text-center md:text-right">
-              <span className="text-xs font-mono text-[#D7A859] uppercase font-bold block mb-1">Team 1</span>
-              <h2 className="text-2xl sm:text-4xl font-black font-display text-white tracking-tight uppercase">
+              <span className="text-xs font-mono text-[#7E7060] dark:text-[#817B72] uppercase font-bold block mb-1">Team 1</span>
+              <h2 className="text-2xl sm:text-4xl font-serif font-black text-[#3E342B] dark:text-[#F5F1E8] tracking-tight">
                 {match.team1?.name || 'TBD'}
               </h2>
             </div>
 
             {/* VS Badge */}
-            <div className="w-14 h-14 rounded-full bg-[#152442] border border-[#D7A859]/50 text-xs font-mono font-black text-[#FFD691] flex items-center justify-center shadow-inner shrink-0">
+            <div className="w-12 h-12 rounded-full bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-xs font-mono font-bold text-[#3E342B] dark:text-[#F5F1E8] flex items-center justify-center shadow-xs shrink-0">
               VS
             </div>
 
             {/* Team 2 */}
             <div className="flex-1 text-center md:text-left">
-              <span className="text-xs font-mono text-[#D7A859] uppercase font-bold block mb-1">Team 2</span>
-              <h2 className="text-2xl sm:text-4xl font-black font-display text-white tracking-tight uppercase">
+              <span className="text-xs font-mono text-[#7E7060] dark:text-[#817B72] uppercase font-bold block mb-1">Team 2</span>
+              <h2 className="text-2xl sm:text-4xl font-serif font-black text-[#3E342B] dark:text-[#F5F1E8] tracking-tight">
                 {match.team2?.name || 'TBD'}
               </h2>
             </div>
           </div>
 
-          <div className="mt-4 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#152442] border border-[#35538C] text-[11px] font-mono text-[#D4DEEE]">
+          <div className="mt-4 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-[11px] font-mono text-[#7E7060] dark:text-[#817B72]">
             <span>Single-Game Knockout · 1 Game Decides the Match</span>
           </div>
         </div>
@@ -193,15 +194,15 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
       {/* --- ACTION SECTION --- */}
       {!isMatchCompleted ? (
         /* Winner Declaration Desk */
-        <div className="sport-card rounded-4xl p-6 sm:p-8 border border-[#35538C] space-y-6 shadow-xl text-center">
+        <div className="editorial-card rounded-2xl p-6 sm:p-8 border border-[#E8E1D5] dark:border-[#2B3034] bg-white dark:bg-[#15191C] space-y-6 shadow-xs text-center">
           <div>
             <span className="eyebrow-label">
               Official Match Referee Desk
             </span>
-            <h3 className="text-2xl sm:text-3xl font-black font-display text-white mt-1 uppercase tracking-wide">
+            <h3 className="text-2xl sm:text-3xl font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] mt-1 uppercase tracking-wide">
               DECLARE MATCH WINNER
             </h3>
-            <p className="text-xs text-[#D4DEEE] mt-1 max-w-md mx-auto">
+            <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] mt-1 max-w-md mx-auto">
               Select the winning team on the Main Carrom Board. The winner will advance to the next round immediately.
             </p>
           </div>
@@ -212,23 +213,23 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
             <button
               onClick={() => handleDeclareWinnerClick(match.team1)}
               disabled={loading || !match.team1}
-              className="group relative p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#152442] to-[#1E3258] hover:from-[#2A457A] hover:to-[#1E3258] border-2 border-[#35538C] hover:border-[#FFD691] text-left transition-all duration-200 shadow-lg hover:shadow-[#FFD691]/15 flex flex-col justify-between min-h-[160px] cursor-pointer disabled:opacity-50"
+              className="group relative p-6 sm:p-8 rounded-2xl bg-[#FAF9F6] dark:bg-[#181C1F] hover:bg-white dark:hover:bg-[#15191C] border-2 border-[#E8E1D5] dark:border-[#2B3034] hover:border-[#3E342B] dark:hover:border-[#D4A94C] text-left transition-all duration-200 shadow-xs hover:shadow-md flex flex-col justify-between min-h-[160px] cursor-pointer disabled:opacity-50"
             >
               <div className="space-y-1">
-                <span className="text-[11px] font-mono font-bold text-[#D7A859] uppercase tracking-wider block">
+                <span className="text-[10px] font-mono font-bold text-[#7E7060] dark:text-[#817B72] uppercase tracking-wider block">
                   Team 1 Win Selection
                 </span>
-                <h4 className="text-xl sm:text-2xl font-black font-display text-white group-hover:text-[#FFD691] transition-colors leading-tight uppercase">
+                <h4 className="text-xl sm:text-2xl font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] group-hover:text-[#E74C3C] dark:group-hover:text-[#D4A94C] transition-colors leading-tight">
                   {match.team1?.name}
                 </h4>
               </div>
 
-              <div className="flex items-center justify-between pt-4 mt-2 border-t border-[#35538C] group-hover:border-[#FFD691]/40">
-                <span className="text-xs font-bold text-[#FFD691] flex items-center gap-1.5 font-mono uppercase">
+              <div className="flex items-center justify-between pt-4 mt-2 border-t border-[#E8E1D5] dark:border-[#2B3034] group-hover:border-[#3E342B]/30 dark:group-hover:border-[#D4A94C]/30">
+                <span className="text-xs font-bold text-[#E74C3C] dark:text-[#D4A94C] flex items-center gap-1.5 font-mono uppercase">
                   <Trophy className="w-4 h-4" />
                   <span>Declare Winner</span>
                 </span>
-                <ArrowRight className="w-4 h-4 text-[#D4DEEE] group-hover:text-[#FFD691] group-hover:translate-x-1 transition-all" />
+                <ArrowRight className="w-4 h-4 text-[#7E7060] dark:text-[#817B72] group-hover:text-[#E74C3C] dark:group-hover:text-[#D4A94C] group-hover:translate-x-1 transition-all" />
               </div>
             </button>
 
@@ -236,42 +237,42 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
             <button
               onClick={() => handleDeclareWinnerClick(match.team2)}
               disabled={loading || !match.team2}
-              className="group relative p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#152442] to-[#1E3258] hover:from-[#2A457A] hover:to-[#1E3258] border-2 border-[#35538C] hover:border-[#FFD691] text-left transition-all duration-200 shadow-lg hover:shadow-[#FFD691]/15 flex flex-col justify-between min-h-[160px] cursor-pointer disabled:opacity-50"
+              className="group relative p-6 sm:p-8 rounded-2xl bg-[#FAF9F6] dark:bg-[#181C1F] hover:bg-white dark:hover:bg-[#15191C] border-2 border-[#E8E1D5] dark:border-[#2B3034] hover:border-[#3E342B] dark:hover:border-[#D4A94C] text-left transition-all duration-200 shadow-xs hover:shadow-md flex flex-col justify-between min-h-[160px] cursor-pointer disabled:opacity-50"
             >
               <div className="space-y-1">
-                <span className="text-[11px] font-mono font-bold text-[#D7A859] uppercase tracking-wider block">
+                <span className="text-[10px] font-mono font-bold text-[#7E7060] dark:text-[#817B72] uppercase tracking-wider block">
                   Team 2 Win Selection
                 </span>
-                <h4 className="text-xl sm:text-2xl font-black font-display text-white group-hover:text-[#FFD691] transition-colors leading-tight uppercase">
+                <h4 className="text-xl sm:text-2xl font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] group-hover:text-[#E74C3C] dark:group-hover:text-[#D4A94C] transition-colors leading-tight">
                   {match.team2?.name}
                 </h4>
               </div>
 
-              <div className="flex items-center justify-between pt-4 mt-2 border-t border-[#35538C] group-hover:border-[#FFD691]/40">
-                <span className="text-xs font-bold text-[#FFD691] flex items-center gap-1.5 font-mono uppercase">
+              <div className="flex items-center justify-between pt-4 mt-2 border-t border-[#E8E1D5] dark:border-[#2B3034] group-hover:border-[#3E342B]/30 dark:group-hover:border-[#D4A94C]/30">
+                <span className="text-xs font-bold text-[#E74C3C] dark:text-[#D4A94C] flex items-center gap-1.5 font-mono uppercase">
                   <Trophy className="w-4 h-4" />
                   <span>Declare Winner</span>
                 </span>
-                <ArrowRight className="w-4 h-4 text-[#D4DEEE] group-hover:text-[#FFD691] group-hover:translate-x-1 transition-all" />
+                <ArrowRight className="w-4 h-4 text-[#7E7060] dark:text-[#817B72] group-hover:text-[#E74C3C] dark:group-hover:text-[#D4A94C] group-hover:translate-x-1 transition-all" />
               </div>
             </button>
           </div>
         </div>
       ) : (
         /* Match Completed Spotlight Card with Edit Winner Button */
-        <div className="sport-card rounded-4xl p-8 sm:p-10 border-2 border-[#FFD691]/60 bg-gradient-to-b from-[#1E3258] via-[#1B2D4F] to-[#152442] text-center space-y-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-          <div className="w-16 h-16 rounded-2xl bg-[#FFD691]/20 border border-[#FFD691]/40 text-[#FFD691] flex items-center justify-center mx-auto shadow-lg shadow-[#FFD691]/20">
-            <Trophy className="w-9 h-9" />
+        <div className="editorial-card rounded-2xl p-8 sm:p-10 border-2 border-[#D5C4A1] dark:border-[#2B3034] bg-white dark:bg-[#15191C] text-center space-y-6 shadow-xs">
+          <div className="w-14 h-14 rounded-full bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-[#E74C3C] dark:text-[#D4A94C] flex items-center justify-center mx-auto shadow-xs">
+            <Trophy className="w-8 h-8" />
           </div>
 
           <div className="space-y-2">
-            <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#FFD691]">
+            <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#E74C3C] dark:text-[#D4A94C]">
               MATCH COMPLETED · WINNER CONFIRMED
             </span>
-            <h3 className="text-3xl font-black font-display text-white uppercase">
+            <h3 className="text-3xl font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8]">
               {winnerTeamObj?.name || 'Winner Confirmed'}
             </h3>
-            <p className="text-xs text-[#D4DEEE] max-w-md mx-auto">
+            <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] max-w-md mx-auto">
               Result recorded on the Main Carrom Board. The winner has been advanced in the knockout bracket.
             </p>
           </div>
@@ -280,7 +281,7 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4 max-w-lg mx-auto">
             <a
               href="/admin/matches"
-              className="w-full py-3 px-5 rounded-full bg-[#FFD691] text-[#1E3258] text-xs shadow-lg transition-all text-center cursor-pointer font-black font-display uppercase tracking-wider hover:bg-[#FFE2AA] flex items-center justify-center gap-1.5"
+              className="w-full py-3 px-5 rounded-xl btn-primary text-xs shadow-xs transition-all text-center cursor-pointer font-bold uppercase tracking-wider flex items-center justify-center gap-1.5"
             >
               <Play className="w-3.5 h-3.5 fill-current" />
               <span>Next Scheduled Match</span>
@@ -288,7 +289,7 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
 
             <button
               onClick={() => setIsEditWinnerModalOpen(true)}
-              className="w-full py-3 px-5 rounded-full bg-[#1E3258] hover:bg-[#2A457A] border border-[#D7A859]/60 text-[#FFD691] font-bold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-md font-mono uppercase"
+              className="w-full py-3 px-5 rounded-xl bg-white dark:bg-[#181C1F] hover:bg-[#FAF9F6] dark:hover:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] font-bold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs font-mono uppercase"
             >
               <Edit3 className="w-4 h-4" />
               <span>Edit Winner</span>
@@ -296,7 +297,7 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
 
             <a
               href={`/admin/draws?category=${match.category}`}
-              className="w-full py-3 px-5 rounded-full bg-[#152442] hover:bg-[#1E3258] border border-[#35538C] text-[#D4DEEE] font-bold text-xs transition-colors text-center cursor-pointer font-mono uppercase"
+              className="w-full py-3 px-5 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] hover:bg-white dark:hover:bg-[#15191C] border border-[#E8E1D5] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] font-bold text-xs transition-colors text-center cursor-pointer font-mono uppercase shadow-xs"
             >
               View Bracket
             </a>
@@ -314,28 +315,28 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
         maxWidth="max-w-md"
       >
         <div className="space-y-5 py-1">
-          <div className="flex items-center gap-4 p-4 rounded-2xl bg-[#FFD691]/15 border border-[#FFD691]/30">
-            <div className="w-12 h-12 rounded-xl bg-[#FFD691]/20 text-[#FFD691] flex items-center justify-center shrink-0">
-              <Trophy className="w-6 h-6" />
+          <div className="flex items-center gap-4 p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034]">
+            <div className="w-10 h-10 rounded-full bg-white dark:bg-[#15191C] text-[#E74C3C] dark:text-[#D4A94C] flex items-center justify-center shrink-0 border border-[#D5C4A1] dark:border-[#2B3034]">
+              <Trophy className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[10px] font-mono font-bold uppercase text-[#FFD691] block">
+              <span className="text-[10px] font-mono font-bold uppercase text-[#7E7060] dark:text-[#817B72] block">
                 Selected Winner
               </span>
-              <h4 className="text-base font-black text-white font-display uppercase">
+              <h4 className="text-base font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8]">
                 {pendingWinner?.name}
               </h4>
-              <p className="text-[11px] text-[#D4DEEE] font-mono">
+              <p className="text-[11px] text-[#7E7060] dark:text-[#817B72] font-mono">
                 Match #{match.matchNumber} · {match.category?.replace('_', ' ').toUpperCase()} · Main Board
               </p>
             </div>
           </div>
 
-          <div className="space-y-2 text-xs text-slate-200 leading-relaxed">
+          <div className="space-y-2 text-xs text-[#4A4238] dark:text-[#F5F1E8] leading-relaxed">
             <p>
-              Confirm <strong className="text-white font-bold">{pendingWinner?.name}</strong> as the official winner of this match on the Main Carrom Board?
+              Confirm <strong className="text-[#3E342B] dark:text-[#F5F1E8] font-bold">{pendingWinner?.name}</strong> as the official winner of this match on the Main Carrom Board?
             </p>
-            <div className="p-3 rounded-xl bg-[#152442] border border-[#35538C] text-[11px] text-[#D4DEEE] font-mono">
+            <div className="p-3 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-[11px] text-[#7E7060] dark:text-[#817B72] font-mono">
               The winner will be advanced to the next round in the knockout bracket.
             </div>
           </div>
@@ -345,7 +346,7 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
               type="button"
               disabled={loading}
               onClick={() => setIsConfirmModalOpen(false)}
-              className="px-4 py-2.5 rounded-full text-xs font-bold text-[#D4DEEE] hover:text-white hover:bg-[#1E3258] transition-colors cursor-pointer"
+              className="px-4 py-2.5 rounded-xl text-xs font-bold text-[#7E7060] dark:text-[#817B72] hover:text-[#3E342B] dark:hover:text-[#F5F1E8] cursor-pointer font-mono"
             >
               Cancel
             </button>
@@ -353,7 +354,7 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
               type="button"
               disabled={loading}
               onClick={() => executeConfirmWinner()}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#FFD691] text-[#1E3258] text-xs font-black shadow-lg transition-all disabled:opacity-50 cursor-pointer font-display uppercase tracking-wider hover:bg-[#FFE2AA]"
+              className="btn-primary text-xs font-bold px-6 py-2.5 shadow-xs transition-all disabled:opacity-50 cursor-pointer uppercase tracking-wider flex items-center gap-2"
             >
               {loading ? (
                 <span>Confirming...</span>
@@ -378,8 +379,8 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
         maxWidth="max-w-lg"
       >
         <div className="space-y-5 py-2">
-          <p className="text-xs text-[#D4DEEE]">
-            Current Winner: <strong className="text-[#FFD691] font-bold">{winnerTeamObj?.name || 'None'}</strong>.
+          <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5]">
+            Current Winner: <strong className="text-[#3E342B] dark:text-[#F5F1E8] font-bold">{winnerTeamObj?.name || 'None'}</strong>.
             <br />
             Select the new winning team below to update this match and adjust the bracket:
           </p>
@@ -389,17 +390,17 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
             <button
               onClick={() => executeConfirmWinner({ id: match.team1?._id, name: match.team1?.name })}
               disabled={loading || !match.team1}
-              className={`w-full p-4 rounded-2xl border text-left transition-all flex items-center justify-between cursor-pointer ${
+              className={`w-full p-4 rounded-xl border text-left transition-all flex items-center justify-between cursor-pointer ${
                 winnerTeamObj?._id === match.team1?._id
-                  ? 'bg-[#FFD691]/20 border-[#FFD691] text-white'
-                  : 'bg-[#152442] hover:bg-[#1E3258] border-[#35538C] text-[#D4DEEE]'
+                  ? 'bg-[#FAF9F6] dark:bg-[#181C1F] border-[#3E342B] dark:border-[#D4A94C] text-[#3E342B] dark:text-[#F5F1E8]'
+                  : 'bg-white dark:bg-[#15191C] hover:bg-[#FAF9F6] dark:hover:bg-[#181C1F] border-[#E8E1D5] dark:border-[#2B3034] text-[#7E7060] dark:text-[#817B72]'
               }`}
             >
               <div>
-                <span className="text-[10px] font-mono text-[#D7A859] block uppercase font-bold">Team 1</span>
-                <span className="text-sm font-bold font-display uppercase">{match.team1?.name}</span>
+                <span className="text-[10px] font-mono text-[#7E7060] dark:text-[#817B72] block uppercase font-bold">Team 1</span>
+                <span className="text-sm font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8]">{match.team1?.name}</span>
               </div>
-              <span className="text-xs font-bold text-[#FFD691] flex items-center gap-1 font-mono uppercase">
+              <span className="text-xs font-bold text-[#E74C3C] dark:text-[#D4A94C] flex items-center gap-1 font-mono uppercase">
                 <Trophy className="w-4 h-4" />
                 <span>{winnerTeamObj?._id === match.team1?._id ? 'Current Winner' : 'Set as Winner'}</span>
               </span>
@@ -409,28 +410,28 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
             <button
               onClick={() => executeConfirmWinner({ id: match.team2?._id, name: match.team2?.name })}
               disabled={loading || !match.team2}
-              className={`w-full p-4 rounded-2xl border text-left transition-all flex items-center justify-between cursor-pointer ${
+              className={`w-full p-4 rounded-xl border text-left transition-all flex items-center justify-between cursor-pointer ${
                 winnerTeamObj?._id === match.team2?._id
-                  ? 'bg-[#FFD691]/20 border-[#FFD691] text-white'
-                  : 'bg-[#152442] hover:bg-[#1E3258] border-[#35538C] text-[#D4DEEE]'
+                  ? 'bg-[#FAF9F6] dark:bg-[#181C1F] border-[#3E342B] dark:border-[#D4A94C] text-[#3E342B] dark:text-[#F5F1E8]'
+                  : 'bg-white dark:bg-[#15191C] hover:bg-[#FAF9F6] dark:hover:bg-[#181C1F] border-[#E8E1D5] dark:border-[#2B3034] text-[#7E7060] dark:text-[#817B72]'
               }`}
             >
               <div>
-                <span className="text-[10px] font-mono text-[#D7A859] block uppercase font-bold">Team 2</span>
-                <span className="text-sm font-bold font-display uppercase">{match.team2?.name}</span>
+                <span className="text-[10px] font-mono text-[#7E7060] dark:text-[#817B72] block uppercase font-bold">Team 2</span>
+                <span className="text-sm font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8]">{match.team2?.name}</span>
               </div>
-              <span className="text-xs font-bold text-[#FFD691] flex items-center gap-1 font-mono uppercase">
+              <span className="text-xs font-bold text-[#E74C3C] dark:text-[#D4A94C] flex items-center gap-1 font-mono uppercase">
                 <Trophy className="w-4 h-4" />
                 <span>{winnerTeamObj?._id === match.team2?._id ? 'Current Winner' : 'Set as Winner'}</span>
               </span>
             </button>
           </div>
 
-          <div className="pt-3 border-t border-[#35538C] flex items-center justify-between">
+          <div className="pt-3 border-t border-[#E8E1D5] dark:border-[#2B3034] flex items-center justify-between">
             <button
               onClick={handleResetMatchToLive}
               disabled={loading}
-              className="flex items-center gap-1.5 text-xs text-[#D7A859] hover:text-[#FFD691] font-bold cursor-pointer font-mono uppercase"
+              className="flex items-center gap-1.5 text-xs text-[#7E7060] dark:text-[#817B72] hover:text-[#3E342B] dark:hover:text-[#F5F1E8] font-bold cursor-pointer font-mono uppercase"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Reset to In-Progress</span>
@@ -438,7 +439,7 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
 
             <button
               onClick={() => setIsEditWinnerModalOpen(false)}
-              className="px-4 py-2 rounded-full text-xs text-[#D4DEEE] hover:text-white transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs text-[#7E7060] dark:text-[#817B72] hover:text-[#3E342B] dark:hover:text-[#F5F1E8] transition-colors cursor-pointer font-mono"
             >
               Close
             </button>
@@ -453,42 +454,42 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
         title="Match Completed & Confirmed"
       >
         <div className="space-y-5 text-center py-2">
-          <div className="w-14 h-14 rounded-2xl bg-[#FFD691]/20 border border-[#FFD691]/40 text-[#FFD691] flex items-center justify-center mx-auto shadow-lg shadow-[#FFD691]/10">
-            <Trophy className="w-7 h-7" />
+          <div className="w-12 h-12 rounded-full bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-[#E74C3C] dark:text-[#D4A94C] flex items-center justify-center mx-auto shadow-xs">
+            <Trophy className="w-6 h-6" />
           </div>
 
           <div className="space-y-1">
-            <h3 className="text-xl font-bold font-display text-white uppercase">
+            <h3 className="text-xl font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8]">
               Match #{match.matchNumber} Completed
             </h3>
-            <p className="text-xs text-[#D4DEEE]">
+            <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5]">
               Winner confirmed and recorded. The tournament bracket has been updated automatically.
             </p>
           </div>
 
           {postMatchData?.roundAdvanced && (
-            <div className="p-3.5 rounded-xl bg-gradient-to-r from-[#FFD691]/20 to-emerald-500/20 border border-[#FFD691]/40 text-left space-y-1">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-[#FFD691]">
-                <Sparkles className="w-4 h-4" />
+            <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 text-left space-y-1">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 dark:text-emerald-300">
+                <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <span>Round Progression Completed</span>
               </div>
-              <p className="text-[11px] text-slate-200 font-mono">
+              <p className="text-[11px] text-emerald-800 dark:text-emerald-300 font-mono">
                 All matches for this round are complete. Advancing winners have been paired for the next round and queued on the Main Carrom Board!
               </p>
             </div>
           )}
 
           {postMatchData?.nextReadyMatch && (
-            <div className="p-4 rounded-xl bg-[#152442] border border-[#35538C] text-left space-y-2">
-              <span className="text-[10px] font-mono uppercase font-bold text-[#FFD691]">
+            <div className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-left space-y-2">
+              <span className="text-[10px] font-mono uppercase font-bold text-[#3E342B] dark:text-[#F5F1E8]">
                 Next Scheduled Match on Main Carrom Board:
               </span>
-              <div className="flex items-center justify-between text-xs font-bold text-white font-display">
+              <div className="flex items-center justify-between text-xs font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8]">
                 <span className="truncate">{postMatchData.nextReadyMatch.team1?.name}</span>
-                <span className="text-[#FFD691] font-mono px-2">vs</span>
+                <span className="text-[#E74C3C] dark:text-[#D4A94C] font-mono px-2">vs</span>
                 <span className="truncate">{postMatchData.nextReadyMatch.team2?.name}</span>
               </div>
-              <span className="text-[10px] text-[#D4DEEE] block font-mono">
+              <span className="text-[10px] text-[#7E7060] dark:text-[#817B72] block font-mono">
                 {postMatchData.nextReadyMatch.category.replace('_', ' ').toUpperCase()} · Match #{postMatchData.nextReadyMatch.matchNumber} ({postMatchData.nextReadyMatch.roundName})
               </span>
             </div>
@@ -498,7 +499,7 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
             {postMatchData?.nextReadyMatch && (
               <a
                 href={`/admin/matches/${postMatchData.nextReadyMatch._id}/score`}
-                className="w-full py-3 rounded-full bg-[#FFD691] text-[#1E3258] text-xs font-black shadow-lg flex items-center justify-center gap-2 font-display uppercase tracking-wider hover:bg-[#FFE2AA]"
+                className="w-full py-3 rounded-xl btn-primary text-xs font-bold shadow-xs flex items-center justify-center gap-2 uppercase tracking-wider"
               >
                 <Play className="w-3.5 h-3.5 fill-current" />
                 <span>Start Next Match Scorekeeper</span>
@@ -507,14 +508,14 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
 
             <a
               href="/admin/matches"
-              className="w-full py-2.5 rounded-full bg-[#1E3258] hover:bg-[#2A457A] border border-[#35538C] text-slate-200 font-bold text-xs transition-colors text-center font-display uppercase tracking-wider"
+              className="w-full py-2.5 rounded-xl bg-white dark:bg-[#181C1F] hover:bg-[#FAF9F6] dark:hover:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] font-bold text-xs transition-colors text-center uppercase tracking-wider"
             >
               Return to Match List
             </a>
 
             <a
               href={`/admin/draws?category=${match.category}`}
-              className="w-full py-2 rounded-full text-[#D4DEEE] hover:text-[#FFD691] text-xs font-semibold transition-colors text-center font-mono uppercase"
+              className="w-full py-2 rounded-xl text-[#7E7060] dark:text-[#817B72] hover:text-[#E74C3C] dark:hover:text-[#D4A94C] text-xs font-bold transition-colors text-center font-mono uppercase"
             >
               View Updated Bracket →
             </a>
@@ -524,3 +525,5 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
     </div>
   );
 };
+
+

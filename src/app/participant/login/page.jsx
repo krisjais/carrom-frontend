@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { Shield, Lock, Eye, EyeOff } from 'lucide-react';
+import { CarromCoin } from '@/components/ui/CarromElements';
 
 export default function ParticipantLoginPage() {
   const router = useRouter();
@@ -32,26 +33,29 @@ export default function ParticipantLoginPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto px-4 py-16 space-y-6">
+    <div className="max-w-md mx-auto px-4 py-16 space-y-6 text-[#4A4238] dark:text-[#F5F1E8] transition-colors duration-200">
       <div className="text-center space-y-2">
-        <span className="text-xs font-mono text-[#FFD691] font-bold uppercase tracking-widest block">
-          Athlete Portal
+        <div className="w-12 h-12 rounded-full bg-white dark:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] flex items-center justify-center mx-auto shadow-xs mb-3">
+          <CarromCoin type="queen" size="xs" />
+        </div>
+        <span className="eyebrow-label">
+          ATHLETE PORTAL
         </span>
-        <h1 className="text-3xl font-black font-display text-white">Participant Login</h1>
-        <p className="text-xs text-[#D4DEEE]">
+        <h1 className="text-3xl font-serif font-black text-[#3E342B] dark:text-[#F5F1E8]">Participant Login</h1>
+        <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5]">
           Sign in to view your approved tournament teams and personal match schedule.
         </p>
       </div>
 
       {error && (
-        <div className="p-4 rounded-2xl bg-rose-500/15 text-rose-300 border border-rose-500/30 text-xs font-semibold">
+        <div className="p-4 rounded-xl bg-[#FDEDEC] dark:bg-[#E74C3C]/15 text-[#E74C3C] border border-[#E74C3C]/30 text-xs font-semibold">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="sport-card p-8 space-y-5 rounded-3xl border border-[#35538C]">
+      <form onSubmit={handleSubmit} className="editorial-card p-8 space-y-5 rounded-2xl bg-white dark:bg-[#15191C] border border-[#E8E1D5] dark:border-[#2B3034] shadow-xs">
         <div>
-          <label className="text-xs text-[#D4DEEE] font-bold block mb-1.5">
+          <label className="text-xs text-[#3E342B] dark:text-[#F5F1E8] font-bold block mb-1.5 font-mono">
             Student Email
           </label>
           <input
@@ -61,12 +65,12 @@ export default function ParticipantLoginPage() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="e.g. aryan@college.edu"
             autoComplete="email"
-            className="w-full h-11 bg-[#152442] px-4 text-xs text-white rounded-xl border border-[#35538C] focus:outline-none focus:border-[#FFD691]"
+            className="w-full h-11 bg-white dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
           />
         </div>
 
         <div>
-          <label className="text-xs text-[#D4DEEE] font-bold block mb-1.5">
+          <label className="text-xs text-[#3E342B] dark:text-[#F5F1E8] font-bold block mb-1.5 font-mono">
             Password
           </label>
           <div className="relative">
@@ -77,13 +81,13 @@ export default function ParticipantLoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
               autoComplete="current-password"
-              className="w-full h-11 bg-[#152442] pl-4 pr-11 text-xs text-white rounded-xl border border-[#35538C] focus:outline-none focus:border-[#FFD691]"
+              className="w-full h-11 bg-white dark:bg-[#181C1F] pl-4 pr-11 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               aria-label={showPassword ? 'Hide password' : 'Show password'}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#D4DEEE] hover:text-[#FFD691] transition-colors p-1 cursor-pointer"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7E7060] dark:text-[#817B72] hover:text-[#3E342B] dark:hover:text-[#F5F1E8] transition-colors p-1 cursor-pointer"
             >
               {showPassword ? (
                 <EyeOff className="w-4 h-4" />
@@ -97,14 +101,14 @@ export default function ParticipantLoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3.5 rounded-xl btn-cream text-xs font-black shadow-lg transition-all cursor-pointer disabled:opacity-50"
+          className="w-full py-3.5 rounded-xl btn-primary text-xs font-bold shadow-md transition-all cursor-pointer disabled:opacity-50 uppercase tracking-wider"
         >
           {loading ? 'Signing in...' : 'SIGN IN TO PORTAL'}
         </button>
 
-        <div className="pt-2 text-center text-xs text-[#D4DEEE]">
+        <div className="pt-2 text-center text-xs text-[#7E7060] dark:text-[#817B72]">
           <span>Not registered yet? </span>
-          <Link href="/registration" className="text-[#FFD691] font-bold hover:underline">
+          <Link href="/registration" className="text-[#E74C3C] font-bold hover:underline">
             Register Now →
           </Link>
         </div>
@@ -112,3 +116,5 @@ export default function ParticipantLoginPage() {
     </div>
   );
 }
+
+

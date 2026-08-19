@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { CategoryBadge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
+import { CategoryCoinPair } from '@/components/ui/CarromElements';
 
 function AdminDrawsContent() {
   const searchParams = useSearchParams();
@@ -129,14 +130,14 @@ function AdminDrawsContent() {
   };
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto">
+    <div className="space-y-8 max-w-6xl mx-auto text-[#4A4238] dark:text-[#F5F1E8] transition-colors duration-200">
       {/* Feedback Banner */}
       {feedbackMessage && (
         <div
-          className={`p-4 rounded-2xl text-xs font-semibold flex items-center justify-between shadow-md ${
+          className={`p-4 rounded-xl text-xs font-semibold flex items-center justify-between shadow-xs ${
             feedbackMessage.type === 'success'
-              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono'
-              : 'bg-rose-500/20 text-rose-300 border border-rose-500/30 font-mono'
+              ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40 font-mono'
+              : 'bg-[#FDEDEC] dark:bg-[#E74C3C]/15 text-[#E74C3C] border border-[#E74C3C]/30 font-mono'
           }`}
         >
           <span>{feedbackMessage.text}</span>
@@ -147,13 +148,13 @@ function AdminDrawsContent() {
       )}
 
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#35538C]">
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#E8E1D5] dark:border-[#2B3034]">
         <div>
           <span className="eyebrow-label">
             KNOCKOUT DRAW ENGINE
           </span>
-          <h1 className="text-3xl sm:text-4xl font-black font-display text-white mt-1 tracking-wide">Dynamic Bracket Manager</h1>
-          <p className="text-xs text-[#D4DEEE] mt-1">
+          <h1 className="text-3xl sm:text-4xl font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] mt-1">Bracket & Draw Manager</h1>
+          <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] mt-1">
             Single-game knockout tournament bracket. Winners advance automatically to the next round as each match is played.
           </p>
         </div>
@@ -164,7 +165,7 @@ function AdminDrawsContent() {
             <button
               onClick={handleGenerateDraw}
               disabled={actionLoading || N < 2}
-              className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#FFD691] hover:bg-[#FFE2AA] text-[#1E3258] font-black text-xs shadow-md transition-all cursor-pointer disabled:opacity-50 font-display uppercase tracking-wider"
+              className="btn-primary text-xs font-bold px-6 py-2.5 shadow-xs inline-flex items-center gap-2 cursor-pointer disabled:opacity-50 uppercase tracking-wider"
             >
               <Sparkles className="w-4 h-4" />
               <span>{actionLoading ? 'Generating...' : 'Generate Random Draw'}</span>
@@ -175,7 +176,7 @@ function AdminDrawsContent() {
             <button
               onClick={handlePublishAndLock}
               disabled={actionLoading}
-              className="flex items-center gap-2 px-6 py-3 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-md transition-all cursor-pointer font-display uppercase tracking-wider"
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-xs transition-all cursor-pointer uppercase tracking-wider"
             >
               <Lock className="w-4 h-4" />
               <span>Publish & Lock Draw</span>
@@ -183,8 +184,8 @@ function AdminDrawsContent() {
           )}
 
           {bracketData?.isLocked && (
-            <div className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#FFD691]/15 border border-[#D7A859]/50 text-[#FFD691] text-xs font-bold font-mono">
-              <Shield className="w-4 h-4" />
+            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] text-xs font-bold font-mono">
+              <Shield className="w-4 h-4 text-[#E74C3C] dark:text-[#D4A94C]" />
               <span>DRAW LOCKED & PUBLISHED</span>
             </div>
           )}
@@ -192,58 +193,59 @@ function AdminDrawsContent() {
       </div>
 
       {/* Category Tabs */}
-      <div className="flex items-center gap-2 flex-wrap pb-2 border-b border-[#35538C]">
+      <div className="flex items-center gap-2 flex-wrap pb-3 border-b border-[#E8E1D5] dark:border-[#2B3034]">
         {CATEGORIES.map((cat) => {
           const isSelected = selectedCat === cat.id;
           return (
             <button
               key={cat.id}
               onClick={() => setSelectedCat(cat.id)}
-              className={`pill-tab ${isSelected ? 'pill-tab-active' : 'pill-tab-inactive'}`}
+              className={`pill-tab cursor-pointer flex items-center gap-2 ${isSelected ? 'pill-tab-active' : 'pill-tab-inactive'}`}
             >
-              {cat.name}
+              <CategoryCoinPair category={cat.id} />
+              <span>{cat.name}</span>
             </button>
           );
         })}
       </div>
 
       {/* Pairing Summary Parameters */}
-      <div className="sport-card p-6 space-y-4 rounded-3xl border border-[#35538C]">
-        <div className="flex items-center justify-between text-xs pb-3 border-b border-[#35538C]">
+      <div className="editorial-card p-6 space-y-4 rounded-2xl bg-white dark:bg-[#15191C] border border-[#E8E1D5] dark:border-[#2B3034] shadow-xs">
+        <div className="flex items-center justify-between text-xs pb-3 border-b border-[#E8E1D5] dark:border-[#2B3034]">
           <div className="flex items-center gap-2.5">
             <CategoryBadge category={selectedCat} />
-            <span className="font-bold text-white font-display text-sm">Tournament Pairing Parameters ({N} Approved Entries)</span>
+            <span className="font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] text-sm">Tournament Pairing Parameters ({N} Approved Entries)</span>
           </div>
-          <span className="font-mono text-[#FFD691] text-xs font-bold">Single-Elimination Knockout</span>
+          <span className="font-mono text-[#7E7060] dark:text-[#817B72] text-xs font-bold">Single-Elimination Knockout</span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center font-mono">
-          <div className="p-4 rounded-2xl bg-[#152442] border border-[#35538C]">
-            <span className="text-[11px] text-[#D4DEEE] block uppercase">Approved Entries (N)</span>
-            <span className="font-black text-white text-xl">{N}</span>
+          <div className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034]">
+            <span className="text-[10px] text-[#7E7060] dark:text-[#817B72] block uppercase">Approved Entries (N)</span>
+            <span className="font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] text-xl">{N}</span>
           </div>
 
-          <div className="p-4 rounded-2xl bg-[#152442] border border-[#35538C]">
-            <span className="text-[11px] text-[#D4DEEE] block uppercase">Round 1 Matches</span>
-            <span className="font-black text-[#FFD691] text-xl">{r1Matches} Matches</span>
+          <div className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034]">
+            <span className="text-[10px] text-[#7E7060] dark:text-[#817B72] block uppercase">Round 1 Matches</span>
+            <span className="font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] text-xl">{r1Matches} Matches</span>
           </div>
 
-          <div className="p-4 rounded-2xl bg-[#152442] border border-[#35538C]">
-            <span className="text-[11px] text-[#D4DEEE] block uppercase">Round 1 Byes (N % 2)</span>
-            <span className="font-black text-[#D7A859] text-xl">{r1Byes} Bye</span>
+          <div className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034]">
+            <span className="text-[10px] text-[#7E7060] dark:text-[#817B72] block uppercase">Round 1 Byes (N % 2)</span>
+            <span className="font-serif font-bold text-[#E74C3C] dark:text-[#D4A94C] text-xl">{r1Byes} Bye</span>
           </div>
 
-          <div className="p-4 rounded-2xl bg-[#152442] border border-[#35538C]">
-            <span className="text-[11px] text-[#D4DEEE] block uppercase">Advancing to Round 2</span>
-            <span className="font-black text-emerald-300 text-xl">{r2Advancing} Entries</span>
+          <div className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034]">
+            <span className="text-[10px] text-[#7E7060] dark:text-[#817B72] block uppercase">Advancing to Round 2</span>
+            <span className="font-serif font-bold text-emerald-800 dark:text-emerald-300 text-xl">{r2Advancing} Entries</span>
           </div>
         </div>
       </div>
 
       {/* Bracket Tree View */}
       {loading ? (
-        <div className="py-20 text-center text-[#D4DEEE] text-xs font-mono flex items-center justify-center gap-2">
-          <RefreshCw className="w-4 h-4 animate-spin text-[#FFD691]" />
+        <div className="py-20 text-center text-[#7E7060] dark:text-[#B8B1A5] text-xs font-mono flex items-center justify-center gap-2">
+          <RefreshCw className="w-4 h-4 animate-spin text-[#E74C3C]" />
           <span>Loading bracket tree...</span>
         </div>
       ) : (
@@ -263,21 +265,21 @@ function AdminDrawsContent() {
         maxWidth="max-w-md"
       >
         <div className="space-y-4 py-1">
-          <p className="text-xs text-slate-200 leading-relaxed">
+          <p className="text-xs text-[#4A4238] dark:text-[#F5F1E8] leading-relaxed">
             {confirmModal.message}
           </p>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#35538C]">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E8E1D5] dark:border-[#2B3034]">
             <button
               onClick={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
-              className="px-4 py-2 rounded-full text-xs font-semibold text-[#D4DEEE] hover:text-white cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-bold text-[#7E7060] dark:text-[#817B72] hover:text-[#3E342B] dark:hover:text-[#F5F1E8] cursor-pointer font-mono"
             >
               Cancel
             </button>
             <button
               onClick={confirmModal.action}
               disabled={actionLoading}
-              className="px-6 py-2.5 rounded-full bg-[#FFD691] text-[#1E3258] font-black text-xs shadow-lg transition-all cursor-pointer font-display uppercase tracking-wider hover:bg-[#FFE2AA]"
+              className="btn-primary text-xs font-bold px-6 py-2.5 shadow-xs transition-all cursor-pointer uppercase tracking-wider"
             >
               {actionLoading ? 'Processing...' : confirmModal.confirmText}
             </button>
@@ -290,8 +292,10 @@ function AdminDrawsContent() {
 
 export default function AdminDrawsPage() {
   return (
-    <Suspense fallback={<div className="py-20 text-center text-[#D4DEEE] text-xs font-mono">Loading admin draws...</div>}>
+    <Suspense fallback={<div className="py-20 text-center text-[#7E7060] dark:text-[#B8B1A5] text-xs font-mono">Loading admin draws...</div>}>
       <AdminDrawsContent />
     </Suspense>
   );
 }
+
+

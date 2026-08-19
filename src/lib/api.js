@@ -55,7 +55,9 @@ export const api = {
 
   // Tournaments
   getCurrentTournament: async () => {
-    const res = await fetch(`${API_BASE}/tournaments/current`);
+    const res = await fetch(`${API_BASE}/tournaments/current`, {
+      headers: getHeaders()
+    });
     return handleResponse(res);
   },
 
@@ -97,7 +99,9 @@ export const api = {
   },
 
   lookupRegistration: async (studentId) => {
-    const res = await fetch(`${API_BASE}/registrations/lookup/${encodeURIComponent(studentId)}`);
+    const res = await fetch(`${API_BASE}/registrations/lookup/${encodeURIComponent(studentId)}`, {
+      headers: getHeaders()
+    });
     return handleResponse(res);
   },
 
@@ -149,10 +153,21 @@ export const api = {
     return handleResponse(res);
   },
 
+  bulkDeleteRegistrations: async (ids = []) => {
+    const res = await fetch(`${API_BASE}/registrations/bulk-delete`, {
+      method: 'POST',
+      headers: getHeaders(true),
+      body: JSON.stringify({ ids })
+    });
+    return handleResponse(res);
+  },
+
   // Teams
   getTeams: async (category = '') => {
     const query = category ? `?category=${category}` : '';
-    const res = await fetch(`${API_BASE}/teams${query}`);
+    const res = await fetch(`${API_BASE}/teams${query}`, {
+      headers: getHeaders()
+    });
     return handleResponse(res);
   },
 
@@ -182,6 +197,15 @@ export const api = {
     return handleResponse(res);
   },
 
+  autoPopulateTeams: async (category = '') => {
+    const res = await fetch(`${API_BASE}/teams/auto-populate`, {
+      method: 'POST',
+      headers: getHeaders(true),
+      body: JSON.stringify({ category })
+    });
+    return handleResponse(res);
+  },
+
   // Draws & Dynamic Knockout Brackets
   generateCategoryDraw: async (category) => {
     const res = await fetch(`${API_BASE}/draws/generate`, {
@@ -193,7 +217,9 @@ export const api = {
   },
 
   getBracketTree: async (category) => {
-    const res = await fetch(`${API_BASE}/draws/category/${category}`);
+    const res = await fetch(`${API_BASE}/draws/category/${category}`, {
+      headers: getHeaders()
+    });
     return handleResponse(res);
   },
 
@@ -218,17 +244,23 @@ export const api = {
   // Matches & Live Scoring
   getMatches: async (params = {}) => {
     const query = new URLSearchParams(params).toString();
-    const res = await fetch(`${API_BASE}/matches?${query}`);
+    const res = await fetch(`${API_BASE}/matches?${query}`, {
+      headers: getHeaders()
+    });
     return handleResponse(res);
   },
 
   getLiveMatches: async () => {
-    const res = await fetch(`${API_BASE}/matches/live`);
+    const res = await fetch(`${API_BASE}/matches/live`, {
+      headers: getHeaders()
+    });
     return handleResponse(res);
   },
 
   getMatchById: async (id) => {
-    const res = await fetch(`${API_BASE}/matches/${id}`);
+    const res = await fetch(`${API_BASE}/matches/${id}`, {
+      headers: getHeaders()
+    });
     return handleResponse(res);
   },
 
@@ -287,7 +319,9 @@ export const api = {
 
   // Announcements
   getAnnouncements: async () => {
-    const res = await fetch(`${API_BASE}/announcements`);
+    const res = await fetch(`${API_BASE}/announcements`, {
+      headers: getHeaders()
+    });
     return handleResponse(res);
   },
 
@@ -310,7 +344,9 @@ export const api = {
 
   // Stats & Audit
   getOverviewStats: async () => {
-    const res = await fetch(`${API_BASE}/stats/overview`);
+    const res = await fetch(`${API_BASE}/stats/overview`, {
+      headers: getHeaders()
+    });
     return handleResponse(res);
   },
 
@@ -321,3 +357,4 @@ export const api = {
     return handleResponse(res);
   }
 };
+

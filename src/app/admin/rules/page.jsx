@@ -62,51 +62,51 @@ export default function AdminRulesPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto">
+    <div className="space-y-8 max-w-5xl mx-auto text-[#4A4238] dark:text-[#F5F1E8] transition-colors duration-200">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#35538C]">
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#E8E1D5] dark:border-[#2B3034]">
         <div>
           <span className="eyebrow-label">
             TOURNAMENT DIRECTIVES & CONFIGURATION
           </span>
-          <h1 className="text-3xl sm:text-4xl font-black font-display text-white mt-1 tracking-wide">Rules & Settings</h1>
-          <p className="text-xs text-[#D4DEEE] mt-1">
+          <h1 className="text-3xl sm:text-4xl font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] mt-1">Rules & Settings</h1>
+          <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] mt-1">
             Configure official tournament regulations, metadata, and arena settings.
           </p>
         </div>
       </div>
 
       {savedMessage && (
-        <div className="p-4 rounded-2xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-2 font-mono">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+        <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40 text-xs font-semibold flex items-center gap-2 font-mono">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           <span>{savedMessage}</span>
         </div>
       )}
 
       <form onSubmit={handleSaveSettings} className="space-y-8">
         {/* Tournament Phase & Details */}
-        <div className="sport-card rounded-3xl p-6 border border-[#35538C] space-y-5">
-          <h3 className="font-black text-white text-base font-display flex items-center gap-2 uppercase tracking-wide">
-            <Settings className="w-4 h-4 text-[#FFD691]" />
+        <div className="editorial-card rounded-2xl p-6 border border-[#E8E1D5] dark:border-[#2B3034] bg-white dark:bg-[#15191C] space-y-5 shadow-xs">
+          <h3 className="font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] text-base flex items-center gap-2 uppercase tracking-wide">
+            <Settings className="w-4 h-4 text-[#E74C3C]" />
             <span>Tournament Status & General Settings</span>
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="sm:col-span-2">
-              <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5 uppercase font-mono">
+              <label className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] block mb-1.5 uppercase font-mono">
                 Tournament Title
               </label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Annual Inter-College Carrom Championship"
-                className="w-full h-11 bg-[#152442] px-4 text-xs text-white rounded-xl border border-[#35538C] focus:outline-none focus:border-[#FFD691]"
+                placeholder="College Carrom Championship"
+                className="w-full h-11 bg-white dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
               />
             </div>
 
             <div>
-              <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5 uppercase font-mono">
+              <label className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] block mb-1.5 uppercase font-mono">
                 Edition / Year
               </label>
               <input
@@ -114,18 +114,18 @@ export default function AdminRulesPage() {
                 value={edition}
                 onChange={(e) => setEdition(e.target.value)}
                 placeholder="2026"
-                className="w-full h-11 bg-[#152442] px-4 text-xs text-white rounded-xl border border-[#35538C] focus:outline-none focus:border-[#FFD691]"
+                className="w-full h-11 bg-white dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
               />
             </div>
 
             <div>
-              <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5 uppercase font-mono">
+              <label className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] block mb-1.5 uppercase font-mono">
                 Tournament Status
               </label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="w-full h-11 bg-[#152442] px-4 text-xs text-white rounded-xl border border-[#35538C]"
+                className="w-full h-11 bg-white dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
               >
                 <option value="registration_open">Registration Open</option>
                 <option value="registration_closed">Registration Closed</option>
@@ -135,10 +135,10 @@ export default function AdminRulesPage() {
             </div>
 
             <div>
-              <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5 uppercase font-mono">
+              <label className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] block mb-1.5 uppercase font-mono">
                 Equipment Arena
               </label>
-              <div className="h-11 bg-[#152442] px-4 text-xs text-[#FFD691] font-mono font-bold rounded-xl border border-[#35538C] flex items-center">
+              <div className="h-11 bg-[#FAF9F6] dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] font-mono font-bold rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] flex items-center">
                 1 Main Carrom Board
               </div>
             </div>
@@ -146,9 +146,9 @@ export default function AdminRulesPage() {
         </div>
 
         {/* Tournament Rules Text Editor */}
-        <div className="sport-card rounded-3xl p-6 border border-[#35538C] space-y-4">
-          <h3 className="font-black text-white text-base font-display flex items-center gap-2 uppercase tracking-wide">
-            <BookOpen className="w-4 h-4 text-[#FFD691]" />
+        <div className="editorial-card rounded-2xl p-6 border border-[#E8E1D5] dark:border-[#2B3034] bg-white dark:bg-[#15191C] space-y-4 shadow-xs">
+          <h3 className="font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] text-base flex items-center gap-2 uppercase tracking-wide">
+            <BookOpen className="w-4 h-4 text-[#E74C3C]" />
             <span>Official Rulebook Text</span>
           </h3>
 
@@ -158,7 +158,7 @@ export default function AdminRulesPage() {
               value={rulesContent}
               onChange={(e) => setRulesContent(e.target.value)}
               placeholder="Enter official tournament rules and regulations..."
-              className="w-full bg-[#152442] p-4 text-xs text-white rounded-xl border border-[#35538C] focus:outline-none focus:border-[#FFD691]"
+              className="w-full bg-white dark:bg-[#181C1F] p-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
             />
           </div>
         </div>
@@ -168,7 +168,7 @@ export default function AdminRulesPage() {
           <button
             type="submit"
             disabled={saving}
-            className="px-8 py-3.5 rounded-full bg-[#FFD691] text-[#1E3258] text-xs font-black shadow-lg flex items-center gap-2 cursor-pointer disabled:opacity-50 font-display uppercase tracking-wider hover:bg-[#FFE2AA]"
+            className="btn-primary text-xs font-bold px-8 py-3.5 shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50 uppercase tracking-wider"
           >
             <Save className="w-4 h-4" />
             <span>{saving ? 'Saving Settings...' : 'SAVE ALL SETTINGS'}</span>
@@ -178,3 +178,5 @@ export default function AdminRulesPage() {
     </div>
   );
 }
+
+

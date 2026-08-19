@@ -3,171 +3,257 @@
 @tailwind utilities;
 
 :root {
-  --bg-darkest: #0B0D0E;
-  --bg-dark: #14171A;
-  --bg-surface: #1A1E24;
-  --bg-card: #1F242C;
-  --border-hairline: rgba(212, 169, 76, 0.2);
-  --border-subtle: #2A313C;
-  --gold-primary: #F2C94C;
-  --gold-dark: #D4A94C;
-  --text-warm: #F5F1E8;
-  --text-muted: #9BB0D3;
-  --navy-bg: #0F1A30;
-  --navy-card: #1E3258;
+  --bg-main: #FAF9F6;
+  --bg-surface: #FFFFFF;
+  --bg-surface-secondary: #F4EFE6;
+  --bg-surface-elevated: #FFFFFF;
+  --text-primary: #4A4238;
+  --text-heading: #3E342B;
+  --text-secondary: #7E7060;
+  --text-muted: #9E9080;
+  --border: #E8E1D5;
+  --border-khaki: #D5C4A1;
+  --accent-red: #E74C3C;
+  --gold: #D4A94C;
+  --success: #3FA878;
+  --footer-bg: #3E342B;
+}
+
+.dark {
+  --bg-main: #0B0D0E;
+  --bg-surface: #15191C;
+  --bg-surface-secondary: #181C1F;
+  --bg-surface-elevated: #1B2024;
+  --text-primary: #F5F1E8;
+  --text-heading: #F5F1E8;
+  --text-secondary: #B8B1A5;
+  --text-muted: #817B72;
+  --border: #2B3034;
+  --border-khaki: #3D444A;
+  --accent-red: #E74C3C;
+  --gold: #D4A94C;
+  --success: #3FA878;
+  --footer-bg: #07090A;
 }
 
 body {
-  background-color: #0B0D0E;
-  color: #F5F1E8;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
   min-height: 100vh;
   letter-spacing: -0.01em;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
-/* Headings with Athletic Display Energy */
-h1, h2, h3, h4, h5, h6, .font-display {
-  font-family: 'Oswald', 'Outfit', sans-serif;
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
+/* Editorial Playfair Headings */
+h1, h2, h3, .font-serif, .font-display {
+  font-family: 'Playfair Display', Georgia, serif;
+  letter-spacing: -0.015em;
 }
 
-/* Signature Gold Eyebrow Pattern */
+h4, h5, h6 {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* Uppercase Eyebrow Label with Editorial Tracking */
 .eyebrow-label {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.75rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.6875rem;
   line-height: 1rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: #F2C94C;
-  display: block;
+  letter-spacing: 0.16em;
+  color: #7E7060;
+  display: inline-block;
 }
 
-/* Public Arena Card System */
-.arena-card {
-  background: linear-gradient(180deg, #1A1E24 0%, #14171A 100%);
-  border: 1px solid rgba(212, 169, 76, 0.18);
-  border-radius: 1.5rem;
-  box-shadow: 0 12px 36px -8px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.03);
+.dark .eyebrow-label {
+  color: #B8B1A5;
 }
 
-.arena-card-hover {
+/* Editorial Cards */
+.editorial-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px -2px rgba(74, 66, 56, 0.05), 0 1px 3px -1px rgba(74, 66, 56, 0.03);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.arena-card-hover:hover {
-  border-color: #F2C94C;
-  transform: translateY(-2px);
-  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.8), 0 0 20px rgba(242, 201, 76, 0.15);
+.dark .editorial-card {
+  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.5), 0 0 0 1px #2B3034;
 }
 
-/* Admin Navy Card System (Matches Reference Screenshot) */
+.editorial-card:hover, .editorial-card-hover:hover {
+  border-color: #D5C4A1;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -6px rgba(74, 66, 56, 0.08), 0 4px 8px -2px rgba(74, 66, 56, 0.04);
+}
+
+.dark .editorial-card:hover, .dark .editorial-card-hover:hover {
+  border-color: rgba(212, 169, 76, 0.35);
+  background-color: #1B2024;
+  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(212, 169, 76, 0.25);
+}
+
+/* Compatibility card aliases */
 .sport-card {
-  background-color: #1E3258;
-  background-image: linear-gradient(180deg, rgba(30, 50, 88, 0.98) 0%, rgba(21, 36, 66, 0.98) 100%);
-  border: 1px solid #35538C;
-  border-radius: 1.5rem;
-  box-shadow: 0 10px 30px -10px rgba(15, 26, 48, 0.6);
-}
-
-.sport-card-hover {
-  transition: all 0.15s ease-out;
-}
-
-.sport-card-hover:hover {
-  background-color: #243C6B;
-  border-color: #D4A94C;
-  transform: translateY(-1px);
-}
-
-/* Arena Stadium Scoreboard Strip */
-.scoreboard-strip {
-  background: linear-gradient(90deg, #14171A 0%, #1A1E24 50%, #14171A 100%);
-  border: 1px solid rgba(212, 169, 76, 0.3);
-  border-radius: 1.25rem;
-  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(242, 201, 76, 0.2);
-}
-
-/* Primary Button: Solid Championship Gold with Dark Ink text */
-.btn-primary, .btn-gold, .btn-cream {
-  background-color: #F2C94C;
-  color: #0B0D0E;
-  font-family: 'Oswald', 'Outfit', sans-serif;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  border: none;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 18px rgba(242, 201, 76, 0.28);
-}
-
-.btn-primary:hover, .btn-gold:hover, .btn-cream:hover {
-  background-color: #F7DB82;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(242, 201, 76, 0.42);
-}
-
-/* Secondary Button: Outlined Ghost */
-.btn-ghost, .btn-secondary {
-  background-color: rgba(20, 23, 26, 0.6);
-  border: 1.5px solid rgba(212, 169, 76, 0.45);
-  color: #F5F1E8;
-  font-family: 'Oswald', 'Outfit', sans-serif;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  box-shadow: 0 2px 6px -1px rgba(74, 66, 56, 0.05);
   transition: all 0.2s ease;
-  backdrop-filter: blur(8px);
 }
 
-.btn-ghost:hover, .btn-secondary:hover {
-  background-color: #1A1E24;
-  border-color: #F2C94C;
-  color: #F2C94C;
-  box-shadow: 0 0 16px rgba(242, 201, 76, 0.2);
+.dark .sport-card {
+  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.5);
 }
 
-/* Pill Tabs (Signature Component from Reference) */
-.pill-tab {
-  padding: 0.625rem 1.25rem;
-  border-radius: 9999px;
-  font-family: 'Oswald', 'Outfit', sans-serif;
-  font-weight: 700;
+.arena-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  box-shadow: 0 3px 12px -2px rgba(74, 66, 56, 0.06);
+}
+
+.dark .arena-card {
+  box-shadow: 0 6px 24px -4px rgba(0, 0, 0, 0.55);
+}
+
+/* Scoreboard Strip: Horizontal Connected Strip */
+.scoreboard-strip {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  box-shadow: 0 2px 10px -2px rgba(74, 66, 56, 0.06);
+}
+
+.dark .scoreboard-strip {
+  background-color: #15191C;
+  border-color: #2B3034;
+  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.5);
+}
+
+/* Primary Button: Red #E74C3C */
+.btn-primary, .btn-red {
+  background-color: #E74C3C;
+  color: #FFFFFF;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 600;
   font-size: 0.8125rem;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.25);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-primary:hover, .btn-red:hover {
+  background-color: #D63031;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(231, 76, 60, 0.35);
+}
+
+/* Secondary Button: Clean Crisp Surface with Border */
+.btn-secondary, .btn-ghost {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-khaki);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-secondary:hover, .btn-ghost:hover {
+  background-color: var(--bg-surface-secondary);
+  border-color: var(--text-primary);
+  color: var(--text-heading);
+}
+
+.dark .btn-secondary:hover, .dark .btn-ghost:hover {
+  background-color: #1B2024;
+  border-color: #D4A94C;
+}
+
+/* Khaki Pill Tabs */
+.pill-tab {
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   transition: all 0.15s ease-out;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .pill-tab-active {
-  background-color: #F2C94C;
-  color: #1E3258;
-  box-shadow: 0 4px 14px rgba(242, 201, 76, 0.25);
-  font-weight: 800;
+  background-color: #D5C4A1;
+  color: #3E342B;
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(74, 66, 56, 0.12);
+}
+
+.dark .pill-tab-active {
+  background-color: #1B2024;
+  color: #F5F1E8;
+  border: 1px solid rgba(212, 169, 76, 0.5);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
 }
 
 .pill-tab-inactive {
-  background-color: #1E3258;
-  color: #D4DEEE;
+  background-color: #F4EFE6;
+  color: #7E7060;
+  border: 1px solid #E8E1D5;
+}
+
+.dark .pill-tab-inactive {
+  background-color: #121517;
+  color: #817B72;
+  border: 1px solid #2B3034;
 }
 
 .pill-tab-inactive:hover {
-  background-color: #2A457A;
-  color: #FFFFFF;
+  background-color: #EAE1D0;
+  color: #4A4238;
 }
 
-/* Live Pulse Indicator */
-@keyframes live-pulse {
+.dark .pill-tab-inactive:hover {
+  background-color: #181C1F;
+  color: #F5F1E8;
+  border-color: #3D444A;
+}
+
+/* LIVE Indicator Pulse */
+@keyframes red-live-pulse {
   0%, 100% {
     opacity: 1;
     transform: scale(1);
   }
   50% {
-    opacity: 0.4;
-    transform: scale(1.3);
+    opacity: 0.35;
+    transform: scale(1.35);
   }
 }
 
@@ -175,38 +261,91 @@ h1, h2, h3, h4, h5, h6, .font-display {
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 9999px;
-  background-color: #EF4444;
+  background-color: #E74C3C;
   display: inline-block;
-  animation: live-pulse 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: red-live-pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Carrom Board Decorative Patterns */
-.carrom-wood-pattern {
+/* Flat CSS Carrom Coin System */
+.coin-black {
+  background: #4A4238;
+  border: 1.5px solid #3E342B;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.25), 0 2px 4px rgba(74, 66, 56, 0.2);
+  border-radius: 9999px;
+}
+
+.dark .coin-black {
+  background: #24282B;
+  border: 1.5px solid #181C1F;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.coin-white {
+  background: #FFFFFF;
+  border: 1.5px solid #D5C4A1;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.8), 0 2px 4px rgba(74, 66, 56, 0.08);
+  border-radius: 9999px;
+}
+
+.dark .coin-white {
+  background: #F5F1E8;
+  border: 1.5px solid #D5C4A1;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.8), 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.coin-queen {
+  background: #E74C3C;
+  border: 1.5px solid #C0392B;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.4), 0 2px 6px rgba(231, 76, 60, 0.3);
+  border-radius: 9999px;
+}
+
+.coin-striker {
+  background: #FAF9F6;
+  border: 2px solid #4A4238;
+  box-shadow: inset 0 0 0 2px rgba(213, 196, 161, 0.4), 0 2px 8px rgba(74, 66, 56, 0.15);
+  border-radius: 9999px;
+}
+
+.dark .coin-striker {
+  background: #F5F1E8;
+  border: 2px solid #3D444A;
+  box-shadow: inset 0 0 0 2px rgba(212, 169, 76, 0.3), 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Board Geometry Grid Pattern */
+.board-grid-pattern {
   background-image: 
-    radial-gradient(circle at 50% 50%, rgba(212, 169, 76, 0.06) 0%, transparent 65%),
-    radial-gradient(circle at 10% 10%, rgba(242, 201, 76, 0.04) 0%, transparent 40%),
-    radial-gradient(circle at 90% 90%, rgba(212, 169, 76, 0.04) 0%, transparent 40%);
+    linear-gradient(rgba(74, 66, 56, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74, 66, 56, 0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
 
-.carrom-board-lines {
+.dark .board-grid-pattern {
   background-image: 
-    linear-gradient(rgba(212, 169, 76, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(212, 169, 76, 0.04) 1px, transparent 1px);
-  background-size: 40px 40px;
+    linear-gradient(rgba(212, 169, 76, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212, 169, 76, 0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
 
-/* Custom Sports Arena Scrollbar */
+/* Custom Editorial Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0B0D0E;
+  background: var(--bg-main);
 }
 ::-webkit-scrollbar-thumb {
-  background: #2A313C;
-  border-radius: 4px;
+  background: #D5C4A1;
+  border-radius: 3px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #2B3034;
 }
 ::-webkit-scrollbar-thumb:hover {
+  background: #7E7060;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
   background: #D4A94C;
 }

@@ -1,35 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
   <defs>
-    <radialGradient id="boardGrad" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#2A1B10" />
-      <stop offset="100%" stop-color="#140D08" />
+    <!-- Soft Red Radial Gradient for the Queen Coin -->
+    <radialGradient id="queenGrad" cx="38%" cy="38%" r="62%">
+      <stop offset="0%" stop-color="#FF6B6B" />
+      <stop offset="45%" stop-color="#E74C3C" />
+      <stop offset="100%" stop-color="#C0392B" />
     </radialGradient>
-    <radialGradient id="queenGrad" cx="40%" cy="40%" r="60%">
-      <stop offset="0%" stop-color="#FF5E57" />
-      <stop offset="60%" stop-color="#D63031" />
-      <stop offset="100%" stop-color="#8E1414" />
-    </radialGradient>
-    <radialGradient id="goldRing" cx="50%" cy="50%" r="50%">
-      <stop offset="70%" stop-color="#F2C94C" />
-      <stop offset="100%" stop-color="#B8860B" />
-    </radialGradient>
+    
+    <!-- Subtle drop shadow glow behind the Queen -->
+    <filter id="queenGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#E74C3C" flood-opacity="0.35" />
+    </filter>
   </defs>
 
-  <!-- Board Base -->
-  <rect width="64" height="64" rx="14" fill="#0B0D0E" stroke="#F2C94C" stroke-width="2" />
-  <rect x="4" y="4" width="56" height="56" rx="10" fill="url(#boardGrad)" stroke="#3D2614" stroke-width="1.5" />
+  <!-- Outer Circle Frame (White / Floral with Khaki border) -->
+  <circle cx="32" cy="32" r="30" fill="#FAF9F6" stroke="#D5C4A1" stroke-width="2" />
 
-  <!-- Carrom Center Outer Pattern -->
-  <circle cx="32" cy="32" r="18" fill="none" stroke="#F2C94C" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.8" />
-  <circle cx="32" cy="32" r="14" fill="none" stroke="#F2C94C" stroke-width="1" opacity="0.6" />
+  <!-- Center Red Queen Carrom Coin with Glow -->
+  <circle cx="32" cy="32" r="14" fill="url(#queenGrad)" stroke="#B02A1E" stroke-width="1" filter="url(#queenGlow)" />
 
-  <!-- Center Queen Coin -->
-  <circle cx="32" cy="32" r="8" fill="url(#queenGrad)" stroke="#F2C94C" stroke-width="1.5" />
-  <circle cx="32" cy="32" r="3" fill="#F2C94C" />
+  <!-- Concentric Inner Groove Ring -->
+  <circle cx="32" cy="32" r="8.5" fill="none" stroke="#FFFFFF" stroke-width="0.85" stroke-opacity="0.5" />
 
-  <!-- Corner Pocket Accents -->
-  <circle cx="10" cy="10" r="3" fill="#0B0D0E" stroke="#3D2614" stroke-width="1" />
-  <circle cx="54" cy="10" r="3" fill="#0B0D0E" stroke="#3D2614" stroke-width="1" />
-  <circle cx="10" cy="54" r="3" fill="#0B0D0E" stroke="#3D2614" stroke-width="1" />
-  <circle cx="54" cy="54" r="3" fill="#0B0D0E" stroke="#3D2614" stroke-width="1" />
+  <!-- Center White Dot of the Queen -->
+  <circle cx="32" cy="32" r="3.5" fill="#FFFFFF" fill-opacity="0.85" />
 </svg>

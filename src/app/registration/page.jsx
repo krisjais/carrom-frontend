@@ -16,6 +16,7 @@ import {
   Trophy,
   AlertTriangle
 } from 'lucide-react';
+import { CarromCoin } from '@/components/ui/CarromElements';
 
 export default function RegistrationPage() {
   const [activeTab, setActiveTab] = useState('register'); // 'register' | 'lookup'
@@ -113,33 +114,33 @@ export default function RegistrationPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8 bg-[#0B0D0E]">
-      {/* Header */}
-      <div className="text-center space-y-3">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8 bg-[#FAF9F6] dark:bg-[#0B0D0E] text-[#4A4238] dark:text-[#F5F1E8] transition-colors duration-200">
+      {/* Editorial Header */}
+      <div className="text-center space-y-2">
         <span className="eyebrow-label">
           OFFICIAL ATHLETE ENTRY
         </span>
-        <h1 className="text-4xl sm:text-6xl font-black font-display text-white tracking-tight uppercase">
+        <h1 className="text-3xl sm:text-5xl font-serif font-black text-[#3E342B] dark:text-[#F5F1E8] tracking-tight">
           Tournament Registration
         </h1>
-        <p className="text-xs sm:text-sm text-[#F5F1E8]/70 font-mono">
-          Mandatory 3-event collegiate registration: Singles, Doubles, and Mixed Doubles.
+        <p className="text-xs sm:text-sm text-[#7E7060] dark:text-[#B8B1A5] font-normal max-w-lg mx-auto">
+          Mandatory 3-event collegiate championship entry: Singles, Doubles, and Mixed Doubles.
         </p>
       </div>
 
       {/* Mode Switcher */}
       {!statusRecord && (
-        <div className="flex items-center justify-center p-1 rounded-2xl bg-[#14171A] border border-[#2A313C] max-w-md mx-auto">
+        <div className="flex items-center justify-center p-1 rounded-full bg-[#F4EFE6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] max-w-sm mx-auto shadow-inner">
           <button
             type="button"
             onClick={() => {
               setActiveTab('register');
               setError(null);
             }}
-            className={`flex-1 py-2.5 rounded-xl text-xs font-black uppercase font-display tracking-wider transition-all ${
+            className={`flex-1 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
               activeTab === 'register'
-                ? 'bg-[#F2C94C] text-[#111417] shadow-md'
-                : 'text-[#F5F1E8]/60 hover:text-white'
+                ? 'bg-white dark:bg-[#15191C] text-[#3E342B] dark:text-[#F5F1E8] shadow-xs'
+                : 'text-[#7E7060] dark:text-[#817B72] hover:text-[#4A4238] dark:hover:text-[#F5F1E8]'
             }`}
           >
             New Athlete Entry
@@ -150,10 +151,10 @@ export default function RegistrationPage() {
               setActiveTab('lookup');
               setLookupError(null);
             }}
-            className={`flex-1 py-2.5 rounded-xl text-xs font-black uppercase font-display tracking-wider transition-all flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
               activeTab === 'lookup'
-                ? 'bg-[#F2C94C] text-[#111417] shadow-md'
-                : 'text-[#F5F1E8]/60 hover:text-white'
+                ? 'bg-white dark:bg-[#15191C] text-[#3E342B] dark:text-[#F5F1E8] shadow-xs'
+                : 'text-[#7E7060] dark:text-[#817B72] hover:text-[#4A4238] dark:hover:text-[#F5F1E8]'
             }`}
           >
             <Search className="w-3.5 h-3.5" />
@@ -166,71 +167,71 @@ export default function RegistrationPage() {
       {/* 1. READ-ONLY LOCKED REGISTRATION VIEW (After Submission or Lookup)         */}
       {/* ========================================================================= */}
       {statusRecord && (
-        <div className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
+        <div className="space-y-6 animate-in fade-in duration-200">
           {/* Status Header Banner */}
           {statusRecord.registration?.status === 'approved' ? (
-            <div className="p-6 sm:p-8 rounded-3xl bg-emerald-500/10 border border-emerald-500/30 text-center space-y-2">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-2 border border-emerald-500/40">
-                <CheckCircle2 className="w-7 h-7" />
+            <div className="p-6 sm:p-8 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 text-center space-y-2">
+              <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 flex items-center justify-center mx-auto mb-2 border border-emerald-300 dark:border-emerald-700">
+                <CheckCircle2 className="w-6 h-6" />
               </div>
-              <span className="eyebrow-label text-emerald-400">
+              <span className="eyebrow-label text-emerald-800 dark:text-emerald-400">
                 LOCKED REGISTRATION
               </span>
-              <h2 className="text-2xl sm:text-3xl font-black font-display text-white uppercase">
-                ✓ REGISTRATION APPROVED
+              <h2 className="text-2xl sm:text-3xl font-serif font-bold text-emerald-900 dark:text-emerald-200">
+                Registration Approved
               </h2>
-              <p className="text-xs text-[#F5F1E8]/80 font-mono max-w-md mx-auto">
+              <p className="text-xs text-emerald-800 dark:text-emerald-300 max-w-md mx-auto">
                 Your tournament registration has been approved by the organizing committee.
               </p>
             </div>
           ) : statusRecord.registration?.status === 'rejected' ? (
-            <div className="p-6 sm:p-8 rounded-3xl bg-rose-500/10 border border-rose-500/30 text-center space-y-2">
-              <div className="w-12 h-12 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto mb-2 border border-rose-500/40">
-                <XCircle className="w-7 h-7" />
+            <div className="p-6 sm:p-8 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800/40 text-center space-y-2">
+              <div className="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-300 flex items-center justify-center mx-auto mb-2 border border-rose-300 dark:border-rose-700">
+                <XCircle className="w-6 h-6" />
               </div>
-              <span className="eyebrow-label text-rose-400">
+              <span className="eyebrow-label text-rose-700 dark:text-rose-400">
                 ENTRY REJECTED
               </span>
-              <h2 className="text-2xl sm:text-3xl font-black font-display text-white uppercase">
+              <h2 className="text-2xl sm:text-3xl font-serif font-bold text-rose-900 dark:text-rose-200">
                 Registration Rejected
               </h2>
-              <p className="text-xs text-[#F5F1E8]/80 font-mono max-w-md mx-auto">
+              <p className="text-xs text-rose-800 dark:text-rose-300 max-w-md mx-auto">
                 {statusRecord.registration?.adminNotes || 'Please contact tournament administrators for clarification.'}
               </p>
             </div>
           ) : (
-            <div className="p-6 sm:p-8 rounded-3xl bg-amber-500/10 border border-amber-500/30 text-center space-y-2">
-              <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto mb-2 border border-amber-500/40">
-                <Clock className="w-7 h-7" />
+            <div className="p-6 sm:p-8 rounded-2xl bg-[#F4EFE6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-center space-y-2">
+              <div className="w-12 h-12 rounded-full bg-white dark:bg-[#15191C] text-[#B8A47E] dark:text-[#D4A94C] flex items-center justify-center mx-auto mb-2 border border-[#D5C4A1] dark:border-[#2B3034]">
+                <Clock className="w-6 h-6" />
               </div>
-              <span className="eyebrow-label text-amber-400">
+              <span className="eyebrow-label text-[#7E7060] dark:text-[#B8B1A5]">
                 UNDER REVIEW
               </span>
-              <h2 className="text-2xl sm:text-3xl font-black font-display text-white uppercase">
-                PENDING APPROVAL
+              <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8]">
+                Pending Approval
               </h2>
-              <p className="text-xs text-[#F5F1E8]/80 font-mono max-w-md mx-auto">
-                Your tournament registration has been submitted and is awaiting admin verification.
+              <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] max-w-md mx-auto">
+                Your tournament registration has been submitted and is awaiting committee verification.
               </p>
             </div>
           )}
 
           {/* Details Card */}
-          <div className="arena-card p-6 sm:p-8 rounded-3xl border border-[#2A313C] bg-gradient-to-b from-[#1A1E24] to-[#111417] space-y-6">
+          <div className="editorial-card p-6 sm:p-8 rounded-2xl border border-[#E8E1D5] dark:border-[#2B3034] bg-white dark:bg-[#121517] space-y-6">
             {/* Athlete Profile Information */}
-            <div className="p-4 rounded-2xl bg-[#14171A] border border-[#2A313C] flex flex-wrap items-center justify-between gap-4">
+            <div className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] flex flex-wrap items-center justify-between gap-4">
               <div>
-                <span className="text-[10px] text-[#F5F1E8]/60 font-mono uppercase block font-bold">Athlete</span>
-                <span className="text-lg font-black text-white font-display uppercase tracking-wide">
+                <span className="text-[10px] text-[#7E7060] dark:text-[#817B72] font-sans uppercase block font-bold">Athlete</span>
+                <span className="text-lg font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] tracking-tight">
                   {statusRecord.participant?.fullName}
                 </span>
-                <span className="text-xs text-[#F5F1E8]/80 font-mono block capitalize">
+                <span className="text-xs text-[#7E7060] dark:text-[#B8B1A5] block capitalize">
                   {statusRecord.participant?.gender} Athlete • {statusRecord.participant?.department}
                 </span>
               </div>
               <div className="text-right font-mono">
-                <span className="text-[10px] text-[#F5F1E8]/60 uppercase block font-bold">Student ID</span>
-                <span className="text-sm font-black text-[#F2C94C] bg-[#111417] px-3 py-1 rounded-xl border border-[#2A313C] inline-block">
+                <span className="text-[10px] text-[#7E7060] dark:text-[#817B72] uppercase block font-bold">Student ID</span>
+                <span className="text-sm font-bold text-[#3E342B] dark:text-[#F5F1E8] bg-white dark:bg-[#15191C] px-3 py-1 rounded-lg border border-[#E8E1D5] dark:border-[#2B3034] inline-block">
                   {statusRecord.participant?.studentId}
                 </span>
               </div>
@@ -238,10 +239,10 @@ export default function RegistrationPage() {
 
             {/* YOUR EVENTS SECTION (Locked 3 Divisions) */}
             <div className="space-y-3">
-              <div className="flex items-center gap-2 pb-2 border-b border-[#2A313C]">
-                <Trophy className="w-4 h-4 text-[#F2C94C]" />
-                <h3 className="font-black text-white text-xs font-display uppercase tracking-wider">
-                  YOUR EVENTS (3 DIVISIONS MANDATORY)
+              <div className="flex items-center gap-2 pb-2 border-b border-[#E8E1D5] dark:border-[#2B3034]">
+                <Trophy className="w-4 h-4 text-[#E74C3C]" />
+                <h3 className="font-serif font-bold text-xs text-[#3E342B] dark:text-[#F5F1E8] uppercase tracking-wider">
+                  MANDATORY 3-DIVISION ENTRY
                 </h3>
               </div>
 
@@ -252,10 +253,10 @@ export default function RegistrationPage() {
                 ).map((evt) => (
                   <div
                     key={evt}
-                    className="p-3.5 rounded-2xl bg-[#14171A] border border-emerald-500/20 flex items-center gap-2.5 text-xs font-mono"
+                    className="p-3.5 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-emerald-200 dark:border-emerald-800/40 flex items-center gap-2.5 text-xs"
                   >
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span className="text-white font-bold">{evt}</span>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span className="text-[#3E342B] dark:text-[#F5F1E8] font-bold">{evt}</span>
                   </div>
                 ))}
               </div>
@@ -263,61 +264,61 @@ export default function RegistrationPage() {
 
             {/* PARTNER STATUS SECTION (Dynamically Updated) */}
             <div className="space-y-3">
-              <div className="flex items-center gap-2 pb-2 border-b border-[#2A313C]">
-                <Shield className="w-4 h-4 text-[#F2C94C]" />
-                <h3 className="font-black text-white text-xs font-display uppercase tracking-wider">
-                  PARTNER STATUS
+              <div className="flex items-center gap-2 pb-2 border-b border-[#E8E1D5] dark:border-[#2B3034]">
+                <Shield className="w-4 h-4 text-[#4A4238] dark:text-[#D4A94C]" />
+                <h3 className="font-serif font-bold text-xs text-[#3E342B] dark:text-[#F5F1E8] uppercase tracking-wider">
+                  PARTNER NOMINATION & VALIDATION
                 </h3>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Doubles Partner Card */}
-                <div className="p-4 rounded-2xl bg-[#14171A] border border-[#2A313C] space-y-2">
-                  <span className="text-[10px] text-[#F2C94C] font-mono uppercase font-bold tracking-wider block">
+                <div className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] space-y-2">
+                  <span className="text-[10px] text-[#7E7060] dark:text-[#817B72] font-sans uppercase font-bold tracking-wider block">
                     {statusRecord.participant?.gender === 'male' ? 'Boys Doubles Partner' : 'Girls Doubles Partner'}
                   </span>
-                  <div className="text-sm font-bold text-white font-display">
+                  <div className="text-sm font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8]">
                     {statusRecord.registration?.doublesPartnerName || 'Not nominated'}
                   </div>
 
                   <div>
                     {statusRecord.doublesValidation?.status === 'valid_paired' ? (
-                      <span className="inline-flex items-center gap-1.5 text-[11px] bg-[#F2C94C]/15 text-[#F2C94C] px-3 py-1 rounded-full border border-[#F2C94C]/30 font-bold font-mono">
-                        <Trophy className="w-3 h-3" /> Team Paired
+                      <span className="inline-flex items-center gap-1.5 text-[10px] bg-white dark:bg-[#15191C] text-[#3E342B] dark:text-[#F5F1E8] px-3 py-1 rounded-full border border-[#D5C4A1] dark:border-[rgba(212,169,76,0.3)] font-bold font-mono">
+                        <Trophy className="w-3 h-3 text-[#E74C3C]" /> Team Paired
                       </span>
                     ) : statusRecord.doublesValidation?.status === 'partner_registered' ? (
-                      <span className="inline-flex items-center gap-1.5 text-[11px] bg-emerald-500/15 text-emerald-400 px-3 py-1 rounded-full border border-emerald-500/30 font-bold font-mono">
-                        <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Partner Registered
+                      <span className="inline-flex items-center gap-1.5 text-[10px] bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-800/40 font-bold font-mono">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> Partner Registered
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 text-[11px] bg-amber-500/15 text-amber-300 px-3 py-1 rounded-full border border-amber-500/30 font-mono">
-                        <Clock className="w-3 h-3" /> Partner Not Registered
+                      <span className="inline-flex items-center gap-1.5 text-[10px] bg-white dark:bg-[#15191C] text-[#7E7060] dark:text-[#817B72] px-3 py-1 rounded-full border border-[#E8E1D5] dark:border-[#2B3034] font-mono">
+                        <Clock className="w-3 h-3 text-[#B8A47E]" /> Partner Not Registered Yet
                       </span>
                     )}
                   </div>
                 </div>
 
                 {/* Mixed Doubles Partner Card */}
-                <div className="p-4 rounded-2xl bg-[#14171A] border border-[#2A313C] space-y-2">
-                  <span className="text-[10px] text-[#F2C94C] font-mono uppercase font-bold tracking-wider block">
+                <div className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] space-y-2">
+                  <span className="text-[10px] text-[#7E7060] dark:text-[#817B72] font-sans uppercase font-bold tracking-wider block">
                     Mixed Doubles Partner
                   </span>
-                  <div className="text-sm font-bold text-white font-display">
+                  <div className="text-sm font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8]">
                     {statusRecord.registration?.mixedDoublesPartnerName || 'Not nominated'}
                   </div>
 
                   <div>
                     {statusRecord.mixedDoublesValidation?.status === 'valid_paired' ? (
-                      <span className="inline-flex items-center gap-1.5 text-[11px] bg-[#F2C94C]/15 text-[#F2C94C] px-3 py-1 rounded-full border border-[#F2C94C]/30 font-bold font-mono">
-                        <Trophy className="w-3 h-3" /> Team Paired
+                      <span className="inline-flex items-center gap-1.5 text-[10px] bg-white dark:bg-[#15191C] text-[#3E342B] dark:text-[#F5F1E8] px-3 py-1 rounded-full border border-[#D5C4A1] dark:border-[rgba(212,169,76,0.3)] font-bold font-mono">
+                        <Trophy className="w-3 h-3 text-[#E74C3C]" /> Team Paired
                       </span>
                     ) : statusRecord.mixedDoublesValidation?.status === 'partner_registered' ? (
-                      <span className="inline-flex items-center gap-1.5 text-[11px] bg-emerald-500/15 text-emerald-400 px-3 py-1 rounded-full border border-emerald-500/30 font-bold font-mono">
-                        <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Partner Registered
+                      <span className="inline-flex items-center gap-1.5 text-[10px] bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-800/40 font-bold font-mono">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> Partner Registered
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 text-[11px] bg-amber-500/15 text-amber-300 px-3 py-1 rounded-full border border-amber-500/30 font-mono">
-                        <Clock className="w-3 h-3" /> Partner Not Registered
+                      <span className="inline-flex items-center gap-1.5 text-[10px] bg-white dark:bg-[#15191C] text-[#7E7060] dark:text-[#817B72] px-3 py-1 rounded-full border border-[#E8E1D5] dark:border-[#2B3034] font-mono">
+                        <Clock className="w-3 h-3 text-[#B8A47E]" /> Partner Not Registered Yet
                       </span>
                     )}
                   </div>
@@ -326,29 +327,29 @@ export default function RegistrationPage() {
             </div>
 
             {/* Read-Only Notice: Admin Override Only */}
-            <div className="p-4 rounded-2xl bg-[#111417] border border-[#2A313C] flex items-start gap-3 text-xs font-mono text-[#F5F1E8]/70">
-              <Lock className="w-4 h-4 text-[#F2C94C] shrink-0 mt-0.5" />
+            <div className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] flex items-start gap-3 text-xs text-[#7E7060] dark:text-[#B8B1A5]">
+              <Lock className="w-4 h-4 text-[#4A4238] dark:text-[#D4A94C] shrink-0 mt-0.5" />
               <div>
-                <strong className="text-white block font-bold">Registration Locked:</strong>
+                <strong className="text-[#3E342B] dark:text-[#F5F1E8] block font-bold">Registration Locked:</strong>
                 <span>
-                  This registration is permanent and read-only. If any details or partner nominations contain an error, only tournament administrators can make corrections from the admin panel.
+                  This registration record is locked. If any details or partner nominations contain an error, only tournament administrators can make corrections from the control room.
                 </span>
               </div>
             </div>
 
             {/* Navigation actions */}
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-[#2A313C]">
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-[#E8E1D5] dark:border-[#2B3034]">
               <button
                 type="button"
                 onClick={() => setStatusRecord(null)}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-full bg-[#14171A] hover:bg-[#1E232A] border border-[#2A313C] text-xs font-bold text-[#F5F1E8] font-mono transition-colors cursor-pointer"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-full bg-white dark:bg-[#15191C] hover:bg-[#FAF9F6] dark:hover:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-xs font-bold text-[#4A4238] dark:text-[#F5F1E8] transition-colors cursor-pointer"
               >
                 ← Back to Lookup
               </button>
 
               <Link
                 href="/brackets"
-                className="w-full sm:w-auto px-6 py-2.5 rounded-full btn-gold text-xs font-black uppercase font-display tracking-wider text-center"
+                className="w-full sm:w-auto btn-primary text-xs font-bold text-center"
               >
                 View Tournament Brackets →
               </Link>
@@ -363,43 +364,41 @@ export default function RegistrationPage() {
       {!statusRecord && activeTab === 'lookup' && (
         <form
           onSubmit={handleLookupSubmit}
-          className="arena-card p-6 sm:p-10 space-y-6 rounded-4xl border border-[#D4A94C]/30 bg-gradient-to-b from-[#1A1E24] to-[#111417]"
+          className="editorial-card p-6 sm:p-10 space-y-6 rounded-2xl border border-[#E8E1D5] dark:border-[#2B3034] bg-white dark:bg-[#121517] shadow-sm"
         >
           <div className="text-center space-y-2">
-            <h3 className="font-black text-white text-xl font-display uppercase tracking-wide">
+            <h3 className="font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] text-xl tracking-tight">
               Check Registration Status
             </h3>
-            <p className="text-xs text-[#F5F1E8]/70 font-mono">
+            <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5]">
               Enter your Roll / Student ID to view your approved entry, locked events, and partner verification status.
             </p>
           </div>
 
           {lookupError && (
-            <div className="p-4 rounded-2xl bg-rose-500/15 text-rose-300 border border-rose-500/30 text-xs font-semibold font-mono">
+            <div className="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/40 text-xs font-semibold">
               {lookupError}
             </div>
           )}
 
           <div className="space-y-2">
-            <label className="text-xs text-[#F5F1E8]/80 font-bold block uppercase font-mono">
+            <label className="text-xs text-[#4A4238] dark:text-[#F5F1E8] font-bold block uppercase font-mono">
               Roll / Student ID
             </label>
-            <div className="relative">
-              <input
-                type="text"
-                required
-                value={lookupStudentId}
-                onChange={(e) => setLookupStudentId(e.target.value.toUpperCase())}
-                placeholder="e.g. CS2026-042"
-                className="w-full h-12 bg-[#14171A] px-4 text-xs font-mono text-white rounded-2xl border border-[#2A313C] focus:outline-none focus:border-[#F2C94C] uppercase tracking-wider"
-              />
-            </div>
+            <input
+              type="text"
+              required
+              value={lookupStudentId}
+              onChange={(e) => setLookupStudentId(e.target.value.toUpperCase())}
+              placeholder="e.g. CS2026-042"
+              className="w-full h-12 bg-[#FAF9F6] dark:bg-[#181C1F] px-4 text-xs font-mono text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#4A4238] dark:focus:border-[#D4A94C] uppercase tracking-wider"
+            />
           </div>
 
           <button
             type="submit"
             disabled={lookupLoading}
-            className="w-full py-4 rounded-2xl btn-gold text-xs font-black shadow-xl flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50 font-display uppercase tracking-wider"
+            className="w-full py-3.5 rounded-xl btn-primary text-xs font-bold shadow-md flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50 uppercase tracking-wider"
           >
             <span>{lookupLoading ? 'Checking Records...' : 'Check Status →'}</span>
           </button>
@@ -410,26 +409,26 @@ export default function RegistrationPage() {
       {/* 3. NEW ATHLETE REGISTRATION FORM                                          */}
       {/* ========================================================================= */}
       {!statusRecord && activeTab === 'register' && (
-        <form onSubmit={handleSubmit} className="arena-card p-6 sm:p-10 space-y-8 rounded-4xl border border-[#D4A94C]/30 bg-gradient-to-b from-[#1A1E24] to-[#111417]">
+        <form onSubmit={handleSubmit} className="editorial-card p-6 sm:p-10 space-y-8 rounded-2xl border border-[#E8E1D5] dark:border-[#2B3034] bg-white dark:bg-[#121517] shadow-sm">
           {error && (
-            <div className="p-4 rounded-2xl bg-rose-500/15 text-rose-300 border border-rose-500/30 text-xs font-semibold font-mono flex items-start gap-2">
-              <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <div className="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/40 text-xs font-semibold flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
           )}
 
           {/* 1. Student Athlete Information */}
           <div className="space-y-5">
-            <div className="flex items-center gap-2 pb-3 border-b border-[#2A313C]">
-              <Users className="w-5 h-5 text-[#F2C94C]" />
-              <h3 className="font-black text-white text-base font-display uppercase tracking-wide">
+            <div className="flex items-center gap-2 pb-3 border-b border-[#E8E1D5] dark:border-[#2B3034]">
+              <Users className="w-5 h-5 text-[#4A4238] dark:text-[#D4A94C]" />
+              <h3 className="font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] text-base">
                 1. Student Athlete Details
               </h3>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
-                <label className="text-xs text-[#F5F1E8]/80 font-bold block mb-1.5 uppercase font-mono">
+                <label className="text-xs text-[#4A4238] dark:text-[#F5F1E8] font-bold block mb-1.5 uppercase font-mono">
                   Full Legal Name *
                 </label>
                 <input
@@ -439,19 +438,19 @@ export default function RegistrationPage() {
                   value={formData.fullName}
                   onChange={handleChange}
                   placeholder="e.g. Aryan Sharma"
-                  className="w-full h-11 bg-[#14171A] px-4 text-xs text-white rounded-xl border border-[#2A313C] focus:outline-none focus:border-[#F2C94C]"
+                  className="w-full h-11 bg-[#FAF9F6] dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#E8E1D5] dark:border-[#2B3034] focus:outline-none focus:border-[#4A4238] dark:focus:border-[#D4A94C]"
                 />
               </div>
 
               <div>
-                <label className="text-xs text-[#F5F1E8]/80 font-bold block mb-1.5 uppercase font-mono">
+                <label className="text-xs text-[#4A4238] dark:text-[#F5F1E8] font-bold block mb-1.5 uppercase font-mono">
                   Gender *
                 </label>
                 <select
                   name="gender"
                   value={formData.gender}
                   onChange={handleChange}
-                  className="w-full h-11 bg-[#14171A] px-4 text-xs text-white rounded-xl border border-[#2A313C] focus:outline-none focus:border-[#F2C94C]"
+                  className="w-full h-11 bg-[#FAF9F6] dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#E8E1D5] dark:border-[#2B3034] focus:outline-none focus:border-[#4A4238] dark:focus:border-[#D4A94C]"
                 >
                   <option value="male">Male (Boys Singles, Boys Doubles, Mixed)</option>
                   <option value="female">Female (Girls Singles, Girls Doubles, Mixed)</option>
@@ -459,7 +458,7 @@ export default function RegistrationPage() {
               </div>
 
               <div>
-                <label className="text-xs text-[#F5F1E8]/80 font-bold block mb-1.5 uppercase font-mono">
+                <label className="text-xs text-[#4A4238] dark:text-[#F5F1E8] font-bold block mb-1.5 uppercase font-mono">
                   Roll / Student ID *
                 </label>
                 <input
@@ -469,12 +468,12 @@ export default function RegistrationPage() {
                   value={formData.studentId}
                   onChange={handleChange}
                   placeholder="e.g. CS2026-042"
-                  className="w-full h-11 bg-[#14171A] px-4 text-xs text-white rounded-xl border border-[#2A313C] focus:outline-none focus:border-[#F2C94C] uppercase font-mono"
+                  className="w-full h-11 bg-[#FAF9F6] dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#E8E1D5] dark:border-[#2B3034] focus:outline-none focus:border-[#4A4238] dark:focus:border-[#D4A94C] uppercase font-mono"
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <label className="text-xs text-[#F5F1E8]/80 font-bold block mb-1.5 uppercase font-mono">
+                <label className="text-xs text-[#4A4238] dark:text-[#F5F1E8] font-bold block mb-1.5 uppercase font-mono">
                   Department / Major *
                 </label>
                 <input
@@ -484,27 +483,27 @@ export default function RegistrationPage() {
                   value={formData.department}
                   onChange={handleChange}
                   placeholder="e.g. Computer Science & Engineering"
-                  className="w-full h-11 bg-[#14171A] px-4 text-xs text-white rounded-xl border border-[#2A313C] focus:outline-none focus:border-[#F2C94C]"
+                  className="w-full h-11 bg-[#FAF9F6] dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#E8E1D5] dark:border-[#2B3034] focus:outline-none focus:border-[#4A4238] dark:focus:border-[#D4A94C]"
                 />
               </div>
             </div>
           </div>
 
           {/* 2. Mandatory Events Notice */}
-          <div className="p-4 rounded-2xl bg-[#14171A] border border-[#2A313C] space-y-2 font-mono text-xs">
-            <div className="flex items-center gap-1.5 text-[#F2C94C] font-bold uppercase text-[11px]">
-              <Trophy className="w-3.5 h-3.5" />
+          <div className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] space-y-2 text-xs">
+            <div className="flex items-center gap-1.5 text-[#3E342B] dark:text-[#F5F1E8] font-bold uppercase text-[11px] font-mono">
+              <Trophy className="w-3.5 h-3.5 text-[#E74C3C]" />
               <span>Mandatory 3-Event Participation</span>
             </div>
-            <p className="text-[11px] text-[#F5F1E8]/70 leading-relaxed">
-              Every registered athlete participates in all 3 divisions:
+            <p className="text-[11px] text-[#7E7060] dark:text-[#B8B1A5] leading-relaxed">
+              Every registered athlete participates in all 3 tournament divisions:
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
               {(formData.gender === 'male'
                 ? ['✓ Boys Singles', '✓ Boys Doubles', '✓ Mixed Doubles']
                 : ['✓ Girls Singles', '✓ Girls Doubles', '✓ Mixed Doubles']
               ).map((evt) => (
-                <div key={evt} className="p-2 rounded-xl bg-[#111417] text-white font-bold text-[11px] border border-[#2A313C]/60 text-center">
+                <div key={evt} className="p-2 rounded-lg bg-white dark:bg-[#15191C] text-[#3E342B] dark:text-[#F5F1E8] font-bold text-[11px] border border-[#E8E1D5] dark:border-[#2B3034] text-center shadow-xs">
                   {evt}
                 </div>
               ))}
@@ -513,23 +512,23 @@ export default function RegistrationPage() {
 
           {/* 3. Partner Nominations */}
           <div className="space-y-5">
-            <div className="flex items-center gap-2 pb-3 border-b border-[#2A313C]">
-              <Shield className="w-5 h-5 text-[#F2C94C]" />
-              <h3 className="font-black text-white text-base font-display uppercase tracking-wide">
+            <div className="flex items-center gap-2 pb-3 border-b border-[#E8E1D5] dark:border-[#2B3034]">
+              <Shield className="w-5 h-5 text-[#4A4238] dark:text-[#D4A94C]" />
+              <h3 className="font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] text-base">
                 2. Partner Nominations
               </h3>
             </div>
 
-            <div className="p-4 rounded-2xl bg-[#14171A] border border-[#2A313C] text-xs space-y-1 text-[#F5F1E8]/70 font-mono">
-              <p className="font-bold text-white uppercase text-[11px]">Independent Partner Registration:</p>
+            <div className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-xs space-y-1 text-[#7E7060] dark:text-[#B8B1A5]">
+              <p className="font-bold text-[#3E342B] dark:text-[#F5F1E8] uppercase text-[11px] font-mono">Independent Partner Registration Flow:</p>
               <p>
-                Your nominated partner does NOT need to have registered yet. If they register later, the system will automatically match and verify your partnership.
+                Your nominated partner does NOT need to have registered yet. If they register later, the system will automatically match and pair your team.
               </p>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="text-[11px] text-[#F5F1E8]/80 font-bold block mb-1.5 uppercase font-mono">
+                <label className="text-[11px] text-[#4A4238] dark:text-[#F5F1E8] font-bold block mb-1.5 uppercase font-mono">
                   {formData.gender === 'male' ? 'Boys Doubles Partner Full Name *' : 'Girls Doubles Partner Full Name *'}
                 </label>
                 <input
@@ -539,12 +538,12 @@ export default function RegistrationPage() {
                   value={formData.doublesPartnerName}
                   onChange={handleChange}
                   placeholder="e.g. Siddharth Rao"
-                  className="w-full h-11 bg-[#14171A] px-4 text-xs text-white rounded-xl border border-[#2A313C] focus:outline-none focus:border-[#F2C94C]"
+                  className="w-full h-11 bg-[#FAF9F6] dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#E8E1D5] dark:border-[#2B3034] focus:outline-none focus:border-[#4A4238] dark:focus:border-[#D4A94C]"
                 />
               </div>
 
               <div>
-                <label className="text-[11px] text-[#F5F1E8]/80 font-bold block mb-1.5 uppercase font-mono">
+                <label className="text-[11px] text-[#4A4238] dark:text-[#F5F1E8] font-bold block mb-1.5 uppercase font-mono">
                   Mixed Doubles Partner Full Name *
                 </label>
                 <input
@@ -554,18 +553,18 @@ export default function RegistrationPage() {
                   value={formData.mixedDoublesPartnerName}
                   onChange={handleChange}
                   placeholder={formData.gender === 'male' ? 'e.g. Ananya Patel (Female)' : 'e.g. Siddharth Rao (Male)'}
-                  className="w-full h-11 bg-[#14171A] px-4 text-xs text-white rounded-xl border border-[#2A313C] focus:outline-none focus:border-[#F2C94C]"
+                  className="w-full h-11 bg-[#FAF9F6] dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#E8E1D5] dark:border-[#2B3034] focus:outline-none focus:border-[#4A4238] dark:focus:border-[#D4A94C]"
                 />
               </div>
             </div>
           </div>
 
           {/* Submit Button */}
-          <div className="pt-4 border-t border-[#2A313C]">
+          <div className="pt-4 border-t border-[#E8E1D5] dark:border-[#2B3034]">
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 rounded-2xl btn-gold text-xs font-black shadow-xl flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50 font-display uppercase tracking-wider"
+              className="w-full py-3.5 rounded-xl btn-primary text-xs font-bold shadow-md flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50 uppercase tracking-wider"
             >
               <span>{loading ? 'Submitting Registration...' : 'SUBMIT REGISTRATION'}</span>
               <ArrowRight className="w-4 h-4" />
@@ -576,3 +575,5 @@ export default function RegistrationPage() {
     </div>
   );
 }
+
+
