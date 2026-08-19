@@ -80,15 +80,15 @@ export default function AdminAnnouncementsPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-5xl">
+    <div className="space-y-8 max-w-5xl mx-auto">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#35538C]">
         <div>
-          <span className="text-xs font-mono text-[#FFD691] font-bold uppercase tracking-widest">
-            Tournament Communications
+          <span className="eyebrow-label">
+            TOURNAMENT COMMUNICATIONS
           </span>
-          <h1 className="text-3xl sm:text-4xl font-black font-display text-white mt-1">Announcements & Notices</h1>
-          <p className="text-xs text-[#D4DEEE]">
+          <h1 className="text-3xl sm:text-4xl font-black font-display text-white mt-1 tracking-wide">Announcements & Notices</h1>
+          <p className="text-xs text-[#D4DEEE] mt-1">
             Publish alerts, board schedules, and official rulings to all participants and viewers.
           </p>
         </div>
@@ -96,14 +96,14 @@ export default function AdminAnnouncementsPage() {
 
       {/* Create New Announcement Form */}
       <form onSubmit={handleCreate} className="sport-card rounded-3xl p-6 border border-[#35538C] space-y-4">
-        <h3 className="font-bold text-white text-base font-display flex items-center gap-2">
+        <h3 className="font-black text-white text-base font-display flex items-center gap-2 uppercase tracking-wide">
           <Plus className="w-4 h-4 text-[#FFD691]" />
           <span>Publish New Notice</span>
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="sm:col-span-2">
-            <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5">
+            <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5 uppercase font-mono">
               Notice Title *
             </label>
             <input
@@ -117,7 +117,7 @@ export default function AdminAnnouncementsPage() {
           </div>
 
           <div>
-            <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5">
+            <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5 uppercase font-mono">
               Priority
             </label>
             <select
@@ -132,7 +132,7 @@ export default function AdminAnnouncementsPage() {
         </div>
 
         <div>
-          <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5">
+          <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5 uppercase font-mono">
             Notice Content *
           </label>
           <textarea
@@ -146,7 +146,7 @@ export default function AdminAnnouncementsPage() {
         </div>
 
         <div className="flex items-center justify-between pt-2">
-          <label className="flex items-center gap-2 text-xs text-[#D4DEEE] cursor-pointer">
+          <label className="flex items-center gap-2 text-xs text-[#D4DEEE] cursor-pointer font-mono">
             <input
               type="checkbox"
               checked={isPinned}
@@ -159,7 +159,7 @@ export default function AdminAnnouncementsPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="px-6 py-2.5 rounded-xl btn-cream text-xs font-black shadow-md flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            className="px-6 py-2.5 rounded-full bg-[#FFD691] text-[#1E3258] text-xs font-black shadow-md flex items-center gap-1.5 cursor-pointer disabled:opacity-50 font-display uppercase tracking-wider hover:bg-[#FFE2AA]"
           >
             <Send className="w-3.5 h-3.5" />
             <span>{submitting ? 'Publishing...' : 'Publish Notice'}</span>
@@ -169,14 +169,14 @@ export default function AdminAnnouncementsPage() {
 
       {/* Published Notices List */}
       <div className="sport-card rounded-3xl p-6 border border-[#35538C] space-y-4">
-        <h3 className="font-bold text-white text-base font-display">
+        <h3 className="font-black text-white text-base font-display uppercase tracking-wide">
           Active Notices ({announcements.length})
         </h3>
 
         {loading ? (
-          <div className="py-12 text-center text-xs text-[#D4DEEE]">Loading notices...</div>
+          <div className="py-12 text-center text-xs text-[#D4DEEE] font-mono">Loading notices...</div>
         ) : announcements.length === 0 ? (
-          <div className="py-12 text-center text-xs text-[#D4DEEE]">No notices published yet.</div>
+          <div className="py-12 text-center text-xs text-[#D4DEEE] font-mono">No notices published yet.</div>
         ) : (
           <div className="space-y-3">
             {announcements.map((ann) => (
@@ -185,22 +185,22 @@ export default function AdminAnnouncementsPage() {
                 className="p-4 rounded-2xl bg-[#152442] border border-[#35538C] flex items-start justify-between gap-4"
               >
                 <div className="space-y-1.5">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 font-mono">
                     {ann.isPinned && (
                       <span className="text-[10px] text-[#FFD691] font-bold bg-[#FFD691]/15 px-2 py-0.5 rounded-full border border-[#FFD691]/30">
                         PINNED
                       </span>
                     )}
                     {ann.priority === 'urgent' && (
-                      <span className="text-[10px] font-bold bg-[#FF6E80]/20 text-[#FF96A4] px-2 py-0.5 rounded-full uppercase border border-[#FF6E80]/30 font-mono">
+                      <span className="text-[10px] font-bold bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded-full uppercase border border-rose-500/30">
                         Urgent
                       </span>
                     )}
-                    <span className="text-[10px] text-[#D4DEEE] font-mono">
+                    <span className="text-[10px] text-[#D4DEEE]">
                       {new Date(ann.createdAt).toLocaleString()}
                     </span>
                   </div>
-                  <h4 className="font-bold text-white text-sm">{ann.title}</h4>
+                  <h4 className="font-black text-white text-sm font-display uppercase tracking-wide">{ann.title}</h4>
                   <p className="text-xs text-[#D4DEEE] whitespace-pre-line leading-relaxed">{ann.content}</p>
                 </div>
 

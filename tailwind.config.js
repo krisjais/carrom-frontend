@@ -8,20 +8,35 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        arena: {
+          darkest: '#0B0D0E',
+          dark: '#14171A',
+          surface: '#1A1E24',
+          card: '#1F242C',
+          border: '#2A313C',
+          hairline: 'rgba(212, 169, 76, 0.2)',
+        },
+        gold: {
+          DEFAULT: '#F2C94C',
+          light: '#F7DB82',
+          dark: '#D4A94C',
+          glow: 'rgba(242, 201, 76, 0.25)',
+        },
+        offwhite: '#F5F1E8',
         brand: {
-          navy: '#233A66',        // Primary Navy (Main background & dark surfaces)
-          'navy-dark': '#152442', // Deepest background tone
-          'navy-deep': '#0F1A30', // Extra deep base
-          'navy-surface': '#1E3258', // Card base
-          'navy-elevated': '#2A457A', // Elevated interactive surface
-          'navy-border': '#35538C',  // Subtle navy border
-          cream: '#FFD691',       // Primary Cream (CTA, highlights, winners, active states)
+          navy: '#1E3258',
+          'navy-dark': '#152442',
+          'navy-deep': '#0F1A30',
+          'navy-surface': '#1E3258',
+          'navy-elevated': '#2A457A',
+          'navy-border': '#35538C',
+          cream: '#FFD691',
           'cream-light': '#FFE7BA',
           'cream-dark': '#ECC177',
-          gold: '#D7A859',        // Secondary Gold (Borders, decorative accents)
-          'gold-light': '#E5BD78',
+          gold: '#D4A94C',
+          'gold-light': '#F2C94C',
           'gold-dark': '#BA8D42',
-          coral: '#FF6E80',       // Accent Coral (Special notices, urgent alerts, sparingly)
+          coral: '#FF6E80',
           'coral-light': '#FF96A4',
           'coral-dark': '#E65366',
         },
@@ -42,13 +57,6 @@ module.exports = {
           500: '#ECC177',
           600: '#D7A859',
         },
-        gold: {
-          300: '#F0D199',
-          400: '#E5BD78',
-          500: '#D7A859',
-          600: '#BA8D42',
-          700: '#9E7430',
-        },
         coral: {
           400: '#FF96A4',
           500: '#FF6E80',
@@ -58,7 +66,8 @@ module.exports = {
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        display: ['Outfit', 'Inter', 'sans-serif'],
+        display: ['Oswald', 'Outfit', 'Inter', 'sans-serif'],
+        condensed: ['Oswald', 'sans-serif'],
       },
       borderRadius: {
         '2xl': '1.25rem',

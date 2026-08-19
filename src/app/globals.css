@@ -3,132 +3,210 @@
 @tailwind utilities;
 
 :root {
-  --bg-main: #233A66;
-  --bg-surface: #1E3258;
-  --bg-surface-elevated: #2A457A;
-  --border-subtle: #35538C;
-  --border-focus: #D7A859;
-  --accent-cream: #FFD691;
-  --accent-gold: #D7A859;
-  --accent-coral: #FF6E80;
-  --text-primary: #FFFFFF;
-  --text-secondary: #D4DEEE;
+  --bg-darkest: #0B0D0E;
+  --bg-dark: #14171A;
+  --bg-surface: #1A1E24;
+  --bg-card: #1F242C;
+  --border-hairline: rgba(212, 169, 76, 0.2);
+  --border-subtle: #2A313C;
+  --gold-primary: #F2C94C;
+  --gold-dark: #D4A94C;
+  --text-warm: #F5F1E8;
   --text-muted: #9BB0D3;
+  --navy-bg: #0F1A30;
+  --navy-card: #1E3258;
 }
 
 body {
-  background-color: #233A66;
-  background-image: 
-    radial-gradient(circle at 15% 15%, rgba(255, 214, 145, 0.05) 0%, transparent 45%),
-    radial-gradient(circle at 85% 85%, rgba(215, 168, 89, 0.04) 0%, transparent 45%),
-    radial-gradient(circle at 50% 50%, #233A66 0%, #152442 100%);
-  color: #FFFFFF;
+  background-color: #0B0D0E;
+  color: #F5F1E8;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
   min-height: 100vh;
   letter-spacing: -0.01em;
 }
 
+/* Headings with Athletic Display Energy */
 h1, h2, h3, h4, h5, h6, .font-display {
-  font-family: 'Outfit', 'Inter', sans-serif;
-  letter-spacing: -0.025em;
+  font-family: 'Oswald', 'Outfit', sans-serif;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
 }
 
-/* Sports Championship Card System */
+/* Signature Gold Eyebrow Pattern */
+.eyebrow-label {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: #F2C94C;
+  display: block;
+}
+
+/* Public Arena Card System */
+.arena-card {
+  background: linear-gradient(180deg, #1A1E24 0%, #14171A 100%);
+  border: 1px solid rgba(212, 169, 76, 0.18);
+  border-radius: 1.5rem;
+  box-shadow: 0 12px 36px -8px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+.arena-card-hover {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.arena-card-hover:hover {
+  border-color: #F2C94C;
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.8), 0 0 20px rgba(242, 201, 76, 0.15);
+}
+
+/* Admin Navy Card System (Matches Reference Screenshot) */
 .sport-card {
   background-color: #1E3258;
-  background-image: linear-gradient(180deg, rgba(42, 69, 122, 0.6) 0%, rgba(30, 50, 88, 0.95) 100%);
+  background-image: linear-gradient(180deg, rgba(30, 50, 88, 0.98) 0%, rgba(21, 36, 66, 0.98) 100%);
   border: 1px solid #35538C;
   border-radius: 1.5rem;
-  box-shadow: 0 10px 30px -10px rgba(15, 26, 48, 0.5);
+  box-shadow: 0 10px 30px -10px rgba(15, 26, 48, 0.6);
 }
 
 .sport-card-hover {
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.15s ease-out;
 }
 
 .sport-card-hover:hover {
   background-color: #243C6B;
-  border-color: #D7A859;
-  transform: translateY(-2px);
-  box-shadow: 0 16px 36px -10px rgba(15, 26, 48, 0.6);
+  border-color: #D4A94C;
+  transform: translateY(-1px);
 }
 
-/* Editorial Glass & Surface Cards */
-.glass-card {
-  background: linear-gradient(135deg, rgba(30, 50, 88, 0.9) 0%, rgba(21, 36, 66, 0.95) 100%);
-  border: 1px solid rgba(215, 168, 89, 0.3);
-  backdrop-filter: blur(12px);
-  border-radius: 1.75rem;
+/* Arena Stadium Scoreboard Strip */
+.scoreboard-strip {
+  background: linear-gradient(90deg, #14171A 0%, #1A1E24 50%, #14171A 100%);
+  border: 1px solid rgba(212, 169, 76, 0.3);
+  border-radius: 1.25rem;
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(242, 201, 76, 0.2);
 }
 
-/* Primary Button: Cream #FFD691 with Navy #233A66 text */
-.btn-primary, .btn-cream {
-  background-color: #FFD691;
-  color: #233A66;
-  font-family: 'Outfit', sans-serif;
-  font-weight: 800;
+/* Primary Button: Solid Championship Gold with Dark Ink text */
+.btn-primary, .btn-gold, .btn-cream {
+  background-color: #F2C94C;
+  color: #0B0D0E;
+  font-family: 'Oswald', 'Outfit', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   border: none;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 18px rgba(255, 214, 145, 0.25);
+  box-shadow: 0 4px 18px rgba(242, 201, 76, 0.28);
 }
 
-.btn-primary:hover, .btn-cream:hover {
-  background-color: #FFE2AA;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 22px rgba(255, 214, 145, 0.35);
+.btn-primary:hover, .btn-gold:hover, .btn-cream:hover {
+  background-color: #F7DB82;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(242, 201, 76, 0.42);
 }
 
-/* Secondary Button: Navy #233A66 with Cream #FFD691 / Gold #D7A859 border & text */
-.btn-secondary {
-  background-color: #1E3258;
-  border: 1.5px solid #D7A859;
-  color: #FFFFFF;
-  font-weight: 700;
+/* Secondary Button: Outlined Ghost */
+.btn-ghost, .btn-secondary {
+  background-color: rgba(20, 23, 26, 0.6);
+  border: 1.5px solid rgba(212, 169, 76, 0.45);
+  color: #F5F1E8;
+  font-family: 'Oswald', 'Outfit', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
 }
 
-.btn-secondary:hover {
+.btn-ghost:hover, .btn-secondary:hover {
+  background-color: #1A1E24;
+  border-color: #F2C94C;
+  color: #F2C94C;
+  box-shadow: 0 0 16px rgba(242, 201, 76, 0.2);
+}
+
+/* Pill Tabs (Signature Component from Reference) */
+.pill-tab {
+  padding: 0.625rem 1.25rem;
+  border-radius: 9999px;
+  font-family: 'Oswald', 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  transition: all 0.15s ease-out;
+  cursor: pointer;
+}
+
+.pill-tab-active {
+  background-color: #F2C94C;
+  color: #1E3258;
+  box-shadow: 0 4px 14px rgba(242, 201, 76, 0.25);
+  font-weight: 800;
+}
+
+.pill-tab-inactive {
+  background-color: #1E3258;
+  color: #D4DEEE;
+}
+
+.pill-tab-inactive:hover {
   background-color: #2A457A;
-  border-color: #FFD691;
-  color: #FFD691;
+  color: #FFFFFF;
+}
+
+/* Live Pulse Indicator */
+@keyframes live-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(1.3);
+  }
+}
+
+.live-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background-color: #EF4444;
+  display: inline-block;
+  animation: live-pulse 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 /* Carrom Board Decorative Patterns */
-.carrom-radial-circle {
-  background: radial-gradient(circle, rgba(255, 214, 145, 0.07) 0%, rgba(215, 168, 89, 0.03) 50%, transparent 70%);
+.carrom-wood-pattern {
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(212, 169, 76, 0.06) 0%, transparent 65%),
+    radial-gradient(circle at 10% 10%, rgba(242, 201, 76, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 90% 90%, rgba(212, 169, 76, 0.04) 0%, transparent 40%);
 }
 
-.carrom-grid-pattern {
-  background-image: radial-gradient(circle at 1px 1px, rgba(255, 214, 145, 0.08) 1px, transparent 0);
-  background-size: 24px 24px;
+.carrom-board-lines {
+  background-image: 
+    linear-gradient(rgba(212, 169, 76, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212, 169, 76, 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
 }
 
-/* Color Utilities */
-.cream-text {
-  color: #FFD691;
-}
-
-.gold-text {
-  color: #D7A859;
-}
-
-.coral-text {
-  color: #FF6E80;
-}
-
-/* Custom Sports Scrollbar */
+/* Custom Sports Arena Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #152442;
+  background: #0B0D0E;
 }
 ::-webkit-scrollbar-thumb {
-  background: #35538C;
+  background: #2A313C;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #D7A859;
+  background: #D4A94C;
 }

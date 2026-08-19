@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
-import { Trophy, MapPin, Shield, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Trophy, MapPin, Shield, CheckCircle2, ArrowRight, Target, Users } from 'lucide-react';
 import { StatusBadge, MainBoardBadge } from '@/components/ui/Badge';
 
 export default function TournamentPage() {
@@ -25,19 +25,19 @@ export default function TournamentPage() {
   }, []);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12 bg-[#0B0D0E]">
       {/* Header */}
       <div className="text-center max-w-2xl mx-auto space-y-3">
-        <span className="text-xs font-mono text-[#FFBA00] font-bold uppercase tracking-widest block">
+        <span className="eyebrow-label">
           Championship Overview
         </span>
-        <h1 className="text-4xl sm:text-5xl font-black font-display text-white tracking-tight">
+        <h1 className="text-4xl sm:text-6xl font-black font-display text-white tracking-tight uppercase">
           {tournament?.title || 'Annual Inter-College Carrom Championship'}
         </h1>
-        <p className="text-xs sm:text-sm text-[#D8C7F0]">
+        <p className="text-xs sm:text-sm text-[#F5F1E8]/70 font-mono">
           Edition {tournament?.edition || '2026'} • Main Carrom Board Arena
         </p>
-        <div className="pt-1 flex items-center justify-center gap-2">
+        <div className="pt-2 flex items-center justify-center gap-2.5">
           <MainBoardBadge />
           <StatusBadge status={tournament?.status || 'ongoing'} />
         </div>
@@ -45,60 +45,69 @@ export default function TournamentPage() {
 
       {/* 3 Main Highlights */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="sport-card p-6 space-y-3 rounded-3xl border border-[#4A138C]">
-          <div className="flex items-center gap-2.5 text-[#FFBA00]">
+        <div className="arena-card p-6 space-y-3 rounded-3xl">
+          <div className="flex items-center gap-2.5 text-[#F2C94C]">
             <Trophy className="w-5 h-5" />
-            <h3 className="font-black text-white text-base font-display">Knockout Format</h3>
+            <h3 className="font-black text-white text-base font-display uppercase tracking-wide">Knockout Format</h3>
           </div>
-          <p className="text-xs text-[#D8C7F0] leading-relaxed">
-            Single-elimination knockout in all 5 categories. Each match is decided by 1 single game. Winners advance directly to the next round.
+          <p className="text-xs text-[#F5F1E8]/70 leading-relaxed">
+            Single-elimination knockout across all 5 divisions. Each match is decided by 1 single game. Winners advance directly into the next round.
           </p>
         </div>
 
-        <div className="sport-card p-6 space-y-3 rounded-3xl border border-[#4A138C]">
-          <div className="flex items-center gap-2.5 text-[#FDB095]">
+        <div className="arena-card p-6 space-y-3 rounded-3xl">
+          <div className="flex items-center gap-2.5 text-[#F2C94C]">
             <MapPin className="w-5 h-5" />
-            <h3 className="font-black text-white text-base font-display">Single Board Arena</h3>
+            <h3 className="font-black text-white text-base font-display uppercase tracking-wide">Single Board Arena</h3>
           </div>
-          <p className="text-xs text-[#D8C7F0] leading-relaxed">
-            All matches are played on the <strong>Main Carrom Board</strong> with sequential FIFO queuing and spectator tracking.
+          <p className="text-xs text-[#F5F1E8]/70 leading-relaxed">
+            All tournament fixtures are scheduled on the <strong>Main Carrom Board</strong> with sequential FIFO queuing and spectator broadcast.
           </p>
         </div>
 
-        <div className="sport-card p-6 space-y-3 rounded-3xl border border-[#4A138C]">
-          <div className="flex items-center gap-2.5 text-[#E5958E]">
+        <div className="arena-card p-6 space-y-3 rounded-3xl">
+          <div className="flex items-center gap-2.5 text-[#F2C94C]">
             <Shield className="w-5 h-5" />
-            <h3 className="font-black text-white text-base font-display">Official Scoring</h3>
+            <h3 className="font-black text-white text-base font-display uppercase tracking-wide">Official Scoring</h3>
           </div>
-          <p className="text-xs text-[#D8C7F0] leading-relaxed">
-            Referee desk confirms board winners in 1 click, instantly propagating advancing teams downstream to the bracket.
+          <p className="text-xs text-[#F5F1E8]/70 leading-relaxed">
+            Official scorekeeper desk confirms board winners with live instant propagation downstream to the tournament tree.
           </p>
         </div>
       </div>
 
       {/* 5 Categories Summary */}
-      <div className="sport-card p-8 space-y-6 rounded-4xl border border-[#4A138C]">
-        <h3 className="font-black text-white text-xl font-display">5 Championship Divisions</h3>
+      <div className="arena-card p-8 space-y-6 rounded-4xl border border-[#D4A94C]/30 bg-gradient-to-b from-[#1A1E24] to-[#111417]">
+        <div className="flex items-center justify-between border-b border-[#2A313C] pb-4">
+          <div>
+            <span className="eyebrow-label">Divisions</span>
+            <h3 className="font-black text-white text-2xl font-display uppercase mt-1">5 Championship Divisions</h3>
+          </div>
+          <Link href="/brackets" className="text-xs font-mono font-bold text-[#F2C94C] hover:underline uppercase">
+            View All Brackets →
+          </Link>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
-          <div className="p-4 rounded-2xl bg-[#140129] border border-[#4A138C]">
-            <span className="font-bold text-white block mb-1">1. Boys Singles</span>
-            <p className="text-[#D8C7F0]">Individual knockout for male participants.</p>
+          <div className="p-4 rounded-2xl bg-[#14171A] border border-[#2A313C] space-y-1">
+            <span className="font-black text-white text-sm font-display block">1. Boys Singles</span>
+            <p className="text-[#F5F1E8]/70">Individual knockout for male student athletes.</p>
           </div>
-          <div className="p-4 rounded-2xl bg-[#140129] border border-[#4A138C]">
-            <span className="font-bold text-white block mb-1">2. Girls Singles</span>
-            <p className="text-[#D8C7F0]">Individual knockout for female participants.</p>
+          <div className="p-4 rounded-2xl bg-[#14171A] border border-[#2A313C] space-y-1">
+            <span className="font-black text-white text-sm font-display block">2. Girls Singles</span>
+            <p className="text-[#F5F1E8]/70">Individual knockout for female student athletes.</p>
           </div>
-          <div className="p-4 rounded-2xl bg-[#140129] border border-[#4A138C]">
-            <span className="font-bold text-white block mb-1">3. Boys Doubles</span>
-            <p className="text-[#D8C7F0]">2 male participants per team.</p>
+          <div className="p-4 rounded-2xl bg-[#14171A] border border-[#2A313C] space-y-1">
+            <span className="font-black text-white text-sm font-display block">3. Boys Doubles</span>
+            <p className="text-[#F5F1E8]/70">2 male student athletes per paired team.</p>
           </div>
-          <div className="p-4 rounded-2xl bg-[#140129] border border-[#4A138C]">
-            <span className="font-bold text-white block mb-1">4. Girls Doubles</span>
-            <p className="text-[#D8C7F0]">2 female participants per team.</p>
+          <div className="p-4 rounded-2xl bg-[#14171A] border border-[#2A313C] space-y-1">
+            <span className="font-black text-white text-sm font-display block">4. Girls Doubles</span>
+            <p className="text-[#F5F1E8]/70">2 female student athletes per paired team.</p>
           </div>
-          <div className="p-4 rounded-2xl bg-[#140129] border border-[#4A138C]">
-            <span className="font-bold text-white block mb-1">5. Mixed Doubles</span>
-            <p className="text-[#D8C7F0]">1 male and 1 female participant per team.</p>
+          <div className="p-4 rounded-2xl bg-[#14171A] border border-[#2A313C] space-y-1">
+            <span className="font-black text-white text-sm font-display block">5. Mixed Doubles</span>
+            <p className="text-[#F5F1E8]/70">1 male and 1 female athlete per paired team.</p>
           </div>
         </div>
       </div>

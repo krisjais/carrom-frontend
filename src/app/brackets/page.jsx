@@ -35,33 +35,29 @@ function BracketsContent() {
   }, [selectedCategory]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12 bg-[#0B0D0E]">
       {/* Header */}
       <div className="text-center max-w-2xl mx-auto space-y-3">
-        <span className="text-xs font-mono text-[#FFBA00] font-bold uppercase tracking-widest block">
+        <span className="eyebrow-label">
           Knockout Draw Architecture
         </span>
-        <h1 className="text-4xl sm:text-5xl font-black font-display text-white tracking-tight">
+        <h1 className="text-4xl sm:text-6xl font-black font-display text-white tracking-tight uppercase">
           Championship Brackets
         </h1>
-        <p className="text-xs sm:text-sm text-[#D8C7F0]">
-          Dynamic single-elimination brackets with real-time winner advancement across all 5 tournament divisions.
+        <p className="text-xs sm:text-sm text-[#F5F1E8]/70 font-mono">
+          Dynamic single-elimination knockout brackets with live winner propagation across all 5 tournament divisions.
         </p>
       </div>
 
       {/* Category Tabs */}
-      <div className="flex items-center justify-center gap-2 flex-wrap pb-2 border-b border-[#4A138C]">
+      <div className="flex items-center justify-center gap-2 flex-wrap pb-2 border-b border-[#2A313C]">
         {CATEGORIES.map((cat) => {
           const isSelected = selectedCategory === cat.id;
           return (
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                isSelected
-                  ? 'bg-[#FFBA00] text-[#210440] shadow-md shadow-[#FFBA00]/20'
-                  : 'bg-[#2C0854] text-[#D8C7F0] hover:text-white'
-              }`}
+              className={`pill-tab ${isSelected ? 'pill-tab-active' : 'pill-tab-inactive'}`}
             >
               {cat.name}
             </button>
@@ -71,8 +67,8 @@ function BracketsContent() {
 
       {/* Bracket Component Display */}
       {loading ? (
-        <div className="py-20 text-center text-[#D8C7F0] text-xs flex items-center justify-center gap-2">
-          <RefreshCw className="w-4 h-4 animate-spin text-[#FFBA00]" />
+        <div className="py-20 text-center text-[#F5F1E8]/60 text-xs font-mono flex items-center justify-center gap-2">
+          <RefreshCw className="w-4 h-4 animate-spin text-[#F2C94C]" />
           <span>Loading dynamic bracket...</span>
         </div>
       ) : (
@@ -89,7 +85,7 @@ function BracketsContent() {
 
 export default function BracketsPage() {
   return (
-    <Suspense fallback={<div className="py-20 text-center text-[#D8C7F0] text-xs">Loading brackets...</div>}>
+    <Suspense fallback={<div className="py-20 text-center text-[#F5F1E8]/60 text-xs font-mono">Loading brackets...</div>}>
       <BracketsContent />
     </Suspense>
   );

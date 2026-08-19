@@ -106,7 +106,7 @@ export default function AdminTeamsPage() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#35538C]">
         <div>
-          <span className="text-xs font-mono text-[#FFD691] font-bold uppercase tracking-widest">
+          <span className="eyebrow-label">
             Approved Category Rosters
           </span>
           <h1 className="text-3xl sm:text-4xl font-black font-display text-white mt-1">Teams & Entries</h1>
@@ -179,10 +179,10 @@ export default function AdminTeamsPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-[#35538C] text-[#D4DEEE] font-bold uppercase text-[11px]">
+              <thead className="border-b border-[#35538C] text-[#D4DEEE] font-bold uppercase text-[11px] font-mono">
                 <tr>
                   <th className="pb-3">#</th>
-                  <th className="pb-3">Team Name</th>
+                  <th className="pb-3">Team / Athlete Name</th>
                   <th className="pb-3">Player 1</th>
                   <th className="pb-3">Player 2</th>
                   <th className="pb-3">Verification</th>
@@ -193,12 +193,12 @@ export default function AdminTeamsPage() {
                 {teams.map((t, idx) => (
                   <tr key={t._id} className="hover:bg-[#1E3258]/40 transition-colors">
                     <td className="py-3.5 font-mono text-[#FFD691] font-bold">{idx + 1}</td>
-                    <td className="py-3.5 font-bold text-white text-xs">{t.name}</td>
+                    <td className="py-3.5 font-bold text-white text-xs font-display uppercase tracking-wide">{t.name}</td>
                     <td className="py-3.5">
                       <div className="space-y-0.5">
                         <span className="text-slate-200 font-bold">{t.player1?.fullName}</span>
                         <span className="text-[10px] text-[#D4DEEE] block font-mono">
-                          {t.player1?.studentId} • {t.player1?.department}
+                          {t.player1?.department}
                         </span>
                       </div>
                     </td>
@@ -207,16 +207,16 @@ export default function AdminTeamsPage() {
                         <div className="space-y-0.5">
                           <span className="text-slate-200 font-bold">{t.player2?.fullName}</span>
                           <span className="text-[10px] text-[#D4DEEE] block font-mono">
-                            {t.player2?.studentId} • {t.player2?.department}
+                            {t.player2?.department}
                           </span>
                         </div>
                       ) : (
-                        <span className="text-slate-400 italic">Singles Entry</span>
+                        <span className="text-slate-400 italic font-mono text-[11px]">Singles Entry</span>
                       )}
                     </td>
                     <td className="py-3.5">
-                      <span className="inline-flex items-center gap-1 text-[10px] text-emerald-300 bg-emerald-500/15 px-2.5 py-0.5 rounded-full border border-emerald-500/30 font-bold">
-                        <CheckCircle2 className="w-3 h-3" /> Approved ✓
+                      <span className="inline-flex items-center gap-1 text-[10px] text-emerald-300 bg-emerald-500/15 px-2.5 py-0.5 rounded-full border border-emerald-500/30 font-bold font-mono">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Approved
                       </span>
                     </td>
                     <td className="py-3.5 text-right">

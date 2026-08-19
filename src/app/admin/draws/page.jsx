@@ -129,18 +129,18 @@ function AdminDrawsContent() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-6xl mx-auto">
       {/* Feedback Banner */}
       {feedbackMessage && (
         <div
           className={`p-4 rounded-2xl text-xs font-semibold flex items-center justify-between shadow-md ${
             feedbackMessage.type === 'success'
-              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-              : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono'
+              : 'bg-rose-500/20 text-rose-300 border border-rose-500/30 font-mono'
           }`}
         >
           <span>{feedbackMessage.text}</span>
-          <button onClick={() => setFeedbackMessage(null)} className="text-xs opacity-70 hover:opacity-100 font-bold px-2">
+          <button onClick={() => setFeedbackMessage(null)} className="text-xs opacity-70 hover:opacity-100 font-bold px-2 cursor-pointer">
             ✕
           </button>
         </div>
@@ -149,11 +149,11 @@ function AdminDrawsContent() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#35538C]">
         <div>
-          <span className="text-xs font-mono text-[#FFD691] font-bold uppercase tracking-widest">
-            Knockout Draw Engine
+          <span className="eyebrow-label">
+            KNOCKOUT DRAW ENGINE
           </span>
-          <h1 className="text-3xl sm:text-4xl font-black font-display text-white mt-1">Dynamic Bracket Manager</h1>
-          <p className="text-xs text-[#D4DEEE]">
+          <h1 className="text-3xl sm:text-4xl font-black font-display text-white mt-1 tracking-wide">Dynamic Bracket Manager</h1>
+          <p className="text-xs text-[#D4DEEE] mt-1">
             Single-game knockout tournament bracket. Winners advance automatically to the next round as each match is played.
           </p>
         </div>
@@ -164,7 +164,7 @@ function AdminDrawsContent() {
             <button
               onClick={handleGenerateDraw}
               disabled={actionLoading || N < 2}
-              className="flex items-center gap-2 px-6 py-3 rounded-2xl btn-cream text-xs font-black shadow-md transition-all cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#FFD691] hover:bg-[#FFE2AA] text-[#1E3258] font-black text-xs shadow-md transition-all cursor-pointer disabled:opacity-50 font-display uppercase tracking-wider"
             >
               <Sparkles className="w-4 h-4" />
               <span>{actionLoading ? 'Generating...' : 'Generate Random Draw'}</span>
@@ -175,7 +175,7 @@ function AdminDrawsContent() {
             <button
               onClick={handlePublishAndLock}
               disabled={actionLoading}
-              className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition-all cursor-pointer"
+              className="flex items-center gap-2 px-6 py-3 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-md transition-all cursor-pointer font-display uppercase tracking-wider"
             >
               <Lock className="w-4 h-4" />
               <span>Publish & Lock Draw</span>
@@ -183,7 +183,7 @@ function AdminDrawsContent() {
           )}
 
           {bracketData?.isLocked && (
-            <div className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#FFD691]/15 border border-[#D7A859]/50 text-[#FFD691] text-xs font-bold font-mono">
+            <div className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#FFD691]/15 border border-[#D7A859]/50 text-[#FFD691] text-xs font-bold font-mono">
               <Shield className="w-4 h-4" />
               <span>DRAW LOCKED & PUBLISHED</span>
             </div>
@@ -199,11 +199,7 @@ function AdminDrawsContent() {
             <button
               key={cat.id}
               onClick={() => setSelectedCat(cat.id)}
-              className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-display font-bold transition-all cursor-pointer ${
-                isSelected
-                  ? 'bg-[#FFD691] text-[#233A66] shadow-md shadow-[#FFD691]/20 font-black'
-                  : 'bg-[#1E3258] text-[#D4DEEE] hover:text-white'
-              }`}
+              className={`pill-tab ${isSelected ? 'pill-tab-active' : 'pill-tab-inactive'}`}
             >
               {cat.name}
             </button>
@@ -216,37 +212,37 @@ function AdminDrawsContent() {
         <div className="flex items-center justify-between text-xs pb-3 border-b border-[#35538C]">
           <div className="flex items-center gap-2.5">
             <CategoryBadge category={selectedCat} />
-            <span className="font-bold text-white font-display">Tournament Pairing Parameters ({N} Approved Entries)</span>
+            <span className="font-bold text-white font-display text-sm">Tournament Pairing Parameters ({N} Approved Entries)</span>
           </div>
-          <span className="font-mono text-[#FFD691] text-xs font-bold">Sequential Single-Game Knockout</span>
+          <span className="font-mono text-[#FFD691] text-xs font-bold">Single-Elimination Knockout</span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center font-mono">
           <div className="p-4 rounded-2xl bg-[#152442] border border-[#35538C]">
-            <span className="text-[11px] text-[#D4DEEE] block">Approved Entries (N)</span>
-            <span className="font-mono font-black text-white text-xl">{N}</span>
+            <span className="text-[11px] text-[#D4DEEE] block uppercase">Approved Entries (N)</span>
+            <span className="font-black text-white text-xl">{N}</span>
           </div>
 
           <div className="p-4 rounded-2xl bg-[#152442] border border-[#35538C]">
-            <span className="text-[11px] text-[#D4DEEE] block">Round 1 Matches</span>
-            <span className="font-mono font-black text-[#FFD691] text-xl">{r1Matches} Matches</span>
+            <span className="text-[11px] text-[#D4DEEE] block uppercase">Round 1 Matches</span>
+            <span className="font-black text-[#FFD691] text-xl">{r1Matches} Matches</span>
           </div>
 
           <div className="p-4 rounded-2xl bg-[#152442] border border-[#35538C]">
-            <span className="text-[11px] text-[#D4DEEE] block">Round 1 Byes (N % 2)</span>
-            <span className="font-mono font-black text-[#D7A859] text-xl">{r1Byes} Bye</span>
+            <span className="text-[11px] text-[#D4DEEE] block uppercase">Round 1 Byes (N % 2)</span>
+            <span className="font-black text-[#D7A859] text-xl">{r1Byes} Bye</span>
           </div>
 
           <div className="p-4 rounded-2xl bg-[#152442] border border-[#35538C]">
-            <span className="text-[11px] text-[#D4DEEE] block">Advancing to Round 2</span>
-            <span className="font-mono font-black text-emerald-300 text-xl">{r2Advancing} Entries</span>
+            <span className="text-[11px] text-[#D4DEEE] block uppercase">Advancing to Round 2</span>
+            <span className="font-black text-emerald-300 text-xl">{r2Advancing} Entries</span>
           </div>
         </div>
       </div>
 
       {/* Bracket Tree View */}
       {loading ? (
-        <div className="py-20 text-center text-[#D4DEEE] text-xs flex items-center justify-center gap-2">
+        <div className="py-20 text-center text-[#D4DEEE] text-xs font-mono flex items-center justify-center gap-2">
           <RefreshCw className="w-4 h-4 animate-spin text-[#FFD691]" />
           <span>Loading bracket tree...</span>
         </div>
@@ -274,14 +270,14 @@ function AdminDrawsContent() {
           <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#35538C]">
             <button
               onClick={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#D4DEEE] hover:text-white"
+              className="px-4 py-2 rounded-full text-xs font-semibold text-[#D4DEEE] hover:text-white cursor-pointer"
             >
               Cancel
             </button>
             <button
               onClick={confirmModal.action}
               disabled={actionLoading}
-              className="px-6 py-2.5 rounded-xl btn-cream text-xs font-black shadow-lg transition-all cursor-pointer"
+              className="px-6 py-2.5 rounded-full bg-[#FFD691] text-[#1E3258] font-black text-xs shadow-lg transition-all cursor-pointer font-display uppercase tracking-wider hover:bg-[#FFE2AA]"
             >
               {actionLoading ? 'Processing...' : confirmModal.confirmText}
             </button>
@@ -294,7 +290,7 @@ function AdminDrawsContent() {
 
 export default function AdminDrawsPage() {
   return (
-    <Suspense fallback={<div className="py-20 text-center text-[#D4DEEE] text-xs">Loading admin draws...</div>}>
+    <Suspense fallback={<div className="py-20 text-center text-[#D4DEEE] text-xs font-mono">Loading admin draws...</div>}>
       <AdminDrawsContent />
     </Suspense>
   );

@@ -231,17 +231,19 @@ export default function AdminMatchesPage() {
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
-      {/* 1. Header */}
+      {/* 1. Standard Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#35538C]">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[11px] font-mono text-[#FFD691] font-bold uppercase tracking-widest">
-              Sequential Arena Scheduler
+            <span className="eyebrow-label">
+              SEQUENTIAL ARENA SCHEDULER
             </span>
             <MainBoardBadge />
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black font-display text-white">Matches & Fixtures Manager</h1>
-          <p className="text-xs text-[#D4DEEE]">
+          <h1 className="text-3xl sm:text-4xl font-black font-display text-white tracking-wide">
+            Matches & Fixtures Manager
+          </h1>
+          <p className="text-xs text-[#D4DEEE] mt-1">
             Sequential timeline manager, cross-category player rest monitor, and live scoring control.
           </p>
         </div>
@@ -249,7 +251,7 @@ export default function AdminMatchesPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setSchedulerModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#1E3258] border border-[#35538C] hover:border-[#D7A859] text-xs font-bold text-white transition-colors cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#1E3258] border border-[#35538C] hover:border-[#D7A859] text-xs font-bold text-white transition-colors cursor-pointer"
           >
             <Settings className="w-3.5 h-3.5 text-[#FFD691]" />
             <span>Configure Schedule</span>
@@ -258,7 +260,7 @@ export default function AdminMatchesPage() {
           <button
             onClick={fetchMatchesAndTeams}
             disabled={loading}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#1E3258] border border-[#35538C] hover:border-[#D7A859] text-xs font-bold text-[#D4DEEE] hover:text-white transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-[#1E3258] border border-[#35538C] hover:border-[#D7A859] text-xs font-bold text-[#D4DEEE] hover:text-white transition-colors cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[#FFD691]' : ''}`} />
             <span>Refresh</span>
@@ -266,54 +268,42 @@ export default function AdminMatchesPage() {
         </div>
       </div>
 
-      {/* 2. CATEGORY TABS */}
+      {/* 2. CATEGORY PILL TABS */}
       <div className="space-y-3">
         <div className="flex items-center gap-2 border-b border-[#35538C] pb-2">
           <button
             onClick={() => handleMainTabChange('singles')}
-            className={`px-5 py-2.5 rounded-full font-display font-bold text-xs sm:text-sm transition-all cursor-pointer ${
-              mainTab === 'singles'
-                ? 'bg-[#FFD691] text-[#233A66] shadow-md shadow-[#FFD691]/20 font-black'
-                : 'bg-[#1E3258] text-[#D4DEEE] hover:text-white'
-            }`}
+            className={`pill-tab ${mainTab === 'singles' ? 'pill-tab-active' : 'pill-tab-inactive'}`}
           >
             SINGLES
           </button>
 
           <button
             onClick={() => handleMainTabChange('doubles')}
-            className={`px-5 py-2.5 rounded-full font-display font-bold text-xs sm:text-sm transition-all cursor-pointer ${
-              mainTab === 'doubles'
-                ? 'bg-[#FFD691] text-[#233A66] shadow-md shadow-[#FFD691]/20 font-black'
-                : 'bg-[#1E3258] text-[#D4DEEE] hover:text-white'
-            }`}
+            className={`pill-tab ${mainTab === 'doubles' ? 'pill-tab-active' : 'pill-tab-inactive'}`}
           >
             DOUBLES
           </button>
 
           <button
             onClick={() => handleMainTabChange('mixed')}
-            className={`px-5 py-2.5 rounded-full font-display font-bold text-xs sm:text-sm transition-all cursor-pointer ${
-              mainTab === 'mixed'
-                ? 'bg-[#FFD691] text-[#233A66] shadow-md shadow-[#FFD691]/20 font-black'
-                : 'bg-[#1E3258] text-[#D4DEEE] hover:text-white'
-            }`}
+            className={`pill-tab ${mainTab === 'mixed' ? 'pill-tab-active' : 'pill-tab-inactive'}`}
           >
             MIXED DOUBLES
           </button>
         </div>
 
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-2.5 flex-wrap">
           {tabCategories.map((c) => {
             const isSelected = activeCategory === c.id;
             return (
               <button
                 key={c.id}
                 onClick={() => handleSubCategoryChange(c.id)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                className={`px-4 py-2 rounded-xl text-xs font-bold font-mono transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-[#1E3258] border-[#FFD691] text-white shadow-sm'
-                    : 'bg-[#152442] border-[#35538C] text-[#D4DEEE] hover:text-white hover:border-[#FFD691]/50'
+                    ? 'bg-[#1E3258] border border-[#FFD691] text-[#FFD691] shadow-sm'
+                    : 'bg-[#152442] border border-[#35538C] text-[#D4DEEE] hover:text-white'
                 }`}
               >
                 {c.name}
@@ -329,10 +319,10 @@ export default function AdminMatchesPage() {
           <div className="flex items-center gap-3">
             <CategoryBadge category={activeCategory} />
             <div>
-              <h2 className="text-xl font-black font-display text-white">
+              <h2 className="text-xl font-black font-display text-white uppercase tracking-wide">
                 {CATEGORIES.find((c) => c.id === activeCategory)?.name}
               </h2>
-              <p className="text-xs text-[#D4DEEE]">
+              <p className="text-xs text-[#D4DEEE] font-mono mt-0.5">
                 {categoryStats.totalPlayers} Approved Entries • {roundGroups.length} Knockout Rounds
               </p>
             </div>
@@ -341,7 +331,7 @@ export default function AdminMatchesPage() {
           <div className="flex items-center gap-2 text-xs">
             <Link
               href={`/admin/draws?category=${activeCategory}`}
-              className="px-4 py-2 rounded-xl bg-[#152442] border border-[#35538C] hover:border-[#D7A859] text-[#FFD691] font-bold transition-colors flex items-center gap-1.5"
+              className="px-4 py-2 rounded-full bg-[#152442] border border-[#35538C] hover:border-[#D7A859] text-[#FFD691] font-bold transition-colors flex items-center gap-1.5 font-mono uppercase"
             >
               <span>View Bracket Tree</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -349,39 +339,35 @@ export default function AdminMatchesPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center font-mono">
           <div className="p-3.5 rounded-2xl bg-[#152442] border border-[#35538C]">
             <span className="text-[10px] text-[#D4DEEE] uppercase font-bold block">Total Entries</span>
-            <span className="text-2xl font-black font-mono text-white">{categoryStats.totalPlayers}</span>
+            <span className="text-2xl font-black text-white">{categoryStats.totalPlayers}</span>
           </div>
 
           <div className="p-3.5 rounded-2xl bg-[#152442] border border-[#35538C]">
             <span className="text-[10px] text-[#FFD691] uppercase font-bold block">READY in Queue</span>
-            <span className="text-2xl font-black font-mono text-[#FFD691]">{categoryStats.ready}</span>
+            <span className="text-2xl font-black text-[#FFD691]">{categoryStats.ready}</span>
           </div>
 
           <div className="p-3.5 rounded-2xl bg-[#152442] border border-[#35538C]">
             <span className="text-[10px] text-amber-300 uppercase font-bold block">WAITING (TBD)</span>
-            <span className="text-2xl font-black font-mono text-amber-300">{categoryStats.waiting}</span>
+            <span className="text-2xl font-black text-amber-300">{categoryStats.waiting}</span>
           </div>
 
           <div className="p-3.5 rounded-2xl bg-[#152442] border border-[#35538C]">
             <span className="text-[10px] text-emerald-300 uppercase font-bold block">Completed</span>
-            <span className="text-2xl font-black font-mono text-emerald-300">{categoryStats.completed}</span>
+            <span className="text-2xl font-black text-emerald-300">{categoryStats.completed}</span>
           </div>
         </div>
 
         {roundGroups.length > 0 && (
           <div className="pt-2 border-t border-[#35538C]">
-            <div className="text-[11px] text-[#D4DEEE] font-bold mb-2 uppercase tracking-wider">Tournament Stages:</div>
+            <div className="text-[11px] text-[#D4DEEE] font-bold mb-2 uppercase font-mono tracking-wider">Tournament Stages:</div>
             <div className="flex items-center gap-2 flex-wrap">
               <button
                 onClick={() => setSelectedRoundStage('all')}
-                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                  selectedRoundStage === 'all'
-                    ? 'bg-[#FFD691] text-[#233A66] font-black'
-                    : 'bg-[#152442] text-[#D4DEEE] hover:text-white border border-[#35538C]'
-                }`}
+                className={`pill-tab ${selectedRoundStage === 'all' ? 'pill-tab-active' : 'pill-tab-inactive'}`}
               >
                 All Rounds ({roundGroups.length})
               </button>
@@ -392,14 +378,10 @@ export default function AdminMatchesPage() {
                   <button
                     key={rg.roundNumber}
                     onClick={() => setSelectedRoundStage(String(rg.roundNumber))}
-                    className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                      isSelected
-                        ? 'bg-[#FFD691] text-[#233A66] font-black'
-                        : 'bg-[#152442] text-[#D4DEEE] hover:text-white border border-[#35538C]'
-                    }`}
+                    className={`pill-tab flex items-center gap-1.5 ${isSelected ? 'pill-tab-active' : 'pill-tab-inactive'}`}
                   >
                     <span>{rg.roundName}</span>
-                    <span className="font-mono text-[10px] opacity-80">({rg.matches.length} matches)</span>
+                    <span className="font-mono text-[10px] opacity-80">({rg.matches.length})</span>
                   </button>
                 );
               })}
@@ -410,21 +392,21 @@ export default function AdminMatchesPage() {
 
       {/* 4. ROUND-BY-ROUND FIXTURES BREAKDOWN */}
       {loading ? (
-        <div className="py-20 text-center text-xs text-[#D4DEEE] flex items-center justify-center gap-2">
+        <div className="py-20 text-center text-xs text-[#D4DEEE] font-mono flex items-center justify-center gap-2">
           <RefreshCw className="w-4 h-4 animate-spin text-[#FFD691]" />
           <span>Loading tournament rounds...</span>
         </div>
       ) : roundGroups.length === 0 ? (
         <div className="p-12 text-center sport-card rounded-3xl space-y-3">
           <Calendar className="w-8 h-8 text-[#FFD691] mx-auto mb-2 opacity-70" />
-          <h3 className="text-base font-black text-white font-display">No Draw Generated for {activeCategory.replace('_', ' ').toUpperCase()}</h3>
-          <p className="text-xs text-[#D4DEEE] max-w-sm mx-auto">
+          <h3 className="text-base font-black text-white font-display uppercase tracking-wide">No Draw Generated for {activeCategory.replace('_', ' ').toUpperCase()}</h3>
+          <p className="text-xs text-[#D4DEEE] max-w-sm mx-auto font-mono">
             Please generate and publish the knockout draw in the Draws section to create the bracket and match fixtures.
           </p>
           <div className="mt-4">
             <Link
               href={`/admin/draws?category=${activeCategory}`}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl btn-cream font-black text-xs shadow-md"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#FFD691] text-[#1E3258] font-black text-xs shadow-md uppercase tracking-wider font-display hover:bg-[#FFE2AA]"
             >
               Generate Draw Now →
             </Link>
@@ -439,7 +421,7 @@ export default function AdminMatchesPage() {
                 <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#35538C]">
                   <div className="flex items-center gap-2.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#FFD691]" />
-                    <h3 className="text-lg font-black font-display text-white">
+                    <h3 className="text-lg font-black font-display text-white uppercase tracking-wide">
                       {rg.roundName}
                     </h3>
                     <span className="text-xs text-[#D4DEEE] font-mono">
@@ -479,7 +461,7 @@ export default function AdminMatchesPage() {
                           key={m._id}
                           className={`sport-card p-5 space-y-4 rounded-3xl flex flex-col justify-between transition-all ${
                             isLive
-                              ? 'border-emerald-500/60 bg-[#1E3258]'
+                              ? 'border-rose-500/60 bg-[#1E3258]'
                               : isCompleted
                               ? 'border-[#FFD691]/40'
                               : isWaiting
@@ -496,7 +478,7 @@ export default function AdminMatchesPage() {
                                 <StatusBadge status={m.status} queuePosition={m.queuePosition} />
                               </div>
                               <span className="text-[10px] font-mono text-[#D4DEEE]">
-                                Main Carrom Board
+                                Main Board
                               </span>
                             </div>
 
@@ -507,7 +489,7 @@ export default function AdminMatchesPage() {
                                   isT1Win
                                     ? 'bg-[#FFD691]/20 text-[#FFD691] font-black border border-[#FFD691]/40'
                                     : m.team1
-                                    ? 'bg-[#152442] text-white font-bold'
+                                    ? 'bg-[#152442] text-white font-bold font-display'
                                     : 'bg-[#152442]/50 text-slate-400 italic'
                                 }`}
                               >
@@ -523,7 +505,7 @@ export default function AdminMatchesPage() {
                                   isT2Win
                                     ? 'bg-[#FFD691]/20 text-[#FFD691] font-black border border-[#FFD691]/40'
                                     : m.team2
-                                    ? 'bg-[#152442] text-white font-bold'
+                                    ? 'bg-[#152442] text-white font-bold font-display'
                                     : 'bg-[#152442]/50 text-slate-400 italic'
                                 }`}
                               >
@@ -541,7 +523,7 @@ export default function AdminMatchesPage() {
                                   ) : isCompleted ? (
                                     <span className="text-slate-300">Completed</span>
                                   ) : (
-                                    <span className="text-emerald-300 font-bold">In Play</span>
+                                    <span className="text-rose-300 font-bold">In Play</span>
                                   )}
                                 </div>
                                 {m.scheduledTime ? (
@@ -552,7 +534,7 @@ export default function AdminMatchesPage() {
                                     })}
                                   </span>
                                 ) : (
-                                  <span className="text-[#D4DEEE]/60">Time TBD</span>
+                                  <span className="text-[#D4DEEE]/60 font-mono">Time TBD</span>
                                 )}
                               </div>
                             )}
@@ -563,7 +545,7 @@ export default function AdminMatchesPage() {
                             {isLive ? (
                               <Link
                                 href={`/admin/matches/${m._id}/score`}
-                                className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                                className="w-full py-2.5 rounded-full bg-rose-600 hover:bg-rose-500 text-white font-black text-xs shadow-sm flex items-center justify-center gap-1.5 transition-colors cursor-pointer font-display uppercase tracking-wider"
                               >
                                 <span>Open Scorekeeper Desk</span>
                                 <ArrowRight className="w-3.5 h-3.5" />
@@ -573,39 +555,39 @@ export default function AdminMatchesPage() {
                                 <button
                                   onClick={() => handleStartMatch(m._id)}
                                   disabled={isBoardOccupied || startingMatchId === m._id}
-                                  className="flex-1 py-2 rounded-xl btn-cream text-xs font-black shadow-sm transition-colors flex items-center justify-center gap-1 disabled:opacity-50 cursor-pointer"
+                                  className="flex-1 py-2 rounded-full bg-[#FFD691] text-[#1E3258] text-xs font-black shadow-sm transition-colors flex items-center justify-center gap-1 disabled:opacity-50 cursor-pointer font-display uppercase hover:bg-[#FFE2AA]"
                                 >
                                   <Play className="w-3 h-3 fill-current" />
                                   <span>{isBoardOccupied ? 'Queued' : 'Start Match'}</span>
                                 </button>
                                 <button
                                   onClick={() => handleOpenEditTime(m)}
-                                  className="px-3 py-2 rounded-xl bg-[#152442] hover:bg-[#1E3258] border border-[#35538C] text-[11px] text-[#D4DEEE] font-mono cursor-pointer"
+                                  className="px-3 py-2 rounded-full bg-[#152442] hover:bg-[#1E3258] border border-[#35538C] text-[11px] text-[#D4DEEE] font-mono cursor-pointer"
                                   title="Adjust estimated time"
                                 >
                                   Time
                                 </button>
                                 <Link
                                   href={`/admin/matches/${m._id}/score`}
-                                  className="px-3 py-2 rounded-xl bg-[#152442] hover:bg-[#1E3258] border border-[#35538C] text-xs font-bold text-[#FFD691] transition-colors"
+                                  className="px-3 py-2 rounded-full bg-[#152442] hover:bg-[#1E3258] border border-[#35538C] text-xs font-bold text-[#FFD691] transition-colors"
                                 >
                                   <ExternalLink className="w-3.5 h-3.5" />
                                 </Link>
                               </div>
                             ) : isCompleted ? (
                               <div className="flex items-center justify-between">
-                                <span className="text-xs text-emerald-300 font-bold">
+                                <span className="text-xs text-emerald-300 font-bold font-mono">
                                   ✓ Result Confirmed
                                 </span>
                                 <Link
                                   href={`/admin/matches/${m._id}/score`}
-                                  className="text-[11px] text-[#FFD691] hover:underline font-mono font-bold"
+                                  className="text-[11px] text-[#FFD691] hover:underline font-mono font-bold uppercase"
                                 >
                                   Edit Winner →
                                 </Link>
                               </div>
                             ) : (
-                              <div className="text-center text-[11px] text-[#D4DEEE]/60 italic py-1">
+                              <div className="text-center text-[11px] text-[#D4DEEE]/60 italic py-1 font-mono">
                                 WAITING (Opponents TBD)
                               </div>
                             )}
@@ -619,7 +601,7 @@ export default function AdminMatchesPage() {
                 {/* Byes / Automatic Advances in this Round */}
                 {rg.byes.length > 0 && (
                   <div className="space-y-3 pt-2">
-                    <div className="flex items-center gap-2 text-xs text-[#FFD691] font-bold">
+                    <div className="flex items-center gap-2 text-xs text-[#FFD691] font-bold font-mono">
                       <Crown className="w-3.5 h-3.5 text-[#FFD691]" />
                       <span>Automatic Advances in {rg.roundName} ({rg.byes.length})</span>
                     </div>
@@ -642,10 +624,10 @@ export default function AdminMatchesPage() {
                             </div>
 
                             <div>
-                              <h4 className="font-bold text-white text-xs truncate">
+                              <h4 className="font-bold text-white text-xs truncate font-display">
                                 {advancingTeam?.name || 'Advancing Team'}
                               </h4>
-                              <p className="text-[11px] text-[#FFECC7]">
+                              <p className="text-[11px] text-[#FFECC7] font-mono">
                                 BYE — Automatically Advanced
                               </p>
                             </div>
@@ -667,17 +649,17 @@ export default function AdminMatchesPage() {
         title="Configure Sequential Schedule — Main Carrom Board"
       >
         <form onSubmit={handleGenerateSchedule} className="space-y-4">
-          <div className="p-4 rounded-2xl bg-[#152442] border border-[#35538C] text-xs space-y-1.5 text-[#D4DEEE]">
+          <div className="p-4 rounded-2xl bg-[#152442] border border-[#35538C] text-xs space-y-1.5 text-[#D4DEEE] font-mono">
             <p className="font-bold text-white">Single-Arena Sequential Rules:</p>
             <ul className="list-disc list-inside space-y-1">
               <li>All matches are scheduled sequentially on the <strong>Main Carrom Board</strong>.</li>
-              <li>Participant rest times are verified across all categories.</li>
-              <li>Only <strong>READY</strong> matches with determined opponents are scheduled.</li>
+              <li>Participant rest times are verified across all divisions.</li>
+              <li>Only <strong>READY</strong> matches with determined opponents are queued.</li>
             </ul>
           </div>
 
           <div>
-            <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5">
+            <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5 uppercase font-mono">
               Tournament Match Start Time:
             </label>
             <input
@@ -690,7 +672,7 @@ export default function AdminMatchesPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5">
+              <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5 uppercase font-mono">
                 Match Duration (min):
               </label>
               <input
@@ -704,7 +686,7 @@ export default function AdminMatchesPage() {
             </div>
 
             <div>
-              <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5">
+              <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5 uppercase font-mono">
                 Break Time (min):
               </label>
               <input
@@ -718,7 +700,7 @@ export default function AdminMatchesPage() {
             </div>
 
             <div>
-              <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5">
+              <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5 uppercase font-mono">
                 Min Rest Time (min):
               </label>
               <input
@@ -736,14 +718,14 @@ export default function AdminMatchesPage() {
             <button
               type="button"
               onClick={() => setSchedulerModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-xs text-[#D4DEEE] hover:text-white"
+              className="px-4 py-2 rounded-full text-xs text-[#D4DEEE] hover:text-white cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={generatingSchedule}
-              className="px-6 py-2.5 rounded-xl btn-cream text-xs font-black shadow-md transition-all cursor-pointer"
+              className="px-6 py-2.5 rounded-full bg-[#FFD691] text-[#1E3258] text-xs font-black shadow-md transition-all cursor-pointer font-display uppercase tracking-wider hover:bg-[#FFE2AA]"
             >
               {generatingSchedule ? 'Generating Sequential Schedule...' : 'Generate Sequential Schedule'}
             </button>
@@ -759,12 +741,12 @@ export default function AdminMatchesPage() {
       >
         <form onSubmit={handleSaveCustomTime} className="space-y-4">
           <div className="p-4 rounded-2xl bg-[#152442] border border-[#35538C] text-xs">
-            <div className="font-black text-white mb-1">{selectedMatch?.team1?.name} vs {selectedMatch?.team2?.name}</div>
+            <div className="font-black text-white mb-1 font-display text-sm">{selectedMatch?.team1?.name} vs {selectedMatch?.team2?.name}</div>
             <div className="text-[#FFD691] font-mono font-bold">Queue Position: #{selectedMatch?.queuePosition || 'N/A'}</div>
           </div>
 
           <div>
-            <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5">
+            <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5 uppercase font-mono">
               Estimated Scheduled Start Time:
             </label>
             <input
@@ -779,14 +761,14 @@ export default function AdminMatchesPage() {
             <button
               type="button"
               onClick={() => setEditTimeModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-xs text-[#D4DEEE] hover:text-white"
+              className="px-4 py-2 rounded-full text-xs text-[#D4DEEE] hover:text-white cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={savingTime}
-              className="px-6 py-2.5 rounded-xl btn-cream text-xs font-black shadow-md transition-all cursor-pointer"
+              className="px-6 py-2.5 rounded-full bg-[#FFD691] text-[#1E3258] text-xs font-black shadow-md transition-all cursor-pointer font-display uppercase tracking-wider hover:bg-[#FFE2AA]"
             >
               {savingTime ? 'Saving...' : 'Save Time'}
             </button>

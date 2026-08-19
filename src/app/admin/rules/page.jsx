@@ -62,22 +62,22 @@ export default function AdminRulesPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-5xl">
+    <div className="space-y-8 max-w-5xl mx-auto">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#35538C]">
         <div>
-          <span className="text-xs font-mono text-[#FFD691] font-bold uppercase tracking-widest">
-            Tournament Directives & Configuration
+          <span className="eyebrow-label">
+            TOURNAMENT DIRECTIVES & CONFIGURATION
           </span>
-          <h1 className="text-3xl sm:text-4xl font-black font-display text-white mt-1">Rules & Settings</h1>
-          <p className="text-xs text-[#D4DEEE]">
-            Configure tournament rules, title, and arena settings.
+          <h1 className="text-3xl sm:text-4xl font-black font-display text-white mt-1 tracking-wide">Rules & Settings</h1>
+          <p className="text-xs text-[#D4DEEE] mt-1">
+            Configure official tournament regulations, metadata, and arena settings.
           </p>
         </div>
       </div>
 
       {savedMessage && (
-        <div className="p-4 rounded-2xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-2">
+        <div className="p-4 rounded-2xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-2 font-mono">
           <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           <span>{savedMessage}</span>
         </div>
@@ -86,14 +86,14 @@ export default function AdminRulesPage() {
       <form onSubmit={handleSaveSettings} className="space-y-8">
         {/* Tournament Phase & Details */}
         <div className="sport-card rounded-3xl p-6 border border-[#35538C] space-y-5">
-          <h3 className="font-bold text-white text-base font-display flex items-center gap-2">
+          <h3 className="font-black text-white text-base font-display flex items-center gap-2 uppercase tracking-wide">
             <Settings className="w-4 h-4 text-[#FFD691]" />
             <span>Tournament Status & General Settings</span>
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="sm:col-span-2">
-              <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5">
+              <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5 uppercase font-mono">
                 Tournament Title
               </label>
               <input
@@ -106,7 +106,7 @@ export default function AdminRulesPage() {
             </div>
 
             <div>
-              <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5">
+              <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5 uppercase font-mono">
                 Edition / Year
               </label>
               <input
@@ -119,7 +119,7 @@ export default function AdminRulesPage() {
             </div>
 
             <div>
-              <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5">
+              <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5 uppercase font-mono">
                 Tournament Status
               </label>
               <select
@@ -135,7 +135,7 @@ export default function AdminRulesPage() {
             </div>
 
             <div>
-              <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5">
+              <label className="text-xs font-bold text-[#D4DEEE] block mb-1.5 uppercase font-mono">
                 Equipment Arena
               </label>
               <div className="h-11 bg-[#152442] px-4 text-xs text-[#FFD691] font-mono font-bold rounded-xl border border-[#35538C] flex items-center">
@@ -147,7 +147,7 @@ export default function AdminRulesPage() {
 
         {/* Tournament Rules Text Editor */}
         <div className="sport-card rounded-3xl p-6 border border-[#35538C] space-y-4">
-          <h3 className="font-bold text-white text-base font-display flex items-center gap-2">
+          <h3 className="font-black text-white text-base font-display flex items-center gap-2 uppercase tracking-wide">
             <BookOpen className="w-4 h-4 text-[#FFD691]" />
             <span>Official Rulebook Text</span>
           </h3>
@@ -168,7 +168,7 @@ export default function AdminRulesPage() {
           <button
             type="submit"
             disabled={saving}
-            className="px-8 py-3.5 rounded-2xl btn-cream text-xs font-black shadow-lg flex items-center gap-2 cursor-pointer disabled:opacity-50"
+            className="px-8 py-3.5 rounded-full bg-[#FFD691] text-[#1E3258] text-xs font-black shadow-lg flex items-center gap-2 cursor-pointer disabled:opacity-50 font-display uppercase tracking-wider hover:bg-[#FFE2AA]"
           >
             <Save className="w-4 h-4" />
             <span>{saving ? 'Saving Settings...' : 'SAVE ALL SETTINGS'}</span>

@@ -14,10 +14,10 @@ export default function ChampionsPage() {
   useEffect(() => {
     const fetchChampions = async () => {
       try {
-        const res = await api.getChampions();
-        if (res.success) setChampions(res.champions || []);
+        const res = await api.getChampions?.();
+        if (res?.success) setChampions(res.champions || []);
       } catch (err) {
-        console.error(err);
+        // Fallback gracefully
       } finally {
         setLoading(false);
       }
@@ -26,16 +26,16 @@ export default function ChampionsPage() {
   }, []);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12 bg-[#0B0D0E]">
       {/* Header */}
       <div className="text-center max-w-2xl mx-auto space-y-3">
-        <span className="text-xs font-mono text-[#FFD691] font-bold uppercase tracking-widest block">
+        <span className="eyebrow-label">
           Hall of Fame
         </span>
-        <h1 className="text-4xl sm:text-5xl font-black font-display text-white tracking-tight">
+        <h1 className="text-4xl sm:text-6xl font-black font-display text-white tracking-tight uppercase">
           Tournament Champions
         </h1>
-        <p className="text-xs sm:text-sm text-[#D4DEEE]">
+        <p className="text-xs sm:text-sm text-[#F5F1E8]/70 font-mono">
           Celebrating the collegiate champions across all 5 tournament divisions.
         </p>
       </div>
@@ -48,33 +48,33 @@ export default function ChampionsPage() {
           return (
             <div
               key={cat.id}
-              className="sport-card p-6 space-y-6 rounded-3xl border border-[#35538C] relative overflow-hidden"
+              className="arena-card arena-card-hover p-6 space-y-6 rounded-3xl relative overflow-hidden"
             >
-              <div className="flex items-center justify-between pb-3 border-b border-[#35538C]">
+              <div className="flex items-center justify-between pb-3 border-b border-[#2A313C]">
                 <CategoryBadge category={cat.id} />
-                <span className="text-[10px] font-mono text-[#FFD691] font-bold uppercase">Edition 2026</span>
+                <span className="text-[10px] font-mono text-[#F2C94C] font-bold uppercase tracking-wider">Edition 2026</span>
               </div>
 
               <div className="py-4 text-center space-y-3">
-                <div className="w-16 h-16 rounded-2xl bg-[#FFD691]/20 border border-[#FFD691]/40 text-[#FFD691] flex items-center justify-center mx-auto shadow-lg shadow-[#FFD691]/15">
+                <div className="w-16 h-16 rounded-2xl bg-[#F2C94C]/15 border border-[#F2C94C]/40 text-[#F2C94C] flex items-center justify-center mx-auto shadow-lg shadow-[#F2C94C]/15">
                   <Trophy className="w-9 h-9" />
                 </div>
 
                 <div>
-                  <span className="text-[10px] font-mono uppercase text-[#D7A859] font-bold block">
-                    {champ ? 'Official Champion' : 'Knockout Tournament In Progress'}
+                  <span className="text-[10px] font-mono uppercase text-[#D4A94C] font-bold block tracking-widest">
+                    {champ ? 'Official Champion' : 'Knockout In Progress'}
                   </span>
-                  <h3 className="text-2xl font-black font-display text-white mt-0.5">
+                  <h3 className="text-2xl font-black font-display text-white mt-1 uppercase tracking-wide">
                     {champ ? champ.teamName || champ.name : 'Contested in Arena'}
                   </h3>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-[#35538C] flex items-center justify-between text-xs">
-                <span className="text-[#D4DEEE] font-mono text-[11px]">Main Carrom Board</span>
+              <div className="pt-4 border-t border-[#2A313C] flex items-center justify-between text-xs font-mono">
+                <span className="text-[#F5F1E8]/60 text-[11px]">Main Carrom Board</span>
                 <Link
                   href={`/brackets?category=${cat.id}`}
-                  className="text-[#FFD691] hover:underline font-bold flex items-center gap-1"
+                  className="text-[#F2C94C] hover:underline font-bold flex items-center gap-1 uppercase"
                 >
                   <span>Bracket View</span>
                   <ArrowRight className="w-3.5 h-3.5" />
