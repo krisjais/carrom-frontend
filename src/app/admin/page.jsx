@@ -18,7 +18,8 @@ import {
   Sparkles,
   Layers,
   Users,
-  Timer
+  Timer,
+  Square
 } from 'lucide-react';
 import { CategoryBadge, StatusBadge, MainBoardBadge } from '@/components/ui/Badge';
 import { useToast } from '@/context/ToastContext';
@@ -59,6 +60,8 @@ export default function AdminDashboardPage() {
     return () => clearInterval(interval);
   }, []);
 
+  const [stoppingMatchId, setStoppingMatchId] = useState(null);
+
   const handleStartMatch = async (matchId) => {
     setStartingMatchId(matchId);
     try {
@@ -73,6 +76,25 @@ export default function AdminDashboardPage() {
       setStartingMatchId(null);
     }
   };
+
+  const handleStopLive = async (matchId) => {
+    if (!window.confirm('Are you sure you want to stop this live match? It will be reverted back to Scheduled queue and free up the Main Carrom Board.')) {
+      return;
+    }
+    setStoppingMatchId(matchId);
+    try {
+      const res = await api.stopLiveMatch(matchId);
+      if (res.success) {
+        toast.success(res.message || 'Match stopped from LIVE and reverted to scheduled queue.');
+        fetchDashboardData();
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to stop live match.');
+    } finally {
+      setStoppingMatchId(null);
+    }
+  };
+
 
   if (loading && !stats) {
     return (
@@ -197,14 +219,27 @@ export default function AdminDashboardPage() {
 
           <div>
             {currentMatch ? (
-              <Link
-                href={`/admin/matches/${currentMatch._id}/score`}
-                className="w-full py-3 rounded-xl btn-primary text-xs font-bold shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer uppercase tracking-wider"
-              >
-                <span>OPEN SCOREKEEPER</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
+              <div className="flex flex-col sm:flex-row items-center gap-2">
+                <Link
+                  href={`/admin/matches/${currentMatch._id}/score`}
+                  className="flex-1 w-full py-3 rounded-xl btn-primary text-xs font-bold shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer uppercase tracking-wider"
+                >
+                  <span>OPEN SCOREKEEPER</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => handleStopLive(currentMatch._id)}
+                  disabled={stoppingMatchId === currentMatch._id}
+                  className="py-3 px-4 rounded-xl bg-white dark:bg-[#181C1F] hover:bg-[#FDEDEC] dark:hover:bg-[#E74C3C]/15 text-[#E74C3C] border border-[#E74C3C]/30 text-xs font-mono font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 shrink-0"
+                  title="Stop live match if started mistakenly"
+                >
+                  <Square className="w-3.5 h-3.5 fill-current" />
+                  <span>{stoppingMatchId === currentMatch._id ? 'STOPPING...' : 'STOP LIVE'}</span>
+                </button>
+              </div>
             ) : nextMatch && (!readiness || readiness.canStart) ? (
+
               <button
                 onClick={() => handleStartMatch(nextMatch._id)}
                 disabled={startingMatchId === nextMatch._id}

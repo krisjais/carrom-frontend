@@ -15,6 +15,54 @@ const getHeaders = (requireAuth = false) => {
   return headers;
 };
 
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const isTransientNetworkError = (error) => {
+  if (!error) return false;
+  const msg = (error.message || '').toLowerCase();
+  const name = (error.name || '').toLowerCase();
+  return (
+    error instanceof TypeError ||
+    name === 'typeerror' ||
+    msg.includes('failed to fetch') ||
+    msg.includes('networkerror') ||
+    msg.includes('network request failed') ||
+    msg.includes('connection refused') ||
+    msg.includes('load failed') ||
+    msg.includes('timeout')
+  );
+};
+
+const fetchWithRetry = async (url, options = {}, maxAttempts = 4) => {
+  // Bounded backoff: Attempt 1 -> wait 2s, Attempt 2 -> wait 4s, Attempt 3 -> wait 8s, Attempt 4 -> stop
+  const retryDelays = [2000, 4000, 8000];
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const res = await fetch(url, options);
+
+      // Retry ONLY on transient cold-start / server errors (502, 503, 504)
+      if ((res.status === 502 || res.status === 503 || res.status === 504) && attempt < maxAttempts) {
+        const delay = retryDelays[attempt - 1] || 8000;
+        console.warn(`[API] Server waking up (${res.status}). Retrying in ${delay / 1000}s (Attempt ${attempt}/${maxAttempts})...`);
+        await wait(delay);
+        continue;
+      }
+
+      return res;
+    } catch (err) {
+      // Retry on network drops / "Failed to fetch" during container cold start
+      if (isTransientNetworkError(err) && attempt < maxAttempts) {
+        const delay = retryDelays[attempt - 1] || 8000;
+        console.warn(`[API] Network connection pending (${err.message}). Retrying in ${delay / 1000}s (Attempt ${attempt}/${maxAttempts})...`);
+        await wait(delay);
+        continue;
+      }
+      throw err;
+    }
+  }
+};
+
 const handleResponse = async (res) => {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
@@ -29,7 +77,7 @@ const handleResponse = async (res) => {
 export const api = {
   // Auth
   login: async (credentials) => {
-    const res = await fetch(`${API_BASE}/auth/login`, {
+    const res = await fetchWithRetry(`${API_BASE}/auth/login`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(credentials)
@@ -38,7 +86,7 @@ export const api = {
   },
 
   registerParticipant: async (formData) => {
-    const res = await fetch(`${API_BASE}/auth/register-participant`, {
+    const res = await fetchWithRetry(`${API_BASE}/auth/register-participant`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(formData)
@@ -47,7 +95,7 @@ export const api = {
   },
 
   getMe: async () => {
-    const res = await fetch(`${API_BASE}/auth/me`, {
+    const res = await fetchWithRetry(`${API_BASE}/auth/me`, {
       headers: getHeaders(true)
     });
     return handleResponse(res);
@@ -55,14 +103,14 @@ export const api = {
 
   // Tournaments
   getCurrentTournament: async () => {
-    const res = await fetch(`${API_BASE}/tournaments/current`, {
+    const res = await fetchWithRetry(`${API_BASE}/tournaments/current`, {
       headers: getHeaders()
     });
     return handleResponse(res);
   },
 
   updateTournamentStatus: async (status) => {
-    const res = await fetch(`${API_BASE}/tournaments/current/status`, {
+    const res = await fetchWithRetry(`${API_BASE}/tournaments/current/status`, {
       method: 'PUT',
       headers: getHeaders(true),
       body: JSON.stringify({ status })
@@ -71,7 +119,7 @@ export const api = {
   },
 
   updateTournamentRules: async (rulesContent) => {
-    const res = await fetch(`${API_BASE}/tournaments/current/rules`, {
+    const res = await fetchWithRetry(`${API_BASE}/tournaments/current/rules`, {
       method: 'PUT',
       headers: getHeaders(true),
       body: JSON.stringify({ rulesContent })
@@ -80,7 +128,7 @@ export const api = {
   },
 
   updateTournamentSettings: async (settings) => {
-    const res = await fetch(`${API_BASE}/tournaments/current/settings`, {
+    const res = await fetchWithRetry(`${API_BASE}/tournaments/current/settings`, {
       method: 'PUT',
       headers: getHeaders(true),
       body: JSON.stringify(settings)
@@ -90,7 +138,7 @@ export const api = {
 
   // Registrations
   submitRegistration: async (formData) => {
-    const res = await fetch(`${API_BASE}/registrations`, {
+    const res = await fetchWithRetry(`${API_BASE}/registrations`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(formData)
@@ -99,7 +147,7 @@ export const api = {
   },
 
   lookupRegistration: async (studentId) => {
-    const res = await fetch(`${API_BASE}/registrations/lookup/${encodeURIComponent(studentId)}`, {
+    const res = await fetchWithRetry(`${API_BASE}/registrations/lookup/${encodeURIComponent(studentId)}`, {
       headers: getHeaders()
     });
     return handleResponse(res);
@@ -107,28 +155,28 @@ export const api = {
 
   getAllRegistrations: async (params = {}) => {
     const query = new URLSearchParams(params).toString();
-    const res = await fetch(`${API_BASE}/registrations?${query}`, {
+    const res = await fetchWithRetry(`${API_BASE}/registrations?${query}`, {
       headers: getHeaders(true)
     });
     return handleResponse(res);
   },
 
   getValidationSummary: async () => {
-    const res = await fetch(`${API_BASE}/registrations/validation-summary`, {
+    const res = await fetchWithRetry(`${API_BASE}/registrations/validation-summary`, {
       headers: getHeaders(true)
     });
     return handleResponse(res);
   },
 
   getMyRegistration: async () => {
-    const res = await fetch(`${API_BASE}/registrations/my`, {
+    const res = await fetchWithRetry(`${API_BASE}/registrations/my`, {
       headers: getHeaders(true)
     });
     return handleResponse(res);
   },
 
   updateRegistrationStatus: async (id, status, adminNotes = '') => {
-    const res = await fetch(`${API_BASE}/registrations/${id}/status`, {
+    const res = await fetchWithRetry(`${API_BASE}/registrations/${id}/status`, {
       method: 'PUT',
       headers: getHeaders(true),
       body: JSON.stringify({ status, adminNotes })
@@ -137,7 +185,7 @@ export const api = {
   },
 
   adminEditRegistration: async (id, editData) => {
-    const res = await fetch(`${API_BASE}/registrations/${id}/admin-edit`, {
+    const res = await fetchWithRetry(`${API_BASE}/registrations/${id}/admin-edit`, {
       method: 'PUT',
       headers: getHeaders(true),
       body: JSON.stringify(editData)
@@ -146,7 +194,7 @@ export const api = {
   },
 
   deleteRegistration: async (id) => {
-    const res = await fetch(`${API_BASE}/registrations/${id}`, {
+    const res = await fetchWithRetry(`${API_BASE}/registrations/${id}`, {
       method: 'DELETE',
       headers: getHeaders(true)
     });
@@ -154,7 +202,7 @@ export const api = {
   },
 
   bulkDeleteRegistrations: async (ids = []) => {
-    const res = await fetch(`${API_BASE}/registrations/bulk-delete`, {
+    const res = await fetchWithRetry(`${API_BASE}/registrations/bulk-delete`, {
       method: 'POST',
       headers: getHeaders(true),
       body: JSON.stringify({ ids })
@@ -165,14 +213,14 @@ export const api = {
   // Teams
   getTeams: async (category = '') => {
     const query = category ? `?category=${category}` : '';
-    const res = await fetch(`${API_BASE}/teams${query}`, {
+    const res = await fetchWithRetry(`${API_BASE}/teams${query}`, {
       headers: getHeaders()
     });
     return handleResponse(res);
   },
 
   createDoublesPair: async (pairData) => {
-    const res = await fetch(`${API_BASE}/teams/create-pair`, {
+    const res = await fetchWithRetry(`${API_BASE}/teams/create-pair`, {
       method: 'POST',
       headers: getHeaders(true),
       body: JSON.stringify(pairData)
@@ -181,7 +229,7 @@ export const api = {
   },
 
   deleteTeam: async (id) => {
-    const res = await fetch(`${API_BASE}/teams/${id}`, {
+    const res = await fetchWithRetry(`${API_BASE}/teams/${id}`, {
       method: 'DELETE',
       headers: getHeaders(true)
     });
@@ -190,7 +238,7 @@ export const api = {
 
   deleteAllTeams: async (category = '') => {
     const query = category ? `?category=${category}` : '';
-    const res = await fetch(`${API_BASE}/teams/bulk-clear${query}`, {
+    const res = await fetchWithRetry(`${API_BASE}/teams/bulk-clear${query}`, {
       method: 'DELETE',
       headers: getHeaders(true)
     });
@@ -198,7 +246,7 @@ export const api = {
   },
 
   autoPopulateTeams: async (category = '') => {
-    const res = await fetch(`${API_BASE}/teams/auto-populate`, {
+    const res = await fetchWithRetry(`${API_BASE}/teams/auto-populate`, {
       method: 'POST',
       headers: getHeaders(true),
       body: JSON.stringify({ category })
@@ -208,7 +256,7 @@ export const api = {
 
   // Draws & Dynamic Knockout Brackets
   generateCategoryDraw: async (category) => {
-    const res = await fetch(`${API_BASE}/draws/generate`, {
+    const res = await fetchWithRetry(`${API_BASE}/draws/generate`, {
       method: 'POST',
       headers: getHeaders(true),
       body: JSON.stringify({ category })
@@ -217,14 +265,14 @@ export const api = {
   },
 
   getBracketTree: async (category) => {
-    const res = await fetch(`${API_BASE}/draws/category/${category}`, {
+    const res = await fetchWithRetry(`${API_BASE}/draws/category/${category}`, {
       headers: getHeaders()
     });
     return handleResponse(res);
   },
 
   publishAndLockDraw: async (category) => {
-    const res = await fetch(`${API_BASE}/draws/publish-lock`, {
+    const res = await fetchWithRetry(`${API_BASE}/draws/publish-lock`, {
       method: 'POST',
       headers: getHeaders(true),
       body: JSON.stringify({ category })
@@ -233,7 +281,7 @@ export const api = {
   },
 
   advanceRound: async (advanceData) => {
-    const res = await fetch(`${API_BASE}/draws/advance-round`, {
+    const res = await fetchWithRetry(`${API_BASE}/draws/advance-round`, {
       method: 'POST',
       headers: getHeaders(true),
       body: JSON.stringify(advanceData)
@@ -244,28 +292,36 @@ export const api = {
   // Matches & Live Scoring
   getMatches: async (params = {}) => {
     const query = new URLSearchParams(params).toString();
-    const res = await fetch(`${API_BASE}/matches?${query}`, {
+    const res = await fetchWithRetry(`${API_BASE}/matches?${query}`, {
       headers: getHeaders()
     });
     return handleResponse(res);
   },
 
   getLiveMatches: async () => {
-    const res = await fetch(`${API_BASE}/matches/live`, {
+    const res = await fetchWithRetry(`${API_BASE}/matches/live`, {
       headers: getHeaders()
     });
     return handleResponse(res);
   },
 
   getMatchById: async (id) => {
-    const res = await fetch(`${API_BASE}/matches/${id}`, {
+    const res = await fetchWithRetry(`${API_BASE}/matches/${id}`, {
       headers: getHeaders()
     });
     return handleResponse(res);
   },
 
   startMatch: async (id) => {
-    const res = await fetch(`${API_BASE}/matches/${id}/start`, {
+    const res = await fetchWithRetry(`${API_BASE}/matches/${id}/start`, {
+      method: 'POST',
+      headers: getHeaders(true)
+    });
+    return handleResponse(res);
+  },
+
+  stopLiveMatch: async (id) => {
+    const res = await fetchWithRetry(`${API_BASE}/matches/${id}/stop-live`, {
       method: 'POST',
       headers: getHeaders(true)
     });
@@ -273,7 +329,7 @@ export const api = {
   },
 
   updateScore: async (id, scoreData) => {
-    const res = await fetch(`${API_BASE}/matches/${id}/score`, {
+    const res = await fetchWithRetry(`${API_BASE}/matches/${id}/score`, {
       method: 'PUT',
       headers: getHeaders(true),
       body: JSON.stringify(scoreData)
@@ -282,7 +338,7 @@ export const api = {
   },
 
   confirmMatch: async (id, data = {}) => {
-    const res = await fetch(`${API_BASE}/matches/${id}/confirm`, {
+    const res = await fetchWithRetry(`${API_BASE}/matches/${id}/confirm`, {
       method: 'POST',
       headers: getHeaders(true),
       body: JSON.stringify(data)
@@ -291,7 +347,7 @@ export const api = {
   },
 
   correctMatch: async (id, boards, reason) => {
-    const res = await fetch(`${API_BASE}/matches/${id}/correct`, {
+    const res = await fetchWithRetry(`${API_BASE}/matches/${id}/correct`, {
       method: 'POST',
       headers: getHeaders(true),
       body: JSON.stringify({ boards, reason })
@@ -300,7 +356,7 @@ export const api = {
   },
 
   scheduleMatch: async (id, scheduleData) => {
-    const res = await fetch(`${API_BASE}/matches/${id}/schedule`, {
+    const res = await fetchWithRetry(`${API_BASE}/matches/${id}/schedule`, {
       method: 'PUT',
       headers: getHeaders(true),
       body: JSON.stringify(scheduleData)
@@ -309,7 +365,7 @@ export const api = {
   },
 
   generateSchedule: async (settings = {}) => {
-    const res = await fetch(`${API_BASE}/tournaments/current/schedule/generate`, {
+    const res = await fetchWithRetry(`${API_BASE}/tournaments/current/schedule/generate`, {
       method: 'POST',
       headers: getHeaders(true),
       body: JSON.stringify(settings)
@@ -319,14 +375,14 @@ export const api = {
 
   // Announcements
   getAnnouncements: async () => {
-    const res = await fetch(`${API_BASE}/announcements`, {
+    const res = await fetchWithRetry(`${API_BASE}/announcements`, {
       headers: getHeaders()
     });
     return handleResponse(res);
   },
 
   createAnnouncement: async (announcementData) => {
-    const res = await fetch(`${API_BASE}/announcements`, {
+    const res = await fetchWithRetry(`${API_BASE}/announcements`, {
       method: 'POST',
       headers: getHeaders(true),
       body: JSON.stringify(announcementData)
@@ -335,7 +391,7 @@ export const api = {
   },
 
   deleteAnnouncement: async (id) => {
-    const res = await fetch(`${API_BASE}/announcements/${id}`, {
+    const res = await fetchWithRetry(`${API_BASE}/announcements/${id}`, {
       method: 'DELETE',
       headers: getHeaders(true)
     });
@@ -344,17 +400,18 @@ export const api = {
 
   // Stats & Audit
   getOverviewStats: async () => {
-    const res = await fetch(`${API_BASE}/stats/overview`, {
+    const res = await fetchWithRetry(`${API_BASE}/stats/overview`, {
       headers: getHeaders()
     });
     return handleResponse(res);
   },
 
   getAuditLogs: async () => {
-    const res = await fetch(`${API_BASE}/stats/audit-logs`, {
+    const res = await fetchWithRetry(`${API_BASE}/stats/audit-logs`, {
       headers: getHeaders(true)
     });
     return handleResponse(res);
   }
 };
+
 
