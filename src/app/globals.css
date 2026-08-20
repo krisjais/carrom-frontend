@@ -52,6 +52,14 @@ h1, h2, h3, .font-serif, .font-display {
   letter-spacing: -0.015em;
 }
 
+.font-cormorant {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+.font-dmserif {
+  font-family: 'DM Serif Display', Georgia, serif;
+}
+
 h4, h5, h6 {
   font-family: 'Inter', system-ui, sans-serif;
   font-weight: 700;

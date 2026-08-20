@@ -68,6 +68,8 @@ module.exports = {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
         serif: ['"Playfair Display"', 'Georgia', 'serif'],
         display: ['"Playfair Display"', 'Georgia', 'serif'],
+        cormorant: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+        dmserif: ['"DM Serif Display"', 'Georgia', 'serif'],
         mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
       },
       borderRadius: {

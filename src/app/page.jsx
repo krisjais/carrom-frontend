@@ -13,7 +13,10 @@ import {
   Shield,
   Clock,
   CheckCircle2,
-  Play
+  Play,
+  UserPlus,
+  ShieldCheck,
+  Shuffle
 } from 'lucide-react';
 import { StatusBadge, CategoryBadge, MainBoardBadge } from '@/components/ui/Badge';
 import {
@@ -22,6 +25,37 @@ import {
   CarromHeroArt,
   CarromBoardGeometry
 } from '@/components/ui/CarromElements';
+
+const FORMAT_STAGES = [
+  {
+    step: '01',
+    title: 'REGISTER',
+    icon: UserPlus,
+    description: 'Athletes submit entries with mandatory Student ID and partner nominations for doubles events.',
+    isFinal: false,
+  },
+  {
+    step: '02',
+    title: 'APPROVAL',
+    icon: ShieldCheck,
+    description: 'Administrators verify student credentials and mutual partner requests, then lock approved rosters.',
+    isFinal: false,
+  },
+  {
+    step: '03',
+    title: 'DRAW',
+    icon: Shuffle,
+    description: 'Single-game knockout brackets are generated with strict random pairing and mathematical bye logic.',
+    isFinal: false,
+  },
+  {
+    step: '04',
+    title: 'COMPETE',
+    icon: Trophy,
+    description: 'Matches queue sequentially on the single Main Carrom Board with live score updates until champions are crowned.',
+    isFinal: true,
+  },
+];
 
 export default function HomePage() {
   const [stats, setStats] = useState(null);
@@ -61,9 +95,9 @@ export default function HomePage() {
 
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center relative z-10">
           {/* Left Column: Editorial Statement & Actions */}
-          <div className="lg:col-span-7 space-y-6 text-left animate-in fade-in duration-500">
+          <div className="lg:col-span-7 flex flex-col items-start text-left space-y-6 sm:space-y-7 animate-in fade-in duration-500">
             {/* Small Eyebrow */}
-            <div className="space-y-0.5">
+            <div className="flex flex-col items-start space-y-1">
               <span className="eyebrow-label">
                 CARROMPRO
               </span>
@@ -72,20 +106,26 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* Large Editorial Headline in Playfair Display */}
-            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-serif font-black tracking-tight text-[#3E342B] dark:text-[#F5F1E8] leading-[1.05]">
-              THE MODERN <br />
-              <span className="italic font-normal">CARROM LEAGUE.</span> <br />
-              <span className="text-[#E74C3C]">SKILL & STRATEGY.</span>
+            {/* Large Editorial Headline */}
+            <h1 className="flex flex-col items-start leading-[1.06] text-[#3E342B] dark:text-[#F5F1E8]">
+              <span className="text-4xl sm:text-6xl lg:text-7xl font-serif font-black tracking-tight uppercase">
+                THE MODERN
+              </span>
+              <span className="text-3xl sm:text-5xl lg:text-6xl font-serif italic font-normal tracking-tight text-[#3E342B]/90 dark:text-[#F5F1E8]/90">
+                CARROM LEAGUE.
+              </span>
+              <span className="text-3xl sm:text-5xl lg:text-6xl font-cormorant font-bold uppercase tracking-[0.02em] text-[#E74C3C] mt-1 sm:mt-1.5">
+                SKILL & STRATEGY.
+              </span>
             </h1>
 
             {/* Supporting Text */}
-            <p className="text-sm sm:text-base text-[#7E7060] dark:text-[#B8B1A5] max-w-xl font-normal leading-relaxed">
+            <p className="text-sm sm:text-base text-[#7E7060] dark:text-[#B8B1A5] max-w-xl font-normal leading-relaxed text-left">
               The premier collegiate carrom tournament standard. Single-game dynamic knockout draws, sequential scheduling on the single Main Carrom Board, and verified student athlete rosters.
             </p>
 
             {/* Call to Action Buttons */}
-            <div className="flex flex-wrap items-center gap-4 pt-2">
+            <div className="flex flex-wrap items-center gap-4 pt-1 sm:pt-2">
               <Link
                 href="/registration"
                 className="btn-primary text-xs sm:text-sm font-bold tracking-wider px-8 py-3.5 shadow-md"
@@ -308,9 +348,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 5. TOURNAMENT FORMAT (01 - 04 CONNECTED TIMELINE) */}
+      {/* 5. TOURNAMENT FORMAT (PREMIUM CONNECTED TIMELINE) */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div className="editorial-card p-8 sm:p-10 space-y-8 rounded-3xl border border-[#E8E1D5] dark:border-[#2B3034] bg-white dark:bg-[#121517]">
+        <div className="editorial-card p-8 sm:p-10 lg:p-12 space-y-10 rounded-3xl border border-[#E8E1D5] dark:border-[#2B3034] bg-white dark:bg-[#121517]">
+          {/* Header */}
           <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#E8E1D5] dark:border-[#2B3034]">
             <div>
               <span className="eyebrow-label">Championship Protocol</span>
@@ -320,61 +361,114 @@ export default function HomePage() {
             </div>
             <Link
               href="/rules"
-              className="btn-secondary text-xs font-bold"
+              className="btn-secondary text-xs font-bold py-2.5 px-4"
             >
               <span>View Official Rules</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
-          {/* Connected 01-04 Sequence with Thin Timeline */}
-          <div className="relative">
-            {/* Desktop Thin Timeline Connector */}
-            <div className="hidden lg:block absolute top-7 left-12 right-12 h-[1px] bg-[#D5C4A1] dark:bg-[#2B3034] pointer-events-none" />
+          {/* Connected Process Timeline */}
+          <div className="relative pt-2 sm:pt-4">
+            {/* Desktop & Tablet: Horizontal Connected Journey */}
+            <div className="hidden md:grid md:grid-cols-4 gap-6 lg:gap-8 relative">
+              {FORMAT_STAGES.map((stage, idx) => {
+                const Icon = stage.icon;
+                return (
+                  <div key={stage.step} className="relative flex flex-col items-start space-y-4">
+                    {/* Node and Segment Connector */}
+                    <div className="relative w-full flex items-center">
+                      {/* Connecting Line Segment to Next Stage */}
+                      {idx < FORMAT_STAGES.length - 1 && (
+                        <div
+                          className={`hidden md:block absolute top-6 left-12 right-[-1.5rem] lg:right-[-2rem] h-[1.5px] pointer-events-none z-0 ${
+                            idx === 2
+                              ? 'bg-gradient-to-r from-[#D5C4A1] via-[#E8E1D5] to-[#E74C3C] dark:from-[#3D444A] dark:via-[#2B3034] dark:to-[#E74C3C]'
+                              : 'bg-[#E8E1D5] dark:bg-[#2B3034]'
+                          }`}
+                        >
+                          {/* Subtle Carrom Baseline Dot Marker at Segment Center */}
+                          <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[#D5C4A1] dark:bg-[#3D444A]" />
+                        </div>
+                      )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
-              {/* Step 01 */}
-              <div className="p-6 rounded-2xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] space-y-2.5">
-                <div className="w-12 h-12 rounded-full bg-white dark:bg-[#1B2024] border border-[#D5C4A1] dark:border-[#D4A94C] text-[#3E342B] dark:text-[#D4A94C] flex items-center justify-center font-serif font-bold text-lg shadow-xs">
-                  01
-                </div>
-                <h4 className="font-serif font-bold text-base text-[#3E342B] dark:text-[#F5F1E8]">REGISTER</h4>
-                <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] leading-relaxed">
-                  Athletes submit entries with mandatory Student ID and partner nominations for doubles events.
-                </p>
-              </div>
+                      {/* Wayfinding Node Circle */}
+                      <div className="relative z-10">
+                        {stage.isFinal ? (
+                          <div className="w-12 h-12 rounded-full bg-white dark:bg-[#1B2024] border-2 border-[#E74C3C] text-[#E74C3C] flex items-center justify-center shadow-xs">
+                            {/* Concentric Queen Circle Marker */}
+                            <div className="w-[78%] h-[78%] rounded-full border border-[#E74C3C]/30 pointer-events-none absolute" />
+                            <div className="absolute -inset-1.5 rounded-full border border-[#E74C3C]/20 pointer-events-none" />
+                            <span className="font-serif font-bold text-base text-[#E74C3C] tracking-tight">{stage.step}</span>
+                          </div>
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#3D444A] text-[#3E342B] dark:text-[#F5F1E8] flex items-center justify-center shadow-xs">
+                            {/* Concentric Carrom Guide Ring */}
+                            <div className="w-[78%] h-[78%] rounded-full border border-[#D5C4A1]/40 dark:border-[#3D444A]/50 pointer-events-none absolute" />
+                            <span className="font-serif font-bold text-base tracking-tight">{stage.step}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
 
-              {/* Step 02 */}
-              <div className="p-6 rounded-2xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] space-y-2.5">
-                <div className="w-12 h-12 rounded-full bg-white dark:bg-[#1B2024] border border-[#D5C4A1] dark:border-[#D4A94C] text-[#3E342B] dark:text-[#D4A94C] flex items-center justify-center font-serif font-bold text-lg shadow-xs">
-                  02
-                </div>
-                <h4 className="font-serif font-bold text-base text-[#3E342B] dark:text-[#F5F1E8]">APPROVAL</h4>
-                <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] leading-relaxed">
-                  Administrators verify student credentials and mutual partner requests, then lock approved rosters.
-                </p>
-              </div>
+                    {/* Stage Details */}
+                    <div className="space-y-2 text-left pt-1">
+                      <div className="flex items-center gap-1.5">
+                        <Icon className={`w-3.5 h-3.5 shrink-0 ${stage.isFinal ? 'text-[#E74C3C]' : 'text-[#7E7060] dark:text-[#B8B1A5] opacity-75'}`} />
+                        <h3 className={`font-serif font-bold text-base tracking-wide uppercase ${stage.isFinal ? 'text-[#E74C3C]' : 'text-[#3E342B] dark:text-[#F5F1E8]'}`}>
+                          {stage.title}
+                        </h3>
+                      </div>
+                      <p className="text-xs lg:text-[13px] text-[#7E7060] dark:text-[#B8B1A5] leading-relaxed font-sans pr-2">
+                        {stage.description}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
 
-              {/* Step 03 */}
-              <div className="p-6 rounded-2xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] space-y-2.5">
-                <div className="w-12 h-12 rounded-full bg-white dark:bg-[#1B2024] border border-[#D5C4A1] dark:border-[#D4A94C] text-[#3E342B] dark:text-[#D4A94C] flex items-center justify-center font-serif font-bold text-lg shadow-xs">
-                  03
-                </div>
-                <h4 className="font-serif font-bold text-base text-[#3E342B] dark:text-[#F5F1E8]">DRAW</h4>
-                <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] leading-relaxed">
-                  Single-game knockout brackets are generated with strict random pairing and mathematical bye logic.
-                </p>
-              </div>
+            {/* Mobile: Vertical Connected Timeline */}
+            <div className="md:hidden flex flex-col relative pl-2">
+              {/* Continuous vertical connector line */}
+              <div className="absolute top-6 bottom-6 left-[1.65rem] w-[1.5px] bg-gradient-to-b from-[#D5C4A1] via-[#E8E1D5] to-[#E74C3C] dark:from-[#3D444A] dark:via-[#2B3034] dark:to-[#E74C3C] pointer-events-none" />
 
-              {/* Step 04 */}
-              <div className="p-6 rounded-2xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] space-y-2.5">
-                <div className="w-12 h-12 rounded-full bg-white dark:bg-[#1B2024] border border-[#E74C3C] text-[#E74C3C] flex items-center justify-center font-serif font-bold text-lg shadow-xs">
-                  04
-                </div>
-                <h4 className="font-serif font-bold text-base text-[#E74C3C]">COMPETE</h4>
-                <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] leading-relaxed">
-                  Matches queue sequentially on the single Main Carrom Board with live score updates until champions are crowned.
-                </p>
+              <div className="space-y-8 relative z-10">
+                {FORMAT_STAGES.map((stage) => {
+                  const Icon = stage.icon;
+                  return (
+                    <div key={stage.step} className="relative flex items-start gap-4">
+                      {/* Node */}
+                      <div className="relative shrink-0">
+                        {stage.isFinal ? (
+                          <div className="w-11 h-11 rounded-full bg-white dark:bg-[#1B2024] border-2 border-[#E74C3C] text-[#E74C3C] flex items-center justify-center shadow-xs">
+                            <div className="w-[78%] h-[78%] rounded-full border border-[#E74C3C]/30 pointer-events-none absolute" />
+                            <div className="absolute -inset-1 rounded-full border border-[#E74C3C]/20 pointer-events-none" />
+                            <span className="font-serif font-bold text-sm text-[#E74C3C]">{stage.step}</span>
+                          </div>
+                        ) : (
+                          <div className="w-11 h-11 rounded-full bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#3D444A] text-[#3E342B] dark:text-[#F5F1E8] flex items-center justify-center shadow-xs">
+                            <div className="w-[78%] h-[78%] rounded-full border border-[#D5C4A1]/40 dark:border-[#3D444A]/50 pointer-events-none absolute" />
+                            <span className="font-serif font-bold text-sm">{stage.step}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Content */}
+                      <div className="space-y-1.5 pt-1 text-left min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <Icon className={`w-3.5 h-3.5 shrink-0 ${stage.isFinal ? 'text-[#E74C3C]' : 'text-[#7E7060] dark:text-[#B8B1A5] opacity-75'}`} />
+                          <h3 className={`font-serif font-bold text-base tracking-wide uppercase ${stage.isFinal ? 'text-[#E74C3C]' : 'text-[#3E342B] dark:text-[#F5F1E8]'}`}>
+                            {stage.title}
+                          </h3>
+                        </div>
+                        <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] leading-relaxed">
+                          {stage.description}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
