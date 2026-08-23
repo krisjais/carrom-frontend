@@ -31,14 +31,14 @@ const FORMAT_STAGES = [
     step: '01',
     title: 'REGISTER',
     icon: UserPlus,
-    description: 'Athletes submit entries with mandatory Student ID and partner nominations for doubles events.',
+    description: 'Athletes submit entries with department details and partner nominations for doubles events.',
     isFinal: false,
   },
   {
     step: '02',
     title: 'APPROVAL',
     icon: ShieldCheck,
-    description: 'Administrators verify student credentials and mutual partner requests, then lock approved rosters.',
+    description: 'Administrators verify athlete credentials and mutual partner requests, then lock approved rosters.',
     isFinal: false,
   },
   {

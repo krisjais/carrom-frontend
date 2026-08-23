@@ -146,8 +146,8 @@ export const api = {
     return handleResponse(res);
   },
 
-  lookupRegistration: async (studentId) => {
-    const res = await fetchWithRetry(`${API_BASE}/registrations/lookup/${encodeURIComponent(studentId)}`, {
+  lookupRegistration: async (query) => {
+    const res = await fetchWithRetry(`${API_BASE}/registrations/lookup/${encodeURIComponent(query)}`, {
       headers: getHeaders()
     });
     return handleResponse(res);

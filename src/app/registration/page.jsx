@@ -25,7 +25,6 @@ export default function RegistrationPage() {
   const [formData, setFormData] = useState({
     fullName: '',
     gender: 'male',
-    studentId: '',
     department: '',
     doublesPartnerName: '',
     mixedDoublesPartnerName: '',
@@ -35,7 +34,7 @@ export default function RegistrationPage() {
   const [error, setError] = useState(null);
 
   // Lookup Form State
-  const [lookupStudentId, setLookupStudentId] = useState('');
+  const [lookupName, setLookupName] = useState('');
   const [lookupLoading, setLookupLoading] = useState(false);
   const [lookupError, setLookupError] = useState(null);
 
@@ -46,7 +45,7 @@ export default function RegistrationPage() {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === 'studentId' ? value.toUpperCase() : value
+      [name]: value
     }));
   };
 
@@ -59,7 +58,7 @@ export default function RegistrationPage() {
       const res = await api.submitRegistration(formData);
       if (res.success || res.code === 'REGISTRATION_PENDING') {
         // Fetch full lookup record to display live status
-        const lookupRes = await api.lookupRegistration(formData.studentId);
+        const lookupRes = await api.lookupRegistration(formData.fullName);
         if (lookupRes.success) {
           setStatusRecord(lookupRes);
         } else {
@@ -75,10 +74,10 @@ export default function RegistrationPage() {
         }
       }
     } catch (err) {
-      if (err.data?.code === 'REGISTRATION_LOCKED' || err.data?.code === 'DUPLICATE_STUDENT_ID') {
+      if (err.data?.code === 'REGISTRATION_LOCKED' || err.data?.code === 'DUPLICATE_REGISTRATION' || err.data?.code === 'DUPLICATE_STUDENT_ID') {
         // Automatically fetch and show the locked registration
         try {
-          const lookupRes = await api.lookupRegistration(formData.studentId);
+          const lookupRes = await api.lookupRegistration(formData.fullName);
           if (lookupRes.success) {
             setStatusRecord(lookupRes);
             return;
@@ -95,18 +94,18 @@ export default function RegistrationPage() {
 
   const handleLookupSubmit = async (e) => {
     e.preventDefault();
-    if (!lookupStudentId.trim()) return;
+    if (!lookupName.trim()) return;
 
     setLookupError(null);
     setLookupLoading(true);
 
     try {
-      const res = await api.lookupRegistration(lookupStudentId.trim());
+      const res = await api.lookupRegistration(lookupName.trim());
       if (res.success) {
         setStatusRecord(res);
       }
     } catch (err) {
-      setLookupError(err.message || `No registration found for Student ID "${lookupStudentId.toUpperCase()}".`);
+      setLookupError(err.message || `No registration found for "${lookupName.trim()}".`);
       setStatusRecord(null);
     } finally {
       setLookupLoading(false);
@@ -229,10 +228,10 @@ export default function RegistrationPage() {
                   {statusRecord.participant?.gender} Athlete • {statusRecord.participant?.department}
                 </span>
               </div>
-              <div className="text-right font-mono">
-                <span className="text-[10px] text-[#7E7060] dark:text-[#817B72] uppercase block font-bold">Student ID</span>
-                <span className="text-sm font-bold text-[#3E342B] dark:text-[#F5F1E8] bg-white dark:bg-[#15191C] px-3 py-1 rounded-lg border border-[#E8E1D5] dark:border-[#2B3034] inline-block">
-                  {statusRecord.participant?.studentId}
+              <div className="text-right">
+                <span className="text-[10px] text-[#7E7060] dark:text-[#817B72] uppercase block font-bold font-mono">Department</span>
+                <span className="text-sm font-bold text-[#3E342B] dark:text-[#F5F1E8] bg-white dark:bg-[#15191C] px-3 py-1 rounded-lg border border-[#E8E1D5] dark:border-[#2B3034] inline-block font-mono">
+                  {statusRecord.participant?.department}
                 </span>
               </div>
             </div>
@@ -371,7 +370,7 @@ export default function RegistrationPage() {
               Check Registration Status
             </h3>
             <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5]">
-              Enter your Roll / Student ID to view your approved entry, locked events, and partner verification status.
+              Enter your Full Legal Name to view your approved entry, locked events, and partner verification status.
             </p>
           </div>
 
@@ -383,15 +382,15 @@ export default function RegistrationPage() {
 
           <div className="space-y-2">
             <label className="text-xs text-[#4A4238] dark:text-[#F5F1E8] font-bold block uppercase font-mono">
-              Roll / Student ID
+              Full Legal Name
             </label>
             <input
               type="text"
               required
-              value={lookupStudentId}
-              onChange={(e) => setLookupStudentId(e.target.value.toUpperCase())}
-              placeholder="e.g. CS2026-042"
-              className="w-full h-12 bg-[#FAF9F6] dark:bg-[#181C1F] px-4 text-xs font-mono text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#4A4238] dark:focus:border-[#D4A94C] uppercase tracking-wider"
+              value={lookupName}
+              onChange={(e) => setLookupName(e.target.value)}
+              placeholder="e.g. Aryan Sharma"
+              className="w-full h-12 bg-[#FAF9F6] dark:bg-[#181C1F] px-4 text-xs font-medium text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#4A4238] dark:focus:border-[#D4A94C] tracking-wide"
             />
           </div>
 
@@ -417,12 +416,12 @@ export default function RegistrationPage() {
             </div>
           )}
 
-          {/* 1. Student Athlete Information */}
+          {/* 1. Athlete Information */}
           <div className="space-y-5">
             <div className="flex items-center gap-2 pb-3 border-b border-[#E8E1D5] dark:border-[#2B3034]">
               <Users className="w-5 h-5 text-[#4A4238] dark:text-[#D4A94C]" />
               <h3 className="font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] text-base">
-                1. Student Athlete Details
+                1. Athlete Details
               </h3>
             </div>
 
@@ -458,21 +457,6 @@ export default function RegistrationPage() {
               </div>
 
               <div>
-                <label className="text-xs text-[#4A4238] dark:text-[#F5F1E8] font-bold block mb-1.5 uppercase font-mono">
-                  Roll / Student ID *
-                </label>
-                <input
-                  type="text"
-                  name="studentId"
-                  required
-                  value={formData.studentId}
-                  onChange={handleChange}
-                  placeholder="e.g. CS2026-042"
-                  className="w-full h-11 bg-[#FAF9F6] dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#E8E1D5] dark:border-[#2B3034] focus:outline-none focus:border-[#4A4238] dark:focus:border-[#D4A94C] uppercase font-mono"
-                />
-              </div>
-
-              <div className="sm:col-span-2">
                 <label className="text-xs text-[#4A4238] dark:text-[#F5F1E8] font-bold block mb-1.5 uppercase font-mono">
                   Department / Major *
                 </label>

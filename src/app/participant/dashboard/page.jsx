@@ -62,7 +62,7 @@ export default function ParticipantDashboardPage() {
               </span>
             </div>
             <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] font-mono mt-1">
-              {participant?.studentId} • {participant?.department} • {participant?.email}
+              {participant?.department}{participant?.email ? ` • ${participant?.email}` : ''}
             </p>
           </div>
         </div>

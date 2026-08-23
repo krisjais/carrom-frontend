@@ -109,8 +109,8 @@ export default function CategoriesPage() {
                   </div>
                   <h4 className="font-serif font-bold text-base text-[#3E342B] dark:text-[#F5F1E8]">{t.name}</h4>
                   <div className="text-[11px] text-[#7E7060] dark:text-[#B8B1A5] font-mono space-y-0.5">
-                    <div>P1: {t.player1?.fullName} ({t.player1?.studentId})</div>
-                    {t.player2 && <div>P2: {t.player2?.fullName} ({t.player2?.studentId})</div>}
+                    <div>P1: {t.player1?.fullName}{t.player1?.department ? ` (${t.player1.department})` : ''}</div>
+                    {t.player2 && <div>P2: {t.player2?.fullName}{t.player2?.department ? ` (${t.player2.department})` : ''}</div>}
                   </div>
                 </div>
               ))}

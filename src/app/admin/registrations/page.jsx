@@ -463,7 +463,7 @@ export default function AdminRegistrationsPage() {
             <Search className="w-4 h-4 text-[#7E7060] dark:text-[#817B72] absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search athlete, student ID, department, partner..."
+              placeholder="Search athlete, department, partner..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full h-11 bg-white dark:bg-[#181C1F] pl-10 pr-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
@@ -521,7 +521,7 @@ export default function AdminRegistrationsPage() {
                   </th>
                   <th className="pb-3 w-12 text-center">#</th>
                   <th className="pb-3">Athlete Details</th>
-                  <th className="pb-3">Student ID & Dept</th>
+                  <th className="pb-3">Department</th>
                   <th className="pb-3">Doubles Partner Request</th>
                   <th className="pb-3">Mixed Partner Request</th>
                   <th className="pb-3">Status</th>
@@ -575,8 +575,7 @@ export default function AdminRegistrationsPage() {
 
                       <td className="py-4 align-top">
                         <div className="space-y-0.5">
-                          <span className="font-mono text-[#3E342B] dark:text-[#F5F1E8] font-bold block">{p.studentId}</span>
-                          <span className="text-[11px] text-[#7E7060] dark:text-[#817B72] block">{p.department}</span>
+                          <span className="text-xs text-[#3E342B] dark:text-[#F5F1E8] font-bold block">{p.department}</span>
                         </div>
                       </td>
 
@@ -718,12 +717,12 @@ export default function AdminRegistrationsPage() {
       <Modal
         isOpen={editModalOpen}
         onClose={() => setEditModalOpen(false)}
-        title={`Admin Edit: ${selectedReg?.participantId?.fullName} (${selectedReg?.participantId?.studentId})`}
+        title={`Admin Edit: ${selectedReg?.participantId?.fullName}`}
       >
         <form onSubmit={handleAdminEditSubmit} className="space-y-4">
           <div className="p-3 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-xs text-[#7E7060] dark:text-[#B8B1A5] font-mono flex items-center gap-2">
             <Lock className="w-4 h-4 text-[#E74C3C] dark:text-[#D4A94C] shrink-0" />
-            <span>Admin Authority: Modify details if a student made an honest error during entry.</span>
+            <span>Admin Authority: Modify details if an athlete made an honest error during entry.</span>
           </div>
 
           <div>
@@ -833,7 +832,7 @@ export default function AdminRegistrationsPage() {
                 {regToDelete?.participantId?.fullName || 'Participant'}
               </p>
               <p className="text-[11px] text-[#7E7060] dark:text-[#817B72] font-mono">
-                {regToDelete?.participantId?.studentId} · {regToDelete?.participantId?.department}
+                {regToDelete?.participantId?.department}
               </p>
             </div>
           </div>
@@ -895,7 +894,7 @@ export default function AdminRegistrationsPage() {
           <div className="p-4 rounded-2xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] space-y-1 text-xs font-mono">
             <p className="text-[#7E7060] dark:text-[#B8B1A5]">
               <span className="text-[#3E342B] dark:text-[#F5F1E8] font-bold">Player 1:</span>{' '}
-              <span className="font-bold text-[#3E342B] dark:text-[#F5F1E8]">{selectedReg?.participantId?.fullName}</span> ({selectedReg?.participantId?.gender}, {selectedReg?.participantId?.studentId})
+              <span className="font-bold text-[#3E342B] dark:text-[#F5F1E8]">{selectedReg?.participantId?.fullName}</span> ({selectedReg?.participantId?.gender})
             </p>
             {selectedReg?.doublesPartnerName && (
               <p className="text-[#7E7060] dark:text-[#B8B1A5]">
@@ -949,7 +948,7 @@ export default function AdminRegistrationsPage() {
                 )
                 .map((r) => (
                   <option key={r.participantId._id} value={r.participantId._id}>
-                    {r.participantId.fullName} ({r.participantId.gender}, {r.participantId.studentId} - {r.participantId.department})
+                    {r.participantId.fullName} ({r.participantId.gender} - {r.participantId.department})
                   </option>
                 ))}
             </select>
