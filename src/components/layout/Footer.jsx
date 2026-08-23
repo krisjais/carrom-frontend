@@ -60,8 +60,8 @@ export const Footer = () => {
             </h4>
             <ul className="space-y-2 text-xs text-[#FAF9F6]/80 dark:text-[#B8B1A5]">
               <li><Link href="/rules" className="hover:text-white transition-colors">Official Regulations</Link></li>
-              <li><Link href="/announcements" className="hover:text-white transition-colors">Press & Notice Board</Link></li>
-              <li><Link href="/participant/login" className="hover:text-white transition-colors">Athlete Portal Login</Link></li>
+              <li><Link href="/brackets" className="hover:text-white transition-colors">Knockout Brackets</Link></li>
+              <li><Link href="/categories" className="hover:text-white transition-colors">Championship Divisions</Link></li>
               <li><Link href="/admin/login" className="text-[#D5C4A1] dark:text-[#D4A94C] hover:underline font-mono font-bold">Championship Control Room</Link></li>
             </ul>
           </div>

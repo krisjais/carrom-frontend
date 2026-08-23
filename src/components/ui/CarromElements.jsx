@@ -126,7 +126,7 @@ export function CarromBoardGeometry({ className = '' }) {
 // Editorial Hero Carrom Composition (Right Side of Homepage Hero)
 export function CarromHeroArt() {
   return (
-    <div className="relative w-full aspect-square max-w-[440px] mx-auto bg-white dark:bg-[#15191C] rounded-3xl p-6 border border-[#E8E1D5] dark:border-[#2B3034] shadow-[0_16px_40px_-12px_rgba(74,66,56,0.1)] dark:shadow-[0_16px_40px_-12px_rgba(0,0,0,0.6)] flex items-center justify-center overflow-hidden transition-colors duration-200">
+    <div className="relative w-full aspect-square max-w-[440px] mx-auto lg:mr-0 lg:ml-auto bg-white dark:bg-[#15191C] rounded-3xl p-6 border border-[#E8E1D5] dark:border-[#2B3034] shadow-[0_16px_40px_-12px_rgba(74,66,56,0.1)] dark:shadow-[0_16px_40px_-12px_rgba(0,0,0,0.6)] flex items-center justify-center overflow-hidden transition-colors duration-200">
       {/* Background Board Geometry */}
       <CarromBoardGeometry className="absolute inset-0 scale-95 opacity-80" />
 

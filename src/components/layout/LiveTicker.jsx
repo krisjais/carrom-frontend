@@ -32,8 +32,8 @@ export const LiveTicker = () => {
   const activeBoard = currentMatch.boards?.find((b) => b.boardWinner === null) || currentMatch.boards?.[0];
 
   return (
-    <div className="w-full bg-[#070809] border-b border-[#D4A94C]/25 py-2 px-4 overflow-hidden shadow-inner">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 text-xs">
+    <div className="w-full bg-[#070809] border-b border-[#D4A94C]/25 py-2 overflow-hidden shadow-inner">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3 text-xs">
         <div className="flex items-center gap-3 overflow-hidden">
           <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-[10px] font-bold shrink-0 font-mono tracking-wider">
             <span className="live-dot" />

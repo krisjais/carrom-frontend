@@ -60,22 +60,25 @@ const FORMAT_STAGES = [
 export default function HomePage() {
   const [stats, setStats] = useState(null);
   const [liveData, setLiveData] = useState({ liveMatches: [] });
-  const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [statsRes, liveRes, annRes] = await Promise.all([
-          api.getOverviewStats(),
-          api.getLiveMatches(),
-          api.getAnnouncements()
+        const [statsRes, liveRes] = await Promise.all([
+          api.getOverviewStats().catch((e) => {
+            console.warn('[Home] Stats fetch fallback:', e.message);
+            return { success: false };
+          }),
+          api.getLiveMatches().catch((e) => {
+            console.warn('[Home] Live matches fetch fallback:', e.message);
+            return { success: false, liveMatches: [] };
+          })
         ]);
-        if (statsRes.success) setStats(statsRes.stats);
-        if (liveRes.success) setLiveData(liveRes);
-        if (annRes.success) setAnnouncements(annRes.announcements?.slice(0, 3) || []);
+        if (statsRes?.success && statsRes.stats) setStats(statsRes.stats);
+        if (liveRes?.success) setLiveData(liveRes);
       } catch (err) {
-        console.error('Home data load error:', err);
+        console.warn('Home data load notice:', err.message);
       } finally {
         setLoading(false);
       }
@@ -89,11 +92,11 @@ export default function HomePage() {
   return (
     <div className="flex-1 flex flex-col space-y-16 sm:space-y-24 pb-24 overflow-hidden bg-[#FAF9F6] dark:bg-[#0B0D0E] text-[#4A4238] dark:text-[#F5F1E8] transition-colors duration-200">
       {/* 1. EDITORIAL HERO SECTION */}
-      <section className="relative pt-12 sm:pt-20 pb-16 sm:pb-24 px-4 sm:px-6 lg:px-8 border-b border-[#E8E1D5] dark:border-[#2B3034] bg-[#FAF9F6] dark:bg-[#0B0D0E]">
+      <section className="relative pt-12 sm:pt-20 pb-16 sm:pb-24 border-b border-[#E8E1D5] dark:border-[#2B3034] bg-[#FAF9F6] dark:bg-[#0B0D0E]">
         {/* Subtle arena spotlight in night mode */}
         <div className="absolute inset-0 hidden dark:block bg-[radial-gradient(circle_at_50%_35%,rgba(212,169,76,0.08),transparent_55%)] pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center relative z-10">
           {/* Left Column: Editorial Statement & Actions */}
           <div className="lg:col-span-7 flex flex-col items-start text-left space-y-6 sm:space-y-7 animate-in fade-in duration-500">
             {/* Small Eyebrow */}
@@ -474,42 +477,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* 6. LATEST ANNOUNCEMENTS */}
-      {announcements.length > 0 && (
-        <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full space-y-6">
-          <div className="flex items-center justify-between border-b border-[#E8E1D5] dark:border-[#2B3034] pb-4">
-            <div>
-              <span className="eyebrow-label">Championship Bulletin</span>
-              <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] mt-1">Notice Board</h2>
-            </div>
-            <Link
-              href="/announcements"
-              className="text-xs font-bold text-[#E74C3C] hover:underline flex items-center gap-1 uppercase tracking-wider"
-            >
-              <span>All Bulletins</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {announcements.map((ann) => (
-              <div key={ann._id} className="editorial-card p-6 space-y-3 rounded-2xl">
-                <div className="flex items-center justify-between text-[11px] text-[#7E7060] dark:text-[#817B72] font-mono">
-                  <span>{new Date(ann.createdAt).toLocaleDateString()}</span>
-                  {ann.priority === 'urgent' && (
-                    <span className="px-2 py-0.5 rounded-full bg-[#FDEDEC] dark:bg-[#E74C3C]/15 text-[#E74C3C] font-bold uppercase text-[9px] border border-[#E74C3C]/30">
-                      Urgent
-                    </span>
-                  )}
-                </div>
-                <h4 className="font-serif font-bold text-base text-[#3E342B] dark:text-[#F5F1E8] leading-snug">{ann.title}</h4>
-                <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] line-clamp-2 leading-relaxed">{ann.content}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
     </div>
   );
 }

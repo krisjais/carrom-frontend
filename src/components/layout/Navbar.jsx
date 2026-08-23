@@ -46,11 +46,8 @@ export const Navbar = () => {
 
   const moreLinks = [
     { name: 'Divisions & Categories', href: '/categories', icon: Layers },
-    { name: 'Fixtures & Queue', href: '/fixtures', icon: Calendar },
     { name: 'Knockout Brackets', href: '/brackets', icon: GitFork },
     { name: 'Official Rules', href: '/rules', icon: BookOpen },
-    { name: 'Champions Gallery', href: '/champions', icon: Trophy },
-    { name: 'Announcements', href: '/announcements', icon: Bell },
   ];
 
   return (
@@ -134,7 +131,7 @@ export const Navbar = () => {
               </button>
 
               {moreOpen && (
-                <div className="absolute right-0 mt-2 w-60 bg-white dark:bg-[#15191C] border border-[#E8E1D5] dark:border-[#2B3034] rounded-2xl shadow-xl p-2 space-y-1 z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#15191C] border border-[#E8E1D5] dark:border-[#2B3034] rounded-2xl shadow-xl p-2 space-y-1 z-50 animate-in fade-in zoom-in-95 duration-150">
                   {moreLinks.map((link) => {
                     const Icon = link.icon;
                     return (
@@ -158,7 +155,7 @@ export const Navbar = () => {
             </div>
           </nav>
 
-          {/* Right Action: Theme Toggle & Register / Portal Buttons */}
+          {/* Right Action: Theme Toggle & Register / Admin Control Room */}
           <div className="hidden md:flex items-center gap-3">
             {/* Theme Switcher Toggle Button */}
             <ThemeToggle />
@@ -180,38 +177,13 @@ export const Navbar = () => {
                   <LogOut className="w-4 h-4" />
                 </button>
               </div>
-            ) : isParticipant ? (
-              <div className="flex items-center gap-2">
-                <Link
-                  href="/participant/dashboard"
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white dark:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] text-[#4A4238] dark:text-[#F5F1E8] text-xs font-semibold uppercase tracking-wider hover:border-[#4A4238] dark:hover:border-[#D4A94C] transition-colors shadow-xs"
-                >
-                  <User className="w-3.5 h-3.5 text-[#E74C3C]" />
-                  <span>My Portal</span>
-                </Link>
-                <button
-                  onClick={logout}
-                  className="p-2 rounded-xl text-[#7E7060] dark:text-[#B8B1A5] hover:text-rose-600 hover:bg-[#F4EFE6] dark:hover:bg-[#181C1F] transition-colors cursor-pointer"
-                  title="Sign Out"
-                >
-                  <LogOut className="w-4 h-4" />
-                </button>
-              </div>
             ) : (
-              <div className="flex items-center gap-3">
-                <Link
-                  href="/participant/login"
-                  className="px-3.5 py-2 rounded-xl text-[#4A4238] dark:text-[#B8B1A5] hover:text-[#3E342B] dark:hover:text-[#F5F1E8] text-xs font-semibold uppercase tracking-wider transition-colors"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/registration"
-                  className="btn-primary text-xs font-bold tracking-wider shadow-md"
-                >
-                  REGISTER NOW
-                </Link>
-              </div>
+              <Link
+                href="/registration"
+                className="btn-primary text-xs font-bold tracking-wider shadow-md"
+              >
+                REGISTER NOW
+              </Link>
             )}
           </div>
 
@@ -295,54 +267,29 @@ export const Navbar = () => {
             <Link
               href="/rules"
               onClick={() => setMobileOpen(false)}
-              className="p-3 rounded-xl text-[#4A4238] dark:text-[#B8B1A5] bg-[#FAF9F6] dark:bg-[#15191C]"
+              className="p-3 rounded-xl text-[#4A4238] dark:text-[#B8B1A5] bg-[#FAF9F6] dark:bg-[#15191C] col-span-2 text-center"
             >
               Rules
-            </Link>
-            <Link
-              href="/champions"
-              onClick={() => setMobileOpen(false)}
-              className="p-3 rounded-xl text-[#4A4238] dark:text-[#B8B1A5] bg-[#FAF9F6] dark:bg-[#15191C]"
-            >
-              Champions
             </Link>
           </div>
 
           <div className="pt-3 border-t border-[#E8E1D5] dark:border-[#2B3034] flex flex-col gap-2.5">
-            {!user ? (
-              <>
-                <Link
-                  href="/registration"
-                  onClick={() => setMobileOpen(false)}
-                  className="w-full py-3 rounded-xl btn-primary text-xs text-center font-bold"
-                >
-                  REGISTER NOW
-                </Link>
-                <div className="flex gap-2">
-                  <Link
-                    href="/participant/login"
-                    onClick={() => setMobileOpen(false)}
-                    className="flex-1 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#15191C] border border-[#E8E1D5] dark:border-[#2B3034] text-[#4A4238] dark:text-[#F5F1E8] text-xs text-center font-semibold uppercase"
-                  >
-                    Participant Login
-                  </Link>
-                  <Link
-                    href="/admin/login"
-                    onClick={() => setMobileOpen(false)}
-                    className="flex-1 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#15191C] border border-[#E8E1D5] dark:border-[#2B3034] text-[#4A4238] dark:text-[#F5F1E8] text-xs text-center font-semibold uppercase"
-                  >
-                    Admin Login
-                  </Link>
-                </div>
-              </>
+            {!isAdmin ? (
+              <Link
+                href="/registration"
+                onClick={() => setMobileOpen(false)}
+                className="w-full py-3 rounded-xl btn-primary text-xs text-center font-bold"
+              >
+                REGISTER NOW
+              </Link>
             ) : (
               <div className="flex items-center justify-between p-3 rounded-xl bg-[#FAF9F6] dark:bg-[#15191C] border border-[#E8E1D5] dark:border-[#2B3034]">
                 <Link
-                  href={isAdmin ? '/admin' : '/participant/dashboard'}
+                  href="/admin"
                   onClick={() => setMobileOpen(false)}
                   className="text-xs font-bold text-[#E74C3C]"
                 >
-                  {isAdmin ? 'Open Control Room →' : 'My Participant Portal →'}
+                  Open Control Room →
                 </Link>
                 <button
                   onClick={() => {
