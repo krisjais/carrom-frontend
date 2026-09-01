@@ -12,7 +12,7 @@ export function AppShell({ children }) {
 
   if (isAdminRoute) {
     return (
-      <main className="flex-1 flex flex-col min-h-screen bg-[#070B16]">
+      <main className="flex-1 flex flex-col min-h-screen">
         {children}
       </main>
     );

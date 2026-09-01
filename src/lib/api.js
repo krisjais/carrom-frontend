@@ -230,6 +230,24 @@ export const api = {
     return handleResponse(res);
   },
 
+  importParticipants: async (data) => {
+    const res = await fetchWithRetry(`${API_BASE}/registrations/import`, {
+      method: 'POST',
+      headers: getHeaders(true),
+      body: JSON.stringify(data)
+    });
+    return handleResponse(res);
+  },
+
+  adminAddPlayer: async (data) => {
+    const res = await fetchWithRetry(`${API_BASE}/registrations/add-player`, {
+      method: 'POST',
+      headers: getHeaders(true),
+      body: JSON.stringify(data)
+    });
+    return handleResponse(res);
+  },
+
   // Teams
   getTeams: async (category = '') => {
     const query = category ? `?category=${category}` : '';
