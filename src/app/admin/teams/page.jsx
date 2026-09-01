@@ -162,12 +162,12 @@ export default function AdminTeamsPage() {
       {/* Header with Quick Action Bar */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#E8E1D5] dark:border-[#2B3034]">
         <div>
-          <span className="eyebrow-label">
+          <span className="text-[11px] font-semibold tracking-wider text-[#7E7060] dark:text-[#817B72] uppercase block">
             Approved Category Rosters
           </span>
-          <h1 className="text-3xl sm:text-4xl font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] mt-1">Teams & Entries</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#3E342B] dark:text-[#F5F1E8] mt-1">Teams & Entries</h1>
           <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] mt-1">
-            View all approved singles entries and paired doubles teams for tournament draw generation.
+            View approved singles entries and paired doubles teams for all 5 tournament divisions.
           </p>
         </div>
 
@@ -185,10 +185,10 @@ export default function AdminTeamsPage() {
 
           <Link
             href="/admin/draws"
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-[#15191C] hover:bg-[#FAF9F6] dark:hover:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] text-xs font-bold transition-all shadow-2xs"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-xs"
             title="Go to dynamic knockout bracket draws"
           >
-            <GitFork className="w-3.5 h-3.5 text-[#E74C3C]" />
+            <GitFork className="w-3.5 h-3.5" />
             <span>Draws & Brackets</span>
           </Link>
 
@@ -240,12 +240,12 @@ export default function AdminTeamsPage() {
         <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#E8E1D5] dark:border-[#2B3034]">
           <div className="flex items-center gap-2.5">
             <CategoryBadge category={selectedCat} />
-            <h3 className="font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] text-base">
+            <h3 className="font-bold text-[#3E342B] dark:text-[#F5F1E8] text-base">
               Roster ({teams.length} {teams.length === 1 ? 'Team' : 'Teams'})
             </h3>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => handleAutoPopulate(selectedCat)}
               disabled={syncing}
@@ -254,6 +254,14 @@ export default function AdminTeamsPage() {
               <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin text-[#E74C3C]' : 'text-[#E74C3C]'}`} />
               <span>Sync {currentCatName}</span>
             </button>
+
+            <Link
+              href="/admin/draws"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-xs"
+            >
+              <GitFork className="w-3.5 h-3.5" />
+              <span>Generate Draws & Matches</span>
+            </Link>
 
             {teams.length > 0 && (
               <button
@@ -269,7 +277,7 @@ export default function AdminTeamsPage() {
         </div>
 
         {loading ? (
-          <div className="py-16 text-center text-[#7E7060] dark:text-[#B8B1A5] text-sm font-mono">Loading teams...</div>
+          <div className="py-16 text-center text-[#7E7060] dark:text-[#B8B1A5] text-sm">Loading teams...</div>
         ) : teams.length === 0 ? (
           /* Rich Empty State Card with Direct Action Buttons */
           <div className="py-12 px-4 text-center space-y-5 max-w-lg mx-auto">
@@ -278,11 +286,11 @@ export default function AdminTeamsPage() {
             </div>
 
             <div className="space-y-1.5">
-              <h4 className="text-lg font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8]">
+              <h4 className="text-lg font-bold text-[#3E342B] dark:text-[#F5F1E8]">
                 No Approved Teams in {currentCatName}
               </h4>
               <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] leading-relaxed">
-                You have cleared this roster or haven't synced approved participant entries yet.
+                Approve registered participants in the Registrations console or click below to automatically sync paired teams.
               </p>
             </div>
 
@@ -304,20 +312,19 @@ export default function AdminTeamsPage() {
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
 
-              <button
-                onClick={handleRescheduleMatches}
-                disabled={scheduling}
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white dark:bg-[#181C1F] hover:bg-[#FAF9F6] dark:hover:bg-[#121517] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] text-xs font-bold transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
+              <Link
+                href="/admin/draws"
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-xs"
               >
-                <Calendar className="w-3.5 h-3.5 text-[#E74C3C]" />
-                <span>Reschedule Arena</span>
-              </button>
+                <GitFork className="w-3.5 h-3.5" />
+                <span>Draws & Brackets</span>
+              </Link>
             </div>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-[#E8E1D5] dark:border-[#2B3034] text-[#7E7060] dark:text-[#817B72] font-bold uppercase text-[11px] font-mono">
+              <thead className="border-b border-[#E8E1D5] dark:border-[#2B3034] text-[#7E7060] dark:text-[#817B72] font-bold uppercase text-[11px]">
                 <tr>
                   <th className="pb-3">#</th>
                   <th className="pb-3">Team / Athlete Name</th>
@@ -330,12 +337,12 @@ export default function AdminTeamsPage() {
               <tbody className="divide-y divide-[#E8E1D5] dark:divide-[#2B3034]">
                 {teams.map((t, idx) => (
                   <tr key={t._id} className="hover:bg-[#FAF9F6] dark:hover:bg-[#181C1F] transition-colors">
-                    <td className="py-3.5 font-mono text-[#7E7060] dark:text-[#817B72] font-bold">{idx + 1}</td>
-                    <td className="py-3.5 font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] text-sm">{t.name}</td>
+                    <td className="py-3.5 text-[#7E7060] dark:text-[#817B72] font-bold">{idx + 1}</td>
+                    <td className="py-3.5 font-bold text-[#3E342B] dark:text-[#F5F1E8] text-sm">{t.name}</td>
                     <td className="py-3.5">
                       <div className="space-y-0.5">
                         <span className="text-[#3E342B] dark:text-[#F5F1E8] font-bold">{t.player1?.fullName}</span>
-                        <span className="text-[10px] text-[#7E7060] dark:text-[#817B72] block font-mono">
+                        <span className="text-[10px] text-[#7E7060] dark:text-[#817B72] block">
                           {t.player1?.department}
                         </span>
                       </div>
@@ -344,16 +351,16 @@ export default function AdminTeamsPage() {
                       {t.player2 ? (
                         <div className="space-y-0.5">
                           <span className="text-[#3E342B] dark:text-[#F5F1E8] font-bold">{t.player2?.fullName}</span>
-                          <span className="text-[10px] text-[#7E7060] dark:text-[#817B72] block font-mono">
+                          <span className="text-[10px] text-[#7E7060] dark:text-[#817B72] block">
                             {t.player2?.department}
                           </span>
                         </div>
                       ) : (
-                        <span className="text-[#7E7060] dark:text-[#817B72] italic font-mono text-[11px]">Singles Entry</span>
+                        <span className="text-[#7E7060] dark:text-[#817B72] italic text-[11px]">Singles Entry</span>
                       )}
                     </td>
                     <td className="py-3.5">
-                      <span className="inline-flex items-center gap-1 text-[10px] text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800/40 font-bold font-mono">
+                      <span className="inline-flex items-center gap-1 text-[10px] text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800/40 font-bold">
                         <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> Approved
                       </span>
                     </td>
