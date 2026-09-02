@@ -1,4 +1,15 @@
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api') + '/chess';
+const getApiBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '') + '/chess';
+  }
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host !== 'localhost' && host !== '127.0.0.1') {
+      return '/api/chess';
+    }
+  }
+  return 'http://localhost:5000/api/chess';
+};
 
 const getHeaders = () => {
   const headers = {
@@ -24,67 +35,72 @@ const handleResponse = async (res) => {
   return data;
 };
 
+const safeFetch = async (endpoint, options = {}) => {
+  const baseUrl = getApiBaseUrl();
+  const url = `${baseUrl}${endpoint}`;
+  try {
+    const res = await fetch(url, options);
+    return await handleResponse(res);
+  } catch (err) {
+    if (err.name === 'TypeError' || err.message?.includes('Failed to fetch')) {
+      throw new Error('Unable to connect to the server. Please check your backend connection or network.');
+    }
+    throw err;
+  }
+};
+
 export const chessApi = {
   // Public Tournament Info & Settings
   getSettings: async () => {
-    const res = await fetch(`${API_BASE}/settings`);
-    return handleResponse(res);
+    return safeFetch('/settings');
   },
 
   // Registration & Players
   registerPlayer: async (formData) => {
-    const res = await fetch(`${API_BASE}/register`, {
+    return safeFetch('/register', {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(formData)
     });
-    return handleResponse(res);
   },
 
   getPlayers: async (params = {}) => {
     const query = new URLSearchParams(params).toString();
-    const res = await fetch(`${API_BASE}/players?${query}`);
-    return handleResponse(res);
+    return safeFetch(`/players?${query}`);
   },
 
   getPlayerById: async (id) => {
-    const res = await fetch(`${API_BASE}/players/${id}`);
-    return handleResponse(res);
+    return safeFetch(`/players/${id}`);
   },
 
   // Matches
   getMatches: async (params = {}) => {
     const query = new URLSearchParams(params).toString();
-    const res = await fetch(`${API_BASE}/matches?${query}`);
-    return handleResponse(res);
+    return safeFetch(`/matches?${query}`);
   },
 
   getMatchById: async (id) => {
-    const res = await fetch(`${API_BASE}/matches/${id}`);
-    return handleResponse(res);
+    return safeFetch(`/matches/${id}`);
   },
 
   // Standings
   getStandings: async (params = {}) => {
     const query = new URLSearchParams(params).toString();
-    const res = await fetch(`${API_BASE}/standings?${query}`);
-    return handleResponse(res);
+    return safeFetch(`/standings?${query}`);
   },
 
   // Rounds
   getRounds: async () => {
-    const res = await fetch(`${API_BASE}/rounds`);
-    return handleResponse(res);
+    return safeFetch('/rounds');
   },
 
   // Admin Authentication
   adminLogin: async (credentials) => {
-    const res = await fetch(`${API_BASE}/admin/login`, {
+    const data = await safeFetch('/admin/login', {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(credentials)
     });
-    const data = await handleResponse(res);
     if (data.token && typeof window !== 'undefined') {
       localStorage.setItem('chess_admin_token', data.token);
     }
@@ -106,122 +122,109 @@ export const chessApi = {
 
   // Admin Dashboard Stats
   getDashboardStats: async () => {
-    const res = await fetch(`${API_BASE}/admin/dashboard`, {
+    return safeFetch('/admin/dashboard', {
       headers: getHeaders()
     });
-    return handleResponse(res);
   },
 
   // Admin Player Management
   getAdminPlayers: async (params = {}) => {
     const query = new URLSearchParams(params).toString();
-    const res = await fetch(`${API_BASE}/admin/players?${query}`, {
+    return safeFetch(`/admin/players?${query}`, {
       headers: getHeaders()
     });
-    return handleResponse(res);
   },
 
   updateRegistrationStatus: async (id, status, adminNotes = '') => {
-    const res = await fetch(`${API_BASE}/admin/players/${id}`, {
+    return safeFetch(`/admin/players/${id}`, {
       method: 'PATCH',
       headers: getHeaders(),
       body: JSON.stringify({ status, adminNotes })
     });
-    return handleResponse(res);
   },
 
   updatePlayer: async (id, playerData) => {
-    const res = await fetch(`${API_BASE}/admin/players/${id}`, {
+    return safeFetch(`/admin/players/${id}`, {
       method: 'PATCH',
       headers: getHeaders(),
       body: JSON.stringify(playerData)
     });
-    return handleResponse(res);
   },
 
   deletePlayer: async (id) => {
-    const res = await fetch(`${API_BASE}/admin/players/${id}`, {
+    return safeFetch(`/admin/players/${id}`, {
       method: 'DELETE',
       headers: getHeaders()
     });
-    return handleResponse(res);
   },
 
   // Admin Match Management
   getAdminMatches: async (params = {}) => {
     const query = new URLSearchParams(params).toString();
-    const res = await fetch(`${API_BASE}/admin/matches?${query}`, {
+    return safeFetch(`/admin/matches?${query}`, {
       headers: getHeaders()
     });
-    return handleResponse(res);
   },
 
   generateMatches: async (round = 1) => {
-    const res = await fetch(`${API_BASE}/admin/matches/generate`, {
+    return safeFetch('/admin/matches/generate', {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify({ round })
     });
-    return handleResponse(res);
   },
 
   startMatch: async (id) => {
-    const res = await fetch(`${API_BASE}/admin/matches/${id}/start`, {
+    return safeFetch(`/admin/matches/${id}/start`, {
       method: 'POST',
       headers: getHeaders()
     });
-    return handleResponse(res);
   },
 
   submitMatchResult: async (id, resultData) => {
-    const res = await fetch(`${API_BASE}/admin/matches/${id}/result`, {
+    return safeFetch(`/admin/matches/${id}/result`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(resultData)
     });
-    return handleResponse(res);
   },
 
   overrideMatchResult: async (id, overrideData) => {
-    const res = await fetch(`${API_BASE}/admin/matches/${id}/override`, {
+    return safeFetch(`/admin/matches/${id}/override`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(overrideData)
     });
-    return handleResponse(res);
   },
 
   cancelMatch: async (id) => {
-    const res = await fetch(`${API_BASE}/admin/matches/${id}/cancel`, {
+    return safeFetch(`/admin/matches/${id}/cancel`, {
       method: 'POST',
       headers: getHeaders()
     });
-    return handleResponse(res);
   },
 
   // Admin Settings & Standings Refresh
   updateSettings: async (settingsData) => {
-    const res = await fetch(`${API_BASE}/admin/settings`, {
+    return safeFetch('/admin/settings', {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(settingsData)
     });
-    return handleResponse(res);
   },
 
   refreshStandings: async () => {
-    const res = await fetch(`${API_BASE}/admin/standings/refresh`, {
+    return safeFetch('/admin/standings/refresh', {
       method: 'POST',
       headers: getHeaders()
     });
-    return handleResponse(res);
   },
 
   resetTournamentData: async () => {
-    const res = await fetch(`${API_BASE}/admin/reset`, {
+    return safeFetch('/admin/reset', {
       method: 'POST',
       headers: getHeaders()
     });
-    return handleResponse(res);
   }
 };
+

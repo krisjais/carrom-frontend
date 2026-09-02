@@ -1,4 +1,15 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const getApiBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '');
+  }
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host !== 'localhost' && host !== '127.0.0.1') {
+      return '/api';
+    }
+  }
+  return 'http://localhost:5000/api';
+};
 
 const getHeaders = (requireAuth = false) => {
   const headers = {
@@ -24,6 +35,20 @@ const handleResponse = async (res) => {
     throw error;
   }
   return data;
+};
+
+const safeFetch = async (endpoint, options = {}) => {
+  const baseUrl = getApiBaseUrl();
+  const url = `${baseUrl}${endpoint}`;
+  try {
+    const res = await fetch(url, options);
+    return await handleResponse(res);
+  } catch (err) {
+    if (err.name === 'TypeError' || err.message?.includes('Failed to fetch')) {
+      throw new Error('Unable to connect to the server. Please check your backend connection or network.');
+    }
+    throw err;
+  }
 };
 
 export const api = {
