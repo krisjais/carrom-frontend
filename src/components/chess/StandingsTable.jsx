@@ -53,27 +53,27 @@ export function StandingsTable({ standings = [], loading = false }) {
     <div className="space-y-6">
       
       {/* Search & Department Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center bg-white border border-[#E5E5E5] p-4 rounded-2xl shadow-xs">
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center bg-white dark:bg-[#141B2D] border border-[#E2E8F0] dark:border-[#232A3B] p-4 rounded-2xl shadow-sm">
         
         {/* Search */}
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-[#666666] absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#64748B] dark:text-[#94A3B8] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search player name, ID, or department..."
-            className="w-full bg-gray-50 border border-[#E5E5E5] focus:border-[#000000] rounded-xl pl-10 pr-4 py-2 text-xs text-[#111111] placeholder-[#666666] focus:outline-none"
+            className="w-full bg-slate-50 dark:bg-[#1A2337] border border-[#E2E8F0] dark:border-[#232A3B] focus:border-[#C9A227] dark:focus:border-[#D4AF37] rounded-xl pl-10 pr-4 py-2 text-xs text-[#0F172A] dark:text-[#F8FAFC] placeholder-[#64748B] dark:placeholder-[#94A3B8] focus:outline-none transition-colors"
           />
         </div>
 
         {/* Dept Filter */}
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-[#111111] shrink-0" />
+          <Filter className="w-4 h-4 text-[#0F172A] dark:text-[#F8FAFC] shrink-0" />
           <select
             value={selectedDept}
             onChange={(e) => setSelectedDept(e.target.value)}
-            className="bg-gray-50 border border-[#E5E5E5] focus:border-[#000000] rounded-xl px-4 py-2 text-xs text-[#111111] focus:outline-none"
+            className="bg-slate-50 dark:bg-[#1A2337] border border-[#E2E8F0] dark:border-[#232A3B] focus:border-[#C9A227] dark:focus:border-[#D4AF37] rounded-xl px-4 py-2 text-xs text-[#0F172A] dark:text-[#F8FAFC] focus:outline-none transition-colors"
           >
             <option value="all">All Departments</option>
             {departments.filter(d => d !== 'all').map((dept) => (
@@ -87,10 +87,10 @@ export function StandingsTable({ standings = [], loading = false }) {
       </div>
 
       {/* Desktop Table View */}
-      <div className="hidden md:block overflow-x-auto bg-white border border-[#E5E5E5] rounded-2xl shadow-xs">
+      <div className="hidden md:block overflow-x-auto bg-white dark:bg-[#141B2D] border border-[#E2E8F0] dark:border-[#232A3B] rounded-2xl shadow-sm">
         <table className="w-full text-left border-collapse text-xs">
           <thead>
-            <tr className="border-b border-[#E5E5E5] bg-gray-50 text-[#666666] font-mono font-bold uppercase text-[10px]">
+            <tr className="border-b border-[#E2E8F0] dark:border-[#232A3B] bg-slate-50 dark:bg-[#1A2337] text-[#64748B] dark:text-[#94A3B8] font-mono font-bold uppercase text-[10px]">
               <th className="py-3.5 px-6 text-center">Rank</th>
               <th className="py-3.5 px-6">Player</th>
               <th className="py-3.5 px-6">Department</th>
@@ -102,16 +102,16 @@ export function StandingsTable({ standings = [], loading = false }) {
               <th className="py-3.5 px-6 text-center">Tournament Pts</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#E5E5E5]">
+          <tbody className="divide-y divide-[#E2E8F0] dark:divide-[#232A3B]">
             {loading ? (
               <tr>
-                <td colSpan={9} className="py-12 text-center text-[#666666]">
+                <td colSpan={9} className="py-12 text-center text-[#64748B] dark:text-[#94A3B8]">
                   Loading standings...
                 </td>
               </tr>
             ) : filteredStandings.length === 0 ? (
               <tr>
-                <td colSpan={9} className="py-12 text-center text-[#666666]">
+                <td colSpan={9} className="py-12 text-center text-[#64748B] dark:text-[#94A3B8]">
                   No player standings found.
                 </td>
               </tr>
@@ -123,8 +123,8 @@ export function StandingsTable({ standings = [], loading = false }) {
                 return (
                   <tr
                     key={player._id}
-                    className={`transition-colors hover:bg-gray-50 ${
-                      rank === 1 ? 'bg-amber-50/40' : isTop3 ? 'bg-gray-50/50' : ''
+                    className={`transition-colors hover:bg-slate-50/80 dark:hover:bg-[#1E293B] ${
+                      rank === 1 ? 'bg-amber-500/10 dark:bg-amber-500/10' : isTop3 ? 'bg-slate-50/50 dark:bg-slate-800/30' : ''
                     }`}
                   >
                     <td className="py-3.5 px-6 text-center">
@@ -133,32 +133,32 @@ export function StandingsTable({ standings = [], loading = false }) {
                     <td className="py-3.5 px-6">
                       <Link
                         href={`/chess/player/${player._id}`}
-                        className="font-bold text-[#111111] hover:text-[#C9A227] transition-colors font-display block"
+                        className="font-bold text-[#0F172A] dark:text-[#F8FAFC] hover:text-[#C9A227] dark:hover:text-[#D4AF37] transition-colors font-display block"
                       >
                         {player.fullName}
                       </Link>
-                      <span className="text-[10px] font-mono text-[#C9A227]">{player.playerId}</span>
+                      <span className="text-[10px] font-mono text-[#C9A227] dark:text-[#D4AF37]">{player.playerId}</span>
                     </td>
-                    <td className="py-3.5 px-6 text-[#666666] font-sans">
+                    <td className="py-3.5 px-6 text-[#64748B] dark:text-[#94A3B8] font-sans">
                       {player.department}
                     </td>
-                    <td className="py-3.5 px-4 text-center font-mono font-semibold text-[#111111]">
+                    <td className="py-3.5 px-4 text-center font-mono font-semibold text-[#0F172A] dark:text-[#F8FAFC]">
                       {player.matchesPlayed || 0}
                     </td>
-                    <td className="py-3.5 px-4 text-center font-mono font-bold text-emerald-600">
+                    <td className="py-3.5 px-4 text-center font-mono font-bold text-emerald-600 dark:text-emerald-400">
                       {player.wins || 0}
                     </td>
-                    <td className="py-3.5 px-4 text-center font-mono font-semibold text-amber-600">
+                    <td className="py-3.5 px-4 text-center font-mono font-semibold text-amber-600 dark:text-amber-400">
                       {player.draws || 0}
                     </td>
-                    <td className="py-3.5 px-4 text-center font-mono text-red-600">
+                    <td className="py-3.5 px-4 text-center font-mono text-red-600 dark:text-red-400">
                       {player.losses || 0}
                     </td>
-                    <td className="py-3.5 px-4 text-center font-mono font-bold text-[#111111]">
+                    <td className="py-3.5 px-4 text-center font-mono font-bold text-[#0F172A] dark:text-[#F8FAFC]">
                       {player.materialPoints || 0}
                     </td>
                     <td className="py-3.5 px-6 text-center">
-                      <span className="inline-block bg-[#000000] text-white font-mono font-bold text-xs px-3 py-1 rounded-xl shadow-xs">
+                      <span className="inline-block bg-slate-900 dark:bg-[#D4AF37] text-white dark:text-slate-950 font-mono font-bold text-xs px-3 py-1 rounded-xl shadow-xs">
                         {player.tournamentPoints || 0} pts
                       </span>
                     </td>
