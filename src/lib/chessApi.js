@@ -1,5 +1,18 @@
 const getApiBaseUrl = () => {
   const envUrl = process.env.NEXT_PUBLIC_API_URL;
+
+  const formatChessApi = (url) => {
+    if (!url) return 'https://carrom-backend.onrender.com/api/chess';
+    let clean = url.trim().replace(/\/$/, '');
+    if (!clean.endsWith('/api') && !clean.includes('/api/')) {
+      clean += '/api';
+    }
+    if (!clean.endsWith('/chess')) {
+      clean += '/chess';
+    }
+    return clean;
+  };
+
   if (typeof window !== 'undefined') {
     const isLocalhost = 
       window.location.hostname === 'localhost' || 
@@ -10,12 +23,12 @@ const getApiBaseUrl = () => {
     // If running in browser on production domain (e.g. Vercel)
     if (!isLocalhost) {
       if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
-        return envUrl.replace(/\/$/, '') + '/chess';
+        return formatChessApi(envUrl);
       }
       return 'https://carrom-backend.onrender.com/api/chess';
     }
   }
-  return envUrl ? envUrl.replace(/\/$/, '') + '/chess' : 'http://localhost:5000/api/chess';
+  return envUrl ? formatChessApi(envUrl) : 'http://localhost:5000/api/chess';
 };
 
 const getHeaders = () => {

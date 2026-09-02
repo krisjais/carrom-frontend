@@ -170,7 +170,7 @@ export default function ChessAdminPlayersPage() {
         email: '',
         department: 'IT Team',
         phone: '',
-        status: importDefaultStatus
+        status: 'Registered'
       };
 
       headers.forEach((h, idx) => {
@@ -179,7 +179,6 @@ export default function ChessAdminPlayersPage() {
         else if (h.includes('mail')) rowObj.email = val;
         else if (h.includes('dept') || h.includes('team') || h.includes('branch')) rowObj.department = val;
         else if (h.includes('phone') || h.includes('mobile') || h.includes('contact')) rowObj.phone = val;
-        else if (h.includes('status')) rowObj.status = val;
       });
 
       // Fallbacks if columns weren't named in header
@@ -225,10 +224,10 @@ export default function ChessAdminPlayersPage() {
 
     setImporting(true);
     try {
-      const res = await chessApi.importPlayers(parsedRows, importDefaultStatus);
+      const res = await chessApi.importPlayers(parsedRows, 'Registered');
       if (res.success) {
         setImportResult(res.data);
-        showToast(`Import completed: ${res.data?.importedCount || 0} player(s) imported`);
+        showToast(`Import completed: ${res.data?.importedCount || 0} player(s) imported as Registered (Pending)`);
         loadPlayers();
       } else {
         showToast(res.message || 'Import failed', 'error');
@@ -241,7 +240,7 @@ export default function ChessAdminPlayersPage() {
   };
 
   const downloadSampleCSV = () => {
-    const sample = "Full Name,Email,Department,Phone,Status\nAlex Morgan,alex@chess.edu,IT Team,9876543210,Approved\nSarah Connor,sarah@chess.edu,First Year,9876543211,Approved\nVikram Mehta,vikram@chess.edu,Second Year,9876543212,Registered\nAnanya Sen,ananya@chess.edu,MJ Team,9876543213,Approved\nRohan Verma,rohan@chess.edu,HR Team,9876543214,Approved";
+    const sample = "Full Name,Email,Department,Phone,Status\nAlex Morgan,alex@chess.edu,IT Team,9876543210,Registered\nSarah Connor,sarah@chess.edu,First Year,9876543211,Registered\nVikram Mehta,vikram@chess.edu,Second Year,9876543212,Registered\nAnanya Sen,ananya@chess.edu,MJ Team,9876543213,Registered\nRohan Verma,rohan@chess.edu,HR Team,9876543214,Registered";
     const blob = new Blob([sample], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -619,34 +618,11 @@ export default function ChessAdminPlayersPage() {
                 </p>
               </div>
 
-              {/* Default Status Selection */}
-              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-[#1A2337] rounded-xl border border-[#E2E8F0] dark:border-[#232A3B]">
-                <label className="font-bold text-[#0F172A] dark:text-[#F8FAFC]">
-                  Default Status for Imported Players:
-                </label>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setImportDefaultStatus('Approved')}
-                    className={`px-3 py-1 rounded-lg font-bold text-xs transition-colors ${
-                      importDefaultStatus === 'Approved'
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-white dark:bg-[#141B2D] border border-[#E2E8F0] dark:border-[#232A3B] text-[#64748B] dark:text-[#94A3B8]'
-                    }`}
-                  >
-                    Approved
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setImportDefaultStatus('Registered')}
-                    className={`px-3 py-1 rounded-lg font-bold text-xs transition-colors ${
-                      importDefaultStatus === 'Registered'
-                        ? 'bg-amber-600 text-white'
-                        : 'bg-white dark:bg-[#141B2D] border border-[#E2E8F0] dark:border-[#232A3B] text-[#64748B] dark:text-[#94A3B8]'
-                    }`}
-                  >
-                    Registered (Pending)
-                  </button>
+              {/* Security & Approval Notice */}
+              <div className="flex items-center gap-3 p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 rounded-xl text-amber-800 dark:text-amber-300">
+                <AlertCircle className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400" />
+                <div className="text-[11px] leading-relaxed">
+                  <strong>Strict Approval Flow:</strong> All imported players are added as <span className="font-bold underline">Registered (Pending Approval)</span>. You can review the list and use the <strong>Approve</strong> or <strong>Bulk Approve</strong> buttons to approve them.
                 </div>
               </div>
 
