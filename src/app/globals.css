@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+:root, html.light {
   --bg-main: #FAF9F6;
   --bg-surface: #FFFFFF;
   --bg-surface-secondary: #F4EFE6;
@@ -17,9 +17,19 @@
   --gold: #D4A94C;
   --success: #3FA878;
   --footer-bg: #3E342B;
+
+  /* Chess & Admin Theme Variables */
+  --bg-canvas: #F4F6F9;
+  --bg-card: #FFFFFF;
+  --bg-hover: #EAEEF4;
+  --border-color: #E2E8F0;
+  --accent-gold: #C9A227;
+  --btn-black-bg: #0F172A;
+  --btn-black-text: #FFFFFF;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.dark {
+.dark, html.dark {
   --bg-main: #0B0D0E;
   --bg-surface: #15191C;
   --bg-surface-secondary: #181C1F;
@@ -34,6 +44,31 @@
   --gold: #D4A94C;
   --success: #3FA878;
   --footer-bg: #07090A;
+
+  /* Chess & Admin Theme Variables */
+  --bg-canvas: #0B0F17;
+  --bg-card: #141B2D;
+  --bg-hover: #1E293B;
+  --border-color: #232A3B;
+  --accent-gold: #D4AF37;
+  --btn-black-bg: #F8FAFC;
+  --btn-black-text: #0B0F17;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Global Disable Text Selection */
+*, body, html {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+/* Theme Smooth Transitions */
+body, div, header, main, footer, table, tr, td, th, input, select, button, a {
+  transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 body {
@@ -48,7 +83,7 @@ body {
 
 /* Clean Modern Headings */
 h1, h2, h3, h4, h5, h6, .font-display, .font-serif, .font-cormorant, .font-dmserif {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   letter-spacing: -0.015em;
 }
 
@@ -239,6 +274,102 @@ h1, h2, h3, h4, h5, h6, .font-display, .font-serif, .font-cormorant, .font-dmser
   border-color: #3D444A;
 }
 
+/* Sidebar Active Item Definition */
+.sidebar-active-item {
+  background: linear-gradient(135deg, #C9A227 0%, #B38E1B 100%);
+  color: #000000 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 12px rgba(201, 162, 39, 0.25);
+}
+
+html.dark .sidebar-active-item {
+  background: linear-gradient(135deg, #D4AF37 0%, #C9A227 100%);
+  color: #0B0F17 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.3);
+}
+
+/* Dark Mode Comprehensive Overrides for Chess Admin */
+html.dark {
+  background-color: #0B0F17 !important;
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #0B0F17 !important;
+  color: #F8FAFC !important;
+}
+
+html.dark .bg-\[\#F7F7F7\] {
+  background-color: #0B0F17 !important;
+}
+
+html.dark .bg-white {
+  background-color: #141B2D !important;
+  color: #F8FAFC !important;
+}
+
+html.dark .bg-gray-50 {
+  background-color: #1A2337 !important;
+}
+
+html.dark .bg-gray-100 {
+  background-color: #1E293B !important;
+}
+
+html.dark .bg-gray-900 {
+  background-color: #0B0F17 !important;
+}
+
+html.dark .border-\[\#E5E5E5\] {
+  border-color: #232A3B !important;
+}
+
+html.dark .divide-\[\#E5E5E5\] > :not([hidden]) ~ :not([hidden]) {
+  border-color: #232A3B !important;
+}
+
+html.dark .text-\[\#111111\] {
+  color: #F8FAFC !important;
+}
+
+html.dark .text-\[\#666666\] {
+  color: #94A3B8 !important;
+}
+
+html.dark .hover\:bg-gray-50:hover {
+  background-color: #1E293B !important;
+}
+
+html.dark .hover\:bg-gray-100:hover {
+  background-color: #26334D !important;
+}
+
+html.dark input, 
+html.dark select, 
+html.dark textarea {
+  background-color: #1A2337 !important;
+  color: #F8FAFC !important;
+  border-color: #232A3B !important;
+}
+
+html.dark input::placeholder {
+  color: #64748B !important;
+}
+
+/* Badges */
+.badge-live {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.badge-completed {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
 /* LIVE Indicator Pulse */
 @keyframes red-live-pulse {
   0%, 100% {
@@ -252,8 +383,8 @@ h1, h2, h3, h4, h5, h6, .font-display, .font-serif, .font-cormorant, .font-dmser
 }
 
 .live-dot {
-  width: 0.5rem;
-  height: 0.5rem;
+  width: 0.45rem;
+  height: 0.45rem;
   border-radius: 9999px;
   background-color: #E74C3C;
   display: inline-block;
@@ -322,24 +453,19 @@ h1, h2, h3, h4, h5, h6, .font-display, .font-serif, .font-cormorant, .font-dmser
   background-size: 32px 32px;
 }
 
-/* Custom Editorial Scrollbar */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-main);
+  background: var(--bg-canvas);
 }
 ::-webkit-scrollbar-thumb {
-  background: #D5C4A1;
-  border-radius: 3px;
-}
-.dark ::-webkit-scrollbar-thumb {
-  background: #2B3034;
+  background: #475569;
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #7E7060;
+  background: var(--accent-gold);
 }
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #D4A94C;
-}
+
