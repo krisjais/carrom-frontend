@@ -21,16 +21,23 @@ const clientMemoryStore = {
 };
 
 const getApiBaseUrl = () => {
-  if (process.env.NEXT_PUBLIC_API_URL) {
-    return process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '') + '/chess';
-  }
+  const envUrl = process.env.NEXT_PUBLIC_API_URL;
   if (typeof window !== 'undefined') {
-    const host = window.location.hostname;
-    if (host !== 'localhost' && host !== '127.0.0.1') {
-      return '/api/chess';
+    const isLocalhost = 
+      window.location.hostname === 'localhost' || 
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname.startsWith('192.168.') ||
+      window.location.hostname.startsWith('10.');
+      
+    // If running in browser on production domain (e.g. Vercel)
+    if (!isLocalhost) {
+      if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
+        return envUrl.replace(/\/$/, '') + '/chess';
+      }
+      return 'https://carrom-backend.onrender.com/api/chess';
     }
   }
-  return 'http://localhost:5000/api/chess';
+  return envUrl ? envUrl.replace(/\/$/, '') + '/chess' : 'http://localhost:5000/api/chess';
 };
 
 const getHeaders = () => {
@@ -44,6 +51,53 @@ const getHeaders = () => {
     }
   }
   return headers;
+};
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const isTransientNetworkError = (error) => {
+  if (!error) return false;
+  const msg = (error.message || '').toLowerCase();
+  const name = (error.name || '').toLowerCase();
+  return (
+    error instanceof TypeError ||
+    name === 'typeerror' ||
+    msg.includes('failed to fetch') ||
+    msg.includes('networkerror') ||
+    msg.includes('network request failed') ||
+    msg.includes('connection refused') ||
+    msg.includes('load failed') ||
+    msg.includes('timeout')
+  );
+};
+
+const fetchWithRetry = async (url, options = {}, maxAttempts = 4) => {
+  const retryDelays = [2000, 4000, 8000];
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const res = await fetch(url, options);
+
+      // Retry ONLY on transient cold-start / server errors (502, 503, 504)
+      if ((res.status === 502 || res.status === 503 || res.status === 504) && attempt < maxAttempts) {
+        const delay = retryDelays[attempt - 1] || 8000;
+        console.warn(`[Chess API] Server waking up (${res.status}). Retrying in ${delay / 1000}s (Attempt ${attempt}/${maxAttempts})...`);
+        await wait(delay);
+        continue;
+      }
+
+      return res;
+    } catch (err) {
+      // Retry on network drops / "Failed to fetch" during container cold start
+      if (isTransientNetworkError(err) && attempt < maxAttempts) {
+        const delay = retryDelays[attempt - 1] || 8000;
+        console.warn(`[Chess API] Network connection pending (${err.message}). Retrying in ${delay / 1000}s (Attempt ${attempt}/${maxAttempts})...`);
+        await wait(delay);
+        continue;
+      }
+      throw err;
+    }
+  }
 };
 
 const handleResponse = async (res) => {
@@ -60,7 +114,7 @@ const handleResponse = async (res) => {
 const safeFetch = async (endpoint, options = {}) => {
   const baseUrl = getApiBaseUrl();
   const url = `${baseUrl}${endpoint}`;
-  const res = await fetch(url, options);
+  const res = await fetchWithRetry(url, options);
   return await handleResponse(res);
 };
 
