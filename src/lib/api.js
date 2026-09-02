@@ -1,5 +1,15 @@
 const getApiBase = () => {
   const envUrl = process.env.NEXT_PUBLIC_API_URL;
+
+  const formatApiBase = (url) => {
+    if (!url) return 'https://carrom-backend.onrender.com/api';
+    let clean = url.trim().replace(/\/$/, '');
+    if (!clean.endsWith('/api')) {
+      clean += '/api';
+    }
+    return clean;
+  };
+
   if (typeof window !== 'undefined') {
     const isLocalhost = 
       window.location.hostname === 'localhost' || 
@@ -10,12 +20,12 @@ const getApiBase = () => {
     // If running in browser on production domain (e.g. Vercel)
     if (!isLocalhost) {
       if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
-        return envUrl.replace(/\/$/, '');
+        return formatApiBase(envUrl);
       }
       return 'https://carrom-backend.onrender.com/api';
     }
   }
-  return envUrl ? envUrl.replace(/\/$/, '') : 'http://localhost:5000/api';
+  return envUrl ? formatApiBase(envUrl) : 'http://localhost:5000/api';
 };
 
 const API_BASE = getApiBase();
