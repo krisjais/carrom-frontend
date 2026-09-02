@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { chessApi } from '@/lib/chessApi';
 import { AdminSidebar } from '@/components/chess/AdminSidebar';
+import { ConfirmationModal } from '@/components/chess/ConfirmationModal';
 import { 
   Users, 
   CheckCircle, 
@@ -34,13 +35,25 @@ export default function ChessAdminPlayersPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
+  // Custom UI Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmText: 'Confirm',
+    cancelText: 'Cancel',
+    isDestructive: true,
+    loading: false,
+    onConfirm: null
+  });
+
   // CSV Import Modal State
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [importFile, setImportFile] = useState(null);
   const [parsedRows, setParsedRows] = useState([]);
-  const [importDefaultStatus, setImportDefaultStatus] = useState('Approved');
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
 
   async function loadPlayers() {
@@ -85,18 +98,32 @@ export default function ChessAdminPlayersPage() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this player?')) return;
-    try {
-      const res = await chessApi.deletePlayer(id);
-      if (res.success) {
-        showToast('Player deleted successfully');
-        setSelectedIds(prev => prev.filter(item => item !== id));
-        loadPlayers();
+  // Single Player Delete with UI Modal
+  const handleDelete = (id, playerName) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Player',
+      message: `Are you sure you want to permanently delete player ${playerName ? `"${playerName}"` : ''}? This will remove all their match pairings and records.`,
+      confirmText: 'Delete Player',
+      cancelText: 'Keep Player',
+      isDestructive: true,
+      loading: false,
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, loading: true }));
+        try {
+          const res = await chessApi.deletePlayer(id);
+          if (res.success) {
+            showToast('Player deleted successfully');
+            setSelectedIds(prev => prev.filter(item => item !== id));
+            loadPlayers();
+          }
+        } catch (err) {
+          showToast(err.message || 'Error deleting player', 'error');
+        } finally {
+          setConfirmModal(prev => ({ ...prev, isOpen: false, loading: false }));
+        }
       }
-    } catch (err) {
-      showToast(err.message || 'Error deleting player', 'error');
-    }
+    });
   };
 
   // Bulk Operations
@@ -117,24 +144,33 @@ export default function ChessAdminPlayersPage() {
     }
   };
 
-  const handleBulkDelete = async () => {
+  // Bulk Delete with UI Modal
+  const handleBulkDelete = () => {
     if (selectedIds.length === 0) return;
-    if (!confirm(`Are you sure you want to delete ${selectedIds.length} selected player(s)? This action cannot be undone.`)) {
-      return;
-    }
-    setActionLoading(true);
-    try {
-      const res = await chessApi.bulkDeletePlayers(selectedIds);
-      if (res.success) {
-        showToast(`Deleted ${selectedIds.length} player(s)`);
-        setSelectedIds([]);
-        loadPlayers();
+    setConfirmModal({
+      isOpen: true,
+      title: 'Bulk Delete Players',
+      message: `Are you sure you want to delete ${selectedIds.length} selected player(s)? This will permanently remove them from the roster. This action cannot be undone.`,
+      confirmText: `Delete ${selectedIds.length} Players`,
+      cancelText: 'Cancel',
+      isDestructive: true,
+      loading: false,
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, loading: true }));
+        try {
+          const res = await chessApi.bulkDeletePlayers(selectedIds);
+          if (res.success) {
+            showToast(`Successfully deleted ${selectedIds.length} player(s)`);
+            setSelectedIds([]);
+            loadPlayers();
+          }
+        } catch (err) {
+          showToast(err.message || 'Error deleting selected players', 'error');
+        } finally {
+          setConfirmModal(prev => ({ ...prev, isOpen: false, loading: false }));
+        }
       }
-    } catch (err) {
-      showToast(err.message || 'Error deleting selected players', 'error');
-    } finally {
-      setActionLoading(false);
-    }
+    });
   };
 
   // CSV Parsing & Handling
@@ -193,9 +229,12 @@ export default function ChessAdminPlayersPage() {
     return rows;
   };
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files?.[0];
+  const processFile = (file) => {
     if (!file) return;
+    if (!file.name.toLowerCase().endsWith('.csv') && file.type !== 'text/csv' && file.type !== 'application/vnd.ms-excel') {
+      showToast('Please upload a valid .csv file', 'error');
+      return;
+    }
 
     setImportFile(file);
     setImportResult(null);
@@ -214,6 +253,33 @@ export default function ChessAdminPlayersPage() {
       }
     };
     reader.readAsText(file);
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) processFile(file);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isDragging) setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      processFile(files[0]);
+    }
   };
 
   const executeImport = async () => {
@@ -364,7 +430,6 @@ export default function ChessAdminPlayersPage() {
               <option value="all">All Statuses</option>
               <option value="Registered">Registered (Pending)</option>
               <option value="Approved">Approved</option>
-              <option value="Rejected">Rejected</option>
             </select>
           </div>
         </div>
@@ -456,8 +521,6 @@ export default function ChessAdminPlayersPage() {
                         <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${
                           p.status === 'Approved' 
                             ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50' 
-                            : p.status === 'Rejected' 
-                            ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/50' 
                             : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50'
                         }`}>
                           {p.status}
@@ -472,17 +535,9 @@ export default function ChessAdminPlayersPage() {
                             Approve
                           </button>
                         )}
-                        {p.status !== 'Rejected' && (
-                          <button
-                            onClick={() => handleStatusUpdate(p._id, 'Rejected')}
-                            className="bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase shadow-xs transition-colors"
-                          >
-                            Reject
-                          </button>
-                        )}
                         <button
-                          onClick={() => handleDelete(p._id)}
-                          className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 p-1 transition-colors"
+                          onClick={() => handleDelete(p._id, p.fullName)}
+                          className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 p-1 transition-colors inline-flex items-center"
                           title="Delete Player"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -516,15 +571,6 @@ export default function ChessAdminPlayersPage() {
             >
               <CheckCircle className="w-3.5 h-3.5" />
               <span>Approve All ({selectedIds.length})</span>
-            </button>
-
-            <button
-              onClick={() => handleBulkStatus('Rejected')}
-              disabled={actionLoading}
-              className="flex items-center gap-1.5 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition-all shadow-sm"
-            >
-              <XCircle className="w-3.5 h-3.5" />
-              <span>Reject All ({selectedIds.length})</span>
             </button>
 
             <button
@@ -598,7 +644,16 @@ export default function ChessAdminPlayersPage() {
               {/* Upload Drop Area */}
               <div 
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-[#CBD5E1] dark:border-[#334155] hover:border-[#C9A227] dark:hover:border-[#D4AF37] rounded-xl p-8 text-center cursor-pointer transition-colors bg-slate-50/50 dark:bg-[#161F33]/50 space-y-2"
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-200 space-y-3 ${
+                  isDragging
+                    ? 'border-[#C9A227] dark:border-[#D4AF37] bg-amber-500/10 ring-4 ring-[#C9A227]/20 scale-[1.01]'
+                    : importFile
+                    ? 'border-emerald-400 dark:border-emerald-600 bg-emerald-50/40 dark:bg-emerald-950/20'
+                    : 'border-[#CBD5E1] dark:border-[#334155] hover:border-[#C9A227] dark:hover:border-[#D4AF37] bg-slate-50/50 dark:bg-[#161F33]/50'
+                }`}
               >
                 <input
                   ref={fileInputRef}
@@ -607,15 +662,33 @@ export default function ChessAdminPlayersPage() {
                   onChange={handleFileUpload}
                   className="hidden"
                 />
-                <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-[#1E293B] text-[#64748B] dark:text-[#94A3B8] flex items-center justify-center mx-auto">
-                  <Upload className="w-6 h-6" />
+                
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto transition-transform duration-200 ${
+                  isDragging 
+                    ? 'bg-[#C9A227] text-slate-950 scale-110 shadow-lg' 
+                    : importFile
+                    ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400'
+                    : 'bg-slate-100 dark:bg-[#1E293B] text-[#64748B] dark:text-[#94A3B8]'
+                }`}>
+                  {importFile ? <FileCheck className="w-7 h-7" /> : <Upload className={`w-7 h-7 ${isDragging ? 'animate-bounce' : ''}`} />}
                 </div>
-                <div className="font-bold text-[#0F172A] dark:text-[#F8FAFC]">
-                  {importFile ? importFile.name : 'Click or drop your CSV file here'}
+
+                <div>
+                  <div className="font-bold text-sm text-[#0F172A] dark:text-[#F8FAFC]">
+                    {isDragging ? (
+                      <span className="text-[#C9A227] dark:text-[#D4AF37]">Drop your CSV file here...</span>
+                    ) : importFile ? (
+                      <span className="text-emerald-700 dark:text-emerald-400">{importFile.name}</span>
+                    ) : (
+                      'Drag & Drop your CSV file here or Browse'
+                    )}
+                  </div>
+                  <p className="text-[11px] text-[#64748B] dark:text-[#94A3B8] mt-1">
+                    {importFile 
+                      ? `${(importFile.size / 1024).toFixed(1)} KB • Click or drop another file to replace`
+                      : 'Supports standard .csv file format (UTF-8)'}
+                  </p>
                 </div>
-                <p className="text-[11px] text-[#64748B] dark:text-[#94A3B8]">
-                  Supports standard CSV with UTF-8 encoding
-                </p>
               </div>
 
               {/* Security & Approval Notice */}
@@ -717,6 +790,19 @@ export default function ChessAdminPlayersPage() {
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal Component */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        cancelText={confirmModal.cancelText}
+        isDestructive={confirmModal.isDestructive}
+        loading={confirmModal.loading}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+      />
 
     </div>
   );

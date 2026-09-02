@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { chessApi } from '@/lib/chessApi';
 import { AdminSidebar } from '@/components/chess/AdminSidebar';
-import { Swords, Play, CheckCircle2, XCircle, Trophy, Loader2 } from 'lucide-react';
+import { Swords, Play, CheckCircle2, XCircle, Trophy, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 
 export default function ChessAdminMatchesPage() {
   const router = useRouter();
@@ -13,12 +13,20 @@ export default function ChessAdminMatchesPage() {
   const [generating, setGenerating] = useState(false);
   const [selectedRound, setSelectedRound] = useState(1);
   const [resultModalMatch, setResultModalMatch] = useState(null);
+  const [toastMessage, setToastMessage] = useState(null);
 
   const [p1Captured, setP1Captured] = useState({ pawns: 0, knights: 0, bishops: 0, rooks: 0, queens: 0 });
   const [p2Captured, setP2Captured] = useState({ pawns: 0, knights: 0, bishops: 0, rooks: 0, queens: 0 });
   const [winnerChoice, setWinnerChoice] = useState('none');
   const [resultTypeChoice, setResultTypeChoice] = useState('checkmate');
   const [submitLoading, setSubmitLoading] = useState(false);
+
+  const showToast = (message, type = 'success') => {
+    setToastMessage({ message, type });
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 4000);
+  };
 
   async function loadMatches() {
     if (!chessApi.isAdminAuthenticated()) {
@@ -33,6 +41,7 @@ export default function ChessAdminMatchesPage() {
       }
     } catch (err) {
       console.error('Error loading matches:', err);
+      showToast(err.message || 'Failed to load matches', 'error');
     } finally {
       setLoading(false);
     }
@@ -47,13 +56,13 @@ export default function ChessAdminMatchesPage() {
     try {
       const res = await chessApi.generateMatches(selectedRound);
       if (res.success) {
-        alert(res.message || 'Match pairings generated successfully!');
+        showToast(res.message || 'Match pairings generated successfully!');
         loadMatches();
       } else {
-        alert(res.message || 'Failed to generate pairings.');
+        showToast(res.message || 'Failed to generate pairings.', 'error');
       }
     } catch (err) {
-      alert(err.message || 'Error generating pairings.');
+      showToast(err.message || 'Error generating pairings.', 'error');
     } finally {
       setGenerating(false);
     }
@@ -63,10 +72,11 @@ export default function ChessAdminMatchesPage() {
     try {
       const res = await chessApi.startMatch(id);
       if (res.success) {
+        showToast('Match marked as live');
         loadMatches();
       }
     } catch (err) {
-      alert(err.message || 'Failed to start match.');
+      showToast(err.message || 'Failed to start match.', 'error');
     }
   };
 
@@ -92,24 +102,41 @@ export default function ChessAdminMatchesPage() {
       };
       const res = await chessApi.submitMatchResult(resultModalMatch._id, payload);
       if (res.success) {
+        showToast('Match result saved successfully');
         setResultModalMatch(null);
         loadMatches();
       } else {
-        alert(res.message || 'Result submission failed.');
+        showToast(res.message || 'Result submission failed.', 'error');
       }
     } catch (err) {
-      alert(err.message || 'Error submitting match result.');
+      showToast(err.message || 'Error submitting match result.', 'error');
     } finally {
       setSubmitLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F6F9] dark:bg-[#0B0F17] flex flex-col lg:flex-row font-sans text-[#0F172A] dark:text-[#F8FAFC] antialiased transition-colors">
+    <div className="min-h-screen bg-[#F4F6F9] dark:bg-[#0B0F17] flex flex-col lg:flex-row font-sans text-[#0F172A] dark:text-[#F8FAFC] antialiased transition-colors relative">
       <AdminSidebar />
 
-      <main className="flex-1 p-4 sm:p-8 max-w-7xl mx-auto w-full space-y-6">
+      <main className="flex-1 p-4 sm:p-8 max-w-7xl mx-auto w-full space-y-6 pb-20">
         
+        {/* Toast Alert */}
+        {toastMessage && (
+          <div className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-xs font-semibold animate-in fade-in slide-in-from-top-4 duration-200 ${
+            toastMessage.type === 'error' 
+              ? 'bg-red-50 dark:bg-red-950/90 text-red-700 dark:text-red-200 border-red-200 dark:border-red-800' 
+              : 'bg-emerald-50 dark:bg-emerald-950/90 text-emerald-700 dark:text-emerald-200 border-emerald-200 dark:border-emerald-800'
+          }`}>
+            {toastMessage.type === 'error' ? (
+              <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+            ) : (
+              <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+            )}
+            <span>{toastMessage.message}</span>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-[#141B2D] border border-[#E2E8F0] dark:border-[#232A3B] p-6 rounded-2xl shadow-sm">
           <div>
@@ -137,7 +164,7 @@ export default function ChessAdminMatchesPage() {
             <button
               onClick={handleGeneratePairings}
               disabled={generating}
-              className="bg-slate-900 hover:bg-slate-800 dark:bg-[#D4AF37] dark:hover:bg-[#C9A227] text-white dark:text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs uppercase font-display tracking-wider shadow-sm flex items-center gap-2 transition-all"
+              className="bg-slate-900 hover:bg-slate-800 dark:bg-[#D4AF37] dark:hover:bg-[#C9A227] text-white dark:text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs uppercase font-display tracking-wider shadow-sm flex items-center gap-2 transition-all disabled:opacity-50"
             >
               {generating ? <Loader2 className="w-4 h-4 animate-spin text-[#C9A227] dark:text-slate-950" /> : <Swords className="w-4 h-4 text-[#C9A227] dark:text-slate-950" />}
               <span>Generate Round {selectedRound}</span>

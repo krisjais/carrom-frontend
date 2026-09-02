@@ -4,12 +4,17 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { chessApi } from '@/lib/chessApi';
 import { AdminSidebar } from '@/components/chess/AdminSidebar';
-import { Settings, Save, RotateCcw, AlertTriangle, Loader2 } from 'lucide-react';
+import { ConfirmationModal } from '@/components/chess/ConfirmationModal';
+import { Settings, Save, RotateCcw, AlertTriangle, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 
 export default function ChessAdminSettingsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [toastMessage, setToastMessage] = useState(null);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+
   const [settings, setSettings] = useState({
     matchDuration: 10,
     currentRound: 1,
@@ -17,6 +22,13 @@ export default function ChessAdminSettingsPage() {
     piecePoints: { pawn: 1, knight: 3, bishop: 3, rook: 5, queen: 9, king: 0 },
     tournamentPoints: { win: 3, draw: 1, loss: 0 }
   });
+
+  const showToast = (message, type = 'success') => {
+    setToastMessage({ message, type });
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 4000);
+  };
 
   useEffect(() => {
     async function loadSettings() {
@@ -37,6 +49,7 @@ export default function ChessAdminSettingsPage() {
         }
       } catch (err) {
         console.error('Error loading settings:', err);
+        showToast(err.message || 'Error loading settings', 'error');
       } finally {
         setLoading(false);
       }
@@ -50,36 +63,59 @@ export default function ChessAdminSettingsPage() {
     try {
       const res = await chessApi.updateSettings(settings);
       if (res.success) {
-        alert('Tournament settings updated successfully!');
+        showToast('Tournament settings updated successfully!');
       } else {
-        alert(res.message || 'Failed to update settings.');
+        showToast(res.message || 'Failed to update settings.', 'error');
       }
     } catch (err) {
-      alert(err.message || 'Error updating settings.');
+      showToast(err.message || 'Error updating settings.', 'error');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleReset = async () => {
-    if (!confirm('CAUTION: Are you sure you want to RESET ALL TOURNAMENT DATA? This clears all registrations and match records.')) return;
+  const handleResetConfirm = async () => {
+    setResetLoading(true);
     try {
       const res = await chessApi.resetTournamentData();
       if (res.success) {
-        alert(res.message || 'Tournament reset successfully.');
-        window.location.reload();
+        showToast(res.message || 'Tournament reset successfully.');
+        setIsResetModalOpen(false);
+        setTimeout(() => {
+          window.location.reload();
+        }, 1200);
+      } else {
+        showToast(res.message || 'Failed to reset tournament data.', 'error');
       }
     } catch (err) {
-      alert(err.message || 'Error resetting tournament.');
+      showToast(err.message || 'Error resetting tournament.', 'error');
+    } finally {
+      setResetLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F6F9] dark:bg-[#0B0F17] flex flex-col lg:flex-row font-sans text-[#0F172A] dark:text-[#F8FAFC] antialiased transition-colors">
+    <div className="min-h-screen bg-[#F4F6F9] dark:bg-[#0B0F17] flex flex-col lg:flex-row font-sans text-[#0F172A] dark:text-[#F8FAFC] antialiased transition-colors relative">
       <AdminSidebar />
 
       <main className="flex-1 p-4 sm:p-8 max-w-7xl mx-auto w-full space-y-6">
         
+        {/* Toast Alert */}
+        {toastMessage && (
+          <div className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-xs font-semibold animate-in fade-in slide-in-from-top-4 duration-200 ${
+            toastMessage.type === 'error' 
+              ? 'bg-red-50 dark:bg-red-950/90 text-red-700 dark:text-red-200 border-red-200 dark:border-red-800' 
+              : 'bg-emerald-50 dark:bg-emerald-950/90 text-emerald-700 dark:text-emerald-200 border-emerald-200 dark:border-emerald-800'
+          }`}>
+            {toastMessage.type === 'error' ? (
+              <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+            ) : (
+              <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+            )}
+            <span>{toastMessage.message}</span>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-[#141B2D] border border-[#E2E8F0] dark:border-[#232A3B] p-6 rounded-2xl shadow-sm">
           <div>
@@ -92,7 +128,7 @@ export default function ChessAdminSettingsPage() {
           </div>
 
           <button
-            onClick={handleReset}
+            onClick={() => setIsResetModalOpen(true)}
             className="bg-red-600 hover:bg-red-700 dark:bg-red-600/90 dark:hover:bg-red-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs uppercase font-display tracking-wider shadow-sm flex items-center gap-2 transition-all"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -191,6 +227,20 @@ export default function ChessAdminSettingsPage() {
         )}
 
       </main>
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={isResetModalOpen}
+        title="Reset All Tournament Data"
+        message="CAUTION: Are you sure you want to RESET ALL TOURNAMENT DATA? This will permanently clear all player registrations, match pairings, and leaderboard standings. This action CANNOT be undone."
+        confirmText="Reset Tournament"
+        cancelText="Cancel"
+        isDestructive={true}
+        loading={resetLoading}
+        onConfirm={handleResetConfirm}
+        onCancel={() => setIsResetModalOpen(false)}
+      />
+
     </div>
   );
 }
