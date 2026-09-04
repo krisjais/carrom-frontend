@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { chessApi } from '@/lib/chessApi';
 import { AdminSidebar } from '@/components/chess/AdminSidebar';
-import { Swords, Play, CheckCircle2, XCircle, Trophy, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Swords, Play, CheckCircle2, XCircle, Trophy, Loader2 } from 'lucide-react';
 
 export default function ChessAdminMatchesPage() {
   const router = useRouter();
@@ -13,20 +13,12 @@ export default function ChessAdminMatchesPage() {
   const [generating, setGenerating] = useState(false);
   const [selectedRound, setSelectedRound] = useState(1);
   const [resultModalMatch, setResultModalMatch] = useState(null);
-  const [toastMessage, setToastMessage] = useState(null);
 
   const [p1Captured, setP1Captured] = useState({ pawns: 0, knights: 0, bishops: 0, rooks: 0, queens: 0 });
   const [p2Captured, setP2Captured] = useState({ pawns: 0, knights: 0, bishops: 0, rooks: 0, queens: 0 });
   const [winnerChoice, setWinnerChoice] = useState('none');
   const [resultTypeChoice, setResultTypeChoice] = useState('checkmate');
   const [submitLoading, setSubmitLoading] = useState(false);
-
-  const showToast = (message, type = 'success') => {
-    setToastMessage({ message, type });
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 4000);
-  };
 
   async function loadMatches() {
     if (!chessApi.isAdminAuthenticated()) {
@@ -41,7 +33,6 @@ export default function ChessAdminMatchesPage() {
       }
     } catch (err) {
       console.error('Error loading matches:', err);
-      showToast(err.message || 'Failed to load matches', 'error');
     } finally {
       setLoading(false);
     }
@@ -56,13 +47,13 @@ export default function ChessAdminMatchesPage() {
     try {
       const res = await chessApi.generateMatches(selectedRound);
       if (res.success) {
-        showToast(res.message || 'Match pairings generated successfully!');
+        alert(res.message || 'Match pairings generated successfully!');
         loadMatches();
       } else {
-        showToast(res.message || 'Failed to generate pairings.', 'error');
+        alert(res.message || 'Failed to generate pairings.');
       }
     } catch (err) {
-      showToast(err.message || 'Error generating pairings.', 'error');
+      alert(err.message || 'Error generating pairings.');
     } finally {
       setGenerating(false);
     }
@@ -72,11 +63,10 @@ export default function ChessAdminMatchesPage() {
     try {
       const res = await chessApi.startMatch(id);
       if (res.success) {
-        showToast('Match marked as live');
         loadMatches();
       }
     } catch (err) {
-      showToast(err.message || 'Failed to start match.', 'error');
+      alert(err.message || 'Failed to start match.');
     }
   };
 
@@ -102,49 +92,32 @@ export default function ChessAdminMatchesPage() {
       };
       const res = await chessApi.submitMatchResult(resultModalMatch._id, payload);
       if (res.success) {
-        showToast('Match result saved successfully');
         setResultModalMatch(null);
         loadMatches();
       } else {
-        showToast(res.message || 'Result submission failed.', 'error');
+        alert(res.message || 'Result submission failed.');
       }
     } catch (err) {
-      showToast(err.message || 'Error submitting match result.', 'error');
+      alert(err.message || 'Error submitting match result.');
     } finally {
       setSubmitLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F6F9] dark:bg-[#0B0F17] flex flex-col lg:flex-row font-sans text-[#0F172A] dark:text-[#F8FAFC] antialiased transition-colors relative">
+    <div className="min-h-screen bg-[#F5F2EB] dark:bg-[#0D0D0D] flex flex-col lg:flex-row font-sans text-[#171715] dark:text-[#FAF8F3] antialiased transition-colors">
       <AdminSidebar />
 
-      <main className="flex-1 p-4 sm:p-8 max-w-7xl mx-auto w-full space-y-6 pb-20">
+      <main className="flex-1 p-4 sm:p-8 max-w-7xl mx-auto w-full space-y-6">
         
-        {/* Toast Alert */}
-        {toastMessage && (
-          <div className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-xs font-semibold animate-in fade-in slide-in-from-top-4 duration-200 ${
-            toastMessage.type === 'error' 
-              ? 'bg-red-50 dark:bg-red-950/90 text-red-700 dark:text-red-200 border-red-200 dark:border-red-800' 
-              : 'bg-emerald-50 dark:bg-emerald-950/90 text-emerald-700 dark:text-emerald-200 border-emerald-200 dark:border-emerald-800'
-          }`}>
-            {toastMessage.type === 'error' ? (
-              <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
-            ) : (
-              <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
-            )}
-            <span>{toastMessage.message}</span>
-          </div>
-        )}
-
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-[#141B2D] border border-[#E2E8F0] dark:border-[#232A3B] p-6 rounded-2xl shadow-sm">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] p-6 rounded-2xl shadow-xs">
           <div>
-            <span className="text-xs font-mono font-bold text-[#C9A227] dark:text-[#D4AF37] uppercase tracking-widest block">
+            <span className="text-[10px] font-mono font-semibold text-[#77736B] dark:text-[#A8A49C] uppercase tracking-widest block">
               PAIRING ENGINE & RESULT SUBMISSION
             </span>
-            <h1 className="text-2xl font-bold font-display text-[#0F172A] dark:text-[#F8FAFC] uppercase tracking-wide">
-              MATCH MANAGEMENT
+            <h1 className="text-2xl font-bold font-serif text-[#171715] dark:text-[#FAF8F3] tracking-tight mt-1">
+              Match Management
             </h1>
           </div>
 
@@ -152,7 +125,7 @@ export default function ChessAdminMatchesPage() {
             <select
               value={selectedRound}
               onChange={(e) => setSelectedRound(Number(e.target.value))}
-              className="bg-slate-50 dark:bg-[#1A2337] border border-[#E2E8F0] dark:border-[#232A3B] focus:border-[#C9A227] dark:focus:border-[#D4AF37] rounded-xl px-3 py-2 text-xs font-bold text-[#0F172A] dark:text-[#F8FAFC] transition-colors"
+              className="bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-3 py-2.5 text-xs font-semibold text-[#171715] dark:text-[#FAF8F3] transition-colors focus:outline-none"
             >
               <option value={1}>Round 1</option>
               <option value={2}>Round 2</option>
@@ -164,67 +137,72 @@ export default function ChessAdminMatchesPage() {
             <button
               onClick={handleGeneratePairings}
               disabled={generating}
-              className="bg-slate-900 hover:bg-slate-800 dark:bg-[#D4AF37] dark:hover:bg-[#C9A227] text-white dark:text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs uppercase font-display tracking-wider shadow-sm flex items-center gap-2 transition-all disabled:opacity-50"
+              className="bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] font-semibold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-xs flex items-center gap-2 transition-all hover:-translate-y-0.5"
             >
-              {generating ? <Loader2 className="w-4 h-4 animate-spin text-[#C9A227] dark:text-slate-950" /> : <Swords className="w-4 h-4 text-[#C9A227] dark:text-slate-950" />}
+              {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Swords className="w-4 h-4" />}
               <span>Generate Round {selectedRound}</span>
             </button>
           </div>
         </div>
 
         {/* Matches Table */}
-        <div className="bg-white dark:bg-[#141B2D] border border-[#E2E8F0] dark:border-[#232A3B] rounded-2xl shadow-sm overflow-x-auto">
+        <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl shadow-xs overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="border-b border-[#E2E8F0] dark:border-[#232A3B] bg-slate-50 dark:bg-[#1A2337] text-[#64748B] dark:text-[#94A3B8] font-mono uppercase text-[10px]">
-                <th className="py-3.5 px-4">Match ID</th>
-                <th className="py-3.5 px-4 text-center">Round</th>
-                <th className="py-3.5 px-4">Player 1</th>
-                <th className="py-3.5 px-4">Player 2</th>
-                <th className="py-3.5 px-4 text-center">Status</th>
-                <th className="py-3.5 px-4 text-center">Score</th>
-                <th className="py-3.5 px-4 text-right">Actions</th>
+              <tr className="border-b border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1] dark:bg-[#1D1D1B] text-[#77736B] dark:text-[#8E8E93] font-mono uppercase text-[10px]">
+                <th className="py-3.5 px-4 font-semibold">Match ID</th>
+                <th className="py-3.5 px-4 text-center font-semibold">Round</th>
+                <th className="py-3.5 px-4 font-semibold">Player 1</th>
+                <th className="py-3.5 px-4 font-semibold">Player 2</th>
+                <th className="py-3.5 px-4 text-center font-semibold">Status</th>
+                <th className="py-3.5 px-4 text-center font-semibold">Score</th>
+                <th className="py-3.5 px-4 text-right font-semibold">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E2E8F0] dark:divide-[#232A3B]">
+            <tbody className="divide-y divide-[#D5CFC5] dark:divide-[#262624]">
               {loading ? (
-                <tr><td colSpan={7} className="py-10 text-center text-[#64748B] dark:text-[#94A3B8]">Loading matches...</td></tr>
+                <tr><td colSpan={7} className="py-12 text-center text-[#77736B] dark:text-[#8E8E93]">Loading tournament matches...</td></tr>
               ) : matches.length === 0 ? (
-                <tr><td colSpan={7} className="py-10 text-center text-[#64748B] dark:text-[#94A3B8]">No matches generated yet. Click "Generate Round 1" above.</td></tr>
+                <tr><td colSpan={7} className="py-12 text-center text-[#77736B] dark:text-[#8E8E93]">No matches generated yet. Click "Generate Round 1" above.</td></tr>
               ) : (
                 matches.map((m) => {
                   const p1 = m.player1?.fullName || 'BYE';
                   const p2 = m.player2?.fullName || 'BYE';
                   return (
-                    <tr key={m._id} className="hover:bg-slate-50/80 dark:hover:bg-[#1E293B]">
-                      <td className="py-3 px-4 font-mono font-bold text-[#0F172A] dark:text-[#F8FAFC]">{m.matchId}</td>
-                      <td className="py-3 px-4 text-center font-mono text-[#64748B] dark:text-[#94A3B8]">{m.round}</td>
-                      <td className="py-3 px-4 font-bold text-[#0F172A] dark:text-[#F8FAFC] font-display">{p1}</td>
-                      <td className="py-3 px-4 font-bold text-[#0F172A] dark:text-[#F8FAFC] font-display">{p2}</td>
-                      <td className="py-3 px-4 text-center">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${
-                          m.status === 'live' ? 'badge-live' : m.status === 'completed' ? 'badge-completed' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                    <tr key={m._id} className="hover:bg-[#EFEAE1]/50 dark:hover:bg-[#1D1D1B]/50 transition-colors">
+                      <td className="py-3.5 px-4 font-mono font-bold text-[#171715] dark:text-[#FAF8F3]">{m.matchId}</td>
+                      <td className="py-3.5 px-4 text-center font-mono text-[#77736B] dark:text-[#8E8E93]">R{m.round}</td>
+                      <td className="py-3.5 px-4 font-bold text-[#171715] dark:text-[#FAF8F3] font-serif">{p1}</td>
+                      <td className="py-3.5 px-4 font-bold text-[#171715] dark:text-[#FAF8F3] font-serif">{p2}</td>
+                      <td className="py-3.5 px-4 text-center">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold ${
+                          m.status === 'live'
+                            ? 'bg-rose-100 dark:bg-rose-950/40 text-rose-800 dark:text-rose-400 border border-rose-300 dark:border-rose-800/60'
+                            : m.status === 'completed'
+                            ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800/60'
+                            : 'bg-[#EFEAE1] dark:bg-[#1D1D1B] text-[#4E4C47] dark:text-[#8E8E93] border border-[#D5CFC5] dark:border-[#262624]'
                         }`}>
+                          {m.status === 'live' && <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1 animate-ping" />}
                           {m.status}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-center font-mono font-bold text-[#0F172A] dark:text-[#F8FAFC]">
+                      <td className="py-3.5 px-4 text-center font-mono font-bold text-[#171715] dark:text-[#FAF8F3]">
                         {m.player1MaterialScore || 0} - {m.player2MaterialScore || 0}
                       </td>
-                      <td className="py-3 px-4 text-right space-x-2">
+                      <td className="py-3.5 px-4 text-right space-x-2">
                         {m.status === 'scheduled' && !m.isBye && (
                           <button
                             onClick={() => handleStartMatch(m._id)}
-                            className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-950 text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase inline-flex items-center gap-1 shadow-xs transition-colors"
+                            className="bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] text-[10px] font-semibold px-2.5 py-1 rounded-lg uppercase inline-flex items-center gap-1 shadow-xs transition-colors"
                           >
-                            <Play className="w-3 h-3 text-[#C9A227] dark:text-amber-600" />
+                            <Play className="w-3 h-3 text-amber-400" />
                             Start
                           </button>
                         )}
                         {!m.isBye && (
                           <button
                             onClick={() => openResultModal(m)}
-                            className="bg-[#C9A227] hover:bg-[#D4A94C] text-slate-950 text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase shadow-xs transition-colors"
+                            className="border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1] dark:bg-[#1D1D1B] hover:bg-[#E4DED5] dark:hover:bg-[#262624] text-[#171715] dark:text-[#FAF8F3] text-[10px] font-semibold px-2.5 py-1 rounded-lg uppercase shadow-xs transition-colors"
                           >
                             Enter Result
                           </button>
@@ -240,29 +218,40 @@ export default function ChessAdminMatchesPage() {
 
         {/* Enter Result Modal */}
         {resultModalMatch && (
-          <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-[#141B2D] border border-[#E2E8F0] dark:border-[#232A3B] rounded-2xl p-6 max-w-lg w-full shadow-2xl space-y-4 text-xs">
-              <div className="border-b border-[#E2E8F0] dark:border-[#232A3B] pb-3 flex justify-between items-center">
-                <h3 className="text-sm font-bold font-display text-[#0F172A] dark:text-[#F8FAFC]">
-                  ENTER MATCH RESULT - {resultModalMatch.matchId}
-                </h3>
-                <button onClick={() => setResultModalMatch(null)} className="text-[#64748B] hover:text-[#0F172A] dark:hover:text-[#F8FAFC]">✕</button>
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-5 text-xs text-[#171715] dark:text-[#FAF8F3]">
+              
+              <div className="border-b border-[#D5CFC5] dark:border-[#262624] pb-3 flex justify-between items-center">
+                <div>
+                  <span className="text-[10px] font-mono font-semibold text-[#77736B] dark:text-[#A8A49C] uppercase tracking-wider block">
+                    FINAL SCORING & DECISION
+                  </span>
+                  <h3 className="text-base font-bold font-serif text-[#171715] dark:text-[#FAF8F3] mt-0.5">
+                    Match Result — {resultModalMatch.matchId}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setResultModalMatch(null)}
+                  className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#EFEAE1] dark:hover:bg-[#1D1D1B] text-[#77736B] dark:text-[#8E8E93] text-sm"
+                >
+                  ✕
+                </button>
               </div>
 
               <form onSubmit={handleSubmitResult} className="space-y-4">
                 {/* Captured counts player 1 */}
-                <div className="bg-slate-50 dark:bg-[#1A2337] p-3 rounded-xl border border-[#E2E8F0] dark:border-[#232A3B]">
-                  <span className="font-bold text-[#0F172A] dark:text-[#F8FAFC] block mb-2">{resultModalMatch.player1?.fullName} Captured Pieces:</span>
+                <div className="bg-[#F5F2EB] dark:bg-[#1D1D1B] p-3.5 rounded-xl border border-[#D5CFC5] dark:border-[#262624]">
+                  <span className="font-bold font-serif text-[#171715] dark:text-[#FAF8F3] block mb-2">{resultModalMatch.player1?.fullName} Captured Pieces:</span>
                   <div className="grid grid-cols-5 gap-2 text-center">
                     {['pawns', 'knights', 'bishops', 'rooks', 'queens'].map(k => (
                       <div key={k}>
-                        <span className="text-[9px] uppercase font-mono block text-[#64748B] dark:text-[#94A3B8]">{k}</span>
+                        <span className="text-[9px] uppercase font-mono block text-[#77736B] dark:text-[#8E8E93]">{k}</span>
                         <input
                           type="number"
                           min={0}
                           value={p1Captured[k]}
                           onChange={(e) => setP1Captured({ ...p1Captured, [k]: Number(e.target.value) })}
-                          className="w-full bg-white dark:bg-[#141B2D] border border-[#E2E8F0] dark:border-[#232A3B] rounded-lg p-1 text-center font-bold text-[#0F172A] dark:text-[#F8FAFC]"
+                          className="w-full bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-lg p-1.5 text-center font-bold text-[#171715] dark:text-[#FAF8F3] focus:outline-none"
                         />
                       </div>
                     ))}
@@ -270,31 +259,31 @@ export default function ChessAdminMatchesPage() {
                 </div>
 
                 {/* Captured counts player 2 */}
-                <div className="bg-slate-50 dark:bg-[#1A2337] p-3 rounded-xl border border-[#E2E8F0] dark:border-[#232A3B]">
-                  <span className="font-bold text-[#0F172A] dark:text-[#F8FAFC] block mb-2">{resultModalMatch.player2?.fullName} Captured Pieces:</span>
+                <div className="bg-[#F5F2EB] dark:bg-[#1D1D1B] p-3.5 rounded-xl border border-[#D5CFC5] dark:border-[#262624]">
+                  <span className="font-bold font-serif text-[#171715] dark:text-[#FAF8F3] block mb-2">{resultModalMatch.player2?.fullName} Captured Pieces:</span>
                   <div className="grid grid-cols-5 gap-2 text-center">
                     {['pawns', 'knights', 'bishops', 'rooks', 'queens'].map(k => (
                       <div key={k}>
-                        <span className="text-[9px] uppercase font-mono block text-[#64748B] dark:text-[#94A3B8]">{k}</span>
+                        <span className="text-[9px] uppercase font-mono block text-[#77736B] dark:text-[#8E8E93]">{k}</span>
                         <input
                           type="number"
                           min={0}
                           value={p2Captured[k]}
                           onChange={(e) => setP2Captured({ ...p2Captured, [k]: Number(e.target.value) })}
-                          className="w-full bg-white dark:bg-[#141B2D] border border-[#E2E8F0] dark:border-[#232A3B] rounded-lg p-1 text-center font-bold text-[#0F172A] dark:text-[#F8FAFC]"
+                          className="w-full bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-lg p-1.5 text-center font-bold text-[#171715] dark:text-[#FAF8F3] focus:outline-none"
                         />
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block font-bold text-[#0F172A] dark:text-[#F8FAFC] mb-1">Declare Winner</label>
+                    <label className="block font-semibold text-[#171715] dark:text-[#FAF8F3] mb-1">Declare Winner</label>
                     <select
                       value={winnerChoice}
                       onChange={(e) => setWinnerChoice(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-[#1A2337] border border-[#E2E8F0] dark:border-[#232A3B] rounded-xl p-2 font-semibold text-[#0F172A] dark:text-[#F8FAFC]"
+                      className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl p-2.5 font-medium text-[#171715] dark:text-[#FAF8F3] focus:outline-none"
                     >
                       <option value="none">Auto-Calculate from Material Score</option>
                       <option value="player1">Player 1 ({resultModalMatch.player1?.fullName})</option>
@@ -304,11 +293,11 @@ export default function ChessAdminMatchesPage() {
                   </div>
 
                   <div>
-                    <label className="block font-bold text-[#0F172A] dark:text-[#F8FAFC] mb-1">Result Type</label>
+                    <label className="block font-semibold text-[#171715] dark:text-[#FAF8F3] mb-1">Result Type</label>
                     <select
                       value={resultTypeChoice}
                       onChange={(e) => setResultTypeChoice(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-[#1A2337] border border-[#E2E8F0] dark:border-[#232A3B] rounded-xl p-2 font-semibold text-[#0F172A] dark:text-[#F8FAFC]"
+                      className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl p-2.5 font-medium text-[#171715] dark:text-[#FAF8F3] focus:outline-none"
                     >
                       <option value="checkmate">Checkmate</option>
                       <option value="time_out">Time Out</option>
@@ -319,11 +308,11 @@ export default function ChessAdminMatchesPage() {
                   </div>
                 </div>
 
-                <div className="pt-2 flex justify-end gap-2">
+                <div className="pt-3 border-t border-[#D5CFC5] dark:border-[#262624] flex justify-end gap-2.5">
                   <button
                     type="button"
                     onClick={() => setResultModalMatch(null)}
-                    className="px-4 py-2 border border-[#E2E8F0] dark:border-[#232A3B] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-xl font-bold transition-colors"
+                    className="px-4 py-2 border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1] dark:bg-[#1D1D1B] text-[#171715] dark:text-[#FAF8F3] rounded-xl font-semibold hover:bg-[#E4DED5] dark:hover:bg-[#262624] transition-colors"
                   >
                     Cancel
                   </button>
@@ -331,7 +320,7 @@ export default function ChessAdminMatchesPage() {
                   <button
                     type="submit"
                     disabled={submitLoading}
-                    className="px-4 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-[#D4AF37] dark:hover:bg-[#C9A227] text-white dark:text-slate-950 rounded-xl font-bold uppercase transition-all shadow-xs"
+                    className="px-5 py-2 bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] rounded-xl font-semibold uppercase tracking-wider transition-all shadow-xs"
                   >
                     {submitLoading ? 'Saving...' : 'Submit Result'}
                   </button>

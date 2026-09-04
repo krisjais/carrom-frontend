@@ -63,13 +63,54 @@ module.exports = {
         main: '#FAF9F6',
         card: '#FFFFFF',
         darkfooter: '#3E342B',
+
+        // Chess Editorial Tokens
+        navy: {
+          950: '#0F1A30',
+          900: '#152442',
+          850: '#1E3258',
+          800: '#233A66',
+          700: '#2A457A',
+          600: '#35538C',
+          500: '#4A6FA5',
+        },
+        cream: {
+          100: '#FFF6E5',
+          200: '#FFECC7',
+          300: '#FFE2AA',
+          400: '#FFD691',
+          500: '#ECC177',
+          600: '#D7A859',
+        },
+        coral: {
+          400: '#FF96A4',
+          500: '#FF6E80',
+          600: '#E65366',
+          700: '#C7384A',
+        },
+        warm: {
+          canvas: '#F5F2EB',
+          surface: '#EFEAE1',
+          surface2: '#E4DED5',
+          light: '#FAF8F3',
+          text: '#171715',
+          secondary: '#4E4C47',
+          muted: '#77736B',
+          border: '#D5CFC5',
+          borderStrong: '#BDB6AA',
+          buttonDark: '#22221F',
+          buttonDarkHover: '#000000',
+        }
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
         serif: ['"Playfair Display"', 'Georgia', 'serif'],
-        display: ['"Playfair Display"', 'Georgia', 'serif'],
+        editorial: ['"Playfair Display"', 'Georgia', 'serif'],
+        cinzel: ['"Cinzel"', 'serif'],
         cormorant: ['"Cormorant Garamond"', 'Georgia', 'serif'],
         dmserif: ['"DM Serif Display"', 'Georgia', 'serif'],
+        display: ['"Playfair Display"', 'Oswald', 'Outfit', 'Inter', 'sans-serif'],
+        condensed: ['Oswald', 'sans-serif'],
         mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
       },
       borderRadius: {
@@ -93,4 +134,3 @@ module.exports = {
   },
   plugins: [],
 };
-

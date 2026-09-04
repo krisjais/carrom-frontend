@@ -2,8 +2,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Trophy, Clock, Users, ChevronDown, UserPlus } from 'lucide-react';
-import { Chess3DHeroCanvas } from './Chess3DHeroCanvas';
+import { ArrowRight } from 'lucide-react';
 import gsap from 'gsap';
 
 export function ChessHeroCard({ stats }) {
@@ -13,160 +12,182 @@ export function ChessHeroCard({ stats }) {
   const liveCount = stats?.liveMatches ?? 0;
 
   const containerRef = useRef(null);
-  const eyebrowRef = useRef(null);
-  const line1Ref = useRef(null);
-  const line2Ref = useRef(null);
-  const line3Ref = useRef(null);
-  const descRef = useRef(null);
-  const statsRef = useRef(null);
-  const ctaRef = useRef(null);
-  const scrollIndRef = useRef(null);
+  const textRef = useRef(null);
+  const statsRowRef = useRef(null);
 
-  // Coordinated GSAP Entrance Animation Sequence
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || typeof window === 'undefined') return;
 
     const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+      gsap.fromTo(
+        textRef.current?.children || [],
+        { opacity: 0, y: 24 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          stagger: 0.1,
+          ease: 'power2.out',
+        }
+      );
 
-      tl.fromTo(
-        eyebrowRef.current,
-        { y: 15, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.5, delay: 0.1 }
-      )
-        .fromTo(
-          [line1Ref.current, line2Ref.current, line3Ref.current],
-          { y: 35, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.65, stagger: 0.16 },
-          '-=0.3'
-        )
-        .fromTo(
-          descRef.current,
-          { y: 20, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.5 },
-          '-=0.3'
-        )
-        .fromTo(
-          statsRef.current?.children || [],
-          { y: 20, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.45, stagger: 0.08 },
-          '-=0.2'
-        )
-        .fromTo(
-          ctaRef.current,
-          { y: 15, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.5 },
-          '-=0.2'
-        )
-        .fromTo(
-          scrollIndRef.current,
-          { opacity: 0 },
-          { opacity: 1, duration: 0.4 },
-          '-=0.1'
+      if (statsRowRef.current) {
+        gsap.fromTo(
+          statsRowRef.current.children,
+          { opacity: 0, y: 15 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.6,
+            stagger: 0.08,
+            delay: 0.35,
+            ease: 'power2.out',
+          }
         );
+      }
     }, containerRef);
 
     return () => ctx.revert();
   }, []);
 
   return (
-    <div
+    <section
       ref={containerRef}
-      className="relative overflow-hidden rounded-3xl bg-[#0A0A0C] text-white p-6 sm:p-10 shadow-2xl border border-black/40 min-h-[520px] flex flex-col justify-between"
+      className="relative overflow-hidden pt-6 pb-12 sm:pb-16 lg:pb-20 transition-all"
     >
-      
-      {/* Background 3D Three.js Hero Canvas on Right */}
-      <div className="absolute right-0 top-0 bottom-0 w-full sm:w-1/2 opacity-85 sm:opacity-95 pointer-events-auto z-0">
-        <Chess3DHeroCanvas />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0A0A0C] via-[#0A0A0C]/75 to-transparent pointer-events-none" />
-      </div>
-
-      {/* Hero Content */}
-      <div className="relative z-10 max-w-xl space-y-6 pt-2">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-6 items-center">
         
-        {/* Eyebrow */}
-        <span ref={eyebrowRef} className="text-xs font-mono font-bold text-[#C9A227] uppercase tracking-widest block">
-          CHESS CHAMPIONSHIP 2026
-        </span>
-
-        {/* Line-by-Line Staggered Editorial Headline */}
-        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black font-display tracking-tight text-white uppercase leading-[1.05]">
-          <span ref={line1Ref} className="block text-white">THINK AHEAD.</span>
-          <span ref={line2Ref} className="block text-[#C9A227]">PLAY SMART.</span>
-          <span ref={line3Ref} className="block text-white">FINISH STRONG.</span>
-        </h1>
-
-        {/* Supporting Paragraph */}
-        <p ref={descRef} className="text-xs sm:text-sm text-gray-300 font-sans font-normal leading-relaxed max-w-md">
-          Welcome to the official Inter-College Chess Championship. Compete under strict 10-minute match timers, earn material points, and claim the championship crown.
-        </p>
-
-        {/* 4 Stats Badges */}
-        <div ref={statsRef} className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+        {/* LEFT COLUMN: Editorial Text, CTA Buttons & Horizontal Stat Strip */}
+        <div className="lg:col-span-7 flex flex-col justify-between space-y-8 sm:space-y-10 z-10">
           
-          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-2.5 text-left transition-transform hover:scale-102">
-            <div className="flex items-center gap-1.5 text-xs text-[#C9A227] font-bold">
-              <Users className="w-3.5 h-3.5" />
-              <span className="font-mono text-sm">{registeredCount}</span>
+          <div ref={textRef} className="space-y-5">
+            {/* Spaced Uppercase Eyebrow */}
+            <div className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.25em] text-[#77736B] dark:text-[#A8A49C] font-semibold">
+              <span>THINK</span>
+              <span>•</span>
+              <span>PLAN</span>
+              <span>•</span>
+              <span>CONQUER</span>
             </div>
-            <span className="text-[10px] text-gray-300 uppercase block font-medium">Registered Players</span>
+
+            {/* Huge Editorial Serif Headline */}
+            <h1 className="text-4xl sm:text-6xl xl:text-7xl font-normal font-serif text-[#171715] dark:text-[#FAF8F3] tracking-tight leading-[1.08]">
+              More Than a Game, <br />
+              <span className="italic font-serif">A Sharper You.</span>
+            </h1>
+
+            {/* Supporting Copy */}
+            <p className="text-sm sm:text-base text-[#4E4C47] dark:text-[#A8A49C] font-sans leading-relaxed max-w-lg">
+              Welcome to the official Inter-College Chess Championship. Compete under strict 10-minute blitz timers, accumulate material points, and claim the collegiate crown.
+            </p>
+
+            {/* Dual Pill CTA Buttons */}
+            <div className="flex flex-wrap items-center gap-3.5 pt-2">
+              <Link
+                href="/chess/register"
+                className="inline-flex items-center gap-2 bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-[#000000] dark:hover:bg-[#FFFFFF] text-[#FAF8F3] dark:text-[#0D0D0D] font-semibold px-7 py-3.5 rounded-full text-xs uppercase tracking-wider transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5 active:translate-y-0"
+              >
+                <span>Start Playing</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+
+              <Link
+                href="/chess/standings"
+                className="inline-flex items-center gap-2 border border-[#D5CFC5] dark:border-[#262624] bg-transparent hover:bg-[#EFEAE1]/60 dark:hover:bg-[#1D1D1B] text-[#171715] dark:text-[#FAF8F3] font-semibold px-7 py-3.5 rounded-full text-xs uppercase tracking-wider transition-colors duration-200"
+              >
+                <span>Explore Standings</span>
+              </Link>
+            </div>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-2.5 text-left transition-transform hover:scale-102">
-            <div className="flex items-center gap-1.5 text-xs text-[#C9A227] font-bold">
-              <Trophy className="w-3.5 h-3.5" />
-              <span className="font-mono text-sm">Round {currentRound}</span>
+          {/* HORIZONTAL STAT STRIP (Integrated like reference) */}
+          <div
+            ref={statsRowRef}
+            className="pt-6 border-t border-[#D5CFC5]/80 dark:border-[#262624] grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8"
+          >
+            <div>
+              <div className="text-2xl sm:text-3xl font-serif font-bold text-[#171715] dark:text-[#FAF8F3] tracking-tight">
+                {registeredCount}+
+              </div>
+              <div className="text-xs text-[#77736B] dark:text-[#8E8E93] font-medium pt-0.5">
+                Registered Players
+              </div>
             </div>
-            <span className="text-[10px] text-gray-300 uppercase block font-medium">Current Round</span>
-          </div>
 
-          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-2.5 text-left transition-transform hover:scale-102">
-            <div className="flex items-center gap-1.5 text-xs text-[#C9A227] font-bold">
-              <Clock className="w-3.5 h-3.5" />
-              <span className="font-mono text-sm">{matchDuration} Min</span>
+            <div>
+              <div className="text-2xl sm:text-3xl font-serif font-bold text-[#171715] dark:text-[#FAF8F3] tracking-tight">
+                Round {currentRound}
+              </div>
+              <div className="text-xs text-[#77736B] dark:text-[#8E8E93] font-medium pt-0.5">
+                Tournament Stage
+              </div>
             </div>
-            <span className="text-[10px] text-gray-300 uppercase block font-medium">Match Duration</span>
-          </div>
 
-          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-2.5 text-left transition-transform hover:scale-102">
-            <div className="flex items-center gap-1.5 text-xs text-red-400 font-bold">
-              <span className="live-dot" />
-              <span className="font-mono text-sm">Live ({liveCount})</span>
+            <div>
+              <div className="text-2xl sm:text-3xl font-serif font-bold text-[#171715] dark:text-[#FAF8F3] tracking-tight">
+                {matchDuration} Min
+              </div>
+              <div className="text-xs text-[#77736B] dark:text-[#8E8E93] font-medium pt-0.5">
+                Match Timer
+              </div>
             </div>
-            <span className="text-[10px] text-gray-300 uppercase block font-medium">Matches Ongoing</span>
+
+            <div>
+              <div className="text-2xl sm:text-3xl font-serif font-bold text-[#171715] dark:text-[#FAF8F3] tracking-tight flex items-center gap-2">
+                <span>{liveCount}</span>
+                {liveCount > 0 && (
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping inline-block" />
+                )}
+              </div>
+              <div className="text-xs text-[#77736B] dark:text-[#8E8E93] font-medium pt-0.5">
+                Live Matches
+              </div>
+            </div>
           </div>
 
         </div>
 
-        {/* CTA Buttons */}
-        <div ref={ctaRef} className="flex flex-wrap items-center gap-3 pt-2">
-          <Link
-            href="/chess/register"
-            className="bg-[#C9A227] hover:bg-[#D4A94C] text-black font-bold px-6 py-3 rounded-xl transition-all shadow-md hover:shadow-lg text-xs uppercase tracking-wider font-display flex items-center gap-2 group"
-          >
-            <UserPlus className="w-4 h-4 text-black group-hover:scale-110 transition-transform" />
-            <span>Register Now</span>
-          </Link>
+        {/* RIGHT COLUMN: Luxury Photographic King with Decorative Cursive Callout */}
+        <div className="lg:col-span-5 relative flex items-center justify-center min-h-[380px] sm:min-h-[480px] select-none">
+          
+          {/* Subtle Decorative Editorial Callout with Arrow */}
+          <div className="absolute top-2 right-4 sm:right-8 z-20 text-right pointer-events-none hidden sm:block">
+            <span className="font-serif italic text-lg sm:text-xl text-[#77736B] dark:text-[#A8A49C] block leading-snug">
+              Better Moves <br />
+              <span className="font-sans text-sm tracking-wide not-italic opacity-80">Brighter Mind</span>
+            </span>
+            <svg
+              className="w-10 h-10 ml-auto mt-1 text-[#77736B]/60 dark:text-[#A8A49C]/60 rotate-12"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+          </div>
 
-          <Link
-            href="/chess/standings"
-            className="border border-white/40 hover:bg-white/10 text-white font-semibold px-6 py-3 rounded-xl transition-colors text-xs uppercase tracking-wider font-display"
-          >
-            View Standings
-          </Link>
+          {/* Luxury Studio Chess King Image - Light & Dark variants */}
+          <div className="relative w-full max-w-sm sm:max-w-md aspect-[3/4] rounded-3xl overflow-hidden shadow-2xl border border-[#D5CFC5]/60 dark:border-[#262624] group">
+            {/* Light Mode King Image */}
+            <img
+              src="/chess_hero_king_light.jpg"
+              alt="Chess King Light"
+              className="w-full h-full object-cover object-center dark:hidden transition-transform duration-700 group-hover:scale-105"
+            />
+            {/* Dark Mode King Image */}
+            <img
+              src="/chess_hero_king_dark.jpg"
+              alt="Chess King Dark"
+              className="w-full h-full object-cover object-center hidden dark:block transition-transform duration-700 group-hover:scale-105"
+            />
+            
+            {/* Soft Ambient Inner Vignette */}
+            <div className="absolute inset-0 ring-1 ring-inset ring-black/5 dark:ring-white/10 rounded-3xl pointer-events-none" />
+          </div>
+
         </div>
 
       </div>
-
-      {/* Scroll to Explore Indicator */}
-      <div ref={scrollIndRef} className="relative z-10 pt-6 flex items-center justify-between border-t border-white/10 text-gray-400 text-[10px] font-mono uppercase tracking-widest">
-        <span>INTER-COLLEGE CHESS 2026</span>
-        <div className="flex items-center gap-1.5 text-gray-300 animate-bounce">
-          <span>Scroll to explore</span>
-          <ChevronDown className="w-3.5 h-3.5 text-[#C9A227]" />
-        </div>
-      </div>
-
-    </div>
+    </section>
   );
 }

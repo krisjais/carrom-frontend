@@ -5,21 +5,12 @@ import { useRouter } from 'next/navigation';
 import { chessApi } from '@/lib/chessApi';
 import { AdminSidebar } from '@/components/chess/AdminSidebar';
 import { StandingsTable } from '@/components/chess/StandingsTable';
-import { RefreshCw, Download, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 
 export default function ChessAdminStandingsPage() {
   const router = useRouter();
   const [standings, setStandings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [toastMessage, setToastMessage] = useState(null);
-
-  const showToast = (message, type = 'success') => {
-    setToastMessage({ message, type });
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 4000);
-  };
 
   async function loadStandings() {
     if (!chessApi.isAdminAuthenticated()) {
@@ -34,7 +25,6 @@ export default function ChessAdminStandingsPage() {
       }
     } catch (err) {
       console.error('Error loading standings:', err);
-      showToast(err.message || 'Error loading standings', 'error');
     } finally {
       setLoading(false);
     }
@@ -45,62 +35,42 @@ export default function ChessAdminStandingsPage() {
   }, [router]);
 
   const handleRecalculate = async () => {
-    setRefreshing(true);
     try {
       const res = await chessApi.refreshStandings();
       if (res.success) {
-        showToast('Standings recalculated successfully!');
         loadStandings();
-      } else {
-        showToast(res.message || 'Failed to refresh standings', 'error');
       }
     } catch (err) {
-      showToast(err.message || 'Error refreshing standings.', 'error');
-    } finally {
-      setRefreshing(false);
+      alert(err.message || 'Error refreshing standings.');
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F6F9] dark:bg-[#0B0F17] flex flex-col lg:flex-row font-sans text-[#0F172A] dark:text-[#F8FAFC] antialiased transition-colors relative">
+    <div className="min-h-screen bg-[#F5F2EB] dark:bg-[#0D0D0D] flex flex-col lg:flex-row font-sans text-[#171715] dark:text-[#FAF8F3] antialiased transition-colors">
       <AdminSidebar />
 
-      <main className="flex-1 p-4 sm:p-8 max-w-7xl mx-auto w-full space-y-6 pb-20">
+      <main className="flex-1 p-4 sm:p-8 max-w-7xl mx-auto w-full space-y-6">
         
-        {/* Toast Alert */}
-        {toastMessage && (
-          <div className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-xs font-semibold animate-in fade-in slide-in-from-top-4 duration-200 ${
-            toastMessage.type === 'error' 
-              ? 'bg-red-50 dark:bg-red-950/90 text-red-700 dark:text-red-200 border-red-200 dark:border-red-800' 
-              : 'bg-emerald-50 dark:bg-emerald-950/90 text-emerald-700 dark:text-emerald-200 border-emerald-200 dark:border-emerald-800'
-          }`}>
-            {toastMessage.type === 'error' ? (
-              <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
-            ) : (
-              <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
-            )}
-            <span>{toastMessage.message}</span>
-          </div>
-        )}
-
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-[#141B2D] border border-[#E2E8F0] dark:border-[#232A3B] p-6 rounded-2xl shadow-sm">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] p-6 rounded-2xl shadow-xs">
           <div>
-            <span className="text-xs font-mono font-bold text-[#C9A227] dark:text-[#D4AF37] uppercase tracking-widest block">
+            <span className="text-[10px] font-mono font-semibold text-[#77736B] dark:text-[#A8A49C] uppercase tracking-widest block">
               LEADERBOARD RECALCULATION & ENGINE
             </span>
-            <h1 className="text-2xl font-bold font-display text-[#0F172A] dark:text-[#F8FAFC] uppercase tracking-wide">
-              STANDINGS MANAGEMENT
+            <h1 className="text-2xl font-bold font-serif text-[#171715] dark:text-[#FAF8F3] tracking-tight mt-1">
+              Standings Management
             </h1>
+            <p className="text-xs text-[#4E4C47] dark:text-[#8E8E93] mt-1">
+              Recalculate cumulative points, material piece captured points, and rank order.
+            </p>
           </div>
 
           <div className="flex gap-2">
             <button
               onClick={handleRecalculate}
-              disabled={refreshing}
-              className="bg-slate-900 hover:bg-slate-800 dark:bg-[#D4AF37] dark:hover:bg-[#C9A227] text-white dark:text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs uppercase font-display tracking-wider shadow-sm flex items-center gap-2 transition-all disabled:opacity-50"
+              className="bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] font-semibold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-xs flex items-center gap-2 transition-all hover:-translate-y-0.5"
             >
-              {refreshing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5 text-[#C9A227] dark:text-slate-950" />}
+              <RefreshCw className="w-3.5 h-3.5" />
               <span>Recalculate Standings</span>
             </button>
           </div>

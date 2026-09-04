@@ -4,17 +4,12 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { chessApi } from '@/lib/chessApi';
 import { AdminSidebar } from '@/components/chess/AdminSidebar';
-import { ConfirmationModal } from '@/components/chess/ConfirmationModal';
-import { Settings, Save, RotateCcw, AlertTriangle, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Save, RotateCcw, Loader2 } from 'lucide-react';
 
 export default function ChessAdminSettingsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [toastMessage, setToastMessage] = useState(null);
-  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
-  const [resetLoading, setResetLoading] = useState(false);
-
   const [settings, setSettings] = useState({
     matchDuration: 10,
     currentRound: 1,
@@ -22,13 +17,6 @@ export default function ChessAdminSettingsPage() {
     piecePoints: { pawn: 1, knight: 3, bishop: 3, rook: 5, queen: 9, king: 0 },
     tournamentPoints: { win: 3, draw: 1, loss: 0 }
   });
-
-  const showToast = (message, type = 'success') => {
-    setToastMessage({ message, type });
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 4000);
-  };
 
   useEffect(() => {
     async function loadSettings() {
@@ -49,7 +37,6 @@ export default function ChessAdminSettingsPage() {
         }
       } catch (err) {
         console.error('Error loading settings:', err);
-        showToast(err.message || 'Error loading settings', 'error');
       } finally {
         setLoading(false);
       }
@@ -63,73 +50,53 @@ export default function ChessAdminSettingsPage() {
     try {
       const res = await chessApi.updateSettings(settings);
       if (res.success) {
-        showToast('Tournament settings updated successfully!');
+        alert('Tournament settings updated successfully!');
       } else {
-        showToast(res.message || 'Failed to update settings.', 'error');
+        alert(res.message || 'Failed to update settings.');
       }
     } catch (err) {
-      showToast(err.message || 'Error updating settings.', 'error');
+      alert(err.message || 'Error updating settings.');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleResetConfirm = async () => {
-    setResetLoading(true);
+  const handleReset = async () => {
+    if (!confirm('CAUTION: Are you sure you want to RESET ALL TOURNAMENT DATA? This clears all registrations and match records.')) return;
     try {
       const res = await chessApi.resetTournamentData();
       if (res.success) {
-        showToast(res.message || 'Tournament reset successfully.');
-        setIsResetModalOpen(false);
-        setTimeout(() => {
-          window.location.reload();
-        }, 1200);
-      } else {
-        showToast(res.message || 'Failed to reset tournament data.', 'error');
+        alert(res.message || 'Tournament reset successfully.');
+        window.location.reload();
       }
     } catch (err) {
-      showToast(err.message || 'Error resetting tournament.', 'error');
-    } finally {
-      setResetLoading(false);
+      alert(err.message || 'Error resetting tournament.');
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F6F9] dark:bg-[#0B0F17] flex flex-col lg:flex-row font-sans text-[#0F172A] dark:text-[#F8FAFC] antialiased transition-colors relative">
+    <div className="min-h-screen bg-[#F5F2EB] dark:bg-[#0D0D0D] flex flex-col lg:flex-row font-sans text-[#171715] dark:text-[#FAF8F3] antialiased transition-colors">
       <AdminSidebar />
 
       <main className="flex-1 p-4 sm:p-8 max-w-7xl mx-auto w-full space-y-6">
         
-        {/* Toast Alert */}
-        {toastMessage && (
-          <div className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-xs font-semibold animate-in fade-in slide-in-from-top-4 duration-200 ${
-            toastMessage.type === 'error' 
-              ? 'bg-red-50 dark:bg-red-950/90 text-red-700 dark:text-red-200 border-red-200 dark:border-red-800' 
-              : 'bg-emerald-50 dark:bg-emerald-950/90 text-emerald-700 dark:text-emerald-200 border-emerald-200 dark:border-emerald-800'
-          }`}>
-            {toastMessage.type === 'error' ? (
-              <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
-            ) : (
-              <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
-            )}
-            <span>{toastMessage.message}</span>
-          </div>
-        )}
-
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-[#141B2D] border border-[#E2E8F0] dark:border-[#232A3B] p-6 rounded-2xl shadow-sm">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] p-6 rounded-2xl shadow-xs">
           <div>
-            <span className="text-xs font-mono font-bold text-[#C9A227] dark:text-[#D4AF37] uppercase tracking-widest block">
+            <span className="text-[10px] font-mono font-semibold text-[#77736B] dark:text-[#A8A49C] uppercase tracking-widest block">
               TOURNAMENT RULEBOOK & CONFIGURATION
             </span>
-            <h1 className="text-2xl font-bold font-display text-[#0F172A] dark:text-[#F8FAFC] uppercase tracking-wide">
-              PORTAL SETTINGS
+            <h1 className="text-2xl font-bold font-serif text-[#171715] dark:text-[#FAF8F3] tracking-tight mt-1">
+              Portal Settings
             </h1>
+            <p className="text-xs text-[#4E4C47] dark:text-[#8E8E93] mt-1">
+              Configure round parameters, time controls, and piece scoring weights.
+            </p>
           </div>
 
           <button
-            onClick={() => setIsResetModalOpen(true)}
-            className="bg-red-600 hover:bg-red-700 dark:bg-red-600/90 dark:hover:bg-red-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs uppercase font-display tracking-wider shadow-sm flex items-center gap-2 transition-all"
+            onClick={handleReset}
+            className="border border-rose-300 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/20 hover:bg-rose-100 dark:hover:bg-rose-950/40 text-rose-700 dark:text-rose-300 font-semibold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-xs flex items-center gap-2 transition-all"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Reset All Tournament Data</span>
@@ -138,40 +105,44 @@ export default function ChessAdminSettingsPage() {
 
         {/* Settings Form */}
         {loading ? (
-          <div className="text-center py-16 text-[#64748B] dark:text-[#94A3B8] bg-white dark:bg-[#141B2D] rounded-2xl border border-[#E2E8F0] dark:border-[#232A3B]">
-            Loading settings...
+          <div className="text-center py-16 text-[#77736B] dark:text-[#8E8E93] bg-[#FAF8F3] dark:bg-[#151514] rounded-2xl border border-[#D5CFC5] dark:border-[#262624]">
+            Loading tournament configuration...
           </div>
         ) : (
-          <form onSubmit={handleSave} className="bg-white dark:bg-[#141B2D] border border-[#E2E8F0] dark:border-[#232A3B] rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm max-w-3xl">
+          <form onSubmit={handleSave} className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-6 sm:p-8 space-y-6 shadow-xs max-w-3xl">
             
             {/* General Settings */}
             <div className="space-y-4">
-              <h3 className="text-xs font-bold font-display text-[#0F172A] dark:text-[#F8FAFC] uppercase border-b border-[#E2E8F0] dark:border-[#232A3B] pb-2">
-                1. GENERAL TOURNAMENT RULES
+              <h3 className="text-xs font-bold font-serif text-[#171715] dark:text-[#FAF8F3] uppercase tracking-wider border-b border-[#D5CFC5] dark:border-[#262624] pb-2">
+                1. General Tournament Rules
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div>
-                  <label className="block font-bold text-[#0F172A] dark:text-[#F8FAFC] uppercase mb-1">Match Duration (Minutes)</label>
+                  <label className="block font-semibold text-[#171715] dark:text-[#FAF8F3] uppercase tracking-wider mb-1.5 font-mono text-[11px]">
+                    Match Duration (Minutes)
+                  </label>
                   <input
                     type="number"
                     min={1}
                     max={60}
                     value={settings.matchDuration}
                     onChange={(e) => setSettings({ ...settings, matchDuration: Number(e.target.value) })}
-                    className="w-full bg-slate-50 dark:bg-[#1A2337] border border-[#E2E8F0] dark:border-[#232A3B] focus:border-[#C9A227] dark:focus:border-[#D4AF37] rounded-xl p-2.5 font-bold font-mono text-[#0F172A] dark:text-[#F8FAFC] focus:outline-none transition-colors"
+                    className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl p-2.5 font-bold font-mono text-[#171715] dark:text-[#FAF8F3] focus:outline-none transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-[#0F172A] dark:text-[#F8FAFC] uppercase mb-1">Current Active Round</label>
+                  <label className="block font-semibold text-[#171715] dark:text-[#FAF8F3] uppercase tracking-wider mb-1.5 font-mono text-[11px]">
+                    Current Active Round
+                  </label>
                   <input
                     type="number"
                     min={1}
                     max={10}
                     value={settings.currentRound}
                     onChange={(e) => setSettings({ ...settings, currentRound: Number(e.target.value) })}
-                    className="w-full bg-slate-50 dark:bg-[#1A2337] border border-[#E2E8F0] dark:border-[#232A3B] focus:border-[#C9A227] dark:focus:border-[#D4AF37] rounded-xl p-2.5 font-bold font-mono text-[#0F172A] dark:text-[#F8FAFC] focus:outline-none transition-colors"
+                    className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl p-2.5 font-bold font-mono text-[#171715] dark:text-[#FAF8F3] focus:outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -179,14 +150,16 @@ export default function ChessAdminSettingsPage() {
 
             {/* Piece Points */}
             <div className="space-y-4 pt-2">
-              <h3 className="text-xs font-bold font-display text-[#0F172A] dark:text-[#F8FAFC] uppercase border-b border-[#E2E8F0] dark:border-[#232A3B] pb-2">
-                2. CHESS PIECE MATERIAL SCORING WEIGHTS
+              <h3 className="text-xs font-bold font-serif text-[#171715] dark:text-[#FAF8F3] uppercase tracking-wider border-b border-[#D5CFC5] dark:border-[#262624] pb-2">
+                2. Chess Piece Material Scoring Weights
               </h3>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
                 {['pawn', 'knight', 'bishop', 'rook', 'queen'].map((piece) => (
                   <div key={piece}>
-                    <label className="block font-bold text-[#0F172A] dark:text-[#F8FAFC] uppercase mb-1 capitalize">{piece}</label>
+                    <label className="block font-semibold text-[#171715] dark:text-[#FAF8F3] uppercase tracking-wider mb-1.5 capitalize font-mono text-[11px]">
+                      {piece}
+                    </label>
                     <input
                       type="number"
                       min={0}
@@ -195,30 +168,32 @@ export default function ChessAdminSettingsPage() {
                         ...settings,
                         piecePoints: { ...settings.piecePoints, [piece]: Number(e.target.value) }
                       })}
-                      className="w-full bg-slate-50 dark:bg-[#1A2337] border border-[#E2E8F0] dark:border-[#232A3B] focus:border-[#C9A227] dark:focus:border-[#D4AF37] rounded-xl p-2 font-bold font-mono text-[#0F172A] dark:text-[#F8FAFC] focus:outline-none transition-colors"
+                      className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl p-2 font-bold font-mono text-[#171715] dark:text-[#FAF8F3] focus:outline-none transition-colors"
                     />
                   </div>
                 ))}
                 <div>
-                  <label className="block font-bold text-[#64748B] dark:text-[#94A3B8] uppercase mb-1">King (Locked)</label>
+                  <label className="block font-semibold text-[#77736B] dark:text-[#8E8E93] uppercase tracking-wider mb-1.5 font-mono text-[11px]">
+                    King (Locked)
+                  </label>
                   <input
                     type="number"
                     disabled
                     value={0}
-                    className="w-full bg-slate-100 dark:bg-slate-800 border border-[#E2E8F0] dark:border-[#232A3B] rounded-xl p-2 font-bold font-mono text-slate-400 dark:text-slate-500 cursor-not-allowed"
+                    className="w-full bg-[#EFEAE1]/50 dark:bg-[#1D1D1B]/50 border border-[#D5CFC5] dark:border-[#262624] rounded-xl p-2 font-bold font-mono text-[#77736B] dark:text-[#8E8E93] cursor-not-allowed"
                   />
                 </div>
               </div>
             </div>
 
             {/* Submit button */}
-            <div className="pt-4 border-t border-[#E2E8F0] dark:border-[#232A3B]">
+            <div className="pt-4 border-t border-[#D5CFC5] dark:border-[#262624]">
               <button
                 type="submit"
                 disabled={saving}
-                className="bg-slate-900 hover:bg-slate-800 dark:bg-[#D4AF37] dark:hover:bg-[#C9A227] text-white dark:text-slate-950 font-bold px-6 py-3 rounded-xl text-xs uppercase font-display tracking-wider shadow-sm flex items-center gap-2 transition-all"
+                className="bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] font-semibold px-6 py-3 rounded-xl text-xs uppercase tracking-wider shadow-xs flex items-center gap-2 transition-all hover:-translate-y-0.5"
               >
-                {saving ? <Loader2 className="w-4 h-4 animate-spin text-[#C9A227] dark:text-slate-950" /> : <Save className="w-4 h-4 text-[#C9A227] dark:text-slate-950" />}
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 <span>Save Tournament Configuration</span>
               </button>
             </div>
@@ -227,20 +202,6 @@ export default function ChessAdminSettingsPage() {
         )}
 
       </main>
-
-      {/* Confirmation Modal */}
-      <ConfirmationModal
-        isOpen={isResetModalOpen}
-        title="Reset All Tournament Data"
-        message="CAUTION: Are you sure you want to RESET ALL TOURNAMENT DATA? This will permanently clear all player registrations, match pairings, and leaderboard standings. This action CANNOT be undone."
-        confirmText="Reset Tournament"
-        cancelText="Cancel"
-        isDestructive={true}
-        loading={resetLoading}
-        onConfirm={handleResetConfirm}
-        onCancel={() => setIsResetModalOpen(false)}
-      />
-
     </div>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { AlertTriangle, Trash2, X, Loader2 } from 'lucide-react';
+import { AlertTriangle, X } from 'lucide-react';
 
 export function ConfirmationModal({
   isOpen,
@@ -12,77 +12,54 @@ export function ConfirmationModal({
   isDestructive = true,
   onConfirm,
   onCancel,
-  loading = false,
-  icon: CustomIcon
+  loading = false
 }) {
   if (!isOpen) return null;
 
-  const IconComponent = CustomIcon || (isDestructive ? Trash2 : AlertTriangle);
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-[#141B2D] border border-[#E2E8F0] dark:border-[#232A3B] rounded-2xl p-6 sm:p-7 max-w-md w-full shadow-2xl space-y-5 animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+      <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6">
         
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
-              isDestructive 
-                ? 'bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400' 
-                : 'bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-[#C9A227] dark:text-[#D4AF37]'
+            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
+              isDestructive ? 'bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900/60 text-red-600 dark:text-red-400' : 'bg-[#EFEAE1] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] text-[#171715] dark:text-[#FAF8F3]'
             }`}>
-              <IconComponent className="w-5 h-5" />
+              <AlertTriangle className="w-5 h-5" />
             </div>
-            <div>
-              <h3 className="text-base font-bold font-display text-[#0F172A] dark:text-[#F8FAFC] uppercase tracking-wide">
-                {title}
-              </h3>
-              <span className="text-[10px] font-mono uppercase text-[#64748B] dark:text-[#94A3B8] block font-semibold">
-                Action Confirmation
-              </span>
-            </div>
+            <h3 className="text-xl font-bold font-serif text-[#171715] dark:text-[#FAF8F3]">{title}</h3>
           </div>
-
           <button
             onClick={onCancel}
             disabled={loading}
-            className="text-[#64748B] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#F8FAFC] p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#1A2337] transition-colors"
+            className="text-[#77736B] hover:text-[#171715] dark:text-[#8E8E93] dark:hover:text-[#FAF8F3] p-1 rounded-lg hover:bg-[#EFEAE1] dark:hover:bg-[#1D1D1B]"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-3.5 bg-slate-50 dark:bg-[#161F33] border border-[#E2E8F0] dark:border-[#232A3B] rounded-xl text-xs text-[#475569] dark:text-[#CBD5E1] leading-relaxed">
+        <p className="text-sm text-[#4E4C47] dark:text-[#9E9B93] leading-relaxed">
           {message}
-        </div>
+        </p>
 
-        <div className="flex items-center gap-3 justify-end pt-1">
+        <div className="flex items-center gap-3 justify-end pt-2">
           <button
-            type="button"
             onClick={onCancel}
             disabled={loading}
-            className="px-4 py-2.5 rounded-xl border border-[#CBD5E1] dark:border-[#334155] hover:bg-slate-100 dark:hover:bg-[#1E293B] text-[#0F172A] dark:text-[#F8FAFC] text-xs uppercase tracking-wider font-display font-bold transition-colors disabled:opacity-50"
+            className="px-5 py-2.5 rounded-xl border border-[#D5CFC5] dark:border-[#262624] hover:bg-[#EFEAE1] dark:hover:bg-[#1D1D1B] text-[#171715] dark:text-[#FAF8F3] text-xs uppercase tracking-wider font-mono font-medium transition-colors"
           >
             {cancelText}
           </button>
-          
           <button
-            type="button"
             onClick={onConfirm}
             disabled={loading}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider font-display transition-all disabled:opacity-50 shadow-sm ${
+            className={`px-6 py-2.5 rounded-xl font-medium text-xs uppercase tracking-wider font-mono transition-all ${
               isDestructive
-                ? 'bg-red-600 hover:bg-red-500 active:bg-red-700 text-white'
-                : 'bg-[#C9A227] hover:bg-[#b08d20] dark:bg-[#D4AF37] dark:hover:bg-[#C9A227] text-slate-950'
+                ? 'bg-red-600 hover:bg-red-700 text-white shadow-xs'
+                : 'bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-[#000000] dark:hover:bg-[#FFFFFF] text-[#FAF8F3] dark:text-[#0D0D0D] shadow-xs'
             }`}
           >
-            {loading ? (
-              <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                <span>Processing...</span>
-              </>
-            ) : (
-              confirmText
-            )}
+            {loading ? 'Processing...' : confirmText}
           </button>
         </div>
 

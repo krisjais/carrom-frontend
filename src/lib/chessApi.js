@@ -238,6 +238,57 @@ export const chessApi = {
     });
   },
 
+  bulkUpdateStatus: async (ids = [], status = 'Approved') => {
+    let updatedCount = 0;
+    for (const id of ids) {
+      try {
+        const res = await chessApi.updateRegistrationStatus(id, status);
+        if (res.success) updatedCount++;
+      } catch (e) {
+        console.error(`Error updating player ${id}:`, e);
+      }
+    }
+    return { success: true, count: updatedCount };
+  },
+
+  bulkDeletePlayers: async (ids = []) => {
+    let deletedCount = 0;
+    for (const id of ids) {
+      try {
+        const res = await chessApi.deletePlayer(id);
+        if (res.success) deletedCount++;
+      } catch (e) {
+        console.error(`Error deleting player ${id}:`, e);
+      }
+    }
+    return { success: true, count: deletedCount };
+  },
+
+  bulkImportPlayers: async (players = [], initialStatus = 'Approved') => {
+    let imported = 0;
+    const errors = [];
+    for (const p of players) {
+      try {
+        const res = await chessApi.registerPlayer({
+          fullName: p.fullName || p.name || '',
+          email: p.email || '',
+          department: p.department || p.team || 'IT Team'
+        });
+        if (res.success && res.data) {
+          if (initialStatus === 'Approved') {
+            await chessApi.updateRegistrationStatus(res.data._id || res.data.playerId, 'Approved');
+          }
+          imported++;
+        } else {
+          errors.push(res.message || `Failed to register ${p.fullName}`);
+        }
+      } catch (e) {
+        errors.push(e.message || `Error importing ${p.fullName}`);
+      }
+    }
+    return { success: imported > 0, count: imported, errors };
+  },
+
   // Admin Match Management
   getAdminMatches: async (params = {}) => {
     const query = new URLSearchParams(params).toString();
