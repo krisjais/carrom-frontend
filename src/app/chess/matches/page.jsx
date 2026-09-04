@@ -10,6 +10,7 @@ import { Filter, Calendar, Swords, Radio } from 'lucide-react';
 
 export default function ChessMatchesPage() {
   const [matches, setMatches] = useState([]);
+  const [rounds, setRounds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
   const [roundFilter, setRoundFilter] = useState('all');
@@ -17,12 +18,18 @@ export default function ChessMatchesPage() {
   useEffect(() => {
     async function loadMatches() {
       try {
-        const res = await chessApi.getMatches();
-        if (res.success) {
-          setMatches(res.data || []);
+        const [matchRes, roundRes] = await Promise.all([
+          chessApi.getMatches(),
+          chessApi.getRounds()
+        ]);
+        if (matchRes.success) {
+          setMatches(matchRes.data || []);
+        }
+        if (roundRes.success && Array.isArray(roundRes.data)) {
+          setRounds(roundRes.data);
         }
       } catch (err) {
-        console.error('Error loading matches:', err);
+        console.error('Error loading matches/rounds:', err);
       } finally {
         setLoading(false);
       }
@@ -112,11 +119,17 @@ export default function ChessMatchesPage() {
                 className="bg-[#EFEAE1]/60 dark:bg-[#1B1B19] border border-[#D5CFC5]/70 dark:border-[#282826] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-3 py-2 text-xs font-mono text-[#171715] dark:text-[#FAF8F3] focus:outline-none transition-colors cursor-pointer"
               >
                 <option value="all">All Rounds</option>
-                <option value="1">Round 1</option>
-                <option value="2">Round 2</option>
-                <option value="3">Round 3</option>
-                <option value="4">Round 4</option>
-                <option value="5">Round 5</option>
+                {rounds.length > 0 ? (
+                  rounds.map((r) => (
+                    <option key={r.roundNumber} value={r.roundNumber}>
+                      Round {r.roundNumber}: {r.name}
+                    </option>
+                  ))
+                ) : (
+                  [1, 2, 3, 4, 5].map((rn) => (
+                    <option key={rn} value={rn}>Round {rn}</option>
+                  ))
+                )}
               </select>
             </div>
           </div>

@@ -289,6 +289,27 @@ export const chessApi = {
     return { success: imported > 0, count: imported, errors };
   },
 
+  // Admin Round Management
+  getAdminRounds: async () => {
+    return await safeFetch('/admin/rounds', { headers: getHeaders() });
+  },
+
+  createRound: async (payload) => {
+    const body = typeof payload === 'string' ? { name: payload } : payload;
+    return await safeFetch('/admin/rounds', {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(body)
+    });
+  },
+
+  deleteRound: async (id) => {
+    return await safeFetch(`/admin/rounds/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
+  },
+
   // Admin Match Management
   getAdminMatches: async (params = {}) => {
     const query = new URLSearchParams(params).toString();
