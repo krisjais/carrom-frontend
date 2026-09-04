@@ -5,53 +5,44 @@ import Link from 'next/link';
 
 export function ChessFooter() {
   return (
-    <footer className="bg-[#000000] text-white py-12 px-6 sm:px-12 border-t border-black mt-auto select-none">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+    <footer className="bg-[#FAF8F3] dark:bg-[#151514] text-[#171715] dark:text-[#FAF8F3] py-16 px-6 sm:px-12 border-t border-[#D5CFC5] dark:border-[#262624] mt-auto select-none transition-colors">
+      <div className="max-w-7xl mx-auto space-y-12">
         
-        {/* LEFT: Branding & Copyright */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-white text-black font-bold flex items-center justify-center text-lg shadow-xs">
-              ♟
-            </div>
-            <div>
-              <span className="text-sm font-extrabold font-display tracking-wide block leading-none text-white">
+        {/* Top row: Brand & Links */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 border-b border-[#D5CFC5]/60 dark:border-[#262624] pb-12">
+          <div className="space-y-2 max-w-sm">
+            <Link href="/chess" className="flex items-center gap-3 group">
+              <div className="w-8 h-8 rounded-full bg-[#22221F] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] font-bold flex items-center justify-center text-base shadow-xs group-hover:scale-105 transition-transform">
+                ♛
+              </div>
+              <span className="text-lg font-bold font-serif tracking-tight text-[#171715] dark:text-[#FAF8F3]">
                 CHESS PORTAL
               </span>
-              <span className="text-[9px] uppercase tracking-widest text-[#C9A227] font-mono font-bold block pt-0.5">
-                TOURNAMENT
-              </span>
-            </div>
+            </Link>
+            <p className="text-xs text-[#77736B] dark:text-[#8E8E93] leading-relaxed pt-1">
+              The premier inter-collegiate speed chess championship. 10-minute blitz format, real-time material scoring, and official standings.
+            </p>
           </div>
 
-          <p className="text-xs text-gray-400 font-sans leading-relaxed pt-1">
-            © 2026 Chess Championship. <br />
-            All rights reserved.
-          </p>
+          <nav className="flex flex-wrap gap-x-8 gap-y-3 text-xs uppercase tracking-wider font-semibold text-[#4E4C47] dark:text-[#A8A49C]">
+            <Link href="/chess" className="hover:text-[#171715] dark:hover:text-[#FAF8F3] transition-colors">Home</Link>
+            <Link href="/chess/players" className="hover:text-[#171715] dark:hover:text-[#FAF8F3] transition-colors">Players</Link>
+            <Link href="/chess/matches" className="hover:text-[#171715] dark:hover:text-[#FAF8F3] transition-colors">Matches</Link>
+            <Link href="/chess/standings" className="hover:text-[#171715] dark:hover:text-[#FAF8F3] transition-colors">Standings</Link>
+            <Link href="/chess/rules" className="hover:text-[#171715] dark:hover:text-[#FAF8F3] transition-colors">Rules</Link>
+            <Link href="/chess/register" className="hover:text-[#171715] dark:hover:text-[#FAF8F3] transition-colors font-bold">Register</Link>
+          </nav>
         </div>
 
-        {/* CENTER: Quick Links */}
-        <div>
-          <h4 className="text-xs font-mono font-bold uppercase tracking-widest text-[#C9A227] mb-4">
-            QUICK LINKS
-          </h4>
-          <ul className="space-y-2 text-xs text-gray-300 font-sans">
-            <li><Link href="/chess" className="hover:text-white transition-colors">Home</Link></li>
-            <li><Link href="/chess/players" className="hover:text-white transition-colors">Players Directory</Link></li>
-            <li><Link href="/chess/matches" className="hover:text-white transition-colors">Match Fixtures & Schedule</Link></li>
-            <li><Link href="/chess/standings" className="hover:text-white transition-colors">Official Standings</Link></li>
-          </ul>
-        </div>
-
-        {/* RIGHT: Tournament Support */}
-        <div>
-          <h4 className="text-xs font-mono font-bold uppercase tracking-widest text-[#C9A227] mb-4">
-            TOURNAMENT SUPPORT
-          </h4>
-          <ul className="space-y-2 text-xs text-gray-300 font-sans">
-            <li><Link href="/chess/rules" className="hover:text-white transition-colors">Tournament Rules</Link></li>
-            <li><Link href="/chess/register" className="hover:text-white transition-colors">Competitor Registration</Link></li>
-          </ul>
+        {/* Bottom row: Meta & Copyright */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] font-mono text-[#77736B] dark:text-[#8E8E93]">
+          <div>
+            © 2026 Inter-College Chess Championship. All rights reserved.
+          </div>
+          <div className="flex items-center gap-6">
+            <Link href="/chess/rules" className="hover:underline">Tournament Regulations</Link>
+            <Link href="/chess/admin/login" className="hover:underline">Admin Console</Link>
+          </div>
         </div>
 
       </div>

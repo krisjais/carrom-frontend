@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { chessApi } from '@/lib/chessApi';
-import { UserCheck, AlertCircle, Loader2, UserPlus, CheckCircle2, Copy } from 'lucide-react';
+import { UserCheck, AlertCircle, Loader2, UserPlus, CheckCircle2, Copy, ArrowRight } from 'lucide-react';
 
 export function RegistrationForm() {
   const [formData, setFormData] = useState({
@@ -70,61 +71,72 @@ export function RegistrationForm() {
 
   if (registeredPlayer) {
     return (
-      <div className="bg-white border border-[#E5E5E5] rounded-2xl p-8 text-center max-w-xl mx-auto shadow-xs space-y-6">
-        <div className="w-14 h-14 bg-emerald-50 border border-emerald-300 rounded-full flex items-center justify-center mx-auto text-emerald-600">
-          <CheckCircle2 className="w-8 h-8" />
+      <div className="bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl p-8 sm:p-10 text-center shadow-lg space-y-6">
+        <div className="w-14 h-14 bg-[#171715] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] rounded-2xl flex items-center justify-center mx-auto shadow-md">
+          <CheckCircle2 className="w-7 h-7" />
         </div>
 
         <div>
-          <span className="text-xs uppercase font-mono tracking-widest text-[#C9A227] font-bold block mb-1">
-            Application Received
+          <span className="text-[10px] uppercase font-mono tracking-[0.2em] text-[#77736B] dark:text-[#8E8E93] font-semibold block mb-1">
+            Application Approved
           </span>
-          <h2 className="text-2xl font-bold font-display text-[#111111]">
-            REGISTRATION SUCCESSFUL
+          <h2 className="text-2xl sm:text-3xl font-serif font-bold tracking-tight text-[#171715] dark:text-[#FAF8F3]">
+            Welcome to the Roster
           </h2>
         </div>
 
-        <div className="bg-gray-50 border border-[#E5E5E5] rounded-xl p-5 space-y-2">
-          <p className="text-xs text-[#666666] uppercase font-mono tracking-wider font-semibold">Your Official Player ID</p>
+        {/* Player ID Banner */}
+        <div className="bg-[#EFEAE1]/70 dark:bg-[#1B1B19] border border-[#D5CFC5] dark:border-[#282826] rounded-2xl p-6 space-y-2">
+          <p className="text-[10px] text-[#77736B] dark:text-[#8E8E93] uppercase font-mono tracking-widest font-semibold">
+            Official Competitor ID
+          </p>
           <div className="flex items-center justify-center gap-3">
-            <span className="text-3xl font-extrabold font-mono text-[#111111]">
+            <span className="text-3xl sm:text-4xl font-mono font-bold tracking-wider text-[#171715] dark:text-[#FAF8F3]">
               {registeredPlayer.playerId}
             </span>
             <button
               onClick={copyPlayerId}
-              className="p-2 text-[#666666] hover:text-[#111111] bg-white border border-[#E5E5E5] rounded-lg transition-colors"
+              className="p-2.5 text-[#171715] dark:text-[#FAF8F3] bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] hover:border-[#171715] dark:hover:border-[#FAF8F3] rounded-xl transition-colors"
               title="Copy Player ID"
             >
               <Copy className="w-4 h-4" />
             </button>
           </div>
-          {copied && <p className="text-xs text-emerald-600 font-mono">Copied to clipboard!</p>}
+          {copied && <p className="text-xs text-emerald-600 dark:text-emerald-400 font-mono">Copied to clipboard!</p>}
         </div>
 
-        <div className="text-left bg-gray-50 rounded-xl p-4 border border-[#E5E5E5] space-y-2 text-xs text-[#666666]">
-          <div className="flex justify-between border-b border-[#E5E5E5] pb-2">
-            <span>Name:</span>
-            <span className="text-[#111111] font-semibold">{registeredPlayer.fullName}</span>
+        {/* Player Profile Summary */}
+        <div className="text-left bg-[#EFEAE1]/40 dark:bg-[#1B1B19]/60 rounded-2xl p-5 border border-[#D5CFC5]/70 dark:border-[#282826] space-y-2.5 text-xs text-[#4E4C47] dark:text-[#9E9B93]">
+          <div className="flex justify-between border-b border-[#D5CFC5]/50 dark:border-[#262624] pb-2">
+            <span className="font-mono uppercase text-[10px]">Competitor:</span>
+            <span className="text-[#171715] dark:text-[#FAF8F3] font-serif font-bold text-sm">{registeredPlayer.fullName}</span>
           </div>
-          <div className="flex justify-between border-b border-[#E5E5E5] pb-2">
-            <span>Email:</span>
-            <span className="text-[#111111] font-semibold">{registeredPlayer.email}</span>
+          <div className="flex justify-between border-b border-[#D5CFC5]/50 dark:border-[#262624] pb-2">
+            <span className="font-mono uppercase text-[10px]">Email:</span>
+            <span className="text-[#171715] dark:text-[#FAF8F3] font-mono">{registeredPlayer.email}</span>
           </div>
           <div className="flex justify-between">
-            <span>Department:</span>
-            <span className="text-[#C9A227] font-semibold">{registeredPlayer.department}</span>
+            <span className="font-mono uppercase text-[10px]">Division:</span>
+            <span className="text-[#171715] dark:text-[#FAF8F3] font-medium">{registeredPlayer.department}</span>
           </div>
         </div>
 
-        <div className="pt-2">
+        <div className="flex flex-col sm:flex-row gap-3 pt-2">
+          <Link
+            href="/chess/players"
+            className="flex-1 inline-flex items-center justify-center gap-2 bg-[#171715] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] font-mono text-xs uppercase tracking-wider py-3.5 px-5 rounded-xl transition-all shadow-sm"
+          >
+            <span>View Competitor Roster</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
           <button
             onClick={() => {
               setRegisteredPlayer(null);
               setFormData({ fullName: '', email: '', department: 'IT Team' });
             }}
-            className="text-xs text-[#666666] hover:text-[#111111] underline transition-colors"
+            className="inline-flex items-center justify-center text-xs font-mono uppercase tracking-wider text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715] dark:hover:text-[#FAF8F3] py-3.5 px-5 rounded-xl border border-[#D5CFC5] dark:border-[#262624] transition-colors"
           >
-            Register Another Player
+            Register Another
           </button>
         </div>
       </div>
@@ -132,73 +144,73 @@ export function RegistrationForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white border border-[#E5E5E5] rounded-2xl p-8 max-w-xl mx-auto shadow-xs space-y-5">
+    <form onSubmit={handleSubmit} className="bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl p-7 sm:p-10 shadow-xs space-y-6">
       
-      <div className="border-b border-[#E5E5E5] pb-4">
-        <span className="text-xs font-mono font-bold text-[#C9A227] uppercase tracking-widest block mb-1">
-          Competitor Entry
+      <div className="border-b border-[#D5CFC5]/70 dark:border-[#262624] pb-5">
+        <span className="text-[10px] font-mono font-semibold text-[#77736B] dark:text-[#8E8E93] uppercase tracking-[0.2em] block mb-1">
+          Player Registration Form
         </span>
-        <h2 className="text-2xl font-bold font-display text-[#111111]">
-          PLAYER REGISTRATION
+        <h2 className="text-2xl sm:text-3xl font-serif font-bold tracking-tight text-[#171715] dark:text-[#FAF8F3]">
+          Claim Your Board
         </h2>
-        <p className="text-xs text-[#666666] mt-1">
-          Enter your details below to register for the Chess Championship 2026.
+        <p className="text-xs text-[#4E4C47] dark:text-[#9E9B93] mt-1 font-sans leading-relaxed">
+          Provide your official details below to enter the tournament bracket and receive your unique competitor ID.
         </p>
       </div>
 
       {apiError && (
-        <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl p-3.5 text-red-700 text-xs">
-          <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+        <div className="flex items-center gap-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 rounded-xl p-3.5 text-red-700 dark:text-red-400 text-xs">
+          <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0" />
           <span>{apiError}</span>
         </div>
       )}
 
       {/* Full Name */}
       <div className="space-y-1.5">
-        <label className="block text-xs font-mono font-bold text-[#111111] uppercase tracking-wider">
-          Full Name <span className="text-[#C9A227]">*</span>
+        <label className="block text-[11px] font-mono font-medium text-[#171715] dark:text-[#FAF8F3] uppercase tracking-wider">
+          Full Name <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
           value={formData.fullName}
           onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-          placeholder="e.g. Rahul Sharma"
+          placeholder="e.g. Garry Kasparov"
           disabled={loading}
-          className={`w-full bg-gray-50 border ${
-            errors.fullName ? 'border-red-500' : 'border-[#E5E5E5] focus:border-[#000000]'
-          } rounded-xl px-4 py-2.5 text-[#111111] placeholder-[#666666] focus:outline-none transition-colors text-xs font-sans`}
+          className={`w-full bg-[#EFEAE1]/60 dark:bg-[#1B1B19] border ${
+            errors.fullName ? 'border-red-400' : 'border-[#D5CFC5]/80 dark:border-[#282826] focus:border-[#171715] dark:focus:border-[#FAF8F3]'
+          } rounded-xl px-4 py-3 text-[#171715] dark:text-[#FAF8F3] placeholder-[#77736B] dark:placeholder-[#8E8E93] focus:outline-none transition-colors text-xs font-sans`}
         />
-        {errors.fullName && <p className="text-xs text-red-600">{errors.fullName}</p>}
+        {errors.fullName && <p className="text-xs text-red-600 dark:text-red-400">{errors.fullName}</p>}
       </div>
 
       {/* Email */}
       <div className="space-y-1.5">
-        <label className="block text-xs font-mono font-bold text-[#111111] uppercase tracking-wider">
-          College / Official Email <span className="text-[#C9A227]">*</span>
+        <label className="block text-[11px] font-mono font-medium text-[#171715] dark:text-[#FAF8F3] uppercase tracking-wider">
+          Official / College Email <span className="text-red-500">*</span>
         </label>
         <input
           type="email"
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          placeholder="e.g. rahul.sharma@college.edu"
+          placeholder="e.g. competitor@institution.edu"
           disabled={loading}
-          className={`w-full bg-gray-50 border ${
-            errors.email ? 'border-red-500' : 'border-[#E5E5E5] focus:border-[#000000]'
-          } rounded-xl px-4 py-2.5 text-[#111111] placeholder-[#666666] focus:outline-none transition-colors text-xs font-sans`}
+          className={`w-full bg-[#EFEAE1]/60 dark:bg-[#1B1B19] border ${
+            errors.email ? 'border-red-400' : 'border-[#D5CFC5]/80 dark:border-[#282826] focus:border-[#171715] dark:focus:border-[#FAF8F3]'
+          } rounded-xl px-4 py-3 text-[#171715] dark:text-[#FAF8F3] placeholder-[#77736B] dark:placeholder-[#8E8E93] focus:outline-none transition-colors text-xs font-sans`}
         />
-        {errors.email && <p className="text-xs text-red-600">{errors.email}</p>}
+        {errors.email && <p className="text-xs text-red-600 dark:text-red-400">{errors.email}</p>}
       </div>
 
       {/* Department / Team */}
       <div className="space-y-1.5">
-        <label className="block text-xs font-mono font-bold text-[#111111] uppercase tracking-wider">
-          Department / Team <span className="text-[#C9A227]">*</span>
+        <label className="block text-[11px] font-mono font-medium text-[#171715] dark:text-[#FAF8F3] uppercase tracking-wider">
+          Division / Department <span className="text-red-500">*</span>
         </label>
         <select
           value={formData.department}
           onChange={(e) => setFormData({ ...formData, department: e.target.value })}
           disabled={loading}
-          className="w-full bg-gray-50 border border-[#E5E5E5] focus:border-[#000000] rounded-xl px-4 py-2.5 text-[#111111] focus:outline-none transition-colors text-xs font-sans"
+          className="w-full bg-[#EFEAE1]/60 dark:bg-[#1B1B19] border border-[#D5CFC5]/80 dark:border-[#282826] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-4 py-3 text-[#171715] dark:text-[#FAF8F3] focus:outline-none transition-colors text-xs font-sans cursor-pointer"
         >
           {departments.map((dept) => (
             <option key={dept} value={dept}>
@@ -206,24 +218,24 @@ export function RegistrationForm() {
             </option>
           ))}
         </select>
-        {errors.department && <p className="text-xs text-red-600">{errors.department}</p>}
+        {errors.department && <p className="text-xs text-red-600 dark:text-red-400">{errors.department}</p>}
       </div>
 
       {/* Submit Button */}
       <button
         type="submit"
         disabled={loading}
-        className="w-full flex items-center justify-center gap-2 bg-[#000000] hover:bg-[#222222] disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-all shadow-xs uppercase tracking-wider font-display text-xs"
+        className="w-full flex items-center justify-center gap-2 bg-[#171715] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white active:scale-[0.99] disabled:opacity-50 text-[#FAF8F3] dark:text-[#0D0D0D] font-mono font-semibold py-3.5 rounded-xl transition-all shadow-sm uppercase tracking-wider text-xs"
       >
         {loading ? (
           <>
             <Loader2 className="w-4 h-4 animate-spin" />
-            <span>Submitting Registration...</span>
+            <span>Processing Application...</span>
           </>
         ) : (
           <>
-            <UserPlus className="w-4 h-4 text-[#C9A227]" />
             <span>Complete Registration</span>
+            <ArrowRight className="w-4 h-4" />
           </>
         )}
       </button>

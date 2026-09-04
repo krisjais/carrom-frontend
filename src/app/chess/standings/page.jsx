@@ -5,7 +5,7 @@ import { chessApi } from '@/lib/chessApi';
 import { ChessHeader } from '@/components/chess/ChessHeader';
 import { StandingsTable } from '@/components/chess/StandingsTable';
 import { ChessFooter } from '@/components/chess/ChessFooter';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Trophy, ShieldCheck } from 'lucide-react';
 
 export default function ChessStandingsPage() {
   const [standings, setStandings] = useState([]);
@@ -30,36 +30,41 @@ export default function ChessStandingsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7] flex flex-col font-sans text-[#111111] antialiased">
+    <div className="min-h-screen bg-[#F5F2EB] dark:bg-[#0D0D0D] flex flex-col font-sans text-[#171715] dark:text-[#FAF8F3] antialiased selection:bg-[#E4DED5] dark:selection:bg-[#2A2A28]">
       <ChessHeader />
 
-      <main className="flex-1 p-4 sm:p-8 max-w-7xl mx-auto w-full space-y-6">
+      <main className="flex-1 p-4 sm:p-8 max-w-7xl mx-auto w-full space-y-8">
         
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white border border-[#E5E5E5] p-6 rounded-2xl shadow-xs">
-          <div>
-            <span className="text-xs font-mono font-bold text-[#C9A227] uppercase tracking-widest block">
-              OFFICIAL LEADERBOARD
-            </span>
-            <h1 className="text-2xl font-bold font-display text-[#111111] uppercase">
-              TOURNAMENT STANDINGS
-            </h1>
-            <p className="text-xs text-[#666666] mt-1">
-              Ranked by Tournament Points (3 Win / 1 Draw), total Material Points, and Wins.
-            </p>
-          </div>
+        {/* Editorial Header Banner */}
+        <div className="relative overflow-hidden bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] p-8 sm:p-12 rounded-3xl">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 relative z-10">
+            <div className="max-w-2xl">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#171715] dark:bg-[#FAF8F3]" />
+                <span className="text-[11px] font-mono uppercase tracking-[0.25em] text-[#77736B] dark:text-[#8E8E93] font-semibold">
+                  Official Leaderboard • Championship Table
+                </span>
+              </div>
+              <h1 className="text-3xl sm:text-5xl font-serif font-bold text-[#171715] dark:text-[#FAF8F3] tracking-tight leading-[1.1]">
+                Ranked by Masters
+              </h1>
+              <p className="text-sm text-[#4E4C47] dark:text-[#9E9B93] mt-3 font-sans leading-relaxed">
+                Ranked primarily by Tournament Points (Win = 3 pts, Draw = 1 pt, Loss = 0 pts), then by accumulated Material Rating and head-to-head records.
+              </p>
+            </div>
 
-          <button
-            onClick={loadStandings}
-            disabled={loading}
-            className="inline-flex items-center gap-2 bg-[#000000] hover:bg-[#222222] text-white font-bold px-4 py-2.5 rounded-xl text-xs uppercase font-display tracking-wider transition-colors shadow-xs"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 text-[#C9A227] ${loading ? 'animate-spin' : ''}`} />
-            <span>Refresh Standings</span>
-          </button>
+            <button
+              onClick={loadStandings}
+              disabled={loading}
+              className="inline-flex items-center gap-2 bg-[#171715] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] font-mono font-medium px-5 py-3 rounded-xl text-xs uppercase tracking-wider transition-all shadow-sm shrink-0 w-full sm:w-auto justify-center"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+              <span>Refresh Standings</span>
+            </button>
+          </div>
         </div>
 
-        {/* Standings Table */}
+        {/* Standings Table & Podiums */}
         <StandingsTable standings={standings} loading={loading} />
 
       </main>

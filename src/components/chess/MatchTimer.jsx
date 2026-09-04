@@ -56,31 +56,31 @@ export function MatchTimer({ match, durationMinutes = 10, onTimeExpired }) {
     <div className="flex flex-col items-center justify-center space-y-1 w-full max-w-[120px]">
       <span className={`text-base sm:text-lg font-bold font-mono tracking-wider ${
         isExpired
-          ? 'text-red-600 animate-pulse'
+          ? 'text-red-600 dark:text-red-400 animate-pulse'
           : isUrgent
-          ? 'text-red-600 animate-pulse'
+          ? 'text-red-600 dark:text-red-400 animate-pulse'
           : isWarning
-          ? 'text-amber-600'
-          : 'text-[#C9A227]'
+          ? 'text-amber-600 dark:text-amber-400'
+          : 'text-[#171715] dark:text-[#FAF8F3]'
       }`}>
         {formatTime(timeLeftSeconds)}
       </span>
 
       {/* Visual Duration Progress Bar */}
-      <div className="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden border border-gray-100">
+      <div className="w-full bg-[#E4DED5] dark:bg-[#262624] h-1.5 rounded-full overflow-hidden">
         <div
           className={`h-full transition-all duration-1000 ${
             isExpired || isUrgent
-              ? 'bg-red-600'
+              ? 'bg-red-600 dark:bg-red-400'
               : isWarning
-              ? 'bg-amber-500'
-              : 'bg-[#C9A227]'
+              ? 'bg-amber-500 dark:bg-amber-400'
+              : 'bg-[#171715] dark:bg-[#FAF8F3]'
           }`}
           style={{ width: `${progressPercent}%` }}
         />
       </div>
 
-      <span className="text-[9px] text-[#666666] font-mono uppercase font-semibold">
+      <span className="text-[9px] text-[#77736B] dark:text-[#8E8E93] font-mono uppercase font-semibold">
         {isExpired ? 'Time Out' : 'Remaining'}
       </span>
     </div>

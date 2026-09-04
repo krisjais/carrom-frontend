@@ -13,7 +13,7 @@ export function AppShell({ children }) {
 
   if (isChessRoute) {
     return (
-      <main className="flex-1 flex flex-col min-h-screen bg-[#F7F7F7] dark:bg-[#09090B] text-[#111111] dark:text-[#F4F4F5] transition-colors">
+      <main className="flex-1 flex flex-col min-h-screen bg-[#F5F2EB] dark:bg-[#0D0D0D] text-[#171715] dark:text-[#FAF8F3] selection:bg-[#E4DED5] dark:selection:bg-[#2A2A28] selection:text-[#171715] dark:selection:text-[#FAF8F3] transition-colors font-sans antialiased">
         {children}
       </main>
     );
