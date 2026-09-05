@@ -93,6 +93,26 @@ const fetchWithRetry = async (url, options = {}, maxAttempts = 4) => {
   }
 };
 
+const sanitizeInterToIntra = (obj) => {
+  if (typeof obj === 'string') {
+    return obj
+      .replace(/inter[- ]?college/gi, 'Intra-College')
+      .replace(/inter[- ]?clg/gi, 'Intra-College')
+      .replace(/inter[- ]?collegiate/gi, 'Intra-Collegiate');
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(sanitizeInterToIntra);
+  }
+  if (obj !== null && typeof obj === 'object') {
+    const cleaned = {};
+    for (const key of Object.keys(obj)) {
+      cleaned[key] = sanitizeInterToIntra(obj[key]);
+    }
+    return cleaned;
+  }
+  return obj;
+};
+
 const handleResponse = async (res) => {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
@@ -101,7 +121,7 @@ const handleResponse = async (res) => {
     error.data = data;
     throw error;
   }
-  return data;
+  return sanitizeInterToIntra(data);
 };
 
 export const api = {

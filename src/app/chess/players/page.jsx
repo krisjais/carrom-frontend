@@ -7,23 +7,28 @@ import { PlayerCard } from '@/components/chess/PlayerCard';
 import { ChessFooter } from '@/components/chess/ChessFooter';
 import { Search, Filter, Users, Trophy, Sparkles } from 'lucide-react';
 
+import { DEMO_CHESS_PLAYERS } from '@/lib/chessDemoData';
+
 export default function ChessPlayersPage() {
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedDept, setSelectedDept] = useState('all');
 
-  const departments = ['all', 'First Year', 'Second Year', 'IT Team', 'MJ Team', 'HR Team'];
+  const departments = ['all', 'Computer Science', 'Mechanical Eng.', 'Electrical Eng.', 'Information Tech.', 'Electronics', 'Civil Engineering'];
 
   useEffect(() => {
     async function loadPlayers() {
       try {
         const res = await chessApi.getPlayers();
-        if (res.success) {
-          setPlayers(res.data || []);
+        if (res.success && res.data && res.data.length > 0) {
+          setPlayers(res.data);
+        } else {
+          setPlayers(DEMO_CHESS_PLAYERS);
         }
       } catch (err) {
         console.error('Error loading players:', err);
+        setPlayers(DEMO_CHESS_PLAYERS);
       } finally {
         setLoading(false);
       }
@@ -31,7 +36,9 @@ export default function ChessPlayersPage() {
     loadPlayers();
   }, []);
 
-  const filtered = players.filter((p) => {
+  const activePlayers = players.length > 0 ? players : DEMO_CHESS_PLAYERS;
+
+  const filtered = activePlayers.filter((p) => {
     const matchesDept = selectedDept === 'all' || p.department === selectedDept;
     const matchesSearch =
       !search ||

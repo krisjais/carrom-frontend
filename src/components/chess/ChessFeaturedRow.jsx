@@ -27,7 +27,7 @@ export function ChessFeaturedRow({ totalPlayers = 0 }) {
           <div className="flex-1 flex flex-col justify-between space-y-4">
             <div className="space-y-2">
               <span className="text-[10px] font-mono uppercase tracking-widest text-[#77736B] dark:text-[#A8A49C] font-semibold block">
-                INTER-COLLEGIATE NETWORK
+                INTRA-COLLEGIATE NETWORK
               </span>
               <h3 className="text-2xl font-bold font-serif text-[#171715] dark:text-[#FAF8F3] tracking-tight">
                 A Championship Community

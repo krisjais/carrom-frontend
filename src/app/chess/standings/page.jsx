@@ -7,6 +7,8 @@ import { StandingsTable } from '@/components/chess/StandingsTable';
 import { ChessFooter } from '@/components/chess/ChessFooter';
 import { RefreshCw, Trophy, ShieldCheck } from 'lucide-react';
 
+import { DEMO_CHESS_STANDINGS } from '@/lib/chessDemoData';
+
 export default function ChessStandingsPage() {
   const [standings, setStandings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,11 +17,14 @@ export default function ChessStandingsPage() {
     setLoading(true);
     try {
       const res = await chessApi.getStandings();
-      if (res.success) {
-        setStandings(res.data || []);
+      if (res.success && res.data && res.data.length > 0) {
+        setStandings(res.data);
+      } else {
+        setStandings(DEMO_CHESS_STANDINGS);
       }
     } catch (err) {
       console.error('Error loading standings:', err);
+      setStandings(DEMO_CHESS_STANDINGS);
     } finally {
       setLoading(false);
     }
@@ -28,6 +33,8 @@ export default function ChessStandingsPage() {
   useEffect(() => {
     loadStandings();
   }, []);
+
+  const activeStandings = standings.length > 0 ? standings : DEMO_CHESS_STANDINGS;
 
   return (
     <div className="min-h-screen bg-[#F5F2EB] dark:bg-[#0D0D0D] flex flex-col font-sans text-[#171715] dark:text-[#FAF8F3] antialiased selection:bg-[#E4DED5] dark:selection:bg-[#2A2A28]">
@@ -65,7 +72,7 @@ export default function ChessStandingsPage() {
         </div>
 
         {/* Standings Table & Podiums */}
-        <StandingsTable standings={standings} loading={loading} />
+        <StandingsTable standings={activeStandings} loading={loading} />
 
       </main>
 

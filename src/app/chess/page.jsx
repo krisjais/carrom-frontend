@@ -16,6 +16,8 @@ import { ChessFooter } from '@/components/chess/ChessFooter';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
+import { DEMO_CHESS_STATS, DEMO_CHESS_MATCHES, DEMO_CHESS_STANDINGS } from '@/lib/chessDemoData';
+
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
 }
@@ -56,9 +58,13 @@ export default function ChessPortalHome() {
     loadData();
   }, []);
 
-  const liveMatches = matches.filter((m) => m.status === 'live');
-  const upcomingMatch = matches.find((m) => m.status === 'scheduled') || null;
-  const totalPlayersCount = stats?.totalRegistrations ?? stats?.registeredCount ?? standings.length ?? 0;
+  const displayStats = (stats && (stats.totalRegistrations > 0 || stats.registeredCount > 0)) ? stats : DEMO_CHESS_STATS;
+  const displayMatches = matches && matches.length > 0 ? matches : DEMO_CHESS_MATCHES;
+  const displayStandings = standings && standings.length > 0 ? standings : DEMO_CHESS_STANDINGS;
+
+  const liveMatches = displayMatches.filter((m) => m.status === 'live');
+  const upcomingMatch = displayMatches.find((m) => m.status === 'scheduled') || null;
+  const totalPlayersCount = displayStats?.totalRegistrations ?? displayStats?.registeredCount ?? displayStandings.length;
 
   return (
     <div className="min-h-screen bg-[#F5F2EB] dark:bg-[#0D0D0D] flex flex-col font-sans text-[#171715] dark:text-[#FAF8F3] antialiased selection:bg-[#E4DED5] dark:selection:bg-[#2A2A28] transition-colors duration-300">
@@ -70,7 +76,7 @@ export default function ChessPortalHome() {
       <main ref={mainContainerRef} className="flex-1 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-4">
         
         {/* HERO SECTION: Editorial 2-column with studio photographic king & stat strip */}
-        <ChessHeroCard stats={stats} />
+        <ChessHeroCard stats={displayStats} />
 
         {/* TOURNAMENT OVERVIEW: "Choose Your Mode / Play Your Way" 4-card grid */}
         <ChessModeGrid />
@@ -82,7 +88,7 @@ export default function ChessPortalHome() {
         <ChessLiveSection liveMatches={liveMatches} />
 
         {/* RECENT MATCHES FIXTURES */}
-        <RecentMatchesTable matches={matches} loading={loading} />
+        <RecentMatchesTable matches={displayMatches} loading={loading} />
 
         {/* PROCESS TIMELINE: "Your Path to the Championship" */}
         <HowItWorksGrid />
@@ -93,7 +99,7 @@ export default function ChessPortalHome() {
             
             {/* Top Players Podium (7 cols) */}
             <div className="lg:col-span-7">
-              <TopPlayersCard standings={standings} />
+              <TopPlayersCard standings={displayStandings} />
             </div>
 
             {/* Next on the Board & Piece Values (5 cols) */}

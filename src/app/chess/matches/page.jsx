@@ -8,6 +8,8 @@ import { LiveMatchCard } from '@/components/chess/LiveMatchCard';
 import { ChessFooter } from '@/components/chess/ChessFooter';
 import { Filter, Calendar, Swords, Radio } from 'lucide-react';
 
+import { DEMO_CHESS_MATCHES } from '@/lib/chessDemoData';
+
 export default function ChessMatchesPage() {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,11 +20,14 @@ export default function ChessMatchesPage() {
     async function loadMatches() {
       try {
         const res = await chessApi.getMatches();
-        if (res.success) {
-          setMatches(res.data || []);
+        if (res.success && res.data && res.data.length > 0) {
+          setMatches(res.data);
+        } else {
+          setMatches(DEMO_CHESS_MATCHES);
         }
       } catch (err) {
         console.error('Error loading matches:', err);
+        setMatches(DEMO_CHESS_MATCHES);
       } finally {
         setLoading(false);
       }
@@ -30,13 +35,15 @@ export default function ChessMatchesPage() {
     loadMatches();
   }, []);
 
-  const filteredMatches = matches.filter((m) => {
+  const activeMatches = matches.length > 0 ? matches : DEMO_CHESS_MATCHES;
+
+  const filteredMatches = activeMatches.filter((m) => {
     const matchesStatus = statusFilter === 'all' || m.status?.toLowerCase() === statusFilter.toLowerCase();
     const matchesRound = roundFilter === 'all' || m.round === Number(roundFilter);
     return matchesStatus && matchesRound;
   });
 
-  const liveMatches = matches.filter((m) => m.status?.toLowerCase() === 'live');
+  const liveMatches = activeMatches.filter((m) => m.status?.toLowerCase() === 'live');
 
   return (
     <div className="min-h-screen bg-[#F5F2EB] dark:bg-[#0D0D0D] flex flex-col font-sans text-[#171715] dark:text-[#FAF8F3] antialiased selection:bg-[#E4DED5] dark:selection:bg-[#2A2A28]">

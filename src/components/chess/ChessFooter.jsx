@@ -20,7 +20,7 @@ export function ChessFooter() {
               </span>
             </Link>
             <p className="text-xs text-[#77736B] dark:text-[#8E8E93] leading-relaxed pt-1">
-              The premier inter-collegiate speed chess championship. 10-minute blitz format, real-time material scoring, and official standings.
+              The premier intra-collegiate speed chess championship. 10-minute blitz format, real-time material scoring, and official standings.
             </p>
           </div>
 
@@ -37,7 +37,7 @@ export function ChessFooter() {
         {/* Bottom row: Meta & Copyright */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] font-mono text-[#77736B] dark:text-[#8E8E93]">
           <div>
-            © 2026 Inter-College Chess Championship. All rights reserved.
+            © 2026 Intra-College Chess Championship. All rights reserved.
           </div>
           <div className="flex items-center gap-6">
             <Link href="/chess/rules" className="hover:underline">Tournament Regulations</Link>
