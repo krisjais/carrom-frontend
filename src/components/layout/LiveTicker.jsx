@@ -37,7 +37,7 @@ export const LiveTicker = () => {
         <div className="flex items-center gap-3 overflow-hidden">
           <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-[10px] font-bold shrink-0 font-mono tracking-wider">
             <span className="live-dot" />
-            <span>ARENA LIVE</span>
+            <span>BOARD 1 LIVE</span>
           </div>
 
           <Link

@@ -96,66 +96,64 @@ export default function HomePage() {
   return (
     <div className="flex-1 flex flex-col space-y-16 sm:space-y-24 pb-24 overflow-hidden bg-[#F4F0E6] dark:bg-[#0F0E0D] text-[#171614] dark:text-[#F7F4EC] transition-colors duration-200">
       {/* 1. EDITORIAL CARROM HERO SECTION */}
-      <section className="relative pt-8 sm:pt-14 pb-16 sm:pb-20 border-b border-[#DCD6C8] dark:border-[#2E2B26]">
+      <section className="relative pt-6 sm:pt-14 pb-12 sm:pb-20 border-b border-[#DCD6C8] dark:border-[#2E2B26]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* Left Column: Statement & Action Buttons */}
-            <div className="lg:col-span-7 flex flex-col items-start text-left space-y-6 sm:space-y-7">
+            <div className="lg:col-span-7 flex flex-col items-start text-left space-y-5 sm:space-y-7">
               {/* Eyebrow Label */}
-              <div className="flex items-center gap-2">
-                <span className="eyebrow-label">
-                  {stats?.tournament?.title ? `${stats.tournament.title.toUpperCase()} ${stats.tournament.edition || ''}` : 'INTER-COLLEGIATE CHAMPIONSHIP 2026'}
-                </span>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#D93829]" />
-                <span className="text-[10px] font-mono text-[#6F6A60] dark:text-[#A39C8F] font-bold uppercase">
-                  MAIN ARENA
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="eyebrow-label text-[10px] sm:text-[11px]">
+                  {stats?.tournament?.title ? `${stats.tournament.title.toUpperCase()} ${stats.tournament.edition || ''}` : 'INTRA-COLLEGIATE CHAMPIONSHIP 2026'}
                 </span>
               </div>
 
               {/* Large Serif Editorial Headline */}
               <div className="space-y-1">
-                <h1 className="text-5xl sm:text-7xl lg:text-8xl font-serif font-black tracking-tight text-[#171614] dark:text-[#F7F4EC] leading-[0.98]">
+                <h1 className="text-4xl sm:text-7xl lg:text-8xl font-serif font-black tracking-tight text-[#171614] dark:text-[#F7F4EC] leading-none">
                   CARROM
                 </h1>
-                <p className="text-2xl sm:text-4xl lg:text-5xl font-serif italic text-[#6F6A60] dark:text-[#A39C8F] tracking-tight font-normal">
+                <p className="text-xl sm:text-4xl lg:text-5xl font-serif italic text-[#6F6A60] dark:text-[#A39C8F] tracking-tight font-normal">
                   Play. Compete. Connect.
                 </p>
               </div>
 
               {/* Supporting Text */}
-              <p className="text-sm sm:text-base text-[#6F6A60] dark:text-[#A39C8F] max-w-xl font-normal leading-relaxed text-left font-sans">
+              <p className="text-xs sm:text-base text-[#6F6A60] dark:text-[#A39C8F] max-w-xl font-normal leading-relaxed text-left font-sans">
                 The official tournament platform for collegiate carrom athletics. Single-game knockout brackets, sequential matches on the single Main Carrom Board, and verified student athlete rosters.
               </p>
 
-              {/* Call to Action Buttons */}
-              <div className="flex flex-wrap items-center gap-3.5 pt-2">
+              {/* Call to Action Buttons (Optimized for Mobile Touch) */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3.5 pt-1 w-full sm:w-auto">
                 <Link
                   href="/registration"
-                  className="btn-primary text-xs sm:text-sm font-bold tracking-wider px-8 py-3.5 shadow-sm"
+                  className="btn-primary text-xs sm:text-sm font-bold tracking-wider px-6 sm:px-8 py-3.5 shadow-sm text-center justify-center"
                 >
                   <span>JOIN / REGISTER</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
-                <Link
-                  href="/live"
-                  className="btn-secondary text-xs sm:text-sm font-bold tracking-wider px-7 py-3.5 flex items-center gap-2"
-                >
-                  <span className="live-dot" />
-                  <span>WATCH LIVE</span>
-                </Link>
-                <Link
-                  href="/tournament"
-                  className="px-5 py-3.5 text-xs font-bold text-[#6F6A60] dark:text-[#A39C8F] hover:text-[#171614] dark:hover:text-white uppercase tracking-wider transition-colors font-mono"
-                >
-                  View Details →
-                </Link>
+                <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-3">
+                  <Link
+                    href="/live"
+                    className="btn-secondary text-xs sm:text-sm font-bold tracking-wider px-4 sm:px-7 py-3.5 flex items-center justify-center gap-2 text-center"
+                  >
+                    <span className="live-dot" />
+                    <span>WATCH LIVE</span>
+                  </Link>
+                  <Link
+                    href="/tournament"
+                    className="px-4 py-3.5 text-xs font-bold text-[#6F6A60] dark:text-[#A39C8F] hover:text-[#171614] dark:hover:text-white uppercase tracking-wider transition-colors font-mono text-center flex items-center justify-center rounded-xl border border-[#DCD6C8] dark:border-[#2E2B26] sm:border-0"
+                  >
+                    Details →
+                  </Link>
+                </div>
               </div>
             </div>
 
-            {/* Right Column: High-Res Editorial Photography Card Matching Reference */}
-            <div className="lg:col-span-5 flex justify-center lg:justify-end">
-              <div className="relative w-full max-w-lg rounded-3xl overflow-hidden border border-[#DCD6C8] dark:border-[#2E2B26] shadow-xl bg-[#F7F4EC] dark:bg-[#1D1C19] p-3 group">
-                <div className="relative h-72 sm:h-96 w-full rounded-2xl overflow-hidden bg-[#FAF7F0] dark:bg-[#1D1C19]">
+            {/* Right Column: High-Res Editorial Photography Card (No text overlay) */}
+            <div className="lg:col-span-5 flex justify-center lg:justify-end w-full">
+              <div className="relative w-full max-w-lg rounded-3xl overflow-hidden border border-[#DCD6C8] dark:border-[#2E2B26] shadow-xl bg-[#F7F4EC] dark:bg-[#1D1C19] p-2.5 sm:p-3 group">
+                <div className="relative h-64 sm:h-96 w-full rounded-2xl overflow-hidden bg-[#FAF7F0] dark:bg-[#1D1C19]">
                   <Image
                     src="/carrom_striker_coins_hero.jpg"
                     alt="Championship Carrom Striker and Coins"
@@ -165,17 +163,7 @@ export default function HomePage() {
                     sizes="(max-width: 768px) 100vw, 550px"
                   />
                   
-                  {/* Handwritten Editorial Script (Matching Reference: 'Good Shots Great People') */}
-                  <div className="absolute top-4 right-4 text-right pointer-events-none drop-shadow-sm select-none">
-                    <span className="font-serif italic font-normal text-xl sm:text-2xl text-[#857B6C] dark:text-[#C5BCAC] leading-none block transform rotate-[-8deg]">
-                      Good Shots
-                    </span>
-                    <span className="font-serif italic font-normal text-lg sm:text-xl text-[#857B6C] dark:text-[#C5BCAC] leading-tight block transform rotate-[-6deg] mr-2">
-                      Great People
-                    </span>
-                  </div>
-
-                  {/* Carousel Indicator Dots from Reference */}
+                  {/* Subtle Carousel Indicator Dots */}
                   <div className="absolute bottom-4 right-4 flex items-center gap-1.5 pointer-events-none">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#171614] dark:bg-white" />
                     <span className="w-1.5 h-1.5 rounded-full bg-[#171614]/30 dark:bg-white/30" />
@@ -188,47 +176,47 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 2. TOURNAMENT STATISTICS (Live Real-Time Data) */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full -mt-8 sm:-mt-12 relative z-20">
-        <div className="scoreboard-strip p-6 sm:p-8 bg-[#FFFFFF] dark:bg-[#171614] border border-[#DCD6C8] dark:border-[#2E2B26] rounded-2xl shadow-sm">
-          <div className="grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-[#DCD6C8] dark:divide-[#2E2B26] text-center">
+      {/* 2. TOURNAMENT STATISTICS (Symmetrical Mobile Cards + Desktop Strip) */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full -mt-6 sm:-mt-12 relative z-20">
+        <div className="scoreboard-strip p-4 sm:p-8 bg-[#FFFFFF] dark:bg-[#171614] border border-[#DCD6C8] dark:border-[#2E2B26] rounded-2xl sm:rounded-3xl shadow-sm">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-0 lg:divide-x lg:divide-[#DCD6C8] dark:lg:divide-[#2E2B26] text-center">
             {/* Stat 1: Registered Athletes */}
-            <div className="p-4 sm:p-2 space-y-1">
-              <div className="text-3xl sm:text-4xl font-serif font-black text-[#171614] dark:text-[#F7F4EC]">
+            <div className="p-3 sm:p-4 space-y-1 bg-[#F7F4EC]/60 dark:bg-[#1D1C19]/60 lg:bg-transparent rounded-xl lg:rounded-none">
+              <div className="text-2xl sm:text-4xl font-serif font-black text-[#171614] dark:text-[#F7F4EC]">
                 {loading ? '—' : (stats?.totalParticipants ?? 0)}
               </div>
-              <p className="text-[10px] sm:text-[11px] text-[#6F6A60] dark:text-[#A39C8F] font-sans font-bold uppercase tracking-[0.18em]">
+              <p className="text-[9px] sm:text-[11px] text-[#6F6A60] dark:text-[#A39C8F] font-sans font-bold uppercase tracking-[0.14em] sm:tracking-[0.18em]">
                 Registered Athletes
               </p>
             </div>
 
             {/* Stat 2: Divisions */}
-            <div className="p-4 sm:p-2 space-y-1">
-              <div className="text-3xl sm:text-4xl font-serif font-black text-[#171614] dark:text-[#F7F4EC]">
+            <div className="p-3 sm:p-4 space-y-1 bg-[#F7F4EC]/60 dark:bg-[#1D1C19]/60 lg:bg-transparent rounded-xl lg:rounded-none">
+              <div className="text-2xl sm:text-4xl font-serif font-black text-[#171614] dark:text-[#F7F4EC]">
                 {loading ? '—' : (stats?.categories ? Object.keys(stats.categories).length : 5)}
               </div>
-              <p className="text-[10px] sm:text-[11px] text-[#6F6A60] dark:text-[#A39C8F] font-sans font-bold uppercase tracking-[0.18em]">
+              <p className="text-[9px] sm:text-[11px] text-[#6F6A60] dark:text-[#A39C8F] font-sans font-bold uppercase tracking-[0.14em] sm:tracking-[0.18em]">
                 Championship Divisions
               </p>
             </div>
 
             {/* Stat 3: Main Board */}
-            <div className="p-4 sm:p-2 space-y-1">
-              <div className="text-3xl sm:text-4xl font-serif font-black text-[#D93829] flex items-center justify-center gap-2">
+            <div className="p-3 sm:p-4 space-y-1 bg-[#F7F4EC]/60 dark:bg-[#1D1C19]/60 lg:bg-transparent rounded-xl lg:rounded-none">
+              <div className="text-2xl sm:text-4xl font-serif font-black text-[#D93829] flex items-center justify-center gap-1.5 sm:gap-2">
                 {liveData?.isBoardOccupied ? <span className="live-dot" /> : null}
                 <span>{loading ? '—' : (liveData?.isBoardOccupied ? 'LIVE' : 'READY')}</span>
               </div>
-              <p className="text-[10px] sm:text-[11px] text-[#6F6A60] dark:text-[#A39C8F] font-sans font-bold uppercase tracking-[0.18em]">
+              <p className="text-[9px] sm:text-[11px] text-[#6F6A60] dark:text-[#A39C8F] font-sans font-bold uppercase tracking-[0.14em] sm:tracking-[0.18em]">
                 Main Carrom Board
               </p>
             </div>
 
             {/* Stat 4: Matches */}
-            <div className="p-4 sm:p-2 space-y-1">
-              <div className="text-3xl sm:text-4xl font-serif font-black text-[#171614] dark:text-[#C2A268]">
+            <div className="p-3 sm:p-4 space-y-1 bg-[#F7F4EC]/60 dark:bg-[#1D1C19]/60 lg:bg-transparent rounded-xl lg:rounded-none">
+              <div className="text-2xl sm:text-4xl font-serif font-black text-[#171614] dark:text-[#C2A268]">
                 {loading ? '—' : `${stats?.completedMatches ?? 0} / ${stats?.totalMatches ?? 0}`}
               </div>
-              <p className="text-[10px] sm:text-[11px] text-[#6F6A60] dark:text-[#A39C8F] font-sans font-bold uppercase tracking-[0.18em]">
+              <p className="text-[9px] sm:text-[11px] text-[#6F6A60] dark:text-[#A39C8F] font-sans font-bold uppercase tracking-[0.14em] sm:tracking-[0.18em]">
                 Matches Completed
               </p>
             </div>
@@ -238,59 +226,59 @@ export default function HomePage() {
 
       {/* 3. MAIN CARROM BOARD LIVE SPOTLIGHT & QUEUE */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full space-y-6">
-        <div className="flex items-center justify-between border-b border-[#DCD6C8] dark:border-[#2E2B26] pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#DCD6C8] dark:border-[#2E2B26] pb-3">
           <div className="space-y-0.5">
-            <span className="eyebrow-label">ARENA CONTROL</span>
-            <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#171614] dark:text-[#F7F4EC] flex items-center gap-2.5">
+            <span className="eyebrow-label">BOARD 1 CONTROL</span>
+            <h2 className="text-xl sm:text-3xl font-serif font-bold text-[#171614] dark:text-[#F7F4EC] flex items-center gap-2">
               <span>MAIN CARROM BOARD</span>
-              {currentMatch && <span className="live-dot" />}
+              {(currentMatch || liveData?.isBoardOccupied) && <span className="live-dot" />}
             </h2>
           </div>
           <Link
             href="/live"
-            className="text-xs font-bold text-[#D93829] hover:underline flex items-center gap-1 uppercase tracking-wider font-mono"
+            className="text-xs font-bold text-[#D93829] hover:underline flex items-center gap-1 uppercase tracking-wider font-mono self-start sm:self-auto"
           >
-            <span>Live Arena Broadcast</span>
+            <span>Live Board Broadcast</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
         {currentMatch ? (
-          <div className="editorial-card p-6 sm:p-8 space-y-6 border border-[#C5BCAC] dark:border-[#2E2B26] shadow-sm">
+          <div className="editorial-card p-5 sm:p-8 space-y-6 border border-[#C5BCAC] dark:border-[#2E2B26] shadow-sm">
             {/* Top Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[#DCD6C8] dark:border-[#2E2B26] text-xs">
-              <div className="flex items-center gap-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-2.5 pb-4 border-b border-[#DCD6C8] dark:border-[#2E2B26] text-xs">
+              <div className="flex items-center gap-2">
                 <MainBoardBadge />
                 <CategoryBadge category={currentMatch.category} />
                 <span className="text-[#6F6A60] dark:text-[#A39C8F] font-mono text-xs">{currentMatch.roundName}</span>
               </div>
-              <span className="text-[#D93829] font-mono font-bold text-xs flex items-center gap-1.5 tracking-wider uppercase">
+              <span className="text-[#D93829] font-mono font-bold text-[11px] sm:text-xs flex items-center gap-1.5 tracking-wider uppercase">
                 <span className="live-dot" />
                 <span>CURRENT MATCH IN PLAY</span>
               </span>
             </div>
 
-            {/* Head to Head */}
-            <div className="grid grid-cols-3 items-center text-center gap-4 py-4">
-              <div className="space-y-1.5">
-                <span className="text-[10px] font-mono text-[#6F6A60] dark:text-[#A39C8F] uppercase font-bold tracking-widest block">Team 1</span>
-                <h3 className="text-xl sm:text-3xl font-serif font-bold text-[#171614] dark:text-[#F7F4EC] truncate">
+            {/* Head to Head (Responsive Stack on Phone, Side-by-Side on Desktop) */}
+            <div className="flex flex-col sm:grid sm:grid-cols-11 items-center text-center gap-3 sm:gap-4 py-2 sm:py-4">
+              <div className="w-full sm:col-span-5 space-y-1 text-center sm:text-left">
+                <span className="text-[9px] sm:text-[10px] font-mono text-[#6F6A60] dark:text-[#A39C8F] uppercase font-bold tracking-widest block">Team 1</span>
+                <h3 className="text-lg sm:text-2xl lg:text-3xl font-serif font-bold text-[#171614] dark:text-[#F7F4EC] break-words">
                   {currentMatch.team1?.name || 'TBD'}
                 </h3>
               </div>
 
-              <div>
-                <div className="w-12 h-12 rounded-full bg-[#F4F0E6] dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B26] text-xs font-mono font-bold text-[#171614] dark:text-[#F7F4EC] flex items-center justify-center mx-auto shadow-inner">
+              <div className="sm:col-span-1 flex flex-col items-center justify-center my-1 sm:my-0">
+                <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-[#F4F0E6] dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B26] text-[11px] sm:text-xs font-mono font-bold text-[#171614] dark:text-[#F7F4EC] flex items-center justify-center shadow-xs">
                   VS
                 </div>
-                <span className="text-[10px] text-[#6F6A60] dark:text-[#A39C8F] uppercase font-semibold mt-1.5 block font-mono tracking-wider">
-                  Match #{currentMatch.matchNumber}
+                <span className="text-[9px] text-[#6F6A60] dark:text-[#A39C8F] uppercase font-mono mt-1 block">
+                  M#{currentMatch.matchNumber}
                 </span>
               </div>
 
-              <div className="space-y-1.5">
-                <span className="text-[10px] font-mono text-[#6F6A60] dark:text-[#A39C8F] uppercase font-bold tracking-widest block">Team 2</span>
-                <h3 className="text-xl sm:text-3xl font-serif font-bold text-[#171614] dark:text-[#F7F4EC] truncate">
+              <div className="w-full sm:col-span-5 space-y-1 text-center sm:text-right">
+                <span className="text-[9px] sm:text-[10px] font-mono text-[#6F6A60] dark:text-[#A39C8F] uppercase font-bold tracking-widest block">Team 2</span>
+                <h3 className="text-lg sm:text-2xl lg:text-3xl font-serif font-bold text-[#171614] dark:text-[#F7F4EC] break-words">
                   {currentMatch.team2?.name || 'TBD'}
                 </h3>
               </div>
@@ -299,9 +287,9 @@ export default function HomePage() {
             {/* Sequential Up Next Queue */}
             {upcomingQueue.length > 0 && (
               <div className="pt-4 border-t border-[#DCD6C8] dark:border-[#2E2B26] space-y-3">
-                <div className="flex items-center justify-between text-xs font-semibold text-[#6F6A60] dark:text-[#A39C8F] uppercase font-mono">
+                <div className="flex items-center justify-between text-[11px] sm:text-xs font-semibold text-[#6F6A60] dark:text-[#A39C8F] uppercase font-mono">
                   <span>UP NEXT IN QUEUE</span>
-                  <span>Sequential Main Board Order</span>
+                  <span>Sequential Match Order</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {upcomingQueue.map((qMatch, qIdx) => (
@@ -325,44 +313,47 @@ export default function HomePage() {
             )}
           </div>
         ) : (
-          <div className="editorial-card p-6 sm:p-8 space-y-6 border border-[#DCD6C8] dark:border-[#2E2B26]">
+          <div className="editorial-card p-5 sm:p-8 space-y-6 border border-[#DCD6C8] dark:border-[#2E2B26]">
             {nextMatch ? (
-              <div className="space-y-5">
+              <div className="space-y-4 sm:space-y-5">
                 <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#DCD6C8] dark:border-[#2E2B26] text-xs">
                   <div className="flex items-center gap-2">
                     <MainBoardBadge />
                     <CategoryBadge category={nextMatch.category} />
                     <span className="font-mono text-[#6F6A60] dark:text-[#A39C8F] text-xs">{nextMatch.roundName}</span>
                   </div>
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-700/10 text-emerald-800 dark:text-emerald-400 font-mono text-[11px] font-bold uppercase tracking-wider">
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-700/10 text-emerald-800 dark:text-emerald-400 font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-wider">
                     NEXT MATCH ON DECK · READY
                   </span>
                 </div>
 
-                <div className="grid grid-cols-3 items-center text-center gap-4 py-2">
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-mono text-[#6F6A60] dark:text-[#A39C8F] uppercase font-bold tracking-widest block">Team 1</span>
-                    <h3 className="text-lg sm:text-2xl font-serif font-bold text-[#171614] dark:text-[#F7F4EC] truncate">
+                {/* Responsive Head to Head */}
+                <div className="flex flex-col sm:grid sm:grid-cols-11 items-center text-center gap-3 sm:gap-4 py-2">
+                  <div className="w-full sm:col-span-5 space-y-1 text-center sm:text-left">
+                    <span className="text-[9px] sm:text-[10px] font-mono text-[#6F6A60] dark:text-[#A39C8F] uppercase font-bold tracking-widest block">Team 1</span>
+                    <h3 className="text-base sm:text-2xl font-serif font-bold text-[#171614] dark:text-[#F7F4EC] break-words">
                       {nextMatch.team1?.name || 'TBD'}
                     </h3>
                   </div>
-                  <div>
-                    <div className="w-10 h-10 rounded-full bg-[#F4F0E6] dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B26] text-xs font-mono font-bold text-[#171614] dark:text-[#F7F4EC] flex items-center justify-center mx-auto">
+
+                  <div className="sm:col-span-1 flex flex-col items-center justify-center my-1 sm:my-0">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#F4F0E6] dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B26] text-[11px] sm:text-xs font-mono font-bold text-[#171614] dark:text-[#F7F4EC] flex items-center justify-center shadow-xs">
                       VS
                     </div>
-                    <span className="text-[10px] text-[#6F6A60] dark:text-[#A39C8F] uppercase font-mono mt-1 block">
+                    <span className="text-[9px] text-[#6F6A60] dark:text-[#A39C8F] uppercase font-mono mt-1 block">
                       Match #{nextMatch.matchNumber}
                     </span>
                   </div>
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-mono text-[#6F6A60] dark:text-[#A39C8F] uppercase font-bold tracking-widest block">Team 2</span>
-                    <h3 className="text-lg sm:text-2xl font-serif font-bold text-[#171614] dark:text-[#F7F4EC] truncate">
+
+                  <div className="w-full sm:col-span-5 space-y-1 text-center sm:text-right">
+                    <span className="text-[9px] sm:text-[10px] font-mono text-[#6F6A60] dark:text-[#A39C8F] uppercase font-bold tracking-widest block">Team 2</span>
+                    <h3 className="text-base sm:text-2xl font-serif font-bold text-[#171614] dark:text-[#F7F4EC] break-words">
                       {nextMatch.team2?.name || 'TBD'}
                     </h3>
                   </div>
                 </div>
 
-                <p className="text-xs text-center text-[#6F6A60] dark:text-[#A39C8F] font-mono">
+                <p className="text-xs text-center text-[#6F6A60] dark:text-[#A39C8F] font-mono pt-1">
                   Board 1 is ready for play. Competitors report to referee desk to commence match.
                 </p>
               </div>
@@ -371,7 +362,7 @@ export default function HomePage() {
                 <div className="w-12 h-12 rounded-full bg-[#F4F0E6] dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B26] flex items-center justify-center mx-auto text-[#171614] dark:text-[#C2A268]">
                   <CarromCoin type="queen" size="sm" />
                 </div>
-                <h3 className="font-serif font-bold text-xl text-[#171614] dark:text-[#F7F4EC]">Main Carrom Board Ready</h3>
+                <h3 className="font-board-free text-xl sm:text-2xl text-[#171614] dark:text-[#F7F4EC]">Main Carrom Board Ready</h3>
                 <p className="text-xs text-[#6F6A60] dark:text-[#A39C8F] max-w-md mx-auto leading-relaxed">
                   The championship board is currently free. Official matches broadcast sequentially once draw fixtures commence.
                 </p>
@@ -381,15 +372,15 @@ export default function HomePage() {
             {/* Sequential Up Next Queue */}
             {upcomingQueue.length > 0 && (
               <div className="pt-4 border-t border-[#DCD6C8] dark:border-[#2E2B26] space-y-3">
-                <div className="flex items-center justify-between text-xs font-semibold text-[#6F6A60] dark:text-[#A39C8F] uppercase font-mono">
+                <div className="flex items-center justify-between text-[11px] sm:text-xs font-semibold text-[#6F6A60] dark:text-[#A39C8F] uppercase font-mono">
                   <span>UP NEXT IN READY QUEUE ({readyQueue.length})</span>
-                  <span>Sequential Main Board Order</span>
+                  <span>Sequential Match Order</span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
                   {upcomingQueue.map((qMatch, qIdx) => (
                     <div
                       key={qMatch._id}
-                      className="p-3.5 rounded-xl bg-[#F7F4EC] dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B26] flex items-center justify-between text-xs font-mono"
+                      className="p-3 sm:p-3.5 rounded-xl bg-[#F7F4EC] dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B26] flex items-center justify-between text-xs font-mono"
                     >
                       <div className="min-w-0 pr-2">
                         <span className="text-[10px] text-[#6F6A60] dark:text-[#A39C8F] block">Q#{qIdx + 1} · {qMatch.category?.replace('_', ' ')}</span>
@@ -410,27 +401,27 @@ export default function HomePage() {
       </section>
 
       {/* 4. TOURNAMENT CATEGORIES (5 REAL DIVISIONS) */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full space-y-8">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full space-y-6 sm:space-y-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b border-[#DCD6C8] dark:border-[#2E2B26] pb-4">
           <div>
             <span className="eyebrow-label">OFFICIAL DIVISIONS</span>
-            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-[#171614] dark:text-[#F7F4EC] mt-1">
+            <h2 className="text-2xl sm:text-4xl font-serif font-bold text-[#171614] dark:text-[#F7F4EC] mt-1">
               Championship Categories
             </h2>
           </div>
           <p className="text-xs text-[#6F6A60] dark:text-[#A39C8F] font-mono">5 collegiate knockout divisions</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-5">
           {CATEGORIES.map((cat, idx) => {
             const catStat = stats?.categories?.[cat.id];
 
             return (
               <div
                 key={cat.id}
-                className="editorial-card p-6 flex flex-col justify-between space-y-5 rounded-2xl transition-all hover:border-[#171614] dark:hover:border-[#C2A268]"
+                className="editorial-card p-5 sm:p-6 flex flex-col justify-between space-y-4 sm:space-y-5 rounded-2xl transition-all hover:border-[#171614] dark:hover:border-[#C2A268]"
               >
-                <div className="space-y-3.5">
+                <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-serif font-bold text-[#6F6A60] dark:text-[#A39C8F]">
                       0{idx + 1}
@@ -448,7 +439,7 @@ export default function HomePage() {
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-[#DCD6C8] dark:border-[#2E2B26] flex items-center justify-between text-xs">
+                <div className="pt-3.5 border-t border-[#DCD6C8] dark:border-[#2E2B26] flex items-center justify-between text-xs">
                   <span className="text-[11px] text-[#6F6A60] dark:text-[#A39C8F] font-mono">Knockout</span>
                   <Link
                     href={`/brackets?category=${cat.id}`}
@@ -466,18 +457,18 @@ export default function HomePage() {
 
       {/* 5. TOURNAMENT FORMAT (PREMIUM CONNECTED TIMELINE) */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div className="editorial-card p-8 sm:p-10 lg:p-12 space-y-10 rounded-3xl border border-[#DCD6C8] dark:border-[#2E2B26] bg-[#FFFFFF] dark:bg-[#171614]">
+        <div className="editorial-card p-6 sm:p-10 lg:p-12 space-y-8 sm:space-y-10 rounded-2xl sm:rounded-3xl border border-[#DCD6C8] dark:border-[#2E2B26] bg-[#FFFFFF] dark:bg-[#171614]">
           {/* Header */}
-          <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#DCD6C8] dark:border-[#2E2B26]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-[#DCD6C8] dark:border-[#2E2B26]">
             <div>
               <span className="eyebrow-label">CHAMPIONSHIP PROTOCOL</span>
-              <h2 className="text-3xl sm:text-4xl font-serif font-bold text-[#171614] dark:text-[#F7F4EC] mt-1">
+              <h2 className="text-2xl sm:text-4xl font-serif font-bold text-[#171614] dark:text-[#F7F4EC] mt-1">
                 Tournament Format
               </h2>
             </div>
             <Link
               href="/rules"
-              className="btn-secondary text-xs font-bold py-2.5 px-4"
+              className="btn-secondary text-xs font-bold py-2.5 px-4 self-start sm:self-auto"
             >
               <span>View Official Rules</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -533,14 +524,14 @@ export default function HomePage() {
             </div>
 
             {/* Mobile: Vertical Timeline */}
-            <div className="md:hidden flex flex-col relative pl-2">
-              <div className="absolute top-6 bottom-6 left-[1.65rem] w-[1.5px] bg-[#DCD6C8] dark:bg-[#2E2B26] pointer-events-none" />
+            <div className="md:hidden flex flex-col relative pl-1">
+              <div className="absolute top-5 bottom-5 left-[1.375rem] w-[1.5px] bg-[#DCD6C8] dark:bg-[#2E2B26] pointer-events-none" />
 
-              <div className="space-y-8 relative z-10">
+              <div className="space-y-6 relative z-10">
                 {FORMAT_STAGES.map((stage) => {
                   const Icon = stage.icon;
                   return (
-                    <div key={stage.step} className="relative flex items-start gap-4">
+                    <div key={stage.step} className="relative flex items-start gap-3.5">
                       <div className="relative shrink-0">
                         {stage.isFinal ? (
                           <div className="w-11 h-11 rounded-full bg-[#171614] dark:bg-[#F7F4EC] text-[#F7F4EC] dark:text-[#171614] flex items-center justify-center shadow-xs">
@@ -553,10 +544,10 @@ export default function HomePage() {
                         )}
                       </div>
 
-                      <div className="space-y-1.5 pt-1 text-left min-w-0">
+                      <div className="space-y-1 pt-1 text-left min-w-0">
                         <div className="flex items-center gap-1.5">
                           <Icon className={`w-3.5 h-3.5 shrink-0 ${stage.isFinal ? 'text-[#D93829]' : 'text-[#6F6A60] dark:text-[#A39C8F]'}`} />
-                          <h3 className={`font-serif font-bold text-base tracking-wide uppercase ${stage.isFinal ? 'text-[#D93829]' : 'text-[#171614] dark:text-[#F7F4EC]'}`}>
+                          <h3 className={`font-serif font-bold text-sm sm:text-base tracking-wide uppercase ${stage.isFinal ? 'text-[#D93829]' : 'text-[#171614] dark:text-[#F7F4EC]'}`}>
                             {stage.title}
                           </h3>
                         </div>

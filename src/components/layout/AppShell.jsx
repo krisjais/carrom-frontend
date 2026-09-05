@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Navbar } from '@/components/layout/Navbar';
 import { LiveTicker } from '@/components/layout/LiveTicker';
 import { Footer } from '@/components/layout/Footer';
+import SmoothScroll from '@/components/common/SmoothScroll';
 
 export function AppShell({ children }) {
   const pathname = usePathname();
@@ -28,13 +29,13 @@ export function AppShell({ children }) {
   }
 
   return (
-    <>
+    <SmoothScroll>
       <Navbar />
       <LiveTicker />
       <main className="flex-1 flex flex-col">
         {children}
       </main>
       <Footer />
-    </>
+    </SmoothScroll>
   );
 }

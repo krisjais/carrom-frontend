@@ -6,7 +6,7 @@ import { ChessThemeProvider } from '@/context/ChessThemeContext';
 import { AppShell } from '@/components/layout/AppShell';
 
 export const metadata = {
-  title: 'Carrom & Chess Championship 2026 | Inter-College Management System',
+  title: 'Carrom & Chess Championship 2026 | Intra-College Management System',
   description: 'Official Collegiate Championship platform for Carrom and Chess tournaments with live scoring, pairings, and standings.',
   icons: {
     icon: '/icon.svg',

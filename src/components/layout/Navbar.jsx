@@ -39,12 +39,16 @@ export const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const userDropdownRef = useRef(null);
+  const searchContainerRef = useRef(null);
 
-  // Close dropdown on outside click
+  // Close dropdown and search popover on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (userDropdownRef.current && !userDropdownRef.current.contains(e.target)) {
         setUserDropdownOpen(false);
+      }
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
+        setSearchOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -78,7 +82,7 @@ export const Navbar = () => {
   const navLinks = [
     { name: 'Home', href: '/' },
     { name: 'Tournaments', href: '/tournament' },
-    { name: 'Live Arena', href: '/live', isLive: true },
+    { name: 'Live Board', href: '/live', isLive: true },
     { name: 'Results', href: '/results' },
     { name: 'Leaderboard', href: '/champions' },
     { name: 'Rules', href: '/rules' },
@@ -133,15 +137,15 @@ export const Navbar = () => {
           </nav>
 
           {/* ========================================================= */}
-          {/* 3. RIGHT ACTION GROUP: [Search] [Bell] [RK Avatar Badge]  */}
+          {/* 3. RIGHT ACTION GROUP: [Search] [Avatar Badge] [Menu]     */}
           {/* ========================================================= */}
-          <div className="flex items-center gap-1 sm:gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             
-            {/* Search Button */}
-            <div className="relative">
+            {/* Search Button (Aligned for phone & desktop) */}
+            <div className="relative flex items-center" ref={searchContainerRef}>
               <button
                 onClick={() => setSearchOpen(!searchOpen)}
-                className="p-2 text-[#4A4238] dark:text-[#C5BCAC] hover:text-[#171614] dark:hover:text-white transition-colors cursor-pointer rounded-full hover:bg-black/5 dark:hover:bg-white/5"
+                className="w-8 h-8 sm:w-8.5 sm:h-8.5 flex items-center justify-center text-[#4A4238] dark:text-[#C5BCAC] hover:text-[#171614] dark:hover:text-white transition-colors cursor-pointer rounded-full hover:bg-black/5 dark:hover:bg-white/5"
                 title="Search tournaments & players"
                 aria-label="Search"
               >
@@ -152,7 +156,7 @@ export const Navbar = () => {
               {searchOpen && (
                 <form
                   onSubmit={handleSearchSubmit}
-                  className="absolute right-0 top-12 w-72 bg-white dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B26] rounded-2xl shadow-xl p-2.5 z-50 flex items-center gap-2 animate-in fade-in zoom-in-95 duration-150"
+                  className="absolute -right-12 sm:right-0 top-12 w-[calc(100vw-2.5rem)] max-w-xs sm:w-72 bg-white dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B26] rounded-2xl shadow-xl p-2.5 z-50 flex items-center gap-2 animate-in fade-in zoom-in-95 duration-150"
                 >
                   <Search className="w-4 h-4 text-[#857B6C] shrink-0 ml-1.5" />
                   <input
@@ -173,24 +177,13 @@ export const Navbar = () => {
               )}
             </div>
 
-            {/* Notification Bell */}
-            <Link
-              href="/announcements"
-              className="relative p-2 text-[#4A4238] dark:text-[#C5BCAC] hover:text-[#171614] dark:hover:text-white transition-colors cursor-pointer rounded-full hover:bg-black/5 dark:hover:bg-white/5"
-              title="Official Bulletins & Notices"
-              aria-label="Announcements"
-            >
-              <Bell className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#D93829] rounded-full" />
-            </Link>
-
             {/* Theme Toggle (Subtle) */}
-            <div className="hidden sm:block">
+            <div className="hidden sm:flex items-center">
               <ThemeToggle />
             </div>
 
             {/* Circular Profile Avatar Badge: [RK] */}
-            <div className="relative ml-1" ref={userDropdownRef}>
+            <div className="relative flex items-center" ref={userDropdownRef}>
               <button
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
                 className="w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-full bg-[#171614] dark:bg-[#F7F4EC] text-[#F7F4EC] dark:text-[#171614] border border-[#24221E] dark:border-[#2E2B26] flex items-center justify-center font-sans font-bold text-[11px] sm:text-xs tracking-tight shadow-xs hover:opacity-90 transition-opacity cursor-pointer"
@@ -266,14 +259,6 @@ export const Navbar = () => {
                         <User className="w-4 h-4" />
                         <span>Athlete Login</span>
                       </Link>
-                      <Link
-                        href="/admin/login"
-                        onClick={() => setUserDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-[#171614] dark:text-[#F7F4EC] hover:bg-[#F4F0E6] dark:hover:bg-[#24221E] transition-colors"
-                      >
-                        <Shield className="w-4 h-4" />
-                        <span>Admin Console</span>
-                      </Link>
                       <div className="pt-1 border-t border-[#DCD6C8]/80 dark:border-[#2E2B26]">
                         <Link
                           href="/registration"
@@ -289,11 +274,11 @@ export const Navbar = () => {
               )}
             </div>
 
-            {/* Mobile Drawer Toggle */}
-            <div className="md:hidden ml-1">
+            {/* Mobile Drawer Toggle (Perfect alignment with other icons) */}
+            <div className="md:hidden flex items-center">
               <button
                 onClick={() => setMobileOpen(!mobileOpen)}
-                className="p-2 rounded-lg text-[#171614] dark:text-[#F7F4EC] hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-[#171614] dark:text-[#F7F4EC] hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors"
                 aria-label="Toggle Menu"
               >
                 {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -305,9 +290,13 @@ export const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Drawer */}
-      {mobileOpen && (
-        <div className="md:hidden border-t border-[#DCD6C8] dark:border-[#2E2B26] bg-[#F4F0E6] dark:bg-[#0F0E0D] px-4 py-5 space-y-3 animate-in slide-in-from-top-2 duration-150">
+      {/* Mobile Drawer with Smooth Transition */}
+      <div
+        className={`md:hidden overflow-hidden border-t border-[#DCD6C8] dark:border-[#2E2B26] bg-[#F4F0E6] dark:bg-[#0F0E0D] transition-all duration-300 ease-in-out ${
+          mobileOpen ? 'max-h-[500px] opacity-100 py-5' : 'max-h-0 opacity-0 py-0 border-t-0'
+        }`}
+      >
+        <div className="px-4 space-y-3">
           <div className="flex flex-col space-y-1">
             {navLinks.map((link) => {
               const active = isActive(link.href);
@@ -316,7 +305,7 @@ export const Navbar = () => {
                   key={link.name}
                   href={link.href}
                   onClick={() => setMobileOpen(false)}
-                  className={`px-3 py-2 rounded-xl text-sm font-sans flex items-center justify-between ${
+                  className={`px-3 py-2.5 rounded-xl text-sm font-sans flex items-center justify-between transition-colors ${
                     active
                       ? 'bg-[#171614] text-[#F7F4EC] dark:bg-[#F7F4EC] dark:text-[#171614] font-bold'
                       : 'text-[#171614] dark:text-[#F7F4EC] hover:bg-black/5 dark:hover:bg-white/5 font-medium'
@@ -347,25 +336,18 @@ export const Navbar = () => {
             >
               Register as Athlete
             </Link>
-            <div className="grid grid-cols-2 gap-2 text-center text-xs font-medium">
+            <div className="grid grid-cols-1 gap-2 text-center text-xs font-medium">
               <Link
                 href="/participant/login"
                 onClick={() => setMobileOpen(false)}
-                className="py-2 rounded-xl bg-white dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B26] text-[#171614] dark:text-[#F7F4EC]"
+                className="py-2.5 rounded-xl bg-white dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B26] text-[#171614] dark:text-[#F7F4EC] font-semibold"
               >
                 Athlete Login
-              </Link>
-              <Link
-                href="/admin/login"
-                onClick={() => setMobileOpen(false)}
-                className="py-2 rounded-xl bg-white dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B26] text-[#171614] dark:text-[#F7F4EC]"
-              >
-                Referee Console
               </Link>
             </div>
           </div>
         </div>
-      )}
+      </div>
     </header>
   );
 };

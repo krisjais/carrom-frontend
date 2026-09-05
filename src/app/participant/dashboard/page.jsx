@@ -81,7 +81,7 @@ export default function ParticipantDashboardPage() {
             className="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-[#24221E] border border-[#DCD6C8] dark:border-[#38342C] text-xs font-bold text-[#171614] dark:text-[#F7F4EC] hover:bg-[#FAF9F6] transition-colors shadow-xs"
           >
             <Radio className="w-3.5 h-3.5 text-[#D93829] animate-pulse" />
-            <span>Live Arena</span>
+            <span>Live Board</span>
           </Link>
           <button
             onClick={logout}
@@ -187,7 +187,7 @@ export default function ParticipantDashboardPage() {
       {/* 4. My Scheduled Matches & Reference Passion Card */}
       <div className="space-y-4">
         <div className="border-b border-[#DCD6C8] dark:border-[#2E2B25] pb-3">
-          <span className="text-[11px] font-mono uppercase tracking-widest text-[#857B6C]">Arena Schedule</span>
+          <span className="text-[11px] font-mono uppercase tracking-widest text-[#857B6C]">Match Schedule</span>
           <h2 className="text-xl font-serif font-bold text-[#171614] dark:text-[#F7F4EC]">
             Upcoming Matches ({matches.length})
           </h2>
@@ -231,7 +231,7 @@ export default function ParticipantDashboardPage() {
 
                     <div className="pt-2.5 border-t border-[#DCD6C8]/80 dark:border-[#38342C] flex items-center justify-between text-xs text-[#6F6A60] dark:text-[#A8A194]">
                       <span className="font-mono text-[11px]">{m.roundName || 'Championship Match'}</span>
-                      <span className="font-semibold text-[#171614] dark:text-[#F7F4EC]">Board 1 • Main Arena</span>
+                      <span className="font-semibold text-[#171614] dark:text-[#F7F4EC]">Board 1 • Championship Table</span>
                     </div>
                   </div>
                 ))}
@@ -239,25 +239,15 @@ export default function ParticipantDashboardPage() {
             )}
           </div>
 
-          {/* Exact Reference "Play with Passion" Card (4 cols) */}
+          {/* Pure Editorial Photography Card without text overlay */}
           <div className="lg:col-span-4">
-            <div className="relative w-full h-full min-h-[260px] rounded-3xl overflow-hidden border border-[#DCD6C8] dark:border-[#2E2B26] shadow-md p-6 flex flex-col justify-end bg-[#171614] text-white group">
+            <div className="relative w-full h-full min-h-[260px] rounded-3xl overflow-hidden border border-[#DCD6C8] dark:border-[#2E2B26] shadow-md bg-[#171614] group">
               <Image
                 src="/carrom_play_passion.jpg"
-                alt="Play with Passion"
+                alt="Championship Carrom Action"
                 fill
-                className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-75"
+                className="object-cover group-hover:scale-105 transition-transform duration-500"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-              
-              <div className="relative z-10 space-y-1.5 text-center">
-                <h3 className="font-serif font-bold text-2xl sm:text-3xl text-white tracking-tight">
-                  Play with Passion
-                </h3>
-                <p className="text-xs text-white/80 font-sans leading-relaxed">
-                  Because it's more than just a game.
-                </p>
-              </div>
             </div>
           </div>
         </div>

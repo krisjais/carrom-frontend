@@ -31,45 +31,45 @@ export default function TournamentPage() {
       
       {/* 1. Championship Hero Spotlight */}
       <div className="rounded-3xl overflow-hidden border border-[#DCD6C8] dark:border-[#2E2B25] bg-[#F7F4EC] dark:bg-[#1D1C19] shadow-md grid grid-cols-1 lg:grid-cols-12">
-        <div className="lg:col-span-7 p-8 sm:p-12 flex flex-col justify-between space-y-6">
+        <div className="lg:col-span-7 p-5 sm:p-12 flex flex-col justify-between space-y-6">
           <div className="space-y-3">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <span className="text-[11px] font-mono uppercase tracking-widest text-[#857B6C] font-semibold">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-widest text-[#857B6C] font-semibold">
                 ANNUAL TOURNAMENT SERIES
               </span>
               <span className="px-2.5 py-0.5 rounded-full bg-[#171614] text-[#F7F4EC] dark:bg-[#F7F4EC] dark:text-[#171614] text-[10px] font-mono font-bold uppercase">
                 {tournament?.edition ? `EDITION ${tournament.edition}` : 'EDITION 2026'}
               </span>
             </div>
-            <h1 className="text-3xl sm:text-5xl font-serif font-black tracking-tight text-[#171614] dark:text-[#F7F4EC] leading-[1.1]">
-              {tournament?.title || 'Annual Inter-College Carrom Championship'}
+            <h1 className="text-2xl sm:text-5xl font-serif font-black tracking-tight text-[#171614] dark:text-[#F7F4EC] leading-[1.1]">
+              {tournament?.title || 'Annual Intra-College Carrom Championship'}
             </h1>
-            <p className="text-sm text-[#6F6A60] dark:text-[#A8A194] leading-relaxed max-w-xl font-sans pt-1">
-              The premier inter-collegiate carrom showdown featuring single-elimination knockout brackets, computerized Swiss draws, and live digital scorekeeping on the Main Board.
+            <p className="text-xs sm:text-sm text-[#6F6A60] dark:text-[#A8A194] leading-relaxed max-w-xl font-sans pt-1">
+              The premier intra-collegiate carrom showdown featuring single-elimination knockout brackets, computerized Swiss draws, and live digital scorekeeping on the Main Board.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 pt-2">
             <Link
               href="/registration"
-              className="px-6 py-3 rounded-xl bg-[#171614] hover:bg-[#2A2824] dark:bg-[#F7F4EC] dark:hover:bg-white text-[#F7F4EC] dark:text-[#171614] text-xs font-bold tracking-wider uppercase transition-all shadow-md inline-flex items-center gap-2"
+              className="px-6 py-3.5 rounded-xl bg-[#171614] hover:bg-[#2A2824] dark:bg-[#F7F4EC] dark:hover:bg-white text-[#F7F4EC] dark:text-[#171614] text-xs font-bold tracking-wider uppercase transition-all shadow-md inline-flex items-center justify-center gap-2 text-center"
             >
               <span>Register as Athlete</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
               href="/live"
-              className="px-6 py-3 rounded-xl bg-white dark:bg-[#24221E] border border-[#DCD6C8] dark:border-[#38342C] hover:bg-[#FAF9F6] text-[#171614] dark:text-[#F7F4EC] text-xs font-bold transition-colors shadow-xs"
+              className="px-6 py-3.5 rounded-xl bg-white dark:bg-[#24221E] border border-[#DCD6C8] dark:border-[#38342C] hover:bg-[#FAF9F6] text-[#171614] dark:text-[#F7F4EC] text-xs font-bold transition-colors shadow-xs text-center justify-center"
             >
-              Live Arena Stream
+              Live Match Stream
             </Link>
           </div>
         </div>
 
-        <div className="lg:col-span-5 relative min-h-[320px] lg:min-h-full">
+        <div className="lg:col-span-5 relative min-h-[220px] sm:min-h-[320px] lg:min-h-full">
           <Image
             src="/carrom_arena_cinematic.jpg"
-            alt="Championship Carrom Arena"
+            alt="Championship Carrom Board"
             fill
             className="object-cover"
             priority
@@ -94,7 +94,7 @@ export default function TournamentPage() {
           <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#24221E] border border-[#DCD6C8] dark:border-[#38342C] flex items-center justify-center text-[#171614] dark:text-[#F7F4EC]">
             <MapPin className="w-5 h-5 text-[#171614] dark:text-[#F7F4EC]" />
           </div>
-          <h3 className="font-serif font-bold text-lg text-[#171614] dark:text-[#F7F4EC]">Single Board Arena</h3>
+          <h3 className="font-serif font-bold text-lg text-[#171614] dark:text-[#F7F4EC]">Single Board Championship</h3>
           <p className="text-xs text-[#6F6A60] dark:text-[#A8A194] leading-relaxed">
             All tournament fixtures take place on the centralized Main Carrom Board with high-visibility sequential FIFO queue management.
           </p>

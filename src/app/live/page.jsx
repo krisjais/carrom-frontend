@@ -45,7 +45,7 @@ export default function LivePage() {
           <span>OFFICIAL TOURNAMENT BROADCAST</span>
         </div>
         <h1 className="text-4xl sm:text-5xl font-serif font-black tracking-tight text-[#171614] dark:text-[#F7F4EC]">
-          Main Arena Live
+          Live Board Broadcast
         </h1>
         <p className="text-xs sm:text-sm text-[#6F6A60] dark:text-[#A8A194] leading-relaxed">
           Real-time scorecards, official referee decisions, and sequential on-deck queue exclusively on Board 1.
@@ -75,8 +75,8 @@ export default function LivePage() {
             {/* Top metadata strip */}
             <div className="flex items-center justify-between pb-4 border-b border-white/10 text-xs relative z-10">
               <div className="flex items-center gap-2.5">
-                <span className="px-2.5 py-0.5 rounded-full bg-[#D93829] text-white text-[10px] font-mono font-bold tracking-wider uppercase">
-                  MAIN ARENA
+                <span className="px-2.5 py-0.5 rounded-full bg-[#171614] dark:bg-white text-white dark:text-[#171614] text-[10px] font-mono font-bold tracking-wider uppercase border border-white/20 dark:border-transparent">
+                  CHAMPIONSHIP BOARD
                 </span>
                 <CategoryBadge category={currentMatch.category} />
                 <span className="font-mono text-white/70 font-semibold">{currentMatch.roundName}</span>
@@ -87,34 +87,34 @@ export default function LivePage() {
               </span>
             </div>
 
-            {/* Head to Head Arena Stage */}
-            <div className="grid grid-cols-11 items-center text-center gap-4 py-6 relative z-10">
-              <div className="col-span-5 space-y-2 text-left sm:text-center">
+            {/* Head to Head Stage (Responsive on phone view) */}
+            <div className="flex flex-col sm:grid sm:grid-cols-11 items-center text-center gap-4 py-6 relative z-10">
+              <div className="w-full sm:col-span-5 space-y-1.5 sm:space-y-2 text-center sm:text-left">
                 <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#C2A268] block">Side A · White</span>
-                <h3 className="font-serif font-bold text-2xl sm:text-4xl lg:text-5xl text-white tracking-tight leading-tight">
+                <h3 className="font-serif font-bold text-xl sm:text-3xl lg:text-5xl text-white tracking-tight leading-tight break-words">
                   {currentMatch.team1?.name || 'TBD'}
                 </h3>
               </div>
 
-              <div className="col-span-1 flex flex-col items-center justify-center">
-                <div className="w-12 h-12 rounded-full bg-white/10 border border-white/20 text-xs font-serif italic text-[#C2A268] flex items-center justify-center shadow-inner">
+              <div className="sm:col-span-1 flex flex-col items-center justify-center my-2 sm:my-0">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/10 border border-white/20 text-xs font-serif italic text-[#C2A268] flex items-center justify-center shadow-inner">
                   vs
                 </div>
-                <span className="text-[9px] text-white/50 uppercase font-mono tracking-wider mt-2 hidden sm:block">
+                <span className="text-[9px] text-white/50 uppercase font-mono tracking-wider mt-1.5 block">
                   M#{currentMatch.matchNumber}
                 </span>
               </div>
 
-              <div className="col-span-5 space-y-2 text-right sm:text-center">
+              <div className="w-full sm:col-span-5 space-y-1.5 sm:space-y-2 text-center sm:text-right">
                 <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#C2A268] block">Side B · Black</span>
-                <h3 className="font-serif font-bold text-2xl sm:text-4xl lg:text-5xl text-white tracking-tight leading-tight">
+                <h3 className="font-serif font-bold text-xl sm:text-3xl lg:text-5xl text-white tracking-tight leading-tight break-words">
                   {currentMatch.team2?.name || 'TBD'}
                 </h3>
               </div>
             </div>
 
             {/* Bottom broadcast status bar */}
-            <div className="pt-4 border-t border-white/10 flex flex-wrap items-center justify-between text-xs font-mono text-white/60 gap-3 relative z-10">
+            <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs font-mono text-white/60 gap-2 text-center sm:text-left relative z-10">
               <span>Championship Table 01 • Certified Carrom Board</span>
               <span className="text-emerald-400 font-semibold flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
@@ -123,12 +123,12 @@ export default function LivePage() {
             </div>
           </div>
         ) : (
-          <div className="rounded-3xl p-12 text-center bg-[#F7F4EC] dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B25] space-y-3">
-            <div className="w-14 h-14 rounded-2xl bg-white dark:bg-[#24221E] border border-[#DCD6C8] dark:border-[#38342C] flex items-center justify-center mx-auto text-[#857B6C]">
+          <div className="rounded-3xl p-8 sm:p-12 text-center bg-[#F7F4EC] dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B25] space-y-3">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white dark:bg-[#24221E] border border-[#DCD6C8] dark:border-[#38342C] flex items-center justify-center mx-auto text-[#857B6C]">
               <Activity className="w-6 h-6" />
             </div>
-            <h3 className="text-xl font-serif font-bold text-[#171614] dark:text-[#F7F4EC]">Main Carrom Board is Free</h3>
-            <p className="text-xs text-[#6F6A60] dark:text-[#A8A194] max-w-md mx-auto">
+            <h3 className="font-board-free text-xl sm:text-2xl text-[#171614] dark:text-[#F7F4EC]">Main Carrom Board is Free</h3>
+            <p className="text-xs text-[#6F6A60] dark:text-[#A8A194] max-w-md mx-auto leading-relaxed">
               {nextMatch
                 ? `Next match on deck: ${nextMatch.team1?.name} vs ${nextMatch.team2?.name}. Waiting for players to report to the referee desk.`
                 : 'No match is currently in progress. Subsequent rounds will stream here live as draws are seeded.'}
@@ -137,30 +137,30 @@ export default function LivePage() {
         )}
       </section>
 
-      {/* 3. SEQUENTIAL ARENA READY QUEUE */}
+      {/* 3. SEQUENTIAL READY QUEUE */}
       <section className="space-y-4">
         <div className="flex items-center justify-between border-b border-[#DCD6C8] dark:border-[#2E2B25] pb-3">
           <div className="flex items-center gap-2">
-            <Clock className="w-5 h-5 text-[#857B6C]" />
-            <h2 className="text-lg sm:text-xl font-serif font-bold uppercase tracking-wider">
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-[#857B6C]" />
+            <h2 className="text-base sm:text-xl font-serif font-bold uppercase tracking-wider">
               On-Deck Ready Queue
             </h2>
           </div>
           <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-[#F7F4EC] dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#38342C]">
-            {readyQueue.length} Matches In Line
+            {readyQueue.length} In Line
           </span>
         </div>
 
         {readyQueue.length === 0 ? (
-          <div className="rounded-2xl p-8 text-center bg-[#F7F4EC] dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B25] text-xs text-[#6F6A60] dark:text-[#A8A194] font-mono">
+          <div className="rounded-2xl p-6 sm:p-8 text-center bg-[#F7F4EC] dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B25] text-xs text-[#6F6A60] dark:text-[#A8A194] font-mono">
             No matches currently waiting in the ready queue.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             {readyQueue.map((match, idx) => (
               <div
                 key={match._id}
-                className="rounded-2xl p-5 space-y-3 bg-[#F7F4EC] dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B25] shadow-xs hover:border-[#171614] dark:hover:border-[#C2A268] transition-colors"
+                className="rounded-2xl p-4 sm:p-5 space-y-3 bg-[#F7F4EC] dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B25] shadow-xs hover:border-[#171614] dark:hover:border-[#C2A268] transition-colors"
               >
                 <div className="flex items-center justify-between text-xs pb-2 border-b border-[#DCD6C8]/80 dark:border-[#38342C]">
                   <div className="flex items-center gap-2">
@@ -170,10 +170,10 @@ export default function LivePage() {
                   <StatusBadge status={match.status} queuePosition={match.queuePosition || idx + 1} />
                 </div>
 
-                <div className="grid grid-cols-11 items-center py-1 text-sm font-serif font-bold text-[#171614] dark:text-[#F7F4EC]">
-                  <span className="col-span-5 truncate">{match.team1?.name}</span>
-                  <span className="col-span-1 text-center text-[#857B6C] font-serif italic text-xs">vs</span>
-                  <span className="col-span-5 truncate text-right">{match.team2?.name}</span>
+                <div className="flex flex-col sm:grid sm:grid-cols-11 items-center py-1 text-xs sm:text-sm font-serif font-bold text-[#171614] dark:text-[#F7F4EC] gap-1 sm:gap-0">
+                  <span className="w-full sm:col-span-5 text-center sm:text-left truncate">{match.team1?.name}</span>
+                  <span className="sm:col-span-1 text-center text-[#857B6C] font-serif italic text-xs">vs</span>
+                  <span className="w-full sm:col-span-5 text-center sm:text-right truncate">{match.team2?.name}</span>
                 </div>
               </div>
             ))}

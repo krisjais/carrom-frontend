@@ -31,7 +31,7 @@ export const Footer = () => {
             <ul className="space-y-2.5 text-xs text-[#A39C8F]">
               <li><Link href="/" className="hover:text-white transition-colors">Home</Link></li>
               <li><Link href="/tournament" className="hover:text-white transition-colors">Tournament Information</Link></li>
-              <li><Link href="/live" className="hover:text-white transition-colors">Main Board Live Arena</Link></li>
+              <li><Link href="/live" className="hover:text-white transition-colors">Main Board Live Broadcast</Link></li>
               <li><Link href="/results" className="hover:text-white transition-colors">Match Results</Link></li>
               <li><Link href="/registration" className="text-[#D93829] hover:underline font-bold transition-colors">Register Athlete Entry →</Link></li>
             </ul>
@@ -62,14 +62,14 @@ export const Footer = () => {
               <li><Link href="/rules" className="hover:text-white transition-colors">Official Rulebook</Link></li>
               <li><Link href="/brackets" className="hover:text-white transition-colors">Knockout Brackets</Link></li>
               <li><Link href="/categories" className="hover:text-white transition-colors">Championship Categories</Link></li>
-              <li><Link href="/admin/login" className="text-[#C2A268] hover:underline font-mono font-bold">Control Room Login</Link></li>
+              <li><Link href="/tournament" className="hover:text-white transition-colors">Tournament Overview</Link></li>
             </ul>
           </div>
         </div>
 
         <div className="pt-6 border-t border-[#24221E] dark:border-[#2E2B26] flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-[#6F6A60] font-mono">
-          <p>© 2026 Carrom Championship Portal. Editorial Sports Standard.</p>
-          <p className="text-[#C2A268]">Single Main Carrom Board Arena • Single-Game Knockout</p>
+          <p>© 2026 Intra-College Carrom Championship Portal. Editorial Sports Standard.</p>
+          <p className="text-[#C2A268]">Single Main Carrom Board • Single-Game Knockout</p>
         </div>
       </div>
     </footer>

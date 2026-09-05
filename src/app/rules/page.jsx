@@ -16,7 +16,7 @@ export default function RulesPage() {
     },
     {
       num: '02',
-      title: 'Centralized Main Arena Board',
+      title: 'Centralized Main Carrom Board',
       tag: 'STRICT FIFO QUEUE',
       desc: 'All official fixtures across all 5 divisions are contested exclusively on the championship Main Carrom Board. Matches are called in sequential queue order with real-time referee score entry and verified rest timers.',
       coin: 'black'
@@ -59,66 +59,59 @@ export default function RulesPage() {
         <span className="text-[11px] font-mono uppercase tracking-widest text-[#857B6C] font-semibold block">
           OFFICIAL TOURNAMENT RULEBOOK
         </span>
-        <h1 className="text-4xl sm:text-5xl font-serif font-black tracking-tight text-[#171614] dark:text-[#F7F4EC]">
+        <h1 className="text-3xl sm:text-5xl font-serif font-black tracking-tight text-[#171614] dark:text-[#F7F4EC]">
           Rules & Regulations
         </h1>
         <p className="text-xs sm:text-sm text-[#6F6A60] dark:text-[#A8A194] leading-relaxed">
-          Standardized single-game knockout rules, sequential Main Carrom Board arena operations, and verified pairing criteria.
+          Standardized single-game knockout rules, sequential Main Carrom Board tournament operations, and verified pairing criteria.
         </p>
       </div>
 
       {/* Rules Grid (Editorial numbered layout) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         {rules.map((rule) => (
           <div
             key={rule.num}
-            className="rounded-3xl p-7 sm:p-8 bg-[#F7F4EC] dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B25] shadow-xs flex flex-col justify-between space-y-4 hover:border-[#171614] dark:hover:border-[#C2A268] transition-colors"
+            className="rounded-2xl sm:rounded-3xl p-5 sm:p-8 bg-[#F7F4EC] dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B25] shadow-xs flex flex-col justify-between space-y-4 hover:border-[#171614] dark:hover:border-[#C2A268] transition-colors"
           >
-            <div className="space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-[#DCD6C8]/80 dark:border-[#38342C]">
-                <span className="text-2xl font-serif font-black text-[#171614] dark:text-[#C2A268]">
-                  {rule.num}
-                </span>
-                <div className="flex items-center gap-2">
-                  <CarromCoin type={rule.coin} size="xs" />
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#857B6C]">
-                    {rule.tag}
-                  </span>
-                </div>
-              </div>
-
-              <h2 className="font-serif font-bold text-xl text-[#171614] dark:text-[#F7F4EC] leading-tight">
+            <div className="flex items-center justify-between pb-3 border-b border-[#DCD6C8] dark:border-[#2E2B25]">
+              <span className="font-mono text-2xl sm:text-3xl font-bold text-[#DCD6C8] dark:text-[#38342C]">
+                {rule.num}
+              </span>
+              <span className="text-[10px] font-mono font-bold tracking-wider px-2.5 py-1 rounded-full bg-[#FAF8F3] dark:bg-[#24221E] border border-[#DCD6C8] dark:border-[#38342C] text-[#857B6C]">
+                {rule.tag}
+              </span>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg sm:text-xl font-serif font-bold text-[#171614] dark:text-[#F7F4EC]">
                 {rule.title}
-              </h2>
-
-              <p className="text-xs text-[#6F6A60] dark:text-[#A8A194] leading-relaxed font-sans">
+              </h3>
+              <p className="text-xs sm:text-sm text-[#6F6A60] dark:text-[#A8A194] leading-relaxed">
                 {rule.desc}
               </p>
             </div>
-
-            <div className="pt-3 border-t border-[#DCD6C8]/60 dark:border-[#38342C] flex items-center justify-between text-[11px] font-mono text-[#857B6C]">
-              <span>Carrom Federation Certified</span>
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            <div className="pt-2 flex justify-end">
+              <CarromCoin type={rule.coin} size="sm" />
             </div>
           </div>
         ))}
       </div>
 
       {/* CTA Box */}
-      <div className="rounded-3xl p-8 sm:p-12 text-center bg-[#171614] text-[#F7F4EC] border border-[#171614] shadow-xl space-y-4 max-w-3xl mx-auto">
+      <div className="rounded-2xl sm:rounded-3xl p-6 sm:p-12 text-center bg-[#171614] text-[#F7F4EC] border border-[#171614] shadow-xl space-y-4 max-w-3xl mx-auto">
         <span className="text-[11px] font-mono uppercase tracking-widest text-[#C2A268] font-semibold block">
           READY TO COMPETE?
         </span>
-        <h3 className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight">
-          Enter the Collegiate Arena
+        <h3 className="text-xl sm:text-3xl font-serif font-bold text-white tracking-tight">
+          Enter the Championship Draws
         </h3>
         <p className="text-xs sm:text-sm text-white/70 max-w-md mx-auto">
           Nominate your partners and claim your seed in the official single-elimination tournament draws.
         </p>
-        <div className="pt-3">
+        <div className="pt-2 sm:pt-3">
           <Link
             href="/registration"
-            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-[#F7F4EC] hover:bg-white text-[#171614] text-xs font-bold tracking-wider uppercase transition-all shadow-md cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 rounded-xl bg-[#F7F4EC] hover:bg-white text-[#171614] text-xs font-bold tracking-wider uppercase transition-all shadow-md cursor-pointer w-full sm:w-auto"
           >
             <span>Register as an Athlete</span>
             <ArrowRight className="w-4 h-4" />
