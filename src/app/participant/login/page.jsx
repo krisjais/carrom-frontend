@@ -132,7 +132,7 @@ export default function ParticipantLoginPage() {
             disabled={loading}
             className="w-full h-11 sm:h-12 rounded-xl bg-[#F7F4EC] hover:bg-white text-[#171614] text-xs font-bold tracking-wider uppercase transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
           >
-            <span>{loading ? 'Signing In...' : 'Sign In to Portal'}</span>
+            <span>{loading ? 'Signing In...' : 'Sign In to Championship'}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>

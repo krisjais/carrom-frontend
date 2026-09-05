@@ -22,7 +22,7 @@ if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-export default function ChessPortalHome() {
+export default function ChessHome() {
   const [stats, setStats] = useState(null);
   const [matches, setMatches] = useState([]);
   const [standings, setStandings] = useState([]);

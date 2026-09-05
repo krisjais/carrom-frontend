@@ -94,7 +94,7 @@ export const Navbar = () => {
         <div className="flex items-center justify-between h-16 sm:h-18">
           
           {/* ========================================================= */}
-          {/* 1. LEFT BRAND CAPSULE: [ (O) Carrom Portal ]               */}
+          {/* 1. LEFT BRAND CAPSULE: [ (O) Carrom ]                       */}
           {/* ========================================================= */}
           <Link
             href="/"
@@ -102,7 +102,7 @@ export const Navbar = () => {
           >
             <CarromBoardIcon className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-[#F7F4EC] group-hover:scale-110 transition-transform" />
             <span className="font-sans font-medium text-xs sm:text-sm tracking-tight text-[#F7F4EC]">
-              Carrom Portal
+              Carrom
             </span>
           </Link>
 

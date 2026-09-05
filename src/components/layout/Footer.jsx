@@ -15,7 +15,7 @@ export const Footer = () => {
                 <CarromCoin type="queen" size="xs" />
               </div>
               <span className="font-serif font-bold text-[#F7F4EC] text-xl tracking-tight">
-                CARROM<span className="italic font-normal text-[#D93829] ml-1">PORTAL</span>
+                CARROM<span className="italic font-normal text-[#D93829] ml-1">CHAMPIONSHIP</span>
               </span>
             </div>
             <p className="text-[12px] text-[#A39C8F] leading-relaxed max-w-xs font-sans">
@@ -53,7 +53,7 @@ export const Footer = () => {
             </ul>
           </div>
 
-          {/* Col 4: Portals & Rules */}
+          {/* Col 4: Directives & Rules */}
           <div className="space-y-3.5">
             <h4 className="font-sans font-bold text-[#C2A268] text-xs uppercase tracking-widest mb-3.5">
               Official Directives
@@ -68,7 +68,7 @@ export const Footer = () => {
         </div>
 
         <div className="pt-6 border-t border-[#24221E] dark:border-[#2E2B26] flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-[#6F6A60] font-mono">
-          <p>© 2026 Intra-College Carrom Championship Portal. Editorial Sports Standard.</p>
+          <p>© 2026 Intra-College Carrom Championship. Editorial Sports Standard.</p>
           <p className="text-[#C2A268]">Single Main Carrom Board • Single-Game Knockout</p>
         </div>
       </div>

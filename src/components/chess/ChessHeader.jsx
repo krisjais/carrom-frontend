@@ -35,7 +35,7 @@ export function ChessHeader() {
           </div>
           <div className="flex items-baseline gap-1.5">
             <span className="text-sm font-bold tracking-tight text-[#171715] dark:text-[#FAF8F3] font-serif">
-              CHESS PORTAL
+              CHESS
             </span>
             <span className="hidden xl:inline text-[9px] uppercase tracking-widest text-[#77736B] dark:text-[#A8A49C] font-mono font-medium">
               2026

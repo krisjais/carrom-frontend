@@ -87,7 +87,7 @@ export default function ChessAdminSettingsPage() {
               TOURNAMENT RULEBOOK & CONFIGURATION
             </span>
             <h1 className="text-2xl font-bold font-serif text-[#171715] dark:text-[#FAF8F3] tracking-tight mt-1">
-              Portal Settings
+              Championship Settings
             </h1>
             <p className="text-xs text-[#4E4C47] dark:text-[#8E8E93] mt-1">
               Configure round parameters, time controls, and piece scoring weights.

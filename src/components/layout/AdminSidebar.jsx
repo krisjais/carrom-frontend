@@ -141,7 +141,7 @@ export const AdminSidebar = ({ isOpen = false, onClose = () => {} }) => {
             target="_blank"
             className="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-[#C8C2B4] hover:text-[#FFFFFF] hover:bg-white/5 transition-colors font-mono"
           >
-            <span className="text-xs uppercase tracking-wider font-bold">Public Portal</span>
+            <span className="text-xs uppercase tracking-wider font-bold">Public Site</span>
             <ExternalLink className="w-3.5 h-3.5 text-[#C2A268]" />
           </Link>
 

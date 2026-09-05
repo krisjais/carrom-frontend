@@ -35,7 +35,7 @@ export function ChessNavbar() {
             </div>
             <div>
               <span className="text-xs uppercase tracking-widest text-[#F2C94C] font-mono font-bold block">Championship 2026</span>
-              <span className="text-lg font-bold text-[#F5F1E8] font-display tracking-wide group-hover:text-[#F2C94C] transition-colors">CHESS PORTAL</span>
+              <span className="text-lg font-bold text-[#F5F1E8] font-display tracking-wide group-hover:text-[#F2C94C] transition-colors">CHESS CHAMPIONSHIP</span>
             </div>
           </Link>
 
@@ -74,7 +74,7 @@ export function ChessNavbar() {
             <Link
               href="/chess/admin/login"
               className="text-xs text-[#9BB0D3] hover:text-[#F2C94C] transition-colors flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-[#1A1E24]"
-              title="Admin Portal"
+              title="Admin Console"
             >
               <Lock className="w-3.5 h-3.5" />
               <span>Admin</span>

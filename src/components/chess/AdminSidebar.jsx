@@ -55,7 +55,7 @@ export function AdminSidebar() {
                 ADMIN CONSOLE
               </span>
               <h2 className="text-sm font-bold font-serif text-[#171715] dark:text-[#FAF8F3] tracking-tight mt-1">
-                CHESS PORTAL
+                CHESS CHAMPIONSHIP
               </h2>
             </div>
           </Link>
@@ -110,7 +110,7 @@ export function AdminSidebar() {
           className="flex items-center gap-2 text-xs font-mono text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715] dark:hover:text-[#FAF8F3] px-3.5 py-2 rounded-xl hover:bg-[#EFEAE1] dark:hover:bg-[#1D1D1B] transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Exit to Public Portal</span>
+          <span>Exit to Public Site</span>
         </Link>
 
         <button

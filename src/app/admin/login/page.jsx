@@ -84,7 +84,7 @@ export default function AdminLoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@carromportal.org"
+              placeholder="admin@carrom.edu"
               autoComplete="email"
               className="w-full h-11 sm:h-12 bg-white/10 hover:bg-white/[0.14] focus:bg-white/15 px-4 text-sm text-white placeholder:text-white/40 rounded-xl border border-white/20 focus:outline-none focus:border-[#C2A268] transition-all"
             />

@@ -1,4 +1,4 @@
-// Rich Demo Data for Chess Championship Portal
+// Rich Demo Data for Chess Championship
 // Automatically used when backend fixtures/standings are empty or zero.
 
 export const DEMO_CHESS_STATS = {

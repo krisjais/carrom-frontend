@@ -52,7 +52,7 @@ export function ChessModeGrid() {
           Play Your Way
         </h2>
         <p className="text-xs sm:text-sm text-[#4E4C47] dark:text-[#A8A49C] font-sans leading-relaxed">
-          Whether you're here to compete for the collegiate crown, track live games, or study the tournament regulations — explore the championship portal.
+          Whether you're here to compete for the collegiate crown, track live games, or study the tournament regulations — explore the championship.
         </p>
       </div>
 

@@ -55,7 +55,7 @@ export default function ChessAdminLoginPage() {
             </div>
             <div>
               <span className="text-base font-bold tracking-tight text-[#FAF8F3] block leading-none font-serif">
-                CHESS PORTAL
+                CHESS CHAMPIONSHIP
               </span>
               <span className="text-[10px] uppercase tracking-widest text-[#A8A49C] font-mono font-medium block pt-1">
                 ADMINISTRATION CONSOLE
@@ -68,7 +68,7 @@ export default function ChessAdminLoginPage() {
             className="flex items-center gap-2 text-xs uppercase tracking-wider font-mono text-[#FAF8F3]/80 hover:text-[#FAF8F3] bg-white/10 hover:bg-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full transition-all"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Public Portal</span>
+            <span>Public Site</span>
           </Link>
         </div>
 
@@ -207,7 +207,7 @@ export default function ChessAdminLoginPage() {
               href="/chess"
               className="text-xs font-mono text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715] dark:hover:text-[#FAF8F3] transition-colors"
             >
-              ← Return to Championship Portal
+              ← Return to Championship
             </Link>
           </div>
 

@@ -16,7 +16,7 @@ export function ChessFooter() {
                 ♛
               </div>
               <span className="text-lg font-bold font-serif tracking-tight text-[#171715] dark:text-[#FAF8F3]">
-                CHESS PORTAL
+                CHESS CHAMPIONSHIP
               </span>
             </Link>
             <p className="text-xs text-[#77736B] dark:text-[#8E8E93] leading-relaxed pt-1">
