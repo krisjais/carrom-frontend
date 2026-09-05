@@ -25,7 +25,7 @@ const getApiBase = () => {
       return 'https://carrom-backend.onrender.com/api';
     }
   }
-  return envUrl ? formatApiBase(envUrl) : 'http://localhost:5000/api';
+  return envUrl ? formatApiBase(envUrl) : 'https://carrom-backend.onrender.com/api';
 };
 
 const API_BASE = getApiBase();

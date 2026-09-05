@@ -38,11 +38,11 @@ export default function TournamentPage() {
                 ANNUAL TOURNAMENT SERIES
               </span>
               <span className="px-2.5 py-0.5 rounded-full bg-[#171614] text-[#F7F4EC] dark:bg-[#F7F4EC] dark:text-[#171614] text-[10px] font-mono font-bold uppercase">
-                EDITION {tournament?.edition || '2025'}
+                {tournament?.edition ? `EDITION ${tournament.edition}` : 'EDITION 2026'}
               </span>
             </div>
             <h1 className="text-3xl sm:text-5xl font-serif font-black tracking-tight text-[#171614] dark:text-[#F7F4EC] leading-[1.1]">
-              {tournament?.title || 'National Collegiate Carrom Championship'}
+              {tournament?.title || 'Annual Inter-College Carrom Championship'}
             </h1>
             <p className="text-sm text-[#6F6A60] dark:text-[#A8A194] leading-relaxed max-w-xl font-sans pt-1">
               The premier inter-collegiate carrom showdown featuring single-elimination knockout brackets, computerized Swiss draws, and live digital scorekeeping on the Main Board.

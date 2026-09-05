@@ -84,10 +84,14 @@ export default function HomePage() {
       }
     };
     fetchData();
+    const interval = setInterval(fetchData, 8000);
+    return () => clearInterval(interval);
   }, []);
 
   const currentMatch = liveData?.currentMatch;
-  const upcomingQueue = liveData?.upcomingQueue?.slice(0, 3) || [];
+  const nextMatch = liveData?.nextMatch;
+  const readyQueue = liveData?.readyQueue || liveData?.upcomingMatches || [];
+  const upcomingQueue = readyQueue.slice(0, 3);
 
   return (
     <div className="flex-1 flex flex-col space-y-16 sm:space-y-24 pb-24 overflow-hidden bg-[#F4F0E6] dark:bg-[#0F0E0D] text-[#171614] dark:text-[#F7F4EC] transition-colors duration-200">
@@ -100,7 +104,7 @@ export default function HomePage() {
               {/* Eyebrow Label */}
               <div className="flex items-center gap-2">
                 <span className="eyebrow-label">
-                  INTER-COLLEGIATE CHAMPIONSHIP 2026
+                  {stats?.tournament?.title ? `${stats.tournament.title.toUpperCase()} ${stats.tournament.edition || ''}` : 'INTER-COLLEGIATE CHAMPIONSHIP 2026'}
                 </span>
                 <span className="w-1.5 h-1.5 rounded-full bg-[#D93829]" />
                 <span className="text-[10px] font-mono text-[#6F6A60] dark:text-[#A39C8F] font-bold uppercase">
@@ -150,7 +154,7 @@ export default function HomePage() {
 
             {/* Right Column: High-Res Editorial Photography Card Matching Reference */}
             <div className="lg:col-span-5 flex justify-center lg:justify-end">
-              <div className="relative w-full max-w-lg rounded-3xl overflow-hidden border border-[#DCD6C8] dark:border-[#2E2B26] shadow-xl bg-[#F7F4EC] dark:bg-[#171614] p-3 group">
+              <div className="relative w-full max-w-lg rounded-3xl overflow-hidden border border-[#DCD6C8] dark:border-[#2E2B26] shadow-xl bg-[#F7F4EC] dark:bg-[#1D1C19] p-3 group">
                 <div className="relative h-72 sm:h-96 w-full rounded-2xl overflow-hidden bg-[#FAF7F0] dark:bg-[#1D1C19]">
                   <Image
                     src="/carrom_striker_coins_hero.jpg"
@@ -184,14 +188,14 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 2. TOURNAMENT STATISTICS (Compact Premium Cards) */}
+      {/* 2. TOURNAMENT STATISTICS (Live Real-Time Data) */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full -mt-8 sm:-mt-12 relative z-20">
         <div className="scoreboard-strip p-6 sm:p-8 bg-[#FFFFFF] dark:bg-[#171614] border border-[#DCD6C8] dark:border-[#2E2B26] rounded-2xl shadow-sm">
           <div className="grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-[#DCD6C8] dark:divide-[#2E2B26] text-center">
             {/* Stat 1: Registered Athletes */}
             <div className="p-4 sm:p-2 space-y-1">
               <div className="text-3xl sm:text-4xl font-serif font-black text-[#171614] dark:text-[#F7F4EC]">
-                {stats?.totalParticipants || 250}+
+                {loading ? '—' : (stats?.totalParticipants ?? 0)}
               </div>
               <p className="text-[10px] sm:text-[11px] text-[#6F6A60] dark:text-[#A39C8F] font-sans font-bold uppercase tracking-[0.18em]">
                 Registered Athletes
@@ -201,7 +205,7 @@ export default function HomePage() {
             {/* Stat 2: Divisions */}
             <div className="p-4 sm:p-2 space-y-1">
               <div className="text-3xl sm:text-4xl font-serif font-black text-[#171614] dark:text-[#F7F4EC]">
-                5
+                {loading ? '—' : (stats?.categories ? Object.keys(stats.categories).length : 5)}
               </div>
               <p className="text-[10px] sm:text-[11px] text-[#6F6A60] dark:text-[#A39C8F] font-sans font-bold uppercase tracking-[0.18em]">
                 Championship Divisions
@@ -211,8 +215,8 @@ export default function HomePage() {
             {/* Stat 3: Main Board */}
             <div className="p-4 sm:p-2 space-y-1">
               <div className="text-3xl sm:text-4xl font-serif font-black text-[#D93829] flex items-center justify-center gap-2">
-                <span className="live-dot" />
-                <span>1</span>
+                {liveData?.isBoardOccupied ? <span className="live-dot" /> : null}
+                <span>{loading ? '—' : (liveData?.isBoardOccupied ? 'LIVE' : 'READY')}</span>
               </div>
               <p className="text-[10px] sm:text-[11px] text-[#6F6A60] dark:text-[#A39C8F] font-sans font-bold uppercase tracking-[0.18em]">
                 Main Carrom Board
@@ -222,10 +226,10 @@ export default function HomePage() {
             {/* Stat 4: Matches */}
             <div className="p-4 sm:p-2 space-y-1">
               <div className="text-3xl sm:text-4xl font-serif font-black text-[#171614] dark:text-[#C2A268]">
-                {stats?.completedMatches !== undefined ? `${stats.completedMatches} Won` : 'Knockout'}
+                {loading ? '—' : `${stats?.completedMatches ?? 0} / ${stats?.totalMatches ?? 0}`}
               </div>
               <p className="text-[10px] sm:text-[11px] text-[#6F6A60] dark:text-[#A39C8F] font-sans font-bold uppercase tracking-[0.18em]">
-                Match Progression
+                Matches Completed
               </p>
             </div>
           </div>
@@ -271,7 +275,7 @@ export default function HomePage() {
               <div className="space-y-1.5">
                 <span className="text-[10px] font-mono text-[#6F6A60] dark:text-[#A39C8F] uppercase font-bold tracking-widest block">Team 1</span>
                 <h3 className="text-xl sm:text-3xl font-serif font-bold text-[#171614] dark:text-[#F7F4EC] truncate">
-                  {currentMatch.team1?.name || 'Athlete 1'}
+                  {currentMatch.team1?.name || 'TBD'}
                 </h3>
               </div>
 
@@ -287,7 +291,7 @@ export default function HomePage() {
               <div className="space-y-1.5">
                 <span className="text-[10px] font-mono text-[#6F6A60] dark:text-[#A39C8F] uppercase font-bold tracking-widest block">Team 2</span>
                 <h3 className="text-xl sm:text-3xl font-serif font-bold text-[#171614] dark:text-[#F7F4EC] truncate">
-                  {currentMatch.team2?.name || 'Athlete 2'}
+                  {currentMatch.team2?.name || 'TBD'}
                 </h3>
               </div>
             </div>
@@ -321,14 +325,86 @@ export default function HomePage() {
             )}
           </div>
         ) : (
-          <div className="editorial-card p-8 sm:p-10 text-center space-y-3.5 border border-[#DCD6C8] dark:border-[#2E2B26]">
-            <div className="w-12 h-12 rounded-full bg-[#F4F0E6] dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B26] flex items-center justify-center mx-auto text-[#171614] dark:text-[#C2A268]">
-              <CarromCoin type="queen" size="sm" />
-            </div>
-            <h3 className="font-serif font-bold text-xl text-[#171614] dark:text-[#F7F4EC]">Main Carrom Board Ready</h3>
-            <p className="text-xs text-[#6F6A60] dark:text-[#A39C8F] max-w-md mx-auto leading-relaxed">
-              The championship board is currently free. Official matches broadcast sequentially once draw fixtures commence.
-            </p>
+          <div className="editorial-card p-6 sm:p-8 space-y-6 border border-[#DCD6C8] dark:border-[#2E2B26]">
+            {nextMatch ? (
+              <div className="space-y-5">
+                <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#DCD6C8] dark:border-[#2E2B26] text-xs">
+                  <div className="flex items-center gap-2">
+                    <MainBoardBadge />
+                    <CategoryBadge category={nextMatch.category} />
+                    <span className="font-mono text-[#6F6A60] dark:text-[#A39C8F] text-xs">{nextMatch.roundName}</span>
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-700/10 text-emerald-800 dark:text-emerald-400 font-mono text-[11px] font-bold uppercase tracking-wider">
+                    NEXT MATCH ON DECK · READY
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 items-center text-center gap-4 py-2">
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-mono text-[#6F6A60] dark:text-[#A39C8F] uppercase font-bold tracking-widest block">Team 1</span>
+                    <h3 className="text-lg sm:text-2xl font-serif font-bold text-[#171614] dark:text-[#F7F4EC] truncate">
+                      {nextMatch.team1?.name || 'TBD'}
+                    </h3>
+                  </div>
+                  <div>
+                    <div className="w-10 h-10 rounded-full bg-[#F4F0E6] dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B26] text-xs font-mono font-bold text-[#171614] dark:text-[#F7F4EC] flex items-center justify-center mx-auto">
+                      VS
+                    </div>
+                    <span className="text-[10px] text-[#6F6A60] dark:text-[#A39C8F] uppercase font-mono mt-1 block">
+                      Match #{nextMatch.matchNumber}
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-mono text-[#6F6A60] dark:text-[#A39C8F] uppercase font-bold tracking-widest block">Team 2</span>
+                    <h3 className="text-lg sm:text-2xl font-serif font-bold text-[#171614] dark:text-[#F7F4EC] truncate">
+                      {nextMatch.team2?.name || 'TBD'}
+                    </h3>
+                  </div>
+                </div>
+
+                <p className="text-xs text-center text-[#6F6A60] dark:text-[#A39C8F] font-mono">
+                  Board 1 is ready for play. Competitors report to referee desk to commence match.
+                </p>
+              </div>
+            ) : (
+              <div className="p-4 text-center space-y-3">
+                <div className="w-12 h-12 rounded-full bg-[#F4F0E6] dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B26] flex items-center justify-center mx-auto text-[#171614] dark:text-[#C2A268]">
+                  <CarromCoin type="queen" size="sm" />
+                </div>
+                <h3 className="font-serif font-bold text-xl text-[#171614] dark:text-[#F7F4EC]">Main Carrom Board Ready</h3>
+                <p className="text-xs text-[#6F6A60] dark:text-[#A39C8F] max-w-md mx-auto leading-relaxed">
+                  The championship board is currently free. Official matches broadcast sequentially once draw fixtures commence.
+                </p>
+              </div>
+            )}
+
+            {/* Sequential Up Next Queue */}
+            {upcomingQueue.length > 0 && (
+              <div className="pt-4 border-t border-[#DCD6C8] dark:border-[#2E2B26] space-y-3">
+                <div className="flex items-center justify-between text-xs font-semibold text-[#6F6A60] dark:text-[#A39C8F] uppercase font-mono">
+                  <span>UP NEXT IN READY QUEUE ({readyQueue.length})</span>
+                  <span>Sequential Main Board Order</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {upcomingQueue.map((qMatch, qIdx) => (
+                    <div
+                      key={qMatch._id}
+                      className="p-3.5 rounded-xl bg-[#F7F4EC] dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B26] flex items-center justify-between text-xs font-mono"
+                    >
+                      <div className="min-w-0 pr-2">
+                        <span className="text-[10px] text-[#6F6A60] dark:text-[#A39C8F] block">Q#{qIdx + 1} · {qMatch.category?.replace('_', ' ')}</span>
+                        <p className="font-bold text-[#171614] dark:text-[#F7F4EC] truncate mt-0.5">
+                          {qMatch.team1?.name} vs {qMatch.team2?.name}
+                        </p>
+                      </div>
+                      <span className="text-[10px] px-2.5 py-1 rounded-full bg-[#FFFFFF] dark:bg-[#171614] text-[#171614] dark:text-[#F7F4EC] border border-[#DCD6C8] dark:border-[#2E2B26] font-bold shrink-0">
+                        Ready
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </section>
