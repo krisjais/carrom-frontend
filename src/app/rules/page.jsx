@@ -2,105 +2,130 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { BookOpen, Shield, Trophy, Users, Sparkles, ArrowRight } from 'lucide-react';
-import { MainBoardBadge } from '@/components/ui/Badge';
+import { BookOpen, Shield, Trophy, Users, Sparkles, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { CarromCoin } from '@/components/ui/CarromElements';
 
 export default function RulesPage() {
+  const rules = [
+    {
+      num: '01',
+      title: 'Single-Game Knockout Format',
+      tag: '1 MATCH = 1 GAME',
+      desc: 'Every scheduled tournament fixture is strictly decided by 1 single game played on the Main Carrom Board. The winner of that single game immediately advances to the next stage in the single-elimination tournament bracket.',
+      coin: 'queen'
+    },
+    {
+      num: '02',
+      title: 'Centralized Main Arena Board',
+      tag: 'STRICT FIFO QUEUE',
+      desc: 'All official fixtures across all 5 divisions are contested exclusively on the championship Main Carrom Board. Matches are called in sequential queue order with real-time referee score entry and verified rest timers.',
+      coin: 'black'
+    },
+    {
+      num: '03',
+      title: 'Dynamic Knockout Bye Formula',
+      tag: 'N % 2 MATHEMATICAL DRAW',
+      desc: 'If the total number of approved entries N in a category is even, zero byes are awarded. If N is odd, exactly one random bye is awarded in Round 1 to advance an entry directly into the second round.',
+      coin: 'white'
+    },
+    {
+      num: '04',
+      title: 'Mandatory 3-Event Entry',
+      tag: 'TRI-DIVISION PARTICIPATION',
+      desc: 'Every registered competitor is eligible and auto-enrolled into Singles, Doubles, and Mixed Doubles. This ensures an active, full-spectrum championship experience for all participating student athletes.',
+      coin: 'queen'
+    },
+    {
+      num: '05',
+      title: 'Independent Partner Registration',
+      tag: 'MUTUAL NOMINATION MATCH',
+      desc: 'Athletes nominate their doubles and mixed doubles partners by name during registration. Both partners register independently. Once both profiles are confirmed, the system pairs and locks the squad.',
+      coin: 'black'
+    },
+    {
+      num: '06',
+      title: 'Certified Referee Adjudication',
+      tag: 'DIGITAL SCORESHEET ARCHIVE',
+      desc: 'All board outcomes, Queen covers, and coin tallies are entered directly into the referee scorekeeper console. Match completions trigger downstream advancement in the knockout tree automatically.',
+      coin: 'white'
+    }
+  ];
+
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10 bg-[#FAF9F6] dark:bg-[#0B0D0E] text-[#4A4238] dark:text-[#F5F1E8] transition-colors duration-200">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-12 text-[#171614] dark:text-[#F7F4EC]">
+      
       {/* Editorial Header */}
-      <div className="text-center max-w-2xl mx-auto space-y-2">
-        <span className="eyebrow-label">
+      <div className="text-center max-w-2xl mx-auto space-y-3">
+        <span className="text-[11px] font-mono uppercase tracking-widest text-[#857B6C] font-semibold block">
           OFFICIAL TOURNAMENT RULEBOOK
         </span>
-        <h1 className="text-3xl sm:text-5xl font-serif font-black text-[#3E342B] dark:text-[#F5F1E8] tracking-tight">
+        <h1 className="text-4xl sm:text-5xl font-serif font-black tracking-tight text-[#171614] dark:text-[#F7F4EC]">
           Rules & Regulations
         </h1>
-        <p className="text-xs sm:text-sm text-[#7E7060] dark:text-[#B8B1A5] font-normal">
-          Single-game knockout rules, sequential Main Carrom Board arena operations, and verified pairing criteria.
+        <p className="text-xs sm:text-sm text-[#6F6A60] dark:text-[#A8A194] leading-relaxed">
+          Standardized single-game knockout rules, sequential Main Carrom Board arena operations, and verified pairing criteria.
         </p>
       </div>
 
-      {/* Rules Grid */}
+      {/* Rules Grid (Editorial numbered layout) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Rule 1: Single-Game Knockout */}
-        <div className="editorial-card p-6 sm:p-8 space-y-4 rounded-2xl bg-white dark:bg-[#15191C] border border-[#E8E1D5] dark:border-[#2B3034] shadow-xs">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] flex items-center justify-center">
-              <CarromCoin type="black" size="xs" />
-            </div>
-            <div>
-              <h3 className="font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] text-lg">1. Single-Game Knockout</h3>
-              <span className="text-xs text-[#7E7060] dark:text-[#B8B1A5] font-mono">1 Match = 1 Game</span>
-            </div>
-          </div>
-          <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] leading-relaxed">
-            Every match is decided by exactly 1 game played on the Main Carrom Board. The winner of that single game immediately advances to the next round of the tournament bracket.
-          </p>
-        </div>
+        {rules.map((rule) => (
+          <div
+            key={rule.num}
+            className="rounded-3xl p-7 sm:p-8 bg-[#F7F4EC] dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B25] shadow-xs flex flex-col justify-between space-y-4 hover:border-[#171614] dark:hover:border-[#C2A268] transition-colors"
+          >
+            <div className="space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-[#DCD6C8]/80 dark:border-[#38342C]">
+                <span className="text-2xl font-serif font-black text-[#171614] dark:text-[#C2A268]">
+                  {rule.num}
+                </span>
+                <div className="flex items-center gap-2">
+                  <CarromCoin type={rule.coin} size="xs" />
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#857B6C]">
+                    {rule.tag}
+                  </span>
+                </div>
+              </div>
 
-        {/* Rule 2: Single Equipment Arena */}
-        <div className="editorial-card p-6 sm:p-8 space-y-4 rounded-2xl bg-white dark:bg-[#15191C] border border-[#E8E1D5] dark:border-[#2B3034] shadow-xs">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] flex items-center justify-center">
-              <CarromCoin type="queen" size="xs" />
-            </div>
-            <div>
-              <h3 className="font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] text-lg">2. Main Carrom Board</h3>
-              <span className="text-xs text-[#7E7060] dark:text-[#B8B1A5] font-mono">Single Physical Board</span>
-            </div>
-          </div>
-          <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] leading-relaxed">
-            There is ONLY ONE physical Carrom board in the tournament arena. All matches queue in a strict FIFO sequential order. Only 1 match can be LIVE in play at any given time.
-          </p>
-        </div>
+              <h2 className="font-serif font-bold text-xl text-[#171614] dark:text-[#F7F4EC] leading-tight">
+                {rule.title}
+              </h2>
 
-        {/* Rule 3: Dynamic Bye Logic */}
-        <div className="editorial-card p-6 sm:p-8 space-y-4 rounded-2xl bg-white dark:bg-[#15191C] border border-[#E8E1D5] dark:border-[#2B3034] shadow-xs">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] flex items-center justify-center">
-              <CarromCoin type="white" size="xs" />
+              <p className="text-xs text-[#6F6A60] dark:text-[#A8A194] leading-relaxed font-sans">
+                {rule.desc}
+              </p>
             </div>
-            <div>
-              <h3 className="font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] text-lg">3. Dynamic Bye Formula</h3>
-              <span className="text-xs text-[#7E7060] dark:text-[#B8B1A5] font-mono">N % 2 Formula</span>
-            </div>
-          </div>
-          <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] leading-relaxed">
-            If the number of entries N is even, exactly 0 byes are awarded. If N is odd, exactly 1 random bye is awarded to advance 1 team to the next round.
-          </p>
-        </div>
 
-        {/* Rule 4: Partner Nominations */}
-        <div className="editorial-card p-6 sm:p-8 space-y-4 rounded-2xl bg-white dark:bg-[#15191C] border border-[#E8E1D5] dark:border-[#2B3034] shadow-xs">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] flex items-center justify-center">
-              <Users className="w-4 h-4 text-[#3E342B] dark:text-[#D4A94C]" />
-            </div>
-            <div>
-              <h3 className="font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] text-lg">4. Partner Verification</h3>
-              <span className="text-xs text-[#7E7060] dark:text-[#B8B1A5] font-mono">Mutual Registration</span>
+            <div className="pt-3 border-t border-[#DCD6C8]/60 dark:border-[#38342C] flex items-center justify-between text-[11px] font-mono text-[#857B6C]">
+              <span>Carrom Federation Certified</span>
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
             </div>
           </div>
-          <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] leading-relaxed">
-            Partners are specified during registration by entering the partner's full legal name. Both athletes must register independently. Opponents are selected strictly through a random draw.
-          </p>
+        ))}
+      </div>
+
+      {/* CTA Box */}
+      <div className="rounded-3xl p-8 sm:p-12 text-center bg-[#171614] text-[#F7F4EC] border border-[#171614] shadow-xl space-y-4 max-w-3xl mx-auto">
+        <span className="text-[11px] font-mono uppercase tracking-widest text-[#C2A268] font-semibold block">
+          READY TO COMPETE?
+        </span>
+        <h3 className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight">
+          Enter the Collegiate Arena
+        </h3>
+        <p className="text-xs sm:text-sm text-white/70 max-w-md mx-auto">
+          Nominate your partners and claim your seed in the official single-elimination tournament draws.
+        </p>
+        <div className="pt-3">
+          <Link
+            href="/registration"
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-[#F7F4EC] hover:bg-white text-[#171614] text-xs font-bold tracking-wider uppercase transition-all shadow-md cursor-pointer"
+          >
+            <span>Register as an Athlete</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
       </div>
 
-      {/* CTA */}
-      <div className="text-center pt-4">
-        <Link
-          href="/registration"
-          className="btn-primary text-xs font-bold px-8 py-3.5 shadow-md inline-flex items-center gap-2"
-        >
-          <span>REGISTER AS A PARTICIPANT</span>
-          <ArrowRight className="w-4 h-4" />
-        </Link>
-      </div>
     </div>
   );
 }
-
-
