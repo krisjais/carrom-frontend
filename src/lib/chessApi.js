@@ -295,11 +295,11 @@ export const chessApi = {
     return await safeFetch(`/admin/matches${query ? `?${query}` : ''}`, { headers: getHeaders() });
   },
 
-  generateMatches: async (round = 1) => {
+  generateMatches: async (round = 1, roundName = '') => {
     return await safeFetch('/admin/matches/generate', {
       method: 'POST',
       headers: getHeaders(),
-      body: JSON.stringify({ round })
+      body: JSON.stringify({ round, roundName })
     });
   },
 
@@ -323,6 +323,14 @@ export const chessApi = {
     return await safeFetch(`/admin/matches/${id}`, {
       method: 'DELETE',
       headers: getHeaders()
+    });
+  },
+
+  bulkDeleteMatches: async (ids = []) => {
+    return await safeFetch('/admin/matches/bulk-delete', {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ ids })
     });
   },
 

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { chessApi } from '@/lib/chessApi';
 import { AdminSidebar } from '@/components/chess/AdminSidebar';
 import { MatchTimer } from '@/components/chess/MatchTimer';
-import { Swords, Play, CheckCircle2, XCircle, Trophy, Loader2, Plus, Minus, Trash2, Clock, ShieldCheck, Zap } from 'lucide-react';
+import { Swords, Play, CheckCircle2, XCircle, Trophy, Loader2, Plus, Minus, Trash2, Clock, ShieldCheck, Zap, CheckSquare, Square } from 'lucide-react';
 
 const PIECE_VALUES = {
   pawns: 1,
@@ -34,6 +34,16 @@ function calcMaterial(captured) {
   );
 }
 
+const ROUND_PRESETS = [
+  { label: 'Grand Final', round: 5 },
+  { label: 'Final', round: 5 },
+  { label: 'Semi-Final', round: 4 },
+  { label: 'Quarter-Final', round: 3 },
+  { label: 'Round 3', round: 3 },
+  { label: 'Round 2', round: 2 },
+  { label: 'Round 1', round: 1 }
+];
+
 export default function ChessAdminMatchesPage() {
   const router = useRouter();
   const [matches, setMatches] = useState([]);
@@ -41,8 +51,13 @@ export default function ChessAdminMatchesPage() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [selectedRound, setSelectedRound] = useState(1);
+  const [selectedRoundName, setSelectedRoundName] = useState('Round 1');
   const [startingMatchId, setStartingMatchId] = useState(null);
   const [deletingMatchId, setDeletingMatchId] = useState(null);
+
+  // Bulk Selection & Deletion
+  const [selectedMatchIds, setSelectedMatchIds] = useState([]);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   // Live in-game scoring modal
   const [liveScoringMatch, setLiveScoringMatch] = useState(null);
@@ -58,9 +73,10 @@ export default function ChessAdminMatchesPage() {
   const [resultTypeChoice, setResultTypeChoice] = useState('checkmate');
   const [submitLoading, setSubmitLoading] = useState(false);
 
-  // Manual Match Pairing Modal
+  // Manual Match Pairing Modal with Custom Round Name
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [manualRound, setManualRound] = useState(1);
+  const [manualRoundName, setManualRoundName] = useState('Grand Final');
   const [manualP1, setManualP1] = useState('');
   const [manualP2, setManualP2] = useState('');
   const [creatingMatch, setCreatingMatch] = useState(false);
@@ -99,16 +115,56 @@ export default function ChessAdminMatchesPage() {
     return () => clearInterval(interval);
   }, [router]);
 
+  // Bulk Selection Handlers
+  const handleToggleSelectAll = () => {
+    if (selectedMatchIds.length === matches.length) {
+      setSelectedMatchIds([]);
+    } else {
+      setSelectedMatchIds(matches.map((m) => m._id));
+    }
+  };
+
+  const handleToggleSelectMatch = (id) => {
+    setSelectedMatchIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedMatchIds.length === 0) return;
+    if (!confirm(`Are you sure you want to permanently delete ${selectedMatchIds.length} selected match(es)?`)) {
+      return;
+    }
+
+    setBulkDeleting(true);
+    try {
+      const res = await chessApi.bulkDeleteMatches(selectedMatchIds);
+      if (res.success) {
+        setMatches((prev) => prev.filter((m) => !selectedMatchIds.includes(m._id)));
+        setSelectedMatchIds([]);
+        alert(res.message || 'Matches deleted successfully.');
+        await loadData(true);
+      } else {
+        alert(res.message || 'Failed to delete selected matches.');
+      }
+    } catch (err) {
+      alert(err.message || 'Error deleting matches.');
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
   // Admin round generation (Knockout: losers eliminated, highest points gets bye)
   const handleGeneratePairings = async () => {
-    if (!confirm(`Generate pairings for Round ${selectedRound}? Note: In knockout format, players who lost earlier are excluded and the highest-points contestant receives any odd-player BYE.`)) {
+    const roundTitle = selectedRoundName || `Round ${selectedRound}`;
+    if (!confirm(`Generate pairings for ${roundTitle}? Note: In knockout format, players who lost earlier are excluded and the highest-points contestant receives any odd-player BYE.`)) {
       return;
     }
     setGenerating(true);
     try {
-      const res = await chessApi.generateMatches(selectedRound);
+      const res = await chessApi.generateMatches(selectedRound, roundTitle);
       if (res.success) {
-        alert(res.message || `Round ${selectedRound} pairings generated successfully!`);
+        alert(res.message || `${roundTitle} pairings generated successfully!`);
         await loadData();
       } else {
         alert(res.message || 'Failed to generate pairings.');
@@ -157,7 +213,7 @@ export default function ChessAdminMatchesPage() {
     setLiveP2Captured(match.player2Captured || { pawns: 0, knights: 0, bishops: 0, rooks: 0, queens: 0 });
   };
 
-  // Live capture increment / decrement (e.g. Player 1 took opponent's rook)
+  // Live capture increment / decrement
   const handleAdjustLiveCapture = async (playerNum, pieceKey, delta) => {
     if (!liveScoringMatch) return;
 
@@ -205,14 +261,15 @@ export default function ChessAdminMatchesPage() {
     }
   };
 
-  // Delete pairing
+  // Individual Match Delete
   const handleDeleteMatch = async (id, matchIdLabel) => {
-    if (!confirm(`Delete match pairing ${matchIdLabel}?`)) return;
+    if (!confirm(`Permanently delete match pairing ${matchIdLabel}?`)) return;
     setDeletingMatchId(id);
     try {
       const res = await chessApi.deleteMatch(id);
       if (res.success) {
         setMatches((prev) => prev.filter((m) => m._id !== id));
+        setSelectedMatchIds((prev) => prev.filter((item) => item !== id));
       } else {
         alert(res.message || 'Failed to delete match.');
       }
@@ -223,7 +280,7 @@ export default function ChessAdminMatchesPage() {
     }
   };
 
-  // Create manual match pairing
+  // Create manual match pairing with custom round name
   const handleCreateManualMatch = async (e) => {
     e.preventDefault();
     if (!manualP1) {
@@ -237,15 +294,17 @@ export default function ChessAdminMatchesPage() {
 
     setCreatingMatch(true);
     try {
+      const finalRoundName = manualRoundName ? manualRoundName.trim() : `Round ${manualRound}`;
       const res = await chessApi.createMatch({
         round: manualRound,
+        roundName: finalRoundName,
         player1Id: manualP1,
         player2Id: manualP2 || null,
         durationMinutes: 10
       });
 
       if (res.success) {
-        alert('Manual match pairing created successfully!');
+        alert(`Match pairing for "${finalRoundName}" created successfully!`);
         setShowCreateModal(false);
         setManualP1('');
         setManualP2('');
@@ -308,7 +367,7 @@ export default function ChessAdminMatchesPage() {
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-mono font-semibold text-[#77736B] dark:text-[#A8A49C] uppercase tracking-widest block">
-                KNOCKOUT SYSTEM & LIVE IN-MATCH SCORING
+                CUSTOM ROUND STAGES • BULK DELETE & CONTROLS
               </span>
               <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-700 dark:text-amber-400 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border border-amber-500/30">
                 <Clock className="w-3 h-3" />
@@ -325,72 +384,122 @@ export default function ChessAdminMatchesPage() {
             {/* Create Custom Pairing Button */}
             <button
               onClick={() => {
-                setManualRound(selectedRound);
+                setManualRoundName('Grand Final');
                 setShowCreateModal(true);
               }}
-              className="bg-[#EFEAE1] dark:bg-[#1E1E1C] hover:bg-[#E4DED5] dark:hover:bg-[#282826] border border-[#D5CFC5] dark:border-[#2E2E2B] text-[#171715] dark:text-[#FAF8F3] font-semibold px-3.5 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-xs flex items-center gap-1.5 transition-colors"
+              className="bg-[#EFEAE1] dark:bg-[#1E1E1C] hover:bg-[#E4DED5] dark:hover:bg-[#282826] border border-[#D5CFC5] dark:border-[#2E2E2B] text-[#171715] dark:text-[#FAF8F3] font-semibold px-3.5 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>New Custom Match</span>
             </button>
 
-            {/* Round Selector */}
+            {/* Round Generation Controls with Stage Name */}
             <div className="flex items-center gap-2">
               <select
-                value={selectedRound}
-                onChange={(e) => setSelectedRound(Number(e.target.value))}
+                value={selectedRoundName}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSelectedRoundName(val);
+                  if (val.includes('1')) setSelectedRound(1);
+                  else if (val.includes('2')) setSelectedRound(2);
+                  else if (val.includes('3') || val.includes('Quarter')) setSelectedRound(3);
+                  else if (val.includes('Semi')) setSelectedRound(4);
+                  else if (val.includes('Final')) setSelectedRound(5);
+                }}
                 className="bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-3 py-2.5 text-xs font-semibold text-[#171715] dark:text-[#FAF8F3] transition-colors focus:outline-none"
               >
-                <option value={1}>Round 1</option>
-                <option value={2}>Round 2 (Winners Only)</option>
-                <option value={3}>Round 3 (Winners Only)</option>
-                <option value={4}>Round 4 (Semifinals)</option>
-                <option value={5}>Round 5 (Finals)</option>
+                <option value="Round 1">Round 1</option>
+                <option value="Round 2">Round 2</option>
+                <option value="Round 3">Round 3</option>
+                <option value="Quarter-Finals">Quarter-Finals</option>
+                <option value="Semi-Finals">Semi-Finals</option>
+                <option value="Grand Final">Grand Final</option>
               </select>
 
               <button
                 onClick={handleGeneratePairings}
                 disabled={generating}
-                className="bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] font-semibold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-xs flex items-center gap-2 transition-all hover:-translate-y-0.5"
+                className="bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] font-semibold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-xs flex items-center gap-2 transition-all hover:-translate-y-0.5 cursor-pointer"
               >
                 {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Swords className="w-4 h-4" />}
-                <span>Generate Round {selectedRound}</span>
+                <span>Generate {selectedRoundName}</span>
               </button>
             </div>
           </div>
         </div>
+
+        {/* BULK ACTIONS FLOATING BAR (Visible when 1 or more matches selected) */}
+        {selectedMatchIds.length > 0 && (
+          <div className="bg-[#171715] text-[#FAF8F3] dark:bg-[#FAF8F3] dark:text-[#0D0D0D] p-3.5 sm:p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-lg border border-[#383733] dark:border-[#D5CFC5] animate-in fade-in duration-200">
+            <div className="flex items-center gap-3">
+              <span className="font-mono text-xs font-bold bg-rose-600 text-white px-3 py-1 rounded-full">
+                {selectedMatchIds.length} Selected
+              </span>
+              <span className="text-xs font-medium font-sans">
+                Matches ready for bulk operations
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setSelectedMatchIds([])}
+                className="text-xs px-3.5 py-1.5 rounded-xl border border-white/20 dark:border-black/20 hover:bg-white/10 dark:hover:bg-black/5 font-semibold transition-colors cursor-pointer"
+              >
+                Clear Selection
+              </button>
+              <button
+                onClick={handleBulkDelete}
+                disabled={bulkDeleting}
+                className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-4 py-1.5 rounded-xl uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              >
+                {bulkDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                <span>Bulk Delete ({selectedMatchIds.length})</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Matches Table */}
         <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl shadow-xs overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
               <tr className="border-b border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1] dark:bg-[#1D1D1B] text-[#77736B] dark:text-[#8E8E93] font-mono uppercase text-[10px]">
-                <th className="py-3.5 px-4 font-semibold">Match ID</th>
-                <th className="py-3.5 px-4 text-center font-semibold">Round</th>
+                {/* Select All Checkbox */}
+                <th className="py-3.5 px-3 text-center w-10">
+                  <input
+                    type="checkbox"
+                    checked={matches.length > 0 && selectedMatchIds.length === matches.length}
+                    onChange={handleToggleSelectAll}
+                    className="w-4 h-4 rounded cursor-pointer accent-[#171715] dark:accent-[#FAF8F3]"
+                    title="Select / Deselect all matches"
+                  />
+                </th>
+                <th className="py-3.5 px-3 font-semibold">Match ID</th>
+                <th className="py-3.5 px-4 font-semibold">Stage / Round</th>
                 <th className="py-3.5 px-4 font-semibold">Player 1 (White)</th>
                 <th className="py-3.5 px-4 font-semibold">Player 2 (Black)</th>
-                <th className="py-3.5 px-4 text-center font-semibold">Clock</th>
-                <th className="py-3.5 px-4 text-center font-semibold">Status</th>
-                <th className="py-3.5 px-4 text-center font-semibold">Live Score</th>
-                <th className="py-3.5 px-4 text-right font-semibold">In-Game Actions</th>
+                <th className="py-3.5 px-3 text-center font-semibold">Clock</th>
+                <th className="py-3.5 px-3 text-center font-semibold">Status</th>
+                <th className="py-3.5 px-4 text-center font-semibold">Score</th>
+                <th className="py-3.5 px-4 text-right font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#D5CFC5] dark:divide-[#262624]">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-[#77736B] dark:text-[#8E8E93]">
+                  <td colSpan={9} className="py-12 text-center text-[#77736B] dark:text-[#8E8E93]">
                     Loading tournament matches...
                   </td>
                 </tr>
               ) : matches.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-16 text-center text-[#77736B] dark:text-[#8E8E93]">
+                  <td colSpan={9} className="py-16 text-center text-[#77736B] dark:text-[#8E8E93]">
                     <div className="max-w-md mx-auto space-y-2">
                       <p className="font-serif font-bold text-sm text-[#171715] dark:text-[#FAF8F3]">
                         No matches scheduled yet.
                       </p>
                       <p className="text-xs">
-                        Rounds are created exclusively on demand by the admin. Use &quot;Generate Round {selectedRound}&quot; or click &quot;New Custom Match&quot; above to set up pairings.
+                        Rounds are created exclusively on demand by the admin. Use &quot;Generate {selectedRoundName}&quot; or click &quot;New Custom Match&quot; above to name and set up pairings.
                       </p>
                     </div>
                   </td>
@@ -404,27 +513,59 @@ export default function ChessAdminMatchesPage() {
                   const isCompleted = m.status === 'completed';
                   const isStartingThis = startingMatchId === m._id;
                   const isDeletingThis = deletingMatchId === m._id;
+                  const isSelected = selectedMatchIds.includes(m._id);
+
+                  // Stylized Round / Stage badge
+                  const stageTitle = m.roundName || `Round ${m.round}`;
+                  const isFinalStage = stageTitle.toLowerCase().includes('final');
 
                   return (
-                    <tr key={m._id || m.matchId} className={`hover:bg-[#EFEAE1]/50 dark:hover:bg-[#1D1D1B]/50 transition-colors ${isLive ? 'bg-rose-50/40 dark:bg-rose-950/10' : ''}`}>
-                      <td className="py-3.5 px-4 font-mono font-bold text-[#171715] dark:text-[#FAF8F3]">
+                    <tr
+                      key={m._id || m.matchId}
+                      className={`hover:bg-[#EFEAE1]/50 dark:hover:bg-[#1D1D1B]/50 transition-colors ${
+                        isSelected ? 'bg-amber-50/60 dark:bg-amber-950/20' : isLive ? 'bg-rose-50/40 dark:bg-rose-950/10' : ''
+                      }`}
+                    >
+                      {/* Row Checkbox */}
+                      <td className="py-3.5 px-3 text-center">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => handleToggleSelectMatch(m._id)}
+                          className="w-4 h-4 rounded cursor-pointer accent-[#171715] dark:accent-[#FAF8F3]"
+                        />
+                      </td>
+
+                      <td className="py-3.5 px-3 font-mono font-bold text-[#171715] dark:text-[#FAF8F3]">
                         {m.matchId}
                       </td>
-                      <td className="py-3.5 px-4 text-center font-mono text-[#77736B] dark:text-[#8E8E93]">
-                        R{m.round}
+
+                      {/* Custom Round Name Display */}
+                      <td className="py-3.5 px-4 font-serif">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold ${
+                            isFinalStage
+                              ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-800'
+                              : 'bg-[#EFEAE1] dark:bg-[#1E1E1C] text-[#171715] dark:text-[#FAF8F3] border border-[#D5CFC5] dark:border-[#2E2E2B]'
+                          }`}
+                        >
+                          {isFinalStage && <span className="mr-1">👑</span>}
+                          {stageTitle}
+                        </span>
                       </td>
+
                       <td className="py-3.5 px-4 font-bold text-[#171715] dark:text-[#FAF8F3] font-serif">
                         {p1}
                       </td>
                       <td className="py-3.5 px-4 font-bold text-[#171715] dark:text-[#FAF8F3] font-serif">
                         {p2}
                       </td>
-                      <td className="py-3.5 px-4 text-center">
+                      <td className="py-3.5 px-3 text-center">
                         <span className="font-mono text-[10px] bg-[#EFEAE1] dark:bg-[#1E1E1C] px-2 py-0.5 rounded border border-[#D5CFC5] dark:border-[#2E2E2B] text-[#77736B] dark:text-[#8E8E93]">
                           {m.durationMinutes || 10}m
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-center">
+                      <td className="py-3.5 px-3 text-center">
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold ${
                             isLive
@@ -446,7 +587,7 @@ export default function ChessAdminMatchesPage() {
                         {isLive && (
                           <button
                             onClick={() => openLiveScoring(m)}
-                            className="bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-semibold px-3 py-1.5 rounded-lg uppercase inline-flex items-center gap-1.5 shadow-xs transition-all hover:scale-105 animate-pulse"
+                            className="bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-semibold px-3 py-1.5 rounded-lg uppercase inline-flex items-center gap-1.5 shadow-xs transition-all hover:scale-105 animate-pulse cursor-pointer"
                             title="Log piece captures in real-time"
                           >
                             <Zap className="w-3 h-3 fill-current" />
@@ -459,7 +600,7 @@ export default function ChessAdminMatchesPage() {
                           <button
                             onClick={() => handleStartMatch(m._id)}
                             disabled={isStartingThis}
-                            className="bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] text-[10px] font-semibold px-3 py-1.5 rounded-lg uppercase inline-flex items-center gap-1 shadow-xs transition-colors"
+                            className="bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] text-[10px] font-semibold px-3 py-1.5 rounded-lg uppercase inline-flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
                             title="Start 10:00 live timer"
                           >
                             {isStartingThis ? (
@@ -475,23 +616,22 @@ export default function ChessAdminMatchesPage() {
                         {!m.isBye && (
                           <button
                             onClick={() => openResultModal(m)}
-                            className="border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1] dark:bg-[#1D1D1B] hover:bg-[#E4DED5] dark:hover:bg-[#262624] text-[#171715] dark:text-[#FAF8F3] text-[10px] font-semibold px-2.5 py-1.5 rounded-lg uppercase shadow-xs transition-colors"
+                            className="border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1] dark:bg-[#1D1D1B] hover:bg-[#E4DED5] dark:hover:bg-[#262624] text-[#171715] dark:text-[#FAF8F3] text-[10px] font-semibold px-2.5 py-1.5 rounded-lg uppercase shadow-xs transition-colors cursor-pointer"
                           >
                             {isCompleted ? 'Edit Result' : 'Finalize Result'}
                           </button>
                         )}
 
-                        {/* Delete Pairing Button */}
-                        {!isCompleted && (
-                          <button
-                            onClick={() => handleDeleteMatch(m._id, m.matchId)}
-                            disabled={isDeletingThis}
-                            className="p-1 rounded-lg text-[#77736B] hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors inline-block align-middle"
-                            title="Delete this pairing"
-                          >
-                            {isDeletingThis ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
-                          </button>
-                        )}
+                        {/* Dedicated Delete Button on EVERY match row */}
+                        <button
+                          onClick={() => handleDeleteMatch(m._id, m.matchId)}
+                          disabled={isDeletingThis}
+                          className="px-2.5 py-1.5 rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 transition-colors inline-flex items-center gap-1 cursor-pointer font-semibold text-[10px] uppercase align-middle"
+                          title={`Delete match ${m.matchId}`}
+                        >
+                          {isDeletingThis ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                          <span>Delete</span>
+                        </button>
                       </td>
                     </tr>
                   );
@@ -521,7 +661,7 @@ export default function ChessAdminMatchesPage() {
                     )}
                   </div>
                   <h3 className="text-xl font-bold font-serif text-[#171715] dark:text-[#FAF8F3]">
-                    {liveScoringMatch.matchId} • Round {liveScoringMatch.round}
+                    {liveScoringMatch.matchId} • {liveScoringMatch.roundName || `Round ${liveScoringMatch.round}`}
                   </h3>
                 </div>
 
@@ -531,7 +671,7 @@ export default function ChessAdminMatchesPage() {
                   </div>
                   <button
                     onClick={() => setLiveScoringMatch(null)}
-                    className="w-8 h-8 rounded-xl flex items-center justify-center bg-[#EFEAE1] dark:bg-[#1E1E1C] hover:bg-[#E4DED5] text-[#77736B] dark:text-[#8E8E93] text-sm"
+                    className="w-8 h-8 rounded-xl flex items-center justify-center bg-[#EFEAE1] dark:bg-[#1E1E1C] hover:bg-[#E4DED5] text-[#77736B] dark:text-[#8E8E93] text-sm cursor-pointer"
                   >
                     ✕
                   </button>
@@ -673,7 +813,7 @@ export default function ChessAdminMatchesPage() {
                       setLiveScoringMatch(null);
                       openResultModal(m);
                     }}
-                    className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-5 py-2.5 rounded-xl uppercase tracking-wider shadow-sm transition-all"
+                    className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-5 py-2.5 rounded-xl uppercase tracking-wider shadow-sm transition-all cursor-pointer"
                   >
                     Finish Match & Submit Result
                   </button>
@@ -684,7 +824,7 @@ export default function ChessAdminMatchesPage() {
           </div>
         )}
 
-        {/* Create Manual Match Pairing Modal */}
+        {/* CREATE MANUAL MATCH MODAL WITH CUSTOM ROUND NAME / GRAND FINAL */}
         {showCreateModal && (
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
             <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-5 text-xs text-[#171715] dark:text-[#FAF8F3]">
@@ -699,24 +839,52 @@ export default function ChessAdminMatchesPage() {
                 </div>
                 <button
                   onClick={() => setShowCreateModal(false)}
-                  className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#EFEAE1] dark:hover:bg-[#1D1D1B] text-[#77736B] dark:text-[#8E8E93] text-sm"
+                  className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#EFEAE1] dark:hover:bg-[#1D1D1B] text-[#77736B] dark:text-[#8E8E93] text-sm cursor-pointer"
                 >
                   ✕
                 </button>
               </div>
 
               <form onSubmit={handleCreateManualMatch} className="space-y-4">
+                {/* Custom Round Name & Stage */}
                 <div>
-                  <label className="block font-semibold text-[#171715] dark:text-[#FAF8F3] mb-1">
-                    Tournament Round
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block font-semibold text-[#171715] dark:text-[#FAF8F3]">
+                      Tournament Stage / Round Name *
+                    </label>
+                    <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93]">
+                      Click preset or type custom
+                    </span>
+                  </div>
+
+                  {/* Preset quick selection pills */}
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {ROUND_PRESETS.map((p) => (
+                      <button
+                        key={p.label}
+                        type="button"
+                        onClick={() => {
+                          setManualRoundName(p.label);
+                          setManualRound(p.round);
+                        }}
+                        className={`text-[10px] font-mono px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                          manualRoundName === p.label
+                            ? 'bg-[#22221F] text-white dark:bg-[#FAF8F3] dark:text-[#0D0D0D] border-transparent font-bold shadow-xs'
+                            : 'bg-[#F5F2EB] dark:bg-[#1D1D1B] border-[#D5CFC5] dark:border-[#262624] text-[#77736B] hover:text-[#171715] dark:hover:text-[#FAF8F3]'
+                        }`}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Text input where admin can name the round like "Grand Final", "Final", etc. */}
                   <input
-                    type="number"
-                    min={1}
-                    max={20}
-                    value={manualRound}
-                    onChange={(e) => setManualRound(Number(e.target.value))}
-                    className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] rounded-xl p-2.5 font-medium text-[#171715] dark:text-[#FAF8F3] focus:outline-none"
+                    type="text"
+                    value={manualRoundName}
+                    onChange={(e) => setManualRoundName(e.target.value)}
+                    placeholder="e.g. Grand Final, Final, Semi-Final, Round 1..."
+                    className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl p-2.5 font-bold text-sm text-[#171715] dark:text-[#FAF8F3] focus:outline-none"
                     required
                   />
                 </div>
@@ -776,14 +944,14 @@ export default function ChessAdminMatchesPage() {
                   <button
                     type="button"
                     onClick={() => setShowCreateModal(false)}
-                    className="px-4 py-2 border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1] dark:bg-[#1D1D1B] text-[#171715] dark:text-[#FAF8F3] rounded-xl font-semibold hover:bg-[#E4DED5] dark:hover:bg-[#262624] transition-colors"
+                    className="px-4 py-2 border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1] dark:bg-[#1D1D1B] text-[#171715] dark:text-[#FAF8F3] rounded-xl font-semibold hover:bg-[#E4DED5] dark:hover:bg-[#262624] transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={creatingMatch}
-                    className="px-5 py-2 bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] rounded-xl font-semibold uppercase tracking-wider transition-all shadow-xs flex items-center gap-2"
+                    className="px-5 py-2 bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] rounded-xl font-semibold uppercase tracking-wider transition-all shadow-xs flex items-center gap-2 cursor-pointer"
                   >
                     {creatingMatch ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                     <span>Create Pairing</span>
@@ -804,12 +972,12 @@ export default function ChessAdminMatchesPage() {
                     FINAL SCORING & DECISION
                   </span>
                   <h3 className="text-base font-bold font-serif text-[#171715] dark:text-[#FAF8F3] mt-0.5">
-                    Match Result — {resultModalMatch.matchId}
+                    Match Result — {resultModalMatch.matchId} ({resultModalMatch.roundName || `Round ${resultModalMatch.round}`})
                   </h3>
                 </div>
                 <button
                   onClick={() => setResultModalMatch(null)}
-                  className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#EFEAE1] dark:hover:bg-[#1D1D1B] text-[#77736B] dark:text-[#8E8E93] text-sm"
+                  className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#EFEAE1] dark:hover:bg-[#1D1D1B] text-[#77736B] dark:text-[#8E8E93] text-sm cursor-pointer"
                 >
                   ✕
                 </button>
@@ -901,7 +1069,7 @@ export default function ChessAdminMatchesPage() {
                   <button
                     type="button"
                     onClick={() => setResultModalMatch(null)}
-                    className="px-4 py-2 border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1] dark:bg-[#1D1D1B] text-[#171715] dark:text-[#FAF8F3] rounded-xl font-semibold hover:bg-[#E4DED5] dark:hover:bg-[#262624] transition-colors"
+                    className="px-4 py-2 border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1] dark:bg-[#1D1D1B] text-[#171715] dark:text-[#FAF8F3] rounded-xl font-semibold hover:bg-[#E4DED5] dark:hover:bg-[#262624] transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -909,7 +1077,7 @@ export default function ChessAdminMatchesPage() {
                   <button
                     type="submit"
                     disabled={submitLoading}
-                    className="px-5 py-2 bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] rounded-xl font-semibold uppercase tracking-wider transition-all shadow-xs"
+                    className="px-5 py-2 bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] rounded-xl font-semibold uppercase tracking-wider transition-all shadow-xs cursor-pointer"
                   >
                     {submitLoading ? 'Saving...' : 'Submit Result'}
                   </button>

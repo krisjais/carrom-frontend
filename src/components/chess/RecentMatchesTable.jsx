@@ -81,7 +81,7 @@ export function RecentMatchesTable({ matches = [], loading = false }) {
                       </Link>
                     </td>
                     <td className="py-4 px-3 text-center font-mono text-[#77736B] dark:text-[#8E8E93]">
-                      R{m.round}
+                      <span className="font-semibold text-xs">{m.roundName || `R${m.round}`}</span>
                     </td>
                     <td className="py-4 px-4 font-bold font-serif text-[#171715] dark:text-[#FAF8F3]">
                       {p1}
@@ -140,7 +140,7 @@ export function RecentMatchesTable({ matches = [], loading = false }) {
                 className="block bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-4 space-y-2.5 shadow-xs"
               >
                 <div className="flex justify-between items-center text-[10px] font-mono text-[#77736B]">
-                  <span>{m.matchId} • Round {m.round}</span>
+                  <span>{m.matchId} • {m.roundName || `Round ${m.round}`}</span>
                   <span className="uppercase">{m.status}</span>
                 </div>
                 <div className="flex justify-between items-center">
