@@ -303,9 +303,25 @@ export const chessApi = {
     });
   },
 
+  createMatch: async (matchData) => {
+    return await safeFetch('/admin/matches', {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(matchData)
+    });
+  },
+
   startMatch: async (id) => {
     return await safeFetch(`/admin/matches/${id}/start`, {
       method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ action: 'start', status: 'live' })
+    });
+  },
+
+  deleteMatch: async (id) => {
+    return await safeFetch(`/admin/matches/${id}`, {
+      method: 'DELETE',
       headers: getHeaders()
     });
   },

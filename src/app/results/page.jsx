@@ -6,6 +6,7 @@ import { Trophy, CheckCircle2, Crown, Award, Clock } from 'lucide-react';
 import { CategoryBadge } from '@/components/ui/Badge';
 import { CategoryCoinPair } from '@/components/ui/CarromElements';
 import { formatMatchDurationTaken } from '@/components/common/CarromMatchTimer';
+import { CATEGORIES } from '@/lib/constants';
 
 export default function ResultsPage() {
   const [matches, setMatches] = useState([]);

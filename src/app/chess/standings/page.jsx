@@ -7,8 +7,6 @@ import { StandingsTable } from '@/components/chess/StandingsTable';
 import { ChessFooter } from '@/components/chess/ChessFooter';
 import { RefreshCw, Trophy, ShieldCheck } from 'lucide-react';
 
-import { DEMO_CHESS_STANDINGS } from '@/lib/chessDemoData';
-
 export default function ChessStandingsPage() {
   const [standings, setStandings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,14 +15,14 @@ export default function ChessStandingsPage() {
     setLoading(true);
     try {
       const res = await chessApi.getStandings();
-      if (res.success && res.data && res.data.length > 0) {
+      if (res.success && res.data) {
         setStandings(res.data);
       } else {
-        setStandings(DEMO_CHESS_STANDINGS);
+        setStandings([]);
       }
     } catch (err) {
       console.error('Error loading standings:', err);
-      setStandings(DEMO_CHESS_STANDINGS);
+      setStandings([]);
     } finally {
       setLoading(false);
     }
@@ -34,7 +32,7 @@ export default function ChessStandingsPage() {
     loadStandings();
   }, []);
 
-  const activeStandings = standings.length > 0 ? standings : DEMO_CHESS_STANDINGS;
+  const activeStandings = standings || [];
 
   return (
     <div className="min-h-screen bg-[#F5F2EB] dark:bg-[#0D0D0D] flex flex-col font-sans text-[#171715] dark:text-[#FAF8F3] antialiased selection:bg-[#E4DED5] dark:selection:bg-[#2A2A28]">

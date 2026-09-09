@@ -8,8 +8,6 @@ import { LiveMatchCard } from '@/components/chess/LiveMatchCard';
 import { ChessFooter } from '@/components/chess/ChessFooter';
 import { Filter, Calendar, Swords, Radio } from 'lucide-react';
 
-import { DEMO_CHESS_MATCHES } from '@/lib/chessDemoData';
-
 export default function ChessMatchesPage() {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,14 +18,14 @@ export default function ChessMatchesPage() {
     async function loadMatches() {
       try {
         const res = await chessApi.getMatches();
-        if (res.success && res.data && res.data.length > 0) {
+        if (res.success && res.data) {
           setMatches(res.data);
         } else {
-          setMatches(DEMO_CHESS_MATCHES);
+          setMatches([]);
         }
       } catch (err) {
         console.error('Error loading matches:', err);
-        setMatches(DEMO_CHESS_MATCHES);
+        setMatches([]);
       } finally {
         setLoading(false);
       }
@@ -35,7 +33,7 @@ export default function ChessMatchesPage() {
     loadMatches();
   }, []);
 
-  const activeMatches = matches.length > 0 ? matches : DEMO_CHESS_MATCHES;
+  const activeMatches = matches || [];
 
   const filteredMatches = activeMatches.filter((m) => {
     const matchesStatus = statusFilter === 'all' || m.status?.toLowerCase() === statusFilter.toLowerCase();

@@ -6,10 +6,10 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 import gsap from 'gsap';
 
 export function ChessHeroCard({ stats }) {
-  const registeredCount = (stats?.totalRegistrations || stats?.registeredCount) || 48;
-  const currentRound = stats?.currentRound || 2;
+  const registeredCount = stats?.totalRegistrations ?? stats?.registeredCount ?? 0;
+  const currentRound = stats?.currentRound || 1;
   const matchDuration = stats?.matchDuration || 10;
-  const liveCount = (stats?.liveMatches !== undefined && stats?.liveMatches > 0) ? stats.liveMatches : (stats?.liveCount || 2);
+  const liveCount = (stats?.liveMatches !== undefined && stats?.liveMatches !== null) ? stats.liveMatches : (stats?.liveCount || 0);
 
   const containerRef = useRef(null);
   const textRef = useRef(null);

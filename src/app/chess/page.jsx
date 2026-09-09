@@ -16,8 +16,6 @@ import { ChessFooter } from '@/components/chess/ChessFooter';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-import { DEMO_CHESS_STATS, DEMO_CHESS_MATCHES, DEMO_CHESS_STANDINGS } from '@/lib/chessDemoData';
-
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
 }
@@ -58,9 +56,9 @@ export default function ChessHome() {
     loadData();
   }, []);
 
-  const displayStats = (stats && (stats.totalRegistrations > 0 || stats.registeredCount > 0)) ? stats : DEMO_CHESS_STATS;
-  const displayMatches = matches && matches.length > 0 ? matches : DEMO_CHESS_MATCHES;
-  const displayStandings = standings && standings.length > 0 ? standings : DEMO_CHESS_STANDINGS;
+  const displayStats = stats;
+  const displayMatches = matches || [];
+  const displayStandings = standings || [];
 
   const liveMatches = displayMatches.filter((m) => m.status === 'live');
   const upcomingMatch = displayMatches.find((m) => m.status === 'scheduled') || null;
