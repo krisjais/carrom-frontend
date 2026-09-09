@@ -4,11 +4,12 @@ import React from 'react';
 
 export function PieceScore({ captured = {}, materialScore = 0, playerName = 'Player' }) {
   const piecesConfig = [
-    { key: 'pawns', symbol: '♟', name: 'Pawns', val: 1 },
-    { key: 'knights', symbol: '♞', name: 'Knights', val: 3 },
-    { key: 'bishops', symbol: '♝', name: 'Bishops', val: 3 },
-    { key: 'rooks', symbol: '♜', name: 'Rooks', val: 5 },
-    { key: 'queens', symbol: '♛', name: 'Queens', val: 9 },
+    { key: 'pawns', symbol: '♟', name: 'Pawns', val: 1, max: 8 },
+    { key: 'knights', symbol: '♞', name: 'Knights', val: 3, max: 2 },
+    { key: 'bishops', symbol: '♝', name: 'Bishops', val: 3, max: 2 },
+    { key: 'rooks', symbol: '♜', name: 'Rooks', val: 5, max: 2 },
+    { key: 'queens', symbol: '♛', name: 'Queen', val: 9, max: 1 },
+    { key: 'kings', symbol: '♚', name: 'King', val: 0, max: 1 },
   ];
 
   return (
@@ -61,10 +62,10 @@ export function PieceScore({ captured = {}, materialScore = 0, playerName = 'Pla
               </div>
               <div className="text-right font-mono">
                 <span className="text-xs font-bold text-[#171715] dark:text-[#FAF8F3] block">
-                  × {count}
+                  {count} / {max}
                 </span>
                 <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93]">
-                  {totalPts > 0 ? `+${totalPts}` : '0'}
+                  {key === 'kings' ? (count > 0 ? 'Checkmated' : 'Active') : (totalPts > 0 ? `+${totalPts} pts` : '0 pts')}
                 </span>
               </div>
             </div>

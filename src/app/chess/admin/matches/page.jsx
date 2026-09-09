@@ -7,12 +7,31 @@ import { AdminSidebar } from '@/components/chess/AdminSidebar';
 import { MatchTimer } from '@/components/chess/MatchTimer';
 import { Swords, Play, CheckCircle2, XCircle, Trophy, Loader2, Plus, Minus, Trash2, Clock, ShieldCheck, Zap, CheckSquare, Square } from 'lucide-react';
 
+const PIECE_CONFIG = [
+  { key: 'pawns', label: 'Pawns', symbol: '♟', val: 1, max: 8 },
+  { key: 'knights', label: 'Knights', symbol: '♞', val: 3, max: 2 },
+  { key: 'bishops', label: 'Bishops', symbol: '♝', val: 3, max: 2 },
+  { key: 'rooks', label: 'Rooks', symbol: '♜', val: 5, max: 2 },
+  { key: 'queens', label: 'Queen', symbol: '♛', val: 9, max: 1 },
+  { key: 'kings', label: 'King', symbol: '♚', val: 0, max: 1 }
+];
+
+const PIECE_LIMITS = {
+  pawns: 8,
+  knights: 2,
+  bishops: 2,
+  rooks: 2,
+  queens: 1,
+  kings: 1
+};
+
 const PIECE_VALUES = {
   pawns: 1,
   knights: 3,
   bishops: 3,
   rooks: 5,
-  queens: 9
+  queens: 9,
+  kings: 0
 };
 
 const PIECE_ICONS = {
@@ -20,7 +39,8 @@ const PIECE_ICONS = {
   knights: '♞',
   bishops: '♝',
   rooks: '♜',
-  queens: '♛'
+  queens: '♛',
+  kings: '♚'
 };
 
 function calcMaterial(captured) {
@@ -30,7 +50,8 @@ function calcMaterial(captured) {
     (captured.knights || 0) * 3 +
     (captured.bishops || 0) * 3 +
     (captured.rooks || 0) * 5 +
-    (captured.queens || 0) * 9
+    (captured.queens || 0) * 9 +
+    (captured.kings || 0) * 0
   );
 }
 
@@ -209,23 +230,28 @@ export default function ChessAdminMatchesPage() {
   // Open Live In-Game Scoring Modal
   const openLiveScoring = (match) => {
     setLiveScoringMatch(match);
-    setLiveP1Captured(match.player1Captured || { pawns: 0, knights: 0, bishops: 0, rooks: 0, queens: 0 });
-    setLiveP2Captured(match.player2Captured || { pawns: 0, knights: 0, bishops: 0, rooks: 0, queens: 0 });
+    setLiveP1Captured(match.player1Captured || { pawns: 0, knights: 0, bishops: 0, rooks: 0, queens: 0, kings: 0 });
+    setLiveP2Captured(match.player2Captured || { pawns: 0, knights: 0, bishops: 0, rooks: 0, queens: 0, kings: 0 });
   };
 
-  // Live capture increment / decrement
+  // Live capture increment / decrement with strict piece limits
   const handleAdjustLiveCapture = async (playerNum, pieceKey, delta) => {
     if (!liveScoringMatch) return;
 
     let updatedP1 = { ...liveP1Captured };
     let updatedP2 = { ...liveP2Captured };
+    const maxLimit = PIECE_LIMITS[pieceKey] ?? 8;
 
     if (playerNum === 1) {
-      const nextVal = Math.max(0, (updatedP1[pieceKey] || 0) + delta);
+      const current = updatedP1[pieceKey] || 0;
+      const nextVal = Math.max(0, Math.min(maxLimit, current + delta));
+      if (nextVal === current) return;
       updatedP1[pieceKey] = nextVal;
       setLiveP1Captured(updatedP1);
     } else {
-      const nextVal = Math.max(0, (updatedP2[pieceKey] || 0) + delta);
+      const current = updatedP2[pieceKey] || 0;
+      const nextVal = Math.max(0, Math.min(maxLimit, current + delta));
+      if (nextVal === current) return;
       updatedP2[pieceKey] = nextVal;
       setLiveP2Captured(updatedP2);
     }
@@ -321,8 +347,8 @@ export default function ChessAdminMatchesPage() {
 
   const openResultModal = (match) => {
     setResultModalMatch(match);
-    setP1Captured(match.player1Captured || { pawns: 0, knights: 0, bishops: 0, rooks: 0, queens: 0 });
-    setP2Captured(match.player2Captured || { pawns: 0, knights: 0, bishops: 0, rooks: 0, queens: 0 });
+    setP1Captured(match.player1Captured || { pawns: 0, knights: 0, bishops: 0, rooks: 0, queens: 0, kings: 0 });
+    setP2Captured(match.player2Captured || { pawns: 0, knights: 0, bishops: 0, rooks: 0, queens: 0, kings: 0 });
     setWinnerChoice(match.winner || 'none');
     setResultTypeChoice(match.resultType || 'checkmate');
   };
@@ -713,33 +739,40 @@ export default function ChessAdminMatchesPage() {
                   </div>
 
                   <div className="space-y-2">
-                    {['pawns', 'knights', 'bishops', 'rooks', 'queens'].map((key) => {
+                    {PIECE_CONFIG.map(({ key, label, symbol, val, max }) => {
                       const count = liveP1Captured[key] || 0;
-                      const val = PIECE_VALUES[key];
-                      const icon = PIECE_ICONS[key];
+                      const isMaxReached = count >= max;
+                      const isMinReached = count <= 0;
                       return (
                         <div key={key} className="flex items-center justify-between p-2 rounded-xl bg-[#F5F2EB] dark:bg-[#131312] border border-[#D5CFC5]/50 dark:border-[#262624]">
                           <div className="flex items-center gap-2">
-                            <span className="text-base">{icon}</span>
+                            <span className="text-base select-none">{symbol}</span>
                             <div>
-                              <span className="font-semibold text-xs capitalize block text-[#171715] dark:text-[#FAF8F3]">{key}</span>
-                              <span className="text-[9px] font-mono text-[#77736B] dark:text-[#8E8E93]">+{val} pt{val > 1 ? 's' : ''} each</span>
+                              <span className="font-semibold text-xs capitalize block text-[#171715] dark:text-[#FAF8F3]">{label}</span>
+                              <span className="text-[9px] font-mono text-[#77736B] dark:text-[#8E8E93]">
+                                {key === 'kings' ? '0 pts (Checkmate)' : `+${val} pt${val > 1 ? 's' : ''}`} • Max {max}
+                              </span>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1.5">
                             <button
                               onClick={() => handleAdjustLiveCapture(1, key, -1)}
-                              disabled={count <= 0}
-                              className="w-7 h-7 rounded-lg bg-[#EFEAE1] dark:bg-[#222220] hover:bg-[#E4DED5] flex items-center justify-center text-xs font-bold disabled:opacity-30 cursor-pointer"
+                              disabled={isMinReached}
+                              className="w-7 h-7 rounded-lg bg-[#EFEAE1] dark:bg-[#222220] hover:bg-[#E4DED5] flex items-center justify-center text-xs font-bold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                             >
                               <Minus className="w-3.5 h-3.5" />
                             </button>
-                            <span className="w-6 text-center font-mono font-bold text-sm text-[#171715] dark:text-[#FAF8F3]">
-                              {count}
+                            <span className="w-11 text-center font-mono font-bold text-xs text-[#171715] dark:text-[#FAF8F3]">
+                              {count}/{max}
                             </span>
                             <button
                               onClick={() => handleAdjustLiveCapture(1, key, 1)}
-                              className="w-7 h-7 rounded-lg bg-[#22221F] dark:bg-[#FAF8F3] text-white dark:text-[#0D0D0D] hover:bg-black flex items-center justify-center text-xs font-bold cursor-pointer"
+                              disabled={isMaxReached}
+                              className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${
+                                isMaxReached
+                                  ? 'opacity-25 cursor-not-allowed bg-neutral-300 dark:bg-neutral-800 text-neutral-500'
+                                  : 'bg-[#22221F] dark:bg-[#FAF8F3] text-white dark:text-[#0D0D0D] hover:bg-black cursor-pointer'
+                              }`}
                             >
                               <Plus className="w-3.5 h-3.5" />
                             </button>
@@ -762,33 +795,40 @@ export default function ChessAdminMatchesPage() {
                   </div>
 
                   <div className="space-y-2">
-                    {['pawns', 'knights', 'bishops', 'rooks', 'queens'].map((key) => {
+                    {PIECE_CONFIG.map(({ key, label, symbol, val, max }) => {
                       const count = liveP2Captured[key] || 0;
-                      const val = PIECE_VALUES[key];
-                      const icon = PIECE_ICONS[key];
+                      const isMaxReached = count >= max;
+                      const isMinReached = count <= 0;
                       return (
                         <div key={key} className="flex items-center justify-between p-2 rounded-xl bg-[#F5F2EB] dark:bg-[#131312] border border-[#D5CFC5]/50 dark:border-[#262624]">
                           <div className="flex items-center gap-2">
-                            <span className="text-base">{icon}</span>
+                            <span className="text-base select-none">{symbol}</span>
                             <div>
-                              <span className="font-semibold text-xs capitalize block text-[#171715] dark:text-[#FAF8F3]">{key}</span>
-                              <span className="text-[9px] font-mono text-[#77736B] dark:text-[#8E8E93]">+{val} pt{val > 1 ? 's' : ''} each</span>
+                              <span className="font-semibold text-xs capitalize block text-[#171715] dark:text-[#FAF8F3]">{label}</span>
+                              <span className="text-[9px] font-mono text-[#77736B] dark:text-[#8E8E93]">
+                                {key === 'kings' ? '0 pts (Checkmate)' : `+${val} pt${val > 1 ? 's' : ''}`} • Max {max}
+                              </span>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1.5">
                             <button
                               onClick={() => handleAdjustLiveCapture(2, key, -1)}
-                              disabled={count <= 0}
-                              className="w-7 h-7 rounded-lg bg-[#EFEAE1] dark:bg-[#222220] hover:bg-[#E4DED5] flex items-center justify-center text-xs font-bold disabled:opacity-30 cursor-pointer"
+                              disabled={isMinReached}
+                              className="w-7 h-7 rounded-lg bg-[#EFEAE1] dark:bg-[#222220] hover:bg-[#E4DED5] flex items-center justify-center text-xs font-bold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                             >
                               <Minus className="w-3.5 h-3.5" />
                             </button>
-                            <span className="w-6 text-center font-mono font-bold text-sm text-[#171715] dark:text-[#FAF8F3]">
-                              {count}
+                            <span className="w-11 text-center font-mono font-bold text-xs text-[#171715] dark:text-[#FAF8F3]">
+                              {count}/{max}
                             </span>
                             <button
                               onClick={() => handleAdjustLiveCapture(2, key, 1)}
-                              className="w-7 h-7 rounded-lg bg-[#22221F] dark:bg-[#FAF8F3] text-white dark:text-[#0D0D0D] hover:bg-black flex items-center justify-center text-xs font-bold cursor-pointer"
+                              disabled={isMaxReached}
+                              className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${
+                                isMaxReached
+                                  ? 'opacity-25 cursor-not-allowed bg-neutral-300 dark:bg-neutral-800 text-neutral-500'
+                                  : 'bg-[#22221F] dark:bg-[#FAF8F3] text-white dark:text-[#0D0D0D] hover:bg-black cursor-pointer'
+                              }`}
                             >
                               <Plus className="w-3.5 h-3.5" />
                             </button>
@@ -986,47 +1026,115 @@ export default function ChessAdminMatchesPage() {
               <form onSubmit={handleSubmitResult} className="space-y-4">
                 {/* Captured counts player 1 */}
                 <div className="bg-[#F5F2EB] dark:bg-[#1D1D1B] p-3.5 rounded-xl border border-[#D5CFC5] dark:border-[#262624]">
-                  <span className="font-bold font-serif text-[#171715] dark:text-[#FAF8F3] block mb-2">
-                    {resultModalMatch.player1?.fullName} (White) Captured Pieces:
-                  </span>
-                  <div className="grid grid-cols-5 gap-2 text-center">
-                    {['pawns', 'knights', 'bishops', 'rooks', 'queens'].map((k) => (
-                      <div key={k}>
-                        <span className="text-[9px] uppercase font-mono block text-[#77736B] dark:text-[#8E8E93]">
-                          {k}
-                        </span>
-                        <input
-                          type="number"
-                          min={0}
-                          value={p1Captured[k]}
-                          onChange={(e) => setP1Captured({ ...p1Captured, [k]: Number(e.target.value) })}
-                          className="w-full bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-lg p-1.5 text-center font-bold text-[#171715] dark:text-[#FAF8F3] focus:outline-none"
-                        />
-                      </div>
-                    ))}
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold font-serif text-[#171715] dark:text-[#FAF8F3]">
+                      ⚪ {resultModalMatch.player1?.fullName} (White) Captured Pieces:
+                    </span>
+                    <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93]">
+                      {calcMaterial(p1Captured)} pts
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
+                    {PIECE_CONFIG.map(({ key, label, symbol, max }) => {
+                      const count = p1Captured[key] || 0;
+                      return (
+                        <div key={key} className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5]/70 dark:border-[#262624] rounded-xl p-2 flex flex-col items-center">
+                          <span className="text-base select-none">{symbol}</span>
+                          <span className="text-[10px] font-bold block text-[#171715] dark:text-[#FAF8F3]">
+                            {label}
+                          </span>
+                          <span className="text-[9px] font-mono text-[#77736B] dark:text-[#8E8E93] mb-1">
+                            Max {max}
+                          </span>
+                          <div className="flex items-center gap-1 w-full justify-center">
+                            <button
+                              type="button"
+                              onClick={() => setP1Captured(prev => ({ ...prev, [key]: Math.max(0, (prev[key] || 0) - 1) }))}
+                              disabled={count <= 0}
+                              className="w-5 h-5 rounded bg-[#EFEAE1] dark:bg-[#222220] hover:bg-[#E4DED5] flex items-center justify-center font-bold text-xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                            >
+                              -
+                            </button>
+                            <input
+                              type="number"
+                              min={0}
+                              max={max}
+                              value={count}
+                              onChange={(e) => {
+                                const raw = Number(e.target.value) || 0;
+                                setP1Captured(prev => ({ ...prev, [key]: Math.max(0, Math.min(max, raw)) }));
+                              }}
+                              className="w-8 bg-transparent text-center font-mono font-bold text-xs text-[#171715] dark:text-[#FAF8F3] focus:outline-none"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setP1Captured(prev => ({ ...prev, [key]: Math.min(max, (prev[key] || 0) + 1) }))}
+                              disabled={count >= max}
+                              className="w-5 h-5 rounded bg-[#22221F] dark:bg-[#FAF8F3] text-white dark:text-[#0D0D0D] hover:bg-black flex items-center justify-center font-bold text-xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
                 {/* Captured counts player 2 */}
                 <div className="bg-[#F5F2EB] dark:bg-[#1D1D1B] p-3.5 rounded-xl border border-[#D5CFC5] dark:border-[#262624]">
-                  <span className="font-bold font-serif text-[#171715] dark:text-[#FAF8F3] block mb-2">
-                    {resultModalMatch.player2?.fullName} (Black) Captured Pieces:
-                  </span>
-                  <div className="grid grid-cols-5 gap-2 text-center">
-                    {['pawns', 'knights', 'bishops', 'rooks', 'queens'].map((k) => (
-                      <div key={k}>
-                        <span className="text-[9px] uppercase font-mono block text-[#77736B] dark:text-[#8E8E93]">
-                          {k}
-                        </span>
-                        <input
-                          type="number"
-                          min={0}
-                          value={p2Captured[k]}
-                          onChange={(e) => setP2Captured({ ...p2Captured, [k]: Number(e.target.value) })}
-                          className="w-full bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-lg p-1.5 text-center font-bold text-[#171715] dark:text-[#FAF8F3] focus:outline-none"
-                        />
-                      </div>
-                    ))}
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold font-serif text-[#171715] dark:text-[#FAF8F3]">
+                      ⚫ {resultModalMatch.player2?.fullName} (Black) Captured Pieces:
+                    </span>
+                    <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93]">
+                      {calcMaterial(p2Captured)} pts
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
+                    {PIECE_CONFIG.map(({ key, label, symbol, max }) => {
+                      const count = p2Captured[key] || 0;
+                      return (
+                        <div key={key} className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5]/70 dark:border-[#262624] rounded-xl p-2 flex flex-col items-center">
+                          <span className="text-base select-none">{symbol}</span>
+                          <span className="text-[10px] font-bold block text-[#171715] dark:text-[#FAF8F3]">
+                            {label}
+                          </span>
+                          <span className="text-[9px] font-mono text-[#77736B] dark:text-[#8E8E93] mb-1">
+                            Max {max}
+                          </span>
+                          <div className="flex items-center gap-1 w-full justify-center">
+                            <button
+                              type="button"
+                              onClick={() => setP2Captured(prev => ({ ...prev, [key]: Math.max(0, (prev[key] || 0) - 1) }))}
+                              disabled={count <= 0}
+                              className="w-5 h-5 rounded bg-[#EFEAE1] dark:bg-[#222220] hover:bg-[#E4DED5] flex items-center justify-center font-bold text-xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                            >
+                              -
+                            </button>
+                            <input
+                              type="number"
+                              min={0}
+                              max={max}
+                              value={count}
+                              onChange={(e) => {
+                                const raw = Number(e.target.value) || 0;
+                                setP2Captured(prev => ({ ...prev, [key]: Math.max(0, Math.min(max, raw)) }));
+                              }}
+                              className="w-8 bg-transparent text-center font-mono font-bold text-xs text-[#171715] dark:text-[#FAF8F3] focus:outline-none"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setP2Captured(prev => ({ ...prev, [key]: Math.min(max, (prev[key] || 0) + 1) }))}
+                              disabled={count >= max}
+                              className="w-5 h-5 rounded bg-[#22221F] dark:bg-[#FAF8F3] text-white dark:text-[#0D0D0D] hover:bg-black flex items-center justify-center font-bold text-xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
