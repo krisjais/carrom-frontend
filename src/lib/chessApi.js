@@ -326,6 +326,14 @@ export const chessApi = {
     });
   },
 
+  updateLiveCaptures: async (id, captureData) => {
+    return await safeFetch(`/admin/matches/${id}/live-score`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(captureData)
+    });
+  },
+
   submitMatchResult: async (id, resultData) => {
     return await safeFetch(`/admin/matches/${id}/result`, {
       method: 'POST',
