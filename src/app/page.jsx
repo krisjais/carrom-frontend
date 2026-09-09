@@ -25,6 +25,7 @@ import {
   CarromCoin,
   CategoryCoinPair
 } from '@/components/ui/CarromElements';
+import { CarromMatchTimer } from '@/components/common/CarromMatchTimer';
 
 const FORMAT_STAGES = [
   {
@@ -282,6 +283,11 @@ export default function HomePage() {
                   {currentMatch.team2?.name || 'TBD'}
                 </h3>
               </div>
+            </div>
+
+            {/* Official Live Round Timer Bar */}
+            <div className="flex justify-center pt-2">
+              <CarromMatchTimer match={currentMatch} variant="standard" />
             </div>
 
             {/* Sequential Up Next Queue */}

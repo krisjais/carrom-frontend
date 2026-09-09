@@ -23,12 +23,14 @@ import {
   Settings,
   Play,
   Timer,
-  Square
+  Square,
+  Save
 } from 'lucide-react';
 import { StatusBadge, MainBoardBadge, CategoryBadge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/context/ToastContext';
 import { CategoryCoinPair } from '@/components/ui/CarromElements';
+import { CarromMatchTimer, formatMatchDurationTaken } from '@/components/common/CarromMatchTimer';
 
 export default function AdminMatchesPage() {
   const router = useRouter();
@@ -47,7 +49,8 @@ export default function AdminMatchesPage() {
   const [schedulerModalOpen, setSchedulerModalOpen] = useState(false);
   const [scheduleSettings, setScheduleSettings] = useState({
     startTime: new Date().toISOString().slice(0, 16),
-    matchDurationMinutes: 30,
+    matchDurationMinutes: 20,
+    roundDurationMinutes: 20,
     breakTimeMinutes: 5,
     minRestTimeMinutes: 10
   });
@@ -57,6 +60,7 @@ export default function AdminMatchesPage() {
   const [editTimeModalOpen, setEditTimeModalOpen] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState(null);
   const [customTime, setCustomTime] = useState('');
+  const [customDuration, setCustomDuration] = useState(20);
   const [savingTime, setSavingTime] = useState(false);
 
   // View Scorecard Modal
@@ -80,7 +84,8 @@ export default function AdminMatchesPage() {
         const s = tournRes.tournament.scheduleSettings;
         setScheduleSettings({
           startTime: s.startTime ? new Date(s.startTime).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16),
-          matchDurationMinutes: s.matchDurationMinutes || 30,
+          matchDurationMinutes: s.roundDurationMinutes || s.matchDurationMinutes || 20,
+          roundDurationMinutes: s.roundDurationMinutes || s.matchDurationMinutes || 20,
           breakTimeMinutes: s.breakTimeMinutes || 5,
           minRestTimeMinutes: s.minRestTimeMinutes || 10
         });
@@ -121,7 +126,7 @@ export default function AdminMatchesPage() {
     try {
       const res = await api.stopLiveMatch(matchId);
       if (res.success) {
-        toast.success(res.message || 'Match stopped from LIVE and returned to scheduled queue.');
+        toast.success(res.message || 'Match stopped from LIVE and reverted to scheduled queue.');
         fetchMatchesAndTeams();
       }
     } catch (err) {
@@ -136,7 +141,10 @@ export default function AdminMatchesPage() {
     e.preventDefault();
     setGeneratingSchedule(true);
     try {
-      const res = await api.generateSchedule(scheduleSettings);
+      const res = await api.generateSchedule({
+        ...scheduleSettings,
+        roundDurationMinutes: scheduleSettings.roundDurationMinutes || scheduleSettings.matchDurationMinutes
+      });
       if (res.success) {
         toast.success('Sequential schedule generated successfully for Main Carrom Board!');
         setSchedulerModalOpen(false);
@@ -152,6 +160,7 @@ export default function AdminMatchesPage() {
   const handleOpenEditTime = (m) => {
     setSelectedMatch(m);
     setCustomTime(m.scheduledTime ? new Date(m.scheduledTime).toISOString().slice(0, 16) : '');
+    setCustomDuration(m.roundDurationMinutes || m.durationMinutes || scheduleSettings.roundDurationMinutes || 20);
     setEditTimeModalOpen(true);
   };
 
@@ -161,16 +170,29 @@ export default function AdminMatchesPage() {
 
     setSavingTime(true);
     try {
+      const dur = Math.max(1, Number(customDuration) || 20);
       const res = await api.scheduleMatch(selectedMatch._id, {
-        scheduledTime: customTime ? new Date(customTime) : null
+        scheduledTime: customTime ? new Date(customTime) : null,
+        roundDurationMinutes: dur,
+        durationMinutes: dur
       });
+
+      // If match is currently live, also update its running referee timer duration
+      if (selectedMatch.status === 'live') {
+        await api.updateMatchTimer(selectedMatch._id, {
+          action: 'set_duration',
+          roundDurationMinutes: dur,
+          durationMinutes: dur
+        });
+      }
+
       if (res.success) {
-        toast.success('Match scheduled time updated.');
+        toast.success(`Match #${selectedMatch.matchNumber} time duration set to ${dur} minutes!`);
         setEditTimeModalOpen(false);
         fetchMatchesAndTeams();
       }
     } catch (err) {
-      toast.error(err.message || 'Failed to update scheduled time.');
+      toast.error(err.message || 'Failed to update match time.');
     } finally {
       setSavingTime(false);
     }
@@ -275,9 +297,10 @@ export default function AdminMatchesPage() {
           <button
             onClick={() => setSchedulerModalOpen(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] hover:border-[#3E342B] dark:hover:border-[#D4A94C] text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] transition-colors cursor-pointer shadow-xs"
+            title="Set default time for matches"
           >
-            <Settings className="w-3.5 h-3.5 text-[#E74C3C]" />
-            <span>Configure Schedule</span>
+            <Clock className="w-3.5 h-3.5 text-[#E74C3C]" />
+            <span>Default Match Time</span>
           </button>
 
           <button
@@ -543,24 +566,29 @@ export default function AdminMatchesPage() {
                             {!isWaiting && (
                               <div className="pt-2 border-t border-[#E8E1D5] dark:border-[#2B3034] flex items-center justify-between text-[11px] text-[#7E7060] dark:text-[#817B72]">
                                 <div className="font-mono">
-                                  {m.queuePosition ? (
+                                  {isLive ? (
+                                    <CarromMatchTimer match={m} variant="compact" />
+                                  ) : m.queuePosition ? (
                                     <span className="text-[#3E342B] dark:text-[#F5F1E8] font-bold">Queue #{m.queuePosition}</span>
                                   ) : isCompleted ? (
-                                    <span className="text-[#7E7060] dark:text-[#817B72]">Completed</span>
+                                    <span className="text-[#3E342B] dark:text-[#F5F1E8] font-bold flex items-center gap-1">
+                                      <Clock className="w-3 h-3 text-[#E74C3C]" />
+                                      <span>Took {formatMatchDurationTaken(m)}</span>
+                                    </span>
                                   ) : (
                                     <span className="text-[#E74C3C] dark:text-[#D4A94C] font-bold">In Play</span>
                                   )}
                                 </div>
-                                {m.scheduledTime ? (
-                                  <span className="font-mono text-[#3E342B] dark:text-[#F5F1E8]">
-                                    Est. {new Date(m.scheduledTime).toLocaleTimeString([], {
-                                      hour: '2-digit',
-                                      minute: '2-digit'
-                                    })}
-                                  </span>
-                                ) : (
-                                  <span className="text-[#7E7060] dark:text-[#817B72] font-mono">Time TBD</span>
-                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenEditTime(m)}
+                                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#FAF9F6] dark:bg-[#181C1F] hover:bg-[#E8E1D5]/60 dark:hover:bg-[#2B3034] border border-[#D5C4A1] dark:border-[#2B3034] text-[11px] font-mono font-bold text-[#3E342B] dark:text-[#F5F1E8] transition-colors cursor-pointer"
+                                  title="Click to change how much time this match will take"
+                                >
+                                  <Clock className="w-3 h-3 text-[#E74C3C]" />
+                                  <span>{isCompleted ? formatMatchDurationTaken(m) : `${m.roundDurationMinutes || m.durationMinutes || 20}m`}</span>
+                                  <span className="text-[10px] text-[#7E7060] dark:text-[#817B72] font-normal">✎</span>
+                                </button>
                               </div>
                             )}
                           </div>
@@ -578,6 +606,14 @@ export default function AdminMatchesPage() {
                                 </Link>
                                 <button
                                   type="button"
+                                  onClick={() => handleOpenEditTime(m)}
+                                  className="px-3 py-2.5 rounded-xl bg-white dark:bg-[#181C1F] hover:bg-[#FAF9F6] dark:hover:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] text-[11px] font-mono font-bold text-[#3E342B] dark:text-[#F5F1E8] transition-colors cursor-pointer shadow-xs"
+                                  title="Adjust match duration"
+                                >
+                                  <Clock className="w-3.5 h-3.5 text-[#E74C3C]" />
+                                </button>
+                                <button
+                                  type="button"
                                   onClick={() => handleStopLive(m._id)}
                                   disabled={stoppingMatchId === m._id}
                                   className="px-3 py-2.5 rounded-xl bg-white dark:bg-[#181C1F] hover:bg-[#FDEDEC] dark:hover:bg-[#E74C3C]/15 text-[#E74C3C] border border-[#E74C3C]/30 text-xs font-mono font-bold transition-colors cursor-pointer shadow-xs disabled:opacity-50"
@@ -587,7 +623,6 @@ export default function AdminMatchesPage() {
                                 </button>
                               </div>
                             ) : isReady ? (
-
                               <div className="flex items-center gap-2">
                                 <button
                                   onClick={() => handleStartMatch(m._id)}
@@ -599,23 +634,26 @@ export default function AdminMatchesPage() {
                                 </button>
                                 <button
                                   onClick={() => handleOpenEditTime(m)}
-                                  className="px-3 py-2 rounded-xl bg-white dark:bg-[#181C1F] hover:bg-[#FAF9F6] dark:hover:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] text-[11px] text-[#3E342B] dark:text-[#F5F1E8] font-mono cursor-pointer shadow-xs"
-                                  title="Adjust estimated time"
+                                  className="px-3 py-2 rounded-xl bg-white dark:bg-[#181C1F] hover:bg-[#FAF9F6] dark:hover:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] text-[11px] text-[#3E342B] dark:text-[#F5F1E8] font-mono font-bold cursor-pointer shadow-xs flex items-center gap-1"
+                                  title="Set how much time this match will take"
                                 >
-                                  Time
+                                  <Clock className="w-3 h-3 text-[#E74C3C]" />
+                                  <span>Set Time</span>
                                 </button>
                                 <Link
                                   href={`/admin/matches/${m._id}/score`}
-                                  className="px-3 py-2 rounded-xl bg-white dark:bg-[#181C1F] hover:bg-[#FAF9F6] dark:hover:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] transition-colors shadow-xs"
+                                  className="px-3 py-2 rounded-xl bg-white dark:bg-[#181C1F] hover:bg-[#FAF9F6] dark:hover:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] transition-colors shadow-xs flex items-center justify-center"
+                                  title="Open scorekeeper desk"
                                 >
                                   <ExternalLink className="w-3.5 h-3.5" />
                                 </Link>
                               </div>
                             ) : isCompleted ? (
                               <div className="flex items-center justify-between">
-                                <span className="text-xs text-emerald-800 dark:text-emerald-300 font-bold font-mono">
-                                  ✓ Result Confirmed
-                                </span>
+                                <div className="flex items-center gap-1.5 text-xs text-emerald-800 dark:text-emerald-300 font-bold font-mono">
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                                  <span>Result Confirmed ({formatMatchDurationTaken(m)})</span>
+                                </div>
                                 <Link
                                   href={`/admin/matches/${m._id}/score`}
                                   className="text-[11px] text-[#E74C3C] dark:text-[#D4A94C] hover:underline font-mono font-bold uppercase"
@@ -624,8 +662,18 @@ export default function AdminMatchesPage() {
                                 </Link>
                               </div>
                             ) : (
-                              <div className="text-center text-[11px] text-[#7E7060] dark:text-[#817B72] italic py-1 font-mono">
-                                WAITING (Opponents TBD)
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="text-[11px] text-[#7E7060] dark:text-[#817B72] italic font-mono truncate">
+                                  WAITING (TBD)
+                                </span>
+                                <button
+                                  onClick={() => handleOpenEditTime(m)}
+                                  className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#181C1F] hover:bg-[#FAF9F6] dark:hover:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] text-[10px] text-[#3E342B] dark:text-[#F5F1E8] font-mono font-bold cursor-pointer shadow-xs flex items-center gap-1 shrink-0"
+                                  title="Pre-set time duration for this match"
+                                >
+                                  <Clock className="w-2.5 h-2.5 text-[#E74C3C]" />
+                                  <span>{m.roundDurationMinutes || m.durationMinutes || 20}m (Set Time)</span>
+                                </button>
                               </div>
                             )}
                           </div>
@@ -679,79 +727,91 @@ export default function AdminMatchesPage() {
         </div>
       )}
 
-      {/* MODAL 1: Configure Sequential Schedule Settings */}
+      {/* MODAL 1: Default Tournament Match Duration */}
       <Modal
         isOpen={schedulerModalOpen}
         onClose={() => setSchedulerModalOpen(false)}
-        title="Configure Sequential Schedule — Main Carrom Board"
+        title="Default Match Duration & Schedule Generator"
       >
         <form onSubmit={handleGenerateSchedule} className="space-y-4">
           <div className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-xs space-y-1.5 text-[#7E7060] dark:text-[#B8B1A5] font-mono">
-            <p className="font-bold text-[#3E342B] dark:text-[#F5F1E8]">Single-Arena Sequential Rules:</p>
-            <ul className="list-disc list-inside space-y-1">
-              <li>All matches are scheduled sequentially on the <strong>Main Carrom Board</strong>.</li>
-              <li>Participant rest times are verified across all divisions.</li>
-              <li>Only <strong>READY</strong> matches with determined opponents are queued.</li>
-            </ul>
+            <p className="font-bold text-[#3E342B] dark:text-[#F5F1E8]">Single-Arena Match Timing:</p>
+            <p>Set how long each match will take. This sets the countdown clock duration for all matches on the Main Carrom Board.</p>
           </div>
 
-          <div>
-            <label className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] block mb-1.5 uppercase font-mono">
-              Tournament Match Start Time:
+          {/* Round Duration with Quick Select Presets */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] uppercase font-mono flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-[#E74C3C]" />
+                <span>How much time per match?</span>
+              </label>
+              <span className="text-xs font-mono font-bold text-[#E74C3C] dark:text-[#D4A94C] bg-[#FDEDEC] dark:bg-[#E74C3C]/10 px-2 py-0.5 rounded-md">
+                {scheduleSettings.roundDurationMinutes || scheduleSettings.matchDurationMinutes || 20} Min / Match
+              </span>
+            </div>
+
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+              {[10, 15, 20, 25, 30, 45].map((mins) => {
+                const isSelected = (scheduleSettings.roundDurationMinutes || scheduleSettings.matchDurationMinutes) === mins;
+                return (
+                  <button
+                    key={mins}
+                    type="button"
+                    onClick={() => setScheduleSettings({
+                      ...scheduleSettings,
+                      roundDurationMinutes: mins,
+                      matchDurationMinutes: mins
+                    })}
+                    className={`py-2 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 ${
+                      isSelected
+                        ? 'bg-[#3E342B] dark:bg-[#D4A94C] text-white dark:text-[#15191C] shadow-xs scale-[1.02]'
+                        : 'bg-white dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] hover:border-[#3E342B]'
+                    }`}
+                  >
+                    <span className="text-sm">{mins}m</span>
+                    <span className="text-[9px] opacity-70 uppercase">min</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="relative pt-1">
+              <input
+                type="number"
+                min="1"
+                max="180"
+                value={scheduleSettings.roundDurationMinutes || scheduleSettings.matchDurationMinutes || 20}
+                onChange={(e) => {
+                  const val = Math.max(1, parseInt(e.target.value) || 20);
+                  setScheduleSettings({
+                    ...scheduleSettings,
+                    roundDurationMinutes: val,
+                    matchDurationMinutes: val
+                  });
+                }}
+                className="w-full h-11 bg-white dark:bg-[#181C1F] px-4 pr-16 text-sm font-mono font-bold text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
+                placeholder="20"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-[#7E7060] dark:text-[#817B72]">
+                MINUTES
+              </span>
+            </div>
+          </div>
+
+          <div className="pt-2 border-t border-[#E8E1D5] dark:border-[#2B3034]">
+            <label className="text-[11px] font-bold text-[#7E7060] dark:text-[#817B72] block mb-1.5 uppercase font-mono">
+              Optional: Tournament Match Start Time:
             </label>
             <input
               type="datetime-local"
               value={scheduleSettings.startTime}
               onChange={(e) => setScheduleSettings({ ...scheduleSettings, startTime: e.target.value })}
-              className="w-full h-11 bg-white dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
+              className="w-full h-10 bg-white dark:bg-[#181C1F] px-3 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] block mb-1.5 uppercase font-mono">
-                Match Duration (min):
-              </label>
-              <input
-                type="number"
-                min="10"
-                max="120"
-                value={scheduleSettings.matchDurationMinutes}
-                onChange={(e) => setScheduleSettings({ ...scheduleSettings, matchDurationMinutes: Number(e.target.value) })}
-                className="w-full h-11 bg-white dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] block mb-1.5 uppercase font-mono">
-                Break Time (min):
-              </label>
-              <input
-                type="number"
-                min="0"
-                max="60"
-                value={scheduleSettings.breakTimeMinutes}
-                onChange={(e) => setScheduleSettings({ ...scheduleSettings, breakTimeMinutes: Number(e.target.value) })}
-                className="w-full h-11 bg-white dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] block mb-1.5 uppercase font-mono">
-                Min Rest Time (min):
-              </label>
-              <input
-                type="number"
-                min="0"
-                max="60"
-                value={scheduleSettings.minRestTimeMinutes}
-                onChange={(e) => setScheduleSettings({ ...scheduleSettings, minRestTimeMinutes: Number(e.target.value) })}
-                className="w-full h-11 bg-white dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#E8E1D5] dark:border-[#2B3034]">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E8E1D5] dark:border-[#2B3034]">
             <button
               type="button"
               onClick={() => setSchedulerModalOpen(false)}
@@ -762,35 +822,96 @@ export default function AdminMatchesPage() {
             <button
               type="submit"
               disabled={generatingSchedule}
-              className="btn-primary text-xs font-bold px-6 py-2.5 shadow-xs transition-all cursor-pointer uppercase tracking-wider"
+              className="btn-primary text-xs font-bold px-6 py-2.5 shadow-xs transition-all cursor-pointer uppercase tracking-wider flex items-center gap-1.5"
             >
-              {generatingSchedule ? 'Generating Sequential Schedule...' : 'Generate Sequential Schedule'}
+              <Save className="w-3.5 h-3.5" />
+              <span>{generatingSchedule ? 'Saving...' : 'Apply Default Duration'}</span>
             </button>
           </div>
         </form>
       </Modal>
 
-      {/* MODAL 2: Adjust Single Match Estimated Time */}
+      {/* MODAL 2: Set Match Time / Duration for this specific match */}
       <Modal
         isOpen={editTimeModalOpen}
         onClose={() => setEditTimeModalOpen(false)}
-        title={`Adjust Estimated Time — Match #${selectedMatch?.matchNumber}`}
+        title={`Set Match Time — Match #${selectedMatch?.matchNumber}`}
       >
-        <form onSubmit={handleSaveCustomTime} className="space-y-4">
-          <div className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-xs">
-            <div className="font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] mb-1 text-sm">{selectedMatch?.team1?.name} vs {selectedMatch?.team2?.name}</div>
-            <div className="text-[#E74C3C] dark:text-[#D4A94C] font-mono font-bold">Queue Position: #{selectedMatch?.queuePosition || 'N/A'}</div>
+        <form onSubmit={handleSaveCustomTime} className="space-y-5">
+          <div className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-xs space-y-1">
+            <div className="text-[10px] font-mono text-[#7E7060] dark:text-[#817B72] uppercase font-bold">
+              Match #{selectedMatch?.matchNumber} • {selectedMatch?.roundName || 'Knockout Round'}
+            </div>
+            <div className="font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] text-sm">
+              {selectedMatch?.team1?.name || 'TBD'} vs {selectedMatch?.team2?.name || 'TBD'}
+            </div>
           </div>
 
-          <div>
-            <label className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] block mb-1.5 uppercase font-mono">
-              Estimated Scheduled Start Time:
+          {/* Primary Section: Match Duration */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] uppercase font-mono flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-[#E74C3C]" />
+                <span>How much time will this match take?</span>
+              </label>
+              <span className="text-xs font-mono font-bold text-[#E74C3C] dark:text-[#D4A94C] bg-[#FDEDEC] dark:bg-[#E74C3C]/10 px-2 py-0.5 rounded-md">
+                {customDuration} Minutes
+              </span>
+            </div>
+
+            <p className="text-[11px] text-[#7E7060] dark:text-[#817B72]">
+              Select a duration preset or enter custom minutes for this match&apos;s timer:
+            </p>
+
+            {/* Quick preset buttons */}
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+              {[10, 15, 20, 25, 30, 45].map((mVal) => {
+                const isSelected = Number(customDuration) === mVal;
+                return (
+                  <button
+                    key={mVal}
+                    type="button"
+                    onClick={() => setCustomDuration(mVal)}
+                    className={`py-2 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 ${
+                      isSelected
+                        ? 'bg-[#3E342B] dark:bg-[#D4A94C] text-white dark:text-[#15191C] shadow-xs scale-[1.02]'
+                        : 'bg-white dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] hover:border-[#3E342B]'
+                    }`}
+                  >
+                    <span className="text-sm">{mVal}m</span>
+                    <span className="text-[9px] opacity-70 uppercase">min</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Custom Minutes Input */}
+            <div className="relative pt-1">
+              <input
+                type="number"
+                min="1"
+                max="180"
+                value={customDuration}
+                onChange={(e) => setCustomDuration(Math.max(1, parseInt(e.target.value) || 1))}
+                placeholder="Enter custom minutes"
+                className="w-full h-11 bg-white dark:bg-[#181C1F] px-4 pr-16 text-sm font-mono font-bold text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-[#7E7060] dark:text-[#817B72]">
+                MINUTES
+              </span>
+            </div>
+          </div>
+
+          {/* Optional: Scheduled Start Time (Collapsible / Secondary) */}
+          <div className="pt-2 border-t border-[#E8E1D5] dark:border-[#2B3034]">
+            <label className="text-[11px] font-bold text-[#7E7060] dark:text-[#817B72] block mb-1.5 uppercase font-mono">
+              Optional Scheduled Start Time (Clock):
             </label>
             <input
               type="datetime-local"
               value={customTime}
               onChange={(e) => setCustomTime(e.target.value)}
-              className="w-full h-11 bg-white dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
+              className="w-full h-10 bg-white dark:bg-[#181C1F] px-3 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
             />
           </div>
 
@@ -805,9 +926,10 @@ export default function AdminMatchesPage() {
             <button
               type="submit"
               disabled={savingTime}
-              className="btn-primary text-xs font-bold px-6 py-2.5 shadow-xs transition-all cursor-pointer uppercase tracking-wider"
+              className="btn-primary text-xs font-bold px-6 py-2.5 shadow-xs transition-all cursor-pointer uppercase tracking-wider flex items-center gap-1.5"
             >
-              {savingTime ? 'Saving...' : 'Save Time'}
+              <Save className="w-3.5 h-3.5" />
+              <span>{savingTime ? 'Saving...' : `SAVE MATCH TIME (${customDuration} MIN)`}</span>
             </button>
           </div>
         </form>

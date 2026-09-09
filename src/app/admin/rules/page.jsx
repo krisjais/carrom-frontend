@@ -14,6 +14,7 @@ export default function AdminRulesPage() {
   const [status, setStatus] = useState('ongoing');
   const [title, setTitle] = useState('');
   const [edition, setEdition] = useState('');
+  const [roundDurationMinutes, setRoundDurationMinutes] = useState(20);
   const [boardCount, setBoardCount] = useState(1);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -30,6 +31,7 @@ export default function AdminRulesPage() {
         setStatus(t.status || 'ongoing');
         setTitle(t.title || '');
         setEdition(t.edition || '2026');
+        setRoundDurationMinutes(t.scheduleSettings?.roundDurationMinutes || t.scheduleSettings?.matchDurationMinutes || 20);
         setBoardCount(1);
       }
     } catch (err) {
@@ -51,9 +53,17 @@ export default function AdminRulesPage() {
       await Promise.all([
         api.updateTournamentRules(rulesContent),
         api.updateTournamentStatus(status),
-        api.updateTournamentSettings({ title, edition, boardCount: 1 })
+        api.updateTournamentSettings({
+          title,
+          edition,
+          boardCount: 1,
+          scheduleSettings: {
+            roundDurationMinutes: Number(roundDurationMinutes),
+            matchDurationMinutes: Number(roundDurationMinutes)
+          }
+        })
       ]);
-      toast.success('Tournament rules and arena settings saved successfully!');
+      toast.success('Tournament rules, arena settings, and round duration saved successfully!');
     } catch (err) {
       toast.error(err.message || 'Failed to save tournament settings.');
     } finally {
@@ -132,6 +142,26 @@ export default function AdminRulesPage() {
                 <option value="ongoing">Ongoing Matches</option>
                 <option value="completed">Completed</option>
               </select>
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] block mb-1.5 uppercase font-mono">
+                Round Duration (Minutes)
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  min="5"
+                  max="120"
+                  value={roundDurationMinutes}
+                  onChange={(e) => setRoundDurationMinutes(Math.max(1, parseInt(e.target.value) || 20))}
+                  placeholder="20"
+                  className="w-full h-11 bg-white dark:bg-[#181C1F] px-4 pr-12 text-xs font-mono font-bold text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-mono font-bold text-[#7E7060] dark:text-[#B8B1A5]">
+                  MIN
+                </span>
+              </div>
             </div>
 
             <div>

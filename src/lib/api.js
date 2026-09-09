@@ -225,6 +225,13 @@ export const api = {
     return handleResponse(res);
   },
 
+  getParticipantDashboard: async () => {
+    const res = await fetchWithRetry(`${API_BASE}/registrations/my`, {
+      headers: getHeaders(true)
+    });
+    return handleResponse(res);
+  },
+
   updateRegistrationStatus: async (id, status, adminNotes = '') => {
     const res = await fetchWithRetry(`${API_BASE}/registrations/${id}/status`, {
       method: 'PUT',
@@ -380,10 +387,20 @@ export const api = {
     return handleResponse(res);
   },
 
-  startMatch: async (id) => {
+  startMatch: async (id, data = {}) => {
     const res = await fetchWithRetry(`${API_BASE}/matches/${id}/start`, {
       method: 'POST',
-      headers: getHeaders(true)
+      headers: getHeaders(true),
+      body: JSON.stringify(data)
+    });
+    return handleResponse(res);
+  },
+
+  updateMatchTimer: async (id, timerData) => {
+    const res = await fetchWithRetry(`${API_BASE}/matches/${id}/timer`, {
+      method: 'POST',
+      headers: getHeaders(true),
+      body: JSON.stringify(timerData)
     });
     return handleResponse(res);
   },

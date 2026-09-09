@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { CategoryBadge, StatusBadge, MainBoardBadge } from '@/components/ui/Badge';
 import { useToast } from '@/context/ToastContext';
+import { CarromMatchTimer } from '@/components/common/CarromMatchTimer';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -185,7 +186,7 @@ export default function AdminDashboardPage() {
                   <span className="font-mono text-white/70 font-semibold">{currentMatch.roundName} · Match #{currentMatch.matchNumber}</span>
                 </div>
 
-                <div className="p-5 rounded-2xl bg-white/5 border border-white/10 space-y-3">
+                <div className="p-5 rounded-2xl bg-white/5 border border-white/10 space-y-4">
                   <div className="grid grid-cols-11 items-center text-center gap-2">
                     <div className="col-span-5 text-left font-serif font-bold text-lg text-white truncate">
                       {currentMatch.team1?.name}
@@ -197,11 +198,21 @@ export default function AdminDashboardPage() {
                       {currentMatch.team2?.name}
                     </div>
                   </div>
+
+                  {/* Real-Time Round Timer Bar */}
+                  <div className="flex justify-center pt-2">
+                    <CarromMatchTimer match={currentMatch} variant="standard" />
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-xs text-[#C2A268] font-mono">
-                  <span className="w-2 h-2 rounded-full bg-[#C2A268] animate-ping" />
-                  <span>Main Carrom Board is in play · Live referee desk active</span>
+                <div className="flex items-center justify-between gap-2 text-xs text-[#C2A268] font-mono">
+                  <span className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#C2A268] animate-ping" />
+                    <span>Main Carrom Board is in play · Live referee desk active</span>
+                  </span>
+                  <span className="text-white/70">
+                    Round: {currentMatch.roundDurationMinutes || currentMatch.durationMinutes || 20}m
+                  </span>
                 </div>
               </div>
             ) : (

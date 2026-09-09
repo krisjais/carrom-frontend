@@ -1,0 +1,449 @@
+'use client';
+
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+  Clock,
+  AlertTriangle,
+  Play,
+  Pause,
+  Plus,
+  RotateCcw,
+  Timer,
+  CheckCircle2,
+  Sparkles,
+  Flame
+} from 'lucide-react';
+
+export function CarromMatchTimer({
+  match,
+  durationMinutes = 20,
+  variant = 'standard', // 'standard' | 'desk' | 'compact' | 'badge'
+  onTimerAction = null, // callback for admin actions: (action, payload) => {}
+  showControls = false,
+  onStartMatch = null,
+  isStarting = false
+}) {
+  const [now, setNow] = useState(Date.now());
+
+  // Tick every second if live and not paused
+  useEffect(() => {
+    if (!match || match.status !== 'live' || match.isTimerPaused) return;
+
+    const interval = setInterval(() => {
+      setNow(Date.now());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [match?.status, match?.isTimerPaused, match?.actualStartTime]);
+
+  const timerStats = useMemo(() => {
+    if (!match || match.status !== 'live' || !match.actualStartTime) {
+      const baseMin = Number(match?.roundDurationMinutes || match?.durationMinutes || durationMinutes || 20);
+      return {
+        isLive: false,
+        isPaused: Boolean(match?.isTimerPaused),
+        isCompleted: match?.status === 'completed',
+        totalAllowedSeconds: baseMin * 60,
+        elapsedSeconds: 0,
+        remainingSeconds: baseMin * 60,
+        isExpired: false,
+        isWarning: false,
+        isUrgent: false,
+        progressPercent: 100,
+        formattedTime: `${String(baseMin).padStart(2, '0')}:00`,
+        extraTimeMinutes: match?.extraTimeMinutes || 0,
+        baseMinutes: baseMin
+      };
+    }
+
+    const baseMin = Number(match.roundDurationMinutes || match.durationMinutes || durationMinutes || 20);
+    const extraMin = Number(match.extraTimeMinutes || 0);
+    const totalAllowedSeconds = (baseMin + extraMin) * 60;
+
+    let elapsed = Number(match.timeElapsedBeforePause || 0);
+    if (!match.isTimerPaused && match.actualStartTime) {
+      const startTimeMs = new Date(match.actualStartTime).getTime();
+      const currentSessionSeconds = Math.max(0, Math.floor((now - startTimeMs) / 1000));
+      elapsed += currentSessionSeconds;
+    }
+
+    const remaining = totalAllowedSeconds - elapsed;
+    const isExpired = remaining <= 0;
+    const isUrgent = remaining > 0 && remaining <= 120; // <= 2 mins
+    const isWarning = remaining > 120 && remaining <= 300; // <= 5 mins
+
+    const progress = totalAllowedSeconds > 0
+      ? Math.max(0, Math.min(100, (remaining / totalAllowedSeconds) * 100))
+      : 0;
+
+    const displaySecs = isExpired ? Math.abs(remaining) : Math.max(0, remaining);
+    const mins = Math.floor(displaySecs / 60);
+    const secs = displaySecs % 60;
+    const formatted = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+    return {
+      isLive: true,
+      isPaused: Boolean(match.isTimerPaused),
+      isCompleted: false,
+      totalAllowedSeconds,
+      elapsedSeconds: elapsed,
+      remainingSeconds: remaining,
+      isExpired,
+      isWarning,
+      isUrgent,
+      progressPercent: progress,
+      formattedTime: formatted,
+      extraTimeMinutes: extraMin,
+      baseMinutes: baseMin
+    };
+  }, [match, durationMinutes, now]);
+
+  // Mini Badge Variant (For headers, live tickers, table badges)
+  if (variant === 'badge') {
+    return (
+      <span
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-bold tracking-wider uppercase border transition-all ${
+          timerStats.isExpired
+            ? 'bg-[#FDEDEC] dark:bg-[#E74C3C]/20 text-[#E74C3C] border-[#E74C3C]/40 animate-pulse'
+            : timerStats.isUrgent
+            ? 'bg-[#FDEDEC] dark:bg-[#E74C3C]/20 text-[#E74C3C] border-[#E74C3C]/30'
+            : timerStats.isWarning
+            ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700/40'
+            : 'bg-[#FAF9F6] dark:bg-[#181C1F] text-[#3E342B] dark:text-[#F5F1E8] border-[#E8E1D5] dark:border-[#2B3034]'
+        }`}
+      >
+        <Clock className="w-3 h-3 text-current shrink-0" />
+        <span>{timerStats.isExpired ? `+${timerStats.formattedTime} OT` : timerStats.formattedTime}</span>
+        {timerStats.isPaused && <span className="text-[9px] opacity-80">(PAUSED)</span>}
+      </span>
+    );
+  }
+
+  // Compact Variant (For queue items, match list cards)
+  if (variant === 'compact') {
+    return (
+      <div className="flex items-center gap-2 font-mono text-xs">
+        <div className="flex items-center gap-1.5">
+          <Clock className={`w-3.5 h-3.5 ${timerStats.isUrgent || timerStats.isExpired ? 'text-[#E74C3C] animate-pulse' : 'text-[#7E7060] dark:text-[#817B72]'}`} />
+          <span className={`font-bold tabular-nums ${
+            timerStats.isExpired
+              ? 'text-[#E74C3C] dark:text-[#E74C3C]'
+              : timerStats.isUrgent
+              ? 'text-[#E74C3C] dark:text-[#E74C3C]'
+              : timerStats.isWarning
+              ? 'text-amber-700 dark:text-amber-400'
+              : 'text-[#3E342B] dark:text-[#F5F1E8]'
+          }`}>
+            {timerStats.isExpired ? `+${timerStats.formattedTime} Overtime` : timerStats.formattedTime}
+          </span>
+        </div>
+        {timerStats.isPaused && (
+          <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 text-[10px] font-bold uppercase">
+            Paused
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  // Referee Desk Variant (Full control panel for LiveScoreKeeper)
+  if (variant === 'desk') {
+    return (
+      <div className="p-5 sm:p-6 rounded-2xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] shadow-xs space-y-4 text-center">
+        <div className="flex items-center justify-between pb-3 border-b border-[#E8E1D5] dark:border-[#2B3034]">
+          <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#3E342B] dark:text-[#F5F1E8] uppercase tracking-wider">
+            <Timer className="w-4 h-4 text-[#E74C3C]" />
+            <span>Official Round Timer Clock</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-white dark:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] font-bold">
+              {timerStats.isLive ? `Round Cap: ${timerStats.baseMinutes} min` : `Duration: ${timerStats.baseMinutes} min`}
+              {timerStats.extraTimeMinutes > 0 ? ` (+${timerStats.extraTimeMinutes}m extra)` : ''}
+            </span>
+          </div>
+        </div>
+
+        {/* Large Timer Digits */}
+        <div className="py-2 space-y-1">
+          <div className="flex items-baseline justify-center gap-2">
+            <span
+              className={`text-5xl sm:text-6xl font-mono font-black tabular-nums tracking-tight ${
+                !timerStats.isLive
+                  ? 'text-[#3E342B] dark:text-[#F5F1E8]'
+                  : timerStats.isExpired
+                  ? 'text-[#E74C3C] dark:text-[#E74C3C] animate-pulse'
+                  : timerStats.isUrgent
+                  ? 'text-[#E74C3C] dark:text-[#E74C3C]'
+                  : timerStats.isWarning
+                  ? 'text-amber-700 dark:text-amber-400'
+                  : 'text-[#171614] dark:text-[#F7F4EC]'
+              }`}
+            >
+              {timerStats.isExpired ? `+${timerStats.formattedTime}` : timerStats.formattedTime}
+            </span>
+            <span className="text-xs font-mono uppercase font-bold text-[#7E7060] dark:text-[#817B72]">
+              {!timerStats.isLive ? 'TOTAL' : timerStats.isExpired ? 'OVERTIME' : 'LEFT'}
+            </span>
+          </div>
+
+          <p className="text-xs font-mono text-[#7E7060] dark:text-[#817B72]">
+            {!timerStats.isLive ? (
+              <span className="text-[#3E342B] dark:text-[#F5F1E8] font-bold">Match Scheduled · Ready to start on Main Carrom Board</span>
+            ) : timerStats.isPaused ? (
+              <span className="text-amber-700 dark:text-amber-400 font-bold">⏸ Timer Paused by Referee</span>
+            ) : timerStats.isExpired ? (
+              <span className="text-[#E74C3C] font-bold">⚠️ Round Time Expired · Declare Winner or Add Extra Time</span>
+            ) : timerStats.isUrgent ? (
+              <span className="text-[#E74C3C] font-bold">⏳ Final 2 Minutes in Progress</span>
+            ) : (
+              <span>Main Carrom Board Official Time · Counting Down</span>
+            )}
+          </p>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="w-full bg-[#E8E1D5] dark:bg-[#2B3034] h-2 rounded-full overflow-hidden">
+          <div
+            className={`h-full transition-all duration-1000 ${
+              !timerStats.isLive
+                ? 'bg-[#3E342B] dark:bg-[#D4A94C]'
+                : timerStats.isExpired
+                ? 'bg-[#E74C3C]'
+                : timerStats.isUrgent
+                ? 'bg-[#E74C3C]'
+                : timerStats.isWarning
+                ? 'bg-amber-500'
+                : 'bg-[#3E342B] dark:bg-[#D4A94C]'
+            }`}
+            style={{ width: `${timerStats.progressPercent}%` }}
+          />
+        </div>
+
+        {/* Referee Controls if showControls is true */}
+        {showControls && (
+          <div className="pt-3 border-t border-[#E8E1D5] dark:border-[#2B3034] space-y-3">
+            {!timerStats.isLive ? (
+              /* Pre-Match Controls (When Scheduled) */
+              <div className="flex flex-wrap items-center justify-center gap-2.5">
+                {onStartMatch && (
+                  <button
+                    type="button"
+                    onClick={onStartMatch}
+                    disabled={isStarting}
+                    className="px-6 py-2.5 rounded-xl btn-primary text-xs font-mono font-bold flex items-center gap-2 shadow-sm transition-all cursor-pointer uppercase tracking-wider disabled:opacity-50"
+                  >
+                    <Play className="w-4 h-4 fill-current" />
+                    <span>{isStarting ? 'Starting Match...' : 'Start Match & Timer'}</span>
+                  </button>
+                )}
+
+                {/* Duration Presets before starting */}
+                <div className="flex items-center gap-1 flex-wrap">
+                  {[10, 15, 20, 25, 30, 45].map((mVal) => {
+                    const isSelected = timerStats.baseMinutes === mVal;
+                    return (
+                      <button
+                        key={mVal}
+                        type="button"
+                        onClick={() => {
+                          if (onTimerAction) onTimerAction('set_duration', { roundDurationMinutes: mVal });
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-[#3E342B] dark:bg-[#D4A94C] text-white dark:text-[#15191C] shadow-xs'
+                            : 'bg-white dark:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] text-[#7E7060] dark:text-[#817B72] hover:text-[#3E342B]'
+                        }`}
+                      >
+                        {mVal}m
+                      </button>
+                    );
+                  })}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const custom = window.prompt('Set Custom Round Duration in Minutes:', String(timerStats.baseMinutes));
+                      if (custom && Number(custom) > 0 && onTimerAction) {
+                        onTimerAction('set_duration', { roundDurationMinutes: Number(custom) });
+                      }
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-white dark:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] text-[#7E7060] dark:text-[#817B72] hover:text-[#3E342B] text-xs font-mono font-bold transition-colors cursor-pointer"
+                  >
+                    Custom Min
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Live Match In-Play Controls */
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                {timerStats.isPaused ? (
+                  <button
+                    type="button"
+                    onClick={() => onTimerAction && onTimerAction('resume')}
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-mono font-bold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                  >
+                    <Play className="w-3.5 h-3.5 fill-current" />
+                    <span>Resume Timer</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => onTimerAction && onTimerAction('pause')}
+                    className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-mono font-bold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                  >
+                    <Pause className="w-3.5 h-3.5 fill-current" />
+                    <span>Pause Timer</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => onTimerAction && onTimerAction('add_time', { extraMinutes: 2 })}
+                  className="px-3.5 py-2 rounded-xl bg-white dark:bg-[#15191C] hover:bg-[#FAF9F6] dark:hover:bg-[#24221E] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] text-xs font-mono font-bold flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>+2 Min</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onTimerAction && onTimerAction('add_time', { extraMinutes: 5 })}
+                  className="px-3.5 py-2 rounded-xl bg-white dark:bg-[#15191C] hover:bg-[#FAF9F6] dark:hover:bg-[#24221E] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] text-xs font-mono font-bold flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>+5 Min</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const custom = window.prompt('Set Round Duration in Minutes:', String(timerStats.baseMinutes));
+                    if (custom && Number(custom) > 0 && onTimerAction) {
+                      onTimerAction('set_duration', { roundDurationMinutes: Number(custom) });
+                    }
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-white dark:bg-[#15191C] hover:bg-[#FAF9F6] dark:hover:bg-[#24221E] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] text-xs font-mono font-bold transition-colors cursor-pointer"
+                >
+                  Set Duration
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm('Reset round timer clock to zero elapsed?') && onTimerAction) {
+                      onTimerAction('reset');
+                    }
+                  }}
+                  className="px-3 py-2 rounded-xl text-[#7E7060] dark:text-[#817B72] hover:text-[#E74C3C] text-xs font-mono font-bold transition-colors cursor-pointer"
+                  title="Reset timer"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Standard Variant (For Home, Live Broadcast, Admin Dashboard Hero cards)
+  return (
+    <div className="flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl bg-white/10 dark:bg-black/20 backdrop-blur-xs border border-white/15 dark:border-white/10 text-center space-y-2 w-full max-w-[200px] sm:max-w-[220px]">
+      <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-[#C2A268] font-bold">
+        <Clock className="w-3 h-3 shrink-0" />
+        <span>ROUND TIMER ({timerStats.baseMinutes}M)</span>
+      </div>
+
+      <div className="flex items-baseline gap-1.5">
+        <span
+          className={`text-2xl sm:text-3xl font-mono font-black tabular-nums tracking-tight ${
+            timerStats.isExpired
+              ? 'text-[#D93829] dark:text-[#FF6B6B] animate-pulse'
+              : timerStats.isUrgent
+              ? 'text-[#D93829] dark:text-[#FF6B6B] animate-pulse'
+              : timerStats.isWarning
+              ? 'text-amber-400 dark:text-amber-300'
+              : 'text-white'
+          }`}
+        >
+          {timerStats.isExpired ? `+${timerStats.formattedTime}` : timerStats.formattedTime}
+        </span>
+        <span className="text-[10px] font-mono uppercase text-white/60 font-semibold">
+          {timerStats.isExpired ? 'OT' : 'rem'}
+        </span>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="w-full bg-white/20 h-1.5 rounded-full overflow-hidden">
+        <div
+          className={`h-full transition-all duration-1000 ${
+            timerStats.isExpired
+              ? 'bg-[#D93829]'
+              : timerStats.isUrgent
+              ? 'bg-[#D93829]'
+              : timerStats.isWarning
+              ? 'bg-amber-400'
+              : 'bg-emerald-400'
+          }`}
+          style={{ width: `${timerStats.progressPercent}%` }}
+        />
+      </div>
+
+      <span className="text-[9px] font-mono uppercase text-white/70">
+        {timerStats.isPaused ? '⏸ PAUSED' : timerStats.isExpired ? 'TIME OUT' : 'MATCH IN PLAY'}
+      </span>
+    </div>
+  );
+}
+
+/**
+ * Format the actual elapsed time that a completed match took to finish.
+ * Returns formatted string like "14m 23s", "45s", or "15m".
+ */
+export function formatMatchDurationTaken(match) {
+  if (!match) return null;
+
+  // 1. If elapsedTimeSeconds is explicitly saved and > 0
+  if (match.elapsedTimeSeconds && match.elapsedTimeSeconds > 0) {
+    const totalSecs = Math.round(match.elapsedTimeSeconds);
+    const mins = Math.floor(totalSecs / 60);
+    const secs = totalSecs % 60;
+    if (mins === 0) return `${secs}s`;
+    if (secs === 0) return `${mins}m`;
+    return `${mins}m ${secs}s`;
+  }
+
+  // 2. If actualStartTime and actualEndTime are both present
+  if (match.actualStartTime && match.actualEndTime) {
+    const start = new Date(match.actualStartTime).getTime();
+    const end = new Date(match.actualEndTime).getTime();
+    if (!isNaN(start) && !isNaN(end) && end >= start) {
+      const totalSecs = Math.max(1, Math.floor((end - start) / 1000));
+      const mins = Math.floor(totalSecs / 60);
+      const secs = totalSecs % 60;
+      if (mins === 0) return `${secs}s`;
+      if (secs === 0) return `${mins}m`;
+      return `${mins}m ${secs}s`;
+    }
+  }
+
+  // 3. If timeElapsedBeforePause is stored and > 0
+  if (match.timeElapsedBeforePause && match.timeElapsedBeforePause > 0) {
+    const totalSecs = Math.round(match.timeElapsedBeforePause);
+    const mins = Math.floor(totalSecs / 60);
+    const secs = totalSecs % 60;
+    if (mins === 0) return `${secs}s`;
+    if (secs === 0) return `${mins}m`;
+    return `${mins}m ${secs}s`;
+  }
+
+  // 4. If match is completed, show the allocated round duration
+  if (match.status === 'completed') {
+    const dur = match.roundDurationMinutes || match.durationMinutes || 20;
+    return `${dur}m`;
+  }
+
+  return null;
+}

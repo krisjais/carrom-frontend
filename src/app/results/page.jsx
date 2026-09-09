@@ -2,10 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
-import { CATEGORIES } from '@/lib/constants';
-import { Trophy, CheckCircle2, Crown, Award } from 'lucide-react';
+import { Trophy, CheckCircle2, Crown, Award, Clock } from 'lucide-react';
 import { CategoryBadge } from '@/components/ui/Badge';
 import { CategoryCoinPair } from '@/components/ui/CarromElements';
+import { formatMatchDurationTaken } from '@/components/common/CarromMatchTimer';
 
 export default function ResultsPage() {
   const [matches, setMatches] = useState([]);
@@ -147,7 +147,10 @@ export default function ResultsPage() {
 
                 {/* Footer status */}
                 <div className="pt-3 border-t border-[#DCD6C8]/80 dark:border-[#38342C] flex items-center justify-between text-xs font-mono">
-                  <span className="text-[#857B6C] text-[11px]">Main Carrom Board</span>
+                  <span className="inline-flex items-center gap-1 text-[#171614] dark:text-[#F7F4EC] font-bold text-[11px]">
+                    <Clock className="w-3 h-3 text-[#E74C3C]" />
+                    <span>Duration: {formatMatchDurationTaken(m)}</span>
+                  </span>
                   <span className="text-emerald-700 dark:text-emerald-400 text-[11px] font-bold flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                     <span>Advanced to Next Round</span>

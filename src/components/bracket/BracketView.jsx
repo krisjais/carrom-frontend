@@ -3,9 +3,10 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { Trophy, ExternalLink, ZoomIn, ZoomOut, RotateCcw, Crown, Shield, Play } from 'lucide-react';
+import { Trophy, ExternalLink, ZoomIn, ZoomOut, RotateCcw, Crown, Shield, Play, Clock } from 'lucide-react';
 import { StatusBadge, MainBoardBadge } from '@/components/ui/Badge';
 import { CarromCoin } from '@/components/ui/CarromElements';
+import { CarromMatchTimer, formatMatchDurationTaken } from '@/components/common/CarromMatchTimer';
 
 export const BracketView = ({ rounds, category, isLocked, isPublished }) => {
   const { isAdmin } = useAuth();
@@ -214,12 +215,48 @@ const MatchNode = ({ match, isFinal, isAdmin }) => {
         )}
       </div>
 
-      {/* Admin Referee Action */}
-      {isAdmin && !isBye && match.team1 && match.team2 && (
-        <div className="mt-2 pt-2 border-t border-[#E8E1D5] dark:border-[#2B3034] flex justify-end">
+      {/* Completed Match Time Taken & Details */}
+      {isCompleted && (
+        <div className="mt-2.5 pt-2 border-t border-[#E8E1D5] dark:border-[#2B3034] flex items-center justify-between text-[11px] font-mono">
+          <span className="inline-flex items-center gap-1.5 font-bold text-[#3E342B] dark:text-[#F5F1E8] bg-[#FAF9F6] dark:bg-[#181C1F] px-2 py-0.5 rounded-md border border-[#E8E1D5] dark:border-[#2B3034]">
+            <Clock className="w-3 h-3 text-[#E74C3C]" />
+            <span>{formatMatchDurationTaken(match)}</span>
+          </span>
+          {isAdmin && (
+            <Link
+              href={`/admin/matches/${match._id}/score`}
+              className="text-[#E74C3C] dark:text-[#D4A94C] hover:underline flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider"
+            >
+              <span>Scorecard</span>
+              <ExternalLink className="w-3 h-3" />
+            </Link>
+          )}
+        </div>
+      )}
+
+      {/* Live Match Active Timer */}
+      {isLive && (
+        <div className="mt-2.5 pt-2 border-t border-[#E8E1D5] dark:border-[#2B3034] flex items-center justify-between">
+          <CarromMatchTimer match={match} variant="compact" />
+          {isAdmin && (
+            <Link
+              href={`/admin/matches/${match._id}/score`}
+              className="text-[#E74C3C] font-mono text-[10px] font-bold uppercase hover:underline flex items-center gap-0.5"
+            >
+              <span>Score</span>
+              <ExternalLink className="w-3 h-3" />
+            </Link>
+          )}
+        </div>
+      )}
+
+      {/* Admin Referee Action for Scheduled/Pending Match */}
+      {isAdmin && !isBye && match.team1 && match.team2 && !isLive && !isCompleted && (
+        <div className="mt-2.5 pt-2 border-t border-[#E8E1D5] dark:border-[#2B3034] flex items-center justify-between text-[10px] font-mono">
+          <span className="text-[#7E7060] dark:text-[#817B72]">⏱️ {match.roundDurationMinutes || match.durationMinutes || 20}m</span>
           <Link
             href={`/admin/matches/${match._id}/score`}
-            className="flex items-center gap-1 text-[10px] font-mono font-bold text-[#E74C3C] dark:text-[#D4A94C] hover:underline transition-colors uppercase tracking-wider"
+            className="flex items-center gap-1 font-bold text-[#E74C3C] dark:text-[#D4A94C] hover:underline transition-colors uppercase tracking-wider"
           >
             <span>Score Match</span>
             <ExternalLink className="w-3 h-3" />

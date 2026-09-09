@@ -9,6 +9,7 @@ import { api } from '@/lib/api';
 import { User, Shield, Trophy, Calendar, CheckCircle2, ArrowRight, Radio, LogOut, Award } from 'lucide-react';
 import { StatusBadge, CategoryBadge } from '@/components/ui/Badge';
 import { CarromCoin, CategoryCoinPair } from '@/components/ui/CarromElements';
+import { CarromMatchTimer } from '@/components/common/CarromMatchTimer';
 
 export default function ParticipantDashboardPage() {
   const router = useRouter();
@@ -230,7 +231,10 @@ export default function ParticipantDashboardPage() {
                     </div>
 
                     <div className="pt-2.5 border-t border-[#DCD6C8]/80 dark:border-[#38342C] flex items-center justify-between text-xs text-[#6F6A60] dark:text-[#A8A194]">
-                      <span className="font-mono text-[11px]">{m.roundName || 'Championship Match'}</span>
+                      <div className="flex items-center gap-2 font-mono text-[11px]">
+                        <span>{m.roundName || 'Championship Match'}</span>
+                        {m.status === 'live' && <CarromMatchTimer match={m} variant="badge" />}
+                      </div>
                       <span className="font-semibold text-[#171614] dark:text-[#F7F4EC]">Board 1 • Championship Table</span>
                     </div>
                   </div>

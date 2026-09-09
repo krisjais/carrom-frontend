@@ -12,14 +12,46 @@ import {
   RotateCcw,
   Play,
   Check,
-  Square
+  Square,
+  Clock
 } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { CarromCoin } from '@/components/ui/CarromElements';
+import { CarromMatchTimer, formatMatchDurationTaken } from '@/components/common/CarromMatchTimer';
 
 export const LiveScoreKeeper = ({ match, onUpdate }) => {
   const [loading, setLoading] = useState(false);
+  const [startingMatch, setStartingMatch] = useState(false);
   const [message, setMessage] = useState(null);
+
+  const handleStartMatch = async () => {
+    setStartingMatch(true);
+    setMessage(null);
+    try {
+      const res = await api.startMatch(match._id, {
+        roundDurationMinutes: match.roundDurationMinutes || match.durationMinutes || 20
+      });
+      if (res.success && res.match) {
+        setMessage({ type: 'success', text: 'Match started! Official live countdown timer is running.' });
+        if (onUpdate) onUpdate(res.match);
+      }
+    } catch (err) {
+      setMessage({ type: 'error', text: err.message || 'Failed to start match.' });
+    } finally {
+      setStartingMatch(false);
+    }
+  };
+
+  const handleTimerAction = async (action, payload = {}) => {
+    try {
+      const res = await api.updateMatchTimer(match._id, { action, ...payload });
+      if (res.success && res.match) {
+        if (onUpdate) onUpdate(res.match);
+      }
+    } catch (err) {
+      setMessage({ type: 'error', text: err.message || 'Failed to update match timer.' });
+    }
+  };
 
   // Stop Live Match Modal state
   const [isStopLiveModalOpen, setIsStopLiveModalOpen] = useState(false);
@@ -189,6 +221,21 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
                   <span>STOP LIVE</span>
                 </button>
               </>
+            ) : match.status === 'scheduled' ? (
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] font-mono font-bold text-xs tracking-wider shadow-2xs uppercase">
+                  SCHEDULED ({match.roundDurationMinutes || match.durationMinutes || 20}m)
+                </span>
+                <button
+                  type="button"
+                  onClick={handleStartMatch}
+                  disabled={startingMatch || loading}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full btn-primary text-xs font-mono font-bold transition-all cursor-pointer shadow-xs uppercase tracking-wider disabled:opacity-50"
+                >
+                  <Play className="w-3 h-3 fill-current" />
+                  <span>{startingMatch ? 'Starting...' : 'Start Match'}</span>
+                </button>
+              </div>
             ) : (
               <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-[#7E7060] dark:text-[#817B72] font-mono font-bold text-xs tracking-wider shadow-2xs uppercase">
                 {match.status}
@@ -237,6 +284,18 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
           </div>
         </div>
       </div>
+
+      {/* Official Match Round Timer Clock (Visible for Scheduled & Live Matches) */}
+      {!isMatchCompleted && (
+        <CarromMatchTimer
+          match={match}
+          variant="desk"
+          showControls={true}
+          onTimerAction={handleTimerAction}
+          onStartMatch={handleStartMatch}
+          isStarting={startingMatch}
+        />
+      )}
 
       {/* --- ACTION SECTION --- */}
       {!isMatchCompleted ? (
@@ -346,6 +405,27 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
             <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] max-w-md mx-auto">
               Result recorded on the Main Carrom Board. The winner has been advanced in the knockout bracket.
             </p>
+          </div>
+
+          {/* Match Completion Timing Details */}
+          <div className="inline-flex flex-wrap items-center justify-center gap-3 p-3.5 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-xs font-mono shadow-2xs">
+            <div className="flex items-center gap-1.5 text-[#3E342B] dark:text-[#F5F1E8] font-bold">
+              <Clock className="w-4 h-4 text-[#E74C3C]" />
+              <span>Match Duration:</span>
+              <span className="text-[#E74C3C] dark:text-[#D4A94C] text-sm font-black">
+                {formatMatchDurationTaken(match)}
+              </span>
+            </div>
+            {match.actualStartTime && match.actualEndTime && (
+              <>
+                <span className="text-[#D5C4A1] dark:text-[#2B3034]">|</span>
+                <span className="text-[#7E7060] dark:text-[#817B72]">
+                  {new Date(match.actualStartTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {' — '}
+                  {new Date(match.actualEndTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </>
+            )}
           </div>
 
           {/* Action Buttons */}
@@ -536,6 +616,12 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
             <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5]">
               Winner confirmed and recorded. The tournament bracket has been updated automatically.
             </p>
+          </div>
+
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-xs font-mono">
+            <Clock className="w-3.5 h-3.5 text-[#E74C3C]" />
+            <span className="text-[#7E7060] dark:text-[#817B72]">Total Match Time:</span>
+            <strong className="text-[#E74C3C] dark:text-[#D4A94C]">{formatMatchDurationTaken(match)}</strong>
           </div>
 
           {postMatchData?.roundAdvanced && (

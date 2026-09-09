@@ -6,6 +6,7 @@ import { api } from '@/lib/api';
 import { Activity, Clock, RefreshCw, Trophy, ArrowRight, Radio, Award } from 'lucide-react';
 import { StatusBadge, CategoryBadge } from '@/components/ui/Badge';
 import { CarromCoin } from '@/components/ui/CarromElements';
+import { CarromMatchTimer } from '@/components/common/CarromMatchTimer';
 
 export default function LivePage() {
   const [liveData, setLiveData] = useState(null);
@@ -113,12 +114,17 @@ export default function LivePage() {
               </div>
             </div>
 
+            {/* Official Live Round Timer */}
+            <div className="flex justify-center pt-2 relative z-10">
+              <CarromMatchTimer match={currentMatch} variant="standard" />
+            </div>
+
             {/* Bottom broadcast status bar */}
             <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs font-mono text-white/60 gap-2 text-center sm:text-left relative z-10">
               <span>Championship Table 01 • Certified Carrom Board</span>
               <span className="text-emerald-400 font-semibold flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                Live Adjudication Active · Single Game Decider
+                Live Adjudication Active · Single Game Decider ({currentMatch.roundDurationMinutes || currentMatch.durationMinutes || 20}m Round)
               </span>
             </div>
           </div>
