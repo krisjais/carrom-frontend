@@ -59,6 +59,9 @@ export default function AdminRegistrationsPage() {
   const [editFormData, setEditFormData] = useState({
     fullName: '',
     department: '',
+    participateSingles: true,
+    participateDoubles: false,
+    participateMixedDoubles: false,
     doublesPartnerName: '',
     mixedDoublesPartnerName: '',
     adminNotes: ''
@@ -70,6 +73,9 @@ export default function AdminRegistrationsPage() {
     fullName: '',
     gender: 'male',
     department: '',
+    participateSingles: true,
+    participateDoubles: false,
+    participateMixedDoubles: false,
     doublesPartnerName: '',
     mixedDoublesPartnerName: ''
   });
@@ -80,6 +86,9 @@ export default function AdminRegistrationsPage() {
       fullName: '',
       gender: 'male',
       department: '',
+      participateSingles: true,
+      participateDoubles: false,
+      participateMixedDoubles: false,
       doublesPartnerName: '',
       mixedDoublesPartnerName: ''
     });
@@ -95,6 +104,10 @@ export default function AdminRegistrationsPage() {
       toast.warning('Please enter the department / major.');
       return;
     }
+    if (!addPlayerForm.participateSingles && !addPlayerForm.participateDoubles && !addPlayerForm.participateMixedDoubles) {
+      toast.warning('Please select at least one division for the player.');
+      return;
+    }
 
     setAddPlayerLoading(true);
     try {
@@ -102,8 +115,11 @@ export default function AdminRegistrationsPage() {
         fullName: addPlayerForm.fullName.trim(),
         gender: addPlayerForm.gender,
         department: addPlayerForm.department.trim(),
-        doublesPartnerName: addPlayerForm.doublesPartnerName.trim(),
-        mixedDoublesPartnerName: addPlayerForm.mixedDoublesPartnerName.trim()
+        participateSingles: addPlayerForm.participateSingles,
+        participateDoubles: addPlayerForm.participateDoubles,
+        participateMixedDoubles: addPlayerForm.participateMixedDoubles,
+        doublesPartnerName: addPlayerForm.participateDoubles ? addPlayerForm.doublesPartnerName.trim() : '',
+        mixedDoublesPartnerName: addPlayerForm.participateMixedDoubles ? addPlayerForm.mixedDoublesPartnerName.trim() : ''
       });
 
       if (res.success) {
@@ -136,17 +152,19 @@ export default function AdminRegistrationsPage() {
 
   const handleDownloadTemplate = () => {
     const csvContent = [
-      'Full Name,Gender,Department,Boys Doubles Partner,Girls Doubles Partner,Mixed Doubles Partner',
-      'Aarav Sharma,Male,Computer Science,Rohan Verma,,Ananya Patel',
-      'Rohan Verma,Male,Mechanical Engineering,Aarav Sharma,,Priya Singh',
-      'Vikram Rao,Male,Electrical Engineering,Arjun Mehta,,Kavya Nair',
-      'Arjun Mehta,Male,Civil Engineering,Vikram Rao,,Neha Kapoor',
-      'Priya Singh,Female,Computer Science,,Ananya Patel,Rohan Verma',
-      'Ananya Patel,Female,Electronics,,Priya Singh,Aarav Sharma',
-      'Kavya Nair,Female,Mechanical Engineering,,Neha Kapoor,Vikram Rao',
-      'Neha Kapoor,Female,Civil Engineering,,Kavya Nair,Arjun Mehta',
-      'Siddharth Roy,Male,Mathematics,,,',
-      'Isha Gupta,Female,Physics,,,'
+      'Full Name,Gender,Department,Singles,Boys Doubles Partner,Girls Doubles Partner,Mixed Doubles Partner',
+      'Aarav Sharma,Male,Computer Science,Yes,Rohan Verma,,Ananya Patel',
+      'Rohan Verma,Male,Mechanical Engineering,Yes,Aarav Sharma,,Priya Singh',
+      'Vikram Rao,Male,Electrical Engineering,Yes,Arjun Mehta,,Kavya Nair',
+      'Arjun Mehta,Male,Civil Engineering,Yes,Vikram Rao,,Neha Kapoor',
+      'Priya Singh,Female,Computer Science,Yes,,Ananya Patel,Rohan Verma',
+      'Ananya Patel,Female,Electronics,Yes,,Priya Singh,Aarav Sharma',
+      'Kavya Nair,Female,Mechanical Engineering,Yes,,Neha Kapoor,Vikram Rao',
+      'Neha Kapoor,Female,Civil Engineering,Yes,,Kavya Nair,Arjun Mehta',
+      'Siddharth Roy,Male,Mathematics,Yes,,,',
+      'Isha Gupta,Female,Physics,Yes,,,',
+      'Sameer Sen,Male,Chemistry,No,Kabir Das,,',
+      'Kabir Das,Male,Chemistry,No,Sameer Sen,,'
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -214,34 +232,111 @@ export default function AdminRegistrationsPage() {
       return;
     }
 
-    const rawHeaders = parseLine(lines[0]).map((h) => h.toLowerCase().replace(/[^a-z0-9]/g, ' '));
+    const rawHeaders = parseLine(lines[0]).map((h) =>
+      h.toLowerCase().replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim()
+    );
 
-    const getColIndex = (aliases) => {
-      // 1. Exact alias match first
-      const exactIdx = rawHeaders.findIndex((h) =>
-        aliases.some((alias) => {
-          const cleanAlias = alias.toLowerCase().replace(/[^a-z0-9]/g, ' ').trim();
-          return h.trim() === cleanAlias;
-        })
-      );
-      if (exactIdx >= 0) return exactIdx;
-
-      // 2. Substring match fallback
+    // Helpers to identify column indices accurately without collision
+    const findExactCol = (aliases) => {
       return rawHeaders.findIndex((h) =>
         aliases.some((alias) => {
-          const cleanAlias = alias.toLowerCase().replace(/[^a-z0-9]/g, ' ').trim();
-          return h.trim().includes(cleanAlias);
+          const cleanAlias = alias.toLowerCase().replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
+          return h === cleanAlias;
         })
       );
     };
 
-    const nameIdx = getColIndex(['full name', 'student name', 'athlete name', 'player name', 'athlete', 'player', 'name']);
-    const genderIdx = getColIndex(['gender', 'sex']);
-    const deptIdx = getColIndex(['department', 'dept', 'major', 'branch', 'course', 'program']);
-    const boysDoublesIdx = getColIndex(['boys doubles partner', 'boys partner', 'boys doubles']);
-    const girlsDoublesIdx = getColIndex(['girls doubles partner', 'girls partner', 'girls doubles']);
-    const mixedIdx = getColIndex(['mixed doubles partner', 'mixed partner', 'mixed doubles']);
-    const legacyDoublesIdx = getColIndex(['doubles partner name', 'doubles partner', 'partner', 'doubles']);
+    const findSubstringCol = (includesKeywords, excludeKeywords = []) => {
+      return rawHeaders.findIndex((h) => {
+        const matchesInc = includesKeywords.some((k) => h.includes(k));
+        const matchesExc = excludeKeywords.some((k) => h.includes(k));
+        return matchesInc && !matchesExc;
+      });
+    };
+
+    // Standard column resolvers
+    const nameIdx = findExactCol(['full name', 'student name', 'athlete name', 'player name', 'athlete', 'player', 'name']) >= 0
+      ? findExactCol(['full name', 'student name', 'athlete name', 'player name', 'athlete', 'player', 'name'])
+      : findSubstringCol(['name'], ['partner']);
+
+    const genderIdx = findExactCol(['gender', 'sex']) >= 0
+      ? findExactCol(['gender', 'sex'])
+      : findSubstringCol(['gender', 'sex']);
+
+    const deptIdx = findExactCol(['department', 'dept', 'major', 'branch', 'course', 'program']) >= 0
+      ? findExactCol(['department', 'dept', 'major', 'branch', 'course', 'program'])
+      : findSubstringCol(['department', 'dept', 'major', 'branch']);
+
+    // Participation column resolvers (Must NEVER match partner columns)
+    const partSinglesIdx = findExactCol([
+      'participate singles', 'participate single', 'singles participate', 'singles participation',
+      'participates singles', 'participating singles', 'singles event'
+    ]) >= 0
+      ? findExactCol(['participate singles', 'participate single', 'singles participate', 'singles participation', 'participates singles', 'participating singles', 'singles event'])
+      : findSubstringCol(['participat singles', 'singles participate', 'participate singles']);
+
+    const partDoublesIdx = findExactCol([
+      'participate doubles', 'participate double', 'doubles participate', 'doubles participation',
+      'participates doubles', 'participating doubles', 'doubles event'
+    ]) >= 0
+      ? findExactCol(['participate doubles', 'participate double', 'doubles participate', 'doubles participation', 'participates doubles', 'participating doubles', 'doubles event'])
+      : findSubstringCol(['participat doubles', 'doubles participate', 'participate doubles'], ['mixed']);
+
+    const partMixedIdx = findExactCol([
+      'participate mixed doubles', 'participate mixed', 'mixed doubles participate', 'mixed participate',
+      'mixed doubles participation', 'participates mixed doubles', 'participating mixed doubles', 'mixed event'
+    ]) >= 0
+      ? findExactCol(['participate mixed doubles', 'participate mixed', 'mixed doubles participate', 'mixed participate', 'mixed doubles participation', 'participates mixed doubles', 'participating mixed doubles', 'mixed event'])
+      : findSubstringCol(['participat mixed', 'mixed participate', 'participate mixed']);
+
+    // Partner column resolvers (Strictly exclude participation headers)
+    const boysGirlsDoublesIdx = findExactCol([
+      'boys girls doubles partner', 'boys girls doubles partner name', 'boys girls partner',
+      'boys girls partner name', 'boys or girls doubles partner', 'doubles partner', 'doubles partner name',
+      'doubles partner request', 'partner name', 'partner'
+    ]) >= 0
+      ? findExactCol(['boys girls doubles partner', 'boys girls doubles partner name', 'boys girls partner', 'boys girls partner name', 'boys or girls doubles partner', 'doubles partner', 'doubles partner name', 'doubles partner request', 'partner name', 'partner'])
+      : findSubstringCol(['boys girls doubles', 'doubles partner'], ['participat', 'participate', 'mixed']);
+
+    const boysDoublesIdx = findExactCol([
+      'boys doubles partner', 'boys doubles partner name', 'boys partner', 'boys partner name', 'boy doubles partner'
+    ]) >= 0
+      ? findExactCol(['boys doubles partner', 'boys doubles partner name', 'boys partner', 'boys partner name', 'boy doubles partner'])
+      : findSubstringCol(['boys doubles partner', 'boys partner'], ['girls', 'mixed', 'participat', 'participate']);
+
+    const girlsDoublesIdx = findExactCol([
+      'girls doubles partner', 'girls doubles partner name', 'girls partner', 'girls partner name', 'girl doubles partner'
+    ]) >= 0
+      ? findExactCol(['girls doubles partner', 'girls doubles partner name', 'girls partner', 'girls partner name', 'girl doubles partner'])
+      : findSubstringCol(['girls doubles partner', 'girls partner'], ['boys', 'mixed', 'participat', 'participate']);
+
+    const mixedPartnerIdx = findExactCol([
+      'mixed doubles partner', 'mixed doubles partner name', 'mixed partner', 'mixed partner name', 'mixed doubles partner request'
+    ]) >= 0
+      ? findExactCol(['mixed doubles partner', 'mixed doubles partner name', 'mixed partner', 'mixed partner name', 'mixed doubles partner request'])
+      : findSubstringCol(['mixed doubles partner', 'mixed partner'], ['participat', 'participate']);
+
+    // Boolean normalizer for participation values
+    const parseBooleanParticipation = (val, defaultVal = false) => {
+      if (val === undefined || val === null) return defaultVal;
+      if (typeof val === 'boolean') return val;
+      const s = String(val).trim().toLowerCase();
+      if (!s) return defaultVal;
+      if (['yes', 'true', '1', 'y'].includes(s)) return true;
+      if (['no', 'false', '0', 'n', 'none', 'na', 'n/a', '-'].includes(s)) return false;
+      return defaultVal;
+    };
+
+    // Partner name sanitizer: NEVER store boolean or placeholder values as partner names
+    const sanitizePartnerName = (val) => {
+      if (!val) return '';
+      const s = String(val).replace(/\s+/g, ' ').trim();
+      const lower = s.toLowerCase();
+      if (['yes', 'no', 'true', 'false', '0', '1', 'none', 'n/a', 'na', '-', 'nil', 'null', 'undefined'].includes(lower)) {
+        return '';
+      }
+      return s;
+    };
 
     // Map of existing registrations currently loaded in system
     const existingRegMap = new Map();
@@ -263,9 +358,6 @@ export default function AdminRegistrationsPage() {
       const fullName = (nameIdx >= 0 ? cols[nameIdx] || '' : cols[0] || '').replace(/\s+/g, ' ').trim();
       const rawGender = (genderIdx >= 0 ? cols[genderIdx] || '' : cols[1] || '').trim();
       const department = (deptIdx >= 0 ? cols[deptIdx] || '' : cols[2] || '').replace(/\s+/g, ' ').trim();
-      let boysDoublesPartner = (boysDoublesIdx >= 0 ? cols[boysDoublesIdx] || '' : '').replace(/\s+/g, ' ').trim();
-      let girlsDoublesPartner = (girlsDoublesIdx >= 0 ? cols[girlsDoublesIdx] || '' : '').replace(/\s+/g, ' ').trim();
-      const mixedDoublesPartner = (mixedIdx >= 0 ? cols[mixedIdx] || '' : '').replace(/\s+/g, ' ').trim();
 
       // Normalize gender
       const gLower = rawGender.toLowerCase().trim();
@@ -273,24 +365,71 @@ export default function AdminRegistrationsPage() {
       if (['m', 'male', 'boy', 'boys'].includes(gLower)) gender = 'male';
       else if (['f', 'female', 'girl', 'girls'].includes(gLower)) gender = 'female';
 
-      // Legacy single doubles partner mapping fallback only if separate columns are absent
-      if (
-        !boysDoublesPartner &&
-        !girlsDoublesPartner &&
-        legacyDoublesIdx >= 0 &&
-        legacyDoublesIdx !== boysDoublesIdx &&
-        legacyDoublesIdx !== girlsDoublesIdx &&
-        legacyDoublesIdx !== mixedIdx
-      ) {
-        const legVal = (cols[legacyDoublesIdx] || '').replace(/\s+/g, ' ').trim();
-        if (gender === 'male') {
-          boysDoublesPartner = legVal;
-        } else {
-          girlsDoublesPartner = legVal;
-        }
+      // Extract raw partner candidates
+      const rawBoysDoubles = sanitizePartnerName(boysDoublesIdx >= 0 ? cols[boysDoublesIdx] : '');
+      const rawGirlsDoubles = sanitizePartnerName(girlsDoublesIdx >= 0 ? cols[girlsDoublesIdx] : '');
+      const rawUnifiedDoubles = sanitizePartnerName(boysGirlsDoublesIdx >= 0 ? cols[boysGirlsDoublesIdx] : '');
+      const rawMixed = sanitizePartnerName(mixedPartnerIdx >= 0 ? cols[mixedPartnerIdx] : '');
+
+      // Gender validation on gender-specific columns
+      let genderDoublesPartnerMismatch = false;
+      let genderMismatchMessage = '';
+      if (gender === 'male' && rawGirlsDoubles) {
+        genderDoublesPartnerMismatch = true;
+        genderMismatchMessage = '❌ Invalid Girls Doubles partner (Player is male)';
+      } else if (gender === 'female' && rawBoysDoubles) {
+        genderDoublesPartnerMismatch = true;
+        genderMismatchMessage = '❌ Invalid Boys Doubles partner (Player is female)';
       }
 
-      const effectiveDoubles = gender === 'female' ? girlsDoublesPartner : boysDoublesPartner;
+      // Candidate partner by gender
+      let candidateDoublesPartner = '';
+      let boysDoublesPartner = '';
+      let girlsDoublesPartner = '';
+
+      if (gender === 'male') {
+        candidateDoublesPartner = rawBoysDoubles || rawUnifiedDoubles;
+        boysDoublesPartner = candidateDoublesPartner;
+      } else if (gender === 'female') {
+        candidateDoublesPartner = rawGirlsDoubles || rawUnifiedDoubles;
+        girlsDoublesPartner = candidateDoublesPartner;
+      } else {
+        candidateDoublesPartner = rawBoysDoubles || rawGirlsDoubles || rawUnifiedDoubles;
+      }
+
+      const candidateMixedPartner = rawMixed;
+
+      // Participation determination:
+      // 1. If explicit participation column exists in CSV, strictly use it
+      // 2. If absent, infer from candidate partner presence
+      let participateSingles = true;
+      if (partSinglesIdx >= 0) {
+        participateSingles = parseBooleanParticipation(cols[partSinglesIdx], true);
+      }
+
+      let participateDoubles = false;
+      if (partDoublesIdx >= 0) {
+        participateDoubles = parseBooleanParticipation(cols[partDoublesIdx], false);
+      } else {
+        participateDoubles = !!candidateDoublesPartner;
+      }
+
+      let participateMixedDoubles = false;
+      if (partMixedIdx >= 0) {
+        participateMixedDoubles = parseBooleanParticipation(cols[partMixedIdx], false);
+      } else {
+        participateMixedDoubles = !!candidateMixedPartner;
+      }
+
+      // Enforce data rule: if not participating, partner fields MUST be empty
+      const effectiveDoublesPartner = participateDoubles ? candidateDoublesPartner : '';
+      const effectiveMixedPartner = participateMixedDoubles ? candidateMixedPartner : '';
+
+      if (!participateDoubles) {
+        boysDoublesPartner = '';
+        girlsDoublesPartner = '';
+      }
+
       const normalizedName = fullName.toLowerCase();
       let status = 'ready';
       let statusMessage = '✓ Ready';
@@ -309,13 +448,21 @@ export default function AdminRegistrationsPage() {
         status = 'invalid';
         statusMessage = '❌ Missing department';
         invalidCount++;
-      } else if (gender === 'male' && girlsDoublesPartner) {
+      } else if (genderDoublesPartnerMismatch) {
         status = 'invalid';
-        statusMessage = '❌ Invalid Girls Doubles partner (Player is male)';
+        statusMessage = genderMismatchMessage;
         invalidCount++;
-      } else if (gender === 'female' && boysDoublesPartner) {
+      } else if (participateDoubles && !effectiveDoublesPartner) {
         status = 'invalid';
-        statusMessage = '❌ Invalid Boys Doubles partner (Player is female)';
+        statusMessage = `❌ Missing ${gender === 'male' ? 'Boys' : 'Girls'} Doubles Partner (Participate Doubles is Yes)`;
+        invalidCount++;
+      } else if (participateMixedDoubles && !effectiveMixedPartner) {
+        status = 'invalid';
+        statusMessage = '❌ Missing Mixed Doubles Partner (Participate Mixed is Yes)';
+        invalidCount++;
+      } else if (!participateSingles && !participateDoubles && !participateMixedDoubles) {
+        status = 'invalid';
+        statusMessage = '❌ Must participate in at least one division';
         invalidCount++;
       } else if (seenInCSV.has(normalizedName)) {
         status = 'duplicate';
@@ -345,11 +492,14 @@ export default function AdminRegistrationsPage() {
         gender: gender || rawGender,
         rawGender,
         department,
+        participateSingles,
+        participateDoubles,
+        participateMixedDoubles,
         boysDoublesPartner,
         girlsDoublesPartner,
-        doublesPartnerName: effectiveDoubles,
-        mixedDoublesPartner,
-        mixedDoublesPartnerName: mixedDoublesPartner,
+        doublesPartnerName: effectiveDoublesPartner,
+        mixedDoublesPartner: effectiveMixedPartner,
+        mixedDoublesPartnerName: effectiveMixedPartner,
         status,
         statusMessage
       });
@@ -391,11 +541,14 @@ export default function AdminRegistrationsPage() {
           fullName: r.fullName,
           gender: r.gender,
           department: r.department,
-          boysDoublesPartner: r.boysDoublesPartner,
-          girlsDoublesPartner: r.girlsDoublesPartner,
-          doublesPartnerName: r.doublesPartnerName || (r.gender === 'female' ? r.girlsDoublesPartner : r.boysDoublesPartner),
-          mixedDoublesPartner: r.mixedDoublesPartner,
-          mixedDoublesPartnerName: r.mixedDoublesPartner
+          participateSingles: r.participateSingles !== undefined ? r.participateSingles : true,
+          participateDoubles: !!r.participateDoubles,
+          participateMixedDoubles: !!r.participateMixedDoubles,
+          boysDoublesPartner: r.participateDoubles ? (r.boysDoublesPartner || '') : '',
+          girlsDoublesPartner: r.participateDoubles ? (r.girlsDoublesPartner || '') : '',
+          doublesPartnerName: r.participateDoubles ? (r.doublesPartnerName || '') : '',
+          mixedDoublesPartner: r.participateMixedDoubles ? (r.mixedDoublesPartner || '') : '',
+          mixedDoublesPartnerName: r.participateMixedDoubles ? (r.mixedDoublesPartnerName || r.mixedDoublesPartner || '') : ''
         }))
       };
 
@@ -565,6 +718,9 @@ export default function AdminRegistrationsPage() {
     setEditFormData({
       fullName: reg.participantId?.fullName || '',
       department: reg.participantId?.department || '',
+      participateSingles: reg.participateSingles !== undefined ? reg.participateSingles : true,
+      participateDoubles: reg.participateDoubles !== undefined ? reg.participateDoubles : !!reg.doublesPartnerName,
+      participateMixedDoubles: reg.participateMixedDoubles !== undefined ? reg.participateMixedDoubles : !!reg.mixedDoublesPartnerName,
       doublesPartnerName: reg.doublesPartnerName || '',
       mixedDoublesPartnerName: reg.mixedDoublesPartnerName || '',
       adminNotes: reg.adminNotes || ''
@@ -627,11 +783,15 @@ export default function AdminRegistrationsPage() {
   };
 
   // Helper to render partner verification pill
-  const renderPartnerStatusBadge = (validation, requestedName) => {
-    if (!requestedName) {
+  const renderPartnerStatusBadge = (validation, requestedName, isParticipating = true) => {
+    if (
+      isParticipating === false ||
+      validation?.status === 'not_participating' ||
+      (!requestedName && (!validation || validation.status === 'none'))
+    ) {
       return (
         <span className="text-xs text-[#7E7060] dark:text-[#817B72] italic block">
-          Singles Only
+          Not Enrolled (Optional)
         </span>
       );
     }
@@ -948,11 +1108,28 @@ export default function AdminRegistrationsPage() {
                       </td>
 
                       <td className="py-4 align-top">
-                        <div className="space-y-0.5">
+                        <div className="space-y-1">
                           <span className="font-semibold text-[#3E342B] dark:text-[#F5F1E8] text-sm block">{p.fullName}</span>
                           <span className="text-xs text-[#7E7060] dark:text-[#817B72] block capitalize">
                             {p.gender}
                           </span>
+                          <div className="flex flex-wrap gap-1 pt-0.5">
+                            {reg.participateSingles !== false && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/40 font-semibold">
+                                Singles
+                              </span>
+                            )}
+                            {reg.participateDoubles === true && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/40 font-semibold">
+                                Doubles
+                              </span>
+                            )}
+                            {reg.participateMixedDoubles === true && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40 font-semibold">
+                                Mixed
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </td>
 
@@ -966,7 +1143,8 @@ export default function AdminRegistrationsPage() {
                       <td className="py-4 align-top">
                         {renderPartnerStatusBadge(
                           doublesVal,
-                          reg.doublesPartnerName
+                          reg.doublesPartnerName,
+                          reg.participateDoubles
                         )}
                       </td>
 
@@ -974,7 +1152,8 @@ export default function AdminRegistrationsPage() {
                       <td className="py-4 align-top">
                         {renderPartnerStatusBadge(
                           mixedVal,
-                          reg.mixedDoublesPartnerName
+                          reg.mixedDoublesPartnerName,
+                          reg.participateMixedDoubles
                         )}
                       </td>
 
@@ -1031,7 +1210,7 @@ export default function AdminRegistrationsPage() {
                           {reg.status === 'approved' && (
                             <div className="flex flex-col gap-1.5 w-full items-end pt-1">
                               {/* Pair Doubles */}
-                              {reg.doublesPartnerName && (
+                              {reg.participateDoubles && reg.doublesPartnerName && (
                                 <button
                                   onClick={() =>
                                     handleOpenPairModal(
@@ -1058,7 +1237,7 @@ export default function AdminRegistrationsPage() {
                               )}
 
                               {/* Pair Mixed Doubles */}
-                              {reg.mixedDoublesPartnerName && (
+                              {reg.participateMixedDoubles && reg.mixedDoublesPartnerName && (
                                 <button
                                   onClick={() =>
                                     handleOpenPairModal(
@@ -1134,6 +1313,44 @@ export default function AdminRegistrationsPage() {
               onChange={(e) => setEditFormData({ ...editFormData, department: e.target.value })}
               className="w-full h-11 bg-white dark:bg-[#181C1F] px-4 text-sm font-normal text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
             />
+          </div>
+
+          {/* Division Participation Checkboxes */}
+          <div>
+            <label className="text-xs font-semibold text-[#3E342B] dark:text-[#F5F1E8] block mb-1.5 uppercase">
+              Enrolled Divisions (Optional)
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              <label className="flex items-center gap-2 p-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-xs font-medium cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={editFormData.participateSingles}
+                  onChange={(e) => setEditFormData({ ...editFormData, participateSingles: e.target.checked })}
+                  className="w-4 h-4 rounded text-emerald-600 cursor-pointer"
+                />
+                <span>Singles</span>
+              </label>
+
+              <label className="flex items-center gap-2 p-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-xs font-medium cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={editFormData.participateDoubles}
+                  onChange={(e) => setEditFormData({ ...editFormData, participateDoubles: e.target.checked })}
+                  className="w-4 h-4 rounded text-emerald-600 cursor-pointer"
+                />
+                <span>Doubles</span>
+              </label>
+
+              <label className="flex items-center gap-2 p-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-xs font-medium cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={editFormData.participateMixedDoubles}
+                  onChange={(e) => setEditFormData({ ...editFormData, participateMixedDoubles: e.target.checked })}
+                  className="w-4 h-4 rounded text-emerald-600 cursor-pointer"
+                />
+                <span>Mixed</span>
+              </label>
+            </div>
           </div>
 
           <div>
@@ -1493,11 +1710,16 @@ export default function AdminRegistrationsPage() {
                     </thead>
                     <tbody className="divide-y divide-[#E8E1D5] dark:divide-[#2B3034] text-xs">
                       {importRows.map((row) => {
-                        const doublesPartner =
-                          (row.gender === 'female' ? row.girlsDoublesPartner : row.boysDoublesPartner) ||
-                          row.doublesPartnerName ||
-                          row.girlsDoublesPartner ||
-                          row.boysDoublesPartner;
+                        const doublesPartner = row.participateDoubles
+                          ? row.doublesPartnerName ||
+                            (row.gender === 'female' ? row.girlsDoublesPartner : row.boysDoublesPartner) ||
+                            row.girlsDoublesPartner ||
+                            row.boysDoublesPartner
+                          : '';
+
+                        const mixedPartner = row.participateMixedDoubles
+                          ? row.mixedDoublesPartner || row.mixedDoublesPartnerName
+                          : '';
 
                         return (
                           <tr
@@ -1511,7 +1733,26 @@ export default function AdminRegistrationsPage() {
                             }`}
                           >
                             <td className="py-2.5 px-3 text-center text-[#7E7060] dark:text-[#817B72]">{row.rowNumber}</td>
-                            <td className="py-2.5 px-3 font-semibold text-[#3E342B] dark:text-[#F5F1E8]">{row.fullName || '—'}</td>
+                            <td className="py-2.5 px-3">
+                              <span className="font-semibold text-[#3E342B] dark:text-[#F5F1E8] block">{row.fullName || '—'}</span>
+                              <div className="flex flex-wrap gap-1 mt-0.5">
+                                {row.participateSingles && (
+                                  <span className="px-1 py-0.2 rounded text-[9px] font-mono bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/40 font-semibold">
+                                    Singles
+                                  </span>
+                                )}
+                                {row.participateDoubles && (
+                                  <span className="px-1 py-0.2 rounded text-[9px] font-mono bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/40 font-semibold">
+                                    Doubles
+                                  </span>
+                                )}
+                                {row.participateMixedDoubles && (
+                                  <span className="px-1 py-0.2 rounded text-[9px] font-mono bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40 font-semibold">
+                                    Mixed
+                                  </span>
+                                )}
+                              </div>
+                            </td>
                             <td className="py-2.5 px-3 capitalize">
                               {row.gender ? (
                                 <span className={row.gender === 'male' ? 'text-blue-600 dark:text-blue-400 font-semibold' : 'text-pink-600 dark:text-pink-400 font-semibold'}>
@@ -1523,21 +1764,29 @@ export default function AdminRegistrationsPage() {
                             </td>
                             <td className="py-2.5 px-3 text-[#3E342B] dark:text-[#F5F1E8] font-medium">{row.department || '—'}</td>
                             <td className="py-2.5 px-3">
-                              {doublesPartner ? (
+                              {!row.participateDoubles ? (
+                                <span className="text-xs text-[#7E7060] dark:text-[#817B72] italic">
+                                  Not Enrolled (Optional)
+                                </span>
+                              ) : doublesPartner ? (
                                 <span className="font-semibold text-[#3E342B] dark:text-[#F5F1E8]">
                                   {doublesPartner}
                                 </span>
                               ) : (
-                                <span className="text-[#7E7060] dark:text-[#817B72]">—</span>
+                                <span className="text-rose-500 font-semibold italic">Missing Partner</span>
                               )}
                             </td>
                             <td className="py-2.5 px-3">
-                              {row.mixedDoublesPartner || row.mixedDoublesPartnerName ? (
+                              {!row.participateMixedDoubles ? (
+                                <span className="text-xs text-[#7E7060] dark:text-[#817B72] italic">
+                                  Not Enrolled (Optional)
+                                </span>
+                              ) : mixedPartner ? (
                                 <span className="font-semibold text-[#3E342B] dark:text-[#F5F1E8]">
-                                  {row.mixedDoublesPartner || row.mixedDoublesPartnerName}
+                                  {mixedPartner}
                                 </span>
                               ) : (
-                                <span className="text-[#7E7060] dark:text-[#817B72]">—</span>
+                                <span className="text-rose-500 font-semibold italic">Missing Partner</span>
                               )}
                             </td>
                             <td className="py-2.5 px-3">
@@ -1686,44 +1935,86 @@ export default function AdminRegistrationsPage() {
             </div>
           </div>
 
-          {/* Doubles Partner (Gender Dynamic) */}
+          {/* Division Toggles */}
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-xs font-semibold text-[#3E342B] dark:text-[#F5F1E8] uppercase">
-                {addPlayerForm.gender === 'male' ? 'Boys Doubles Partner' : 'Girls Doubles Partner'}
+            <label className="block text-xs font-semibold text-[#3E342B] dark:text-[#F5F1E8] uppercase mb-1">
+              Participating Divisions (Optional)
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              <label className="flex items-center gap-2 p-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-xs font-medium cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={addPlayerForm.participateSingles}
+                  onChange={(e) => setAddPlayerForm((prev) => ({ ...prev, participateSingles: e.target.checked }))}
+                  className="w-4 h-4 rounded text-emerald-600 cursor-pointer"
+                />
+                <span>Singles</span>
               </label>
-              <span className="text-xs text-[#7E7060] dark:text-[#817B72] italic">Optional</span>
+
+              <label className="flex items-center gap-2 p-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-xs font-medium cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={addPlayerForm.participateDoubles}
+                  onChange={(e) => setAddPlayerForm((prev) => ({ ...prev, participateDoubles: e.target.checked }))}
+                  className="w-4 h-4 rounded text-emerald-600 cursor-pointer"
+                />
+                <span>Doubles</span>
+              </label>
+
+              <label className="flex items-center gap-2 p-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-xs font-medium cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={addPlayerForm.participateMixedDoubles}
+                  onChange={(e) => setAddPlayerForm((prev) => ({ ...prev, participateMixedDoubles: e.target.checked }))}
+                  className="w-4 h-4 rounded text-emerald-600 cursor-pointer"
+                />
+                <span>Mixed</span>
+              </label>
             </div>
-            <input
-              type="text"
-              value={addPlayerForm.doublesPartnerName}
-              onChange={(e) => setAddPlayerForm((prev) => ({ ...prev, doublesPartnerName: e.target.value }))}
-              placeholder={addPlayerForm.gender === 'male' ? "Male Partner's Full Name (or blank for Singles)" : "Female Partner's Full Name (or blank for Singles)"}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] bg-white dark:bg-[#121517] text-sm font-normal text-[#3E342B] dark:text-[#F5F1E8] focus:outline-hidden focus:border-[#E74C3C] dark:focus:border-[#D4A94C]"
-            />
           </div>
 
-          {/* Mixed Doubles Partner */}
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-xs font-semibold text-[#3E342B] dark:text-[#F5F1E8] uppercase">
-                Mixed Doubles Partner
-              </label>
-              <span className="text-xs text-[#7E7060] dark:text-[#817B72] italic">Optional</span>
+          {/* Doubles Partner (Gender Dynamic) */}
+          {addPlayerForm.participateDoubles && (
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-semibold text-[#3E342B] dark:text-[#F5F1E8] uppercase">
+                  {addPlayerForm.gender === 'male' ? 'Boys Doubles Partner *' : 'Girls Doubles Partner *'}
+                </label>
+              </div>
+              <input
+                type="text"
+                required
+                value={addPlayerForm.doublesPartnerName}
+                onChange={(e) => setAddPlayerForm((prev) => ({ ...prev, doublesPartnerName: e.target.value }))}
+                placeholder={addPlayerForm.gender === 'male' ? "Male Partner's Full Name" : "Female Partner's Full Name"}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] bg-white dark:bg-[#121517] text-sm font-normal text-[#3E342B] dark:text-[#F5F1E8] focus:outline-hidden focus:border-[#E74C3C] dark:focus:border-[#D4A94C]"
+              />
             </div>
-            <input
-              type="text"
-              value={addPlayerForm.mixedDoublesPartnerName}
-              onChange={(e) => setAddPlayerForm((prev) => ({ ...prev, mixedDoublesPartnerName: e.target.value }))}
-              placeholder={addPlayerForm.gender === 'male' ? "Female Mixed Partner's Full Name (Optional)" : "Male Mixed Partner's Full Name (Optional)"}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] bg-white dark:bg-[#121517] text-sm font-normal text-[#3E342B] dark:text-[#F5F1E8] focus:outline-hidden focus:border-[#E74C3C] dark:focus:border-[#D4A94C]"
-            />
-          </div>
+          )}
+
+          {/* Mixed Doubles Partner */}
+          {addPlayerForm.participateMixedDoubles && (
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-semibold text-[#3E342B] dark:text-[#F5F1E8] uppercase">
+                  Mixed Doubles Partner *
+                </label>
+              </div>
+              <input
+                type="text"
+                required
+                value={addPlayerForm.mixedDoublesPartnerName}
+                onChange={(e) => setAddPlayerForm((prev) => ({ ...prev, mixedDoublesPartnerName: e.target.value }))}
+                placeholder={addPlayerForm.gender === 'male' ? "Female Mixed Partner's Full Name" : "Male Mixed Partner's Full Name"}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] bg-white dark:bg-[#121517] text-sm font-normal text-[#3E342B] dark:text-[#F5F1E8] focus:outline-hidden focus:border-[#E74C3C] dark:focus:border-[#D4A94C]"
+              />
+            </div>
+          )}
 
           <div className="p-3 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-xs text-[#7E7060] dark:text-[#B8B1A5] flex items-center gap-2">
             <Clock className="w-3.5 h-3.5 text-[#E74C3C] dark:text-[#D4A94C] shrink-0" />
             <span>
-              Player will enter in <strong className="text-[#3E342B] dark:text-[#F5F1E8]">Pending Approval</strong> status. Approving will automatically generate Singles entries.
+              Player will enter in <strong className="text-[#3E342B] dark:text-[#F5F1E8]">Pending Approval</strong> status. Approving will automatically generate entries only for opted-in divisions.
             </span>
           </div>
 

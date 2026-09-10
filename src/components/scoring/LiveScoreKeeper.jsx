@@ -60,6 +60,53 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
   const [pendingWinner, setPendingWinner] = useState(null);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
+  // Time Expired / End Match Modal state
+  const [isTimeUpModalOpen, setIsTimeUpModalOpen] = useState(false);
+
+  // Play audio alert chime when official round timer completes
+  const playBuzzerSound = () => {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+      osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15); // A5
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.6);
+    } catch (e) {
+      // Audio autoplay policy fallback
+    }
+  };
+
+  const handleTimeExpired = async () => {
+    playBuzzerSound();
+    setIsTimeUpModalOpen(true);
+    try {
+      const res = await api.updateMatchTimer(match._id, { action: 'expire' });
+      if (res.success && res.match && onUpdate) {
+        onUpdate(res.match);
+      }
+    } catch (err) {
+      console.error('Failed to notify server of timer expiration:', err);
+    }
+  };
+
+  // Check if live match duration has completed
+  const roundMinutes = Number(match.roundDurationMinutes || match.durationMinutes || 20);
+  const extraMinutes = Number(match.extraTimeMinutes || 0);
+  const totalCapSecs = (roundMinutes + extraMinutes) * 60;
+  let currentElapsedSecs = Number(match.timeElapsedBeforePause || 0);
+  if (match.status === 'live' && !match.isTimerPaused && match.actualStartTime) {
+    currentElapsedSecs += Math.max(0, Math.floor((Date.now() - new Date(match.actualStartTime).getTime()) / 1000));
+  }
+  const isTimeCompleted = match.status === 'live' && currentElapsedSecs >= totalCapSecs;
 
   // Edit / Change Winner Modal state
   const [isEditWinnerModalOpen, setIsEditWinnerModalOpen] = useState(false);
@@ -294,22 +341,52 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
           onTimerAction={handleTimerAction}
           onStartMatch={handleStartMatch}
           isStarting={startingMatch}
+          onTimeExpired={handleTimeExpired}
+          onEndMatchClick={() => setIsTimeUpModalOpen(true)}
         />
       )}
 
       {/* --- ACTION SECTION --- */}
       {!isMatchCompleted ? (
         /* Winner Declaration Desk */
-        <div className="editorial-card rounded-2xl p-6 sm:p-8 border border-[#E8E1D5] dark:border-[#2B3034] bg-white dark:bg-[#15191C] space-y-6 shadow-xs text-center">
+        <div className={`editorial-card rounded-2xl p-6 sm:p-8 border bg-white dark:bg-[#15191C] space-y-6 shadow-xs text-center transition-all ${
+          isTimeCompleted
+            ? 'border-2 border-[#E74C3C]/60 shadow-[0_0_20px_rgba(231,76,60,0.15)]'
+            : 'border-[#E8E1D5] dark:border-[#2B3034]'
+        }`}>
+          {/* Time Expired Urgent Alert Banner */}
+          {isTimeCompleted && (
+            <div className="p-4 rounded-xl bg-[#FDEDEC] dark:bg-[#E74C3C]/15 border border-[#E74C3C]/40 text-[#E74C3C] text-xs font-mono font-bold flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
+              <div className="flex items-center gap-2.5">
+                <AlertTriangle className="w-5 h-5 shrink-0 animate-pulse" />
+                <div>
+                  <span className="font-bold text-sm block">ROUND TIME COMPLETED ({roundMinutes} MIN)</span>
+                  <span className="font-normal opacity-90 text-[11px]">The official match round time has expired. Select the winning team below to conclude the match and advance in the bracket.</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsTimeUpModalOpen(true)}
+                className="px-3.5 py-1.5 rounded-lg bg-[#E74C3C] text-white text-[11px] uppercase tracking-wider shrink-0 font-bold hover:bg-[#C0392B] transition-colors cursor-pointer"
+              >
+                End Match Now
+              </button>
+            </div>
+          )}
+
           <div>
             <span className="eyebrow-label">
               Official Match Referee Desk
             </span>
-            <h3 className="text-2xl sm:text-3xl font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] mt-1 uppercase tracking-wide">
-              DECLARE MATCH WINNER
+            <h3 className={`text-2xl sm:text-3xl font-serif font-bold mt-1 uppercase tracking-wide ${
+              isTimeCompleted ? 'text-[#E74C3C]' : 'text-[#3E342B] dark:text-[#F5F1E8]'
+            }`}>
+              {isTimeCompleted ? 'TIME COMPLETED · DECLARE MATCH WINNER' : 'DECLARE MATCH WINNER'}
             </h3>
             <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] mt-1 max-w-md mx-auto">
-              Select the winning team on the Main Carrom Board. The winner will advance to the next round immediately.
+              {isTimeCompleted
+                ? 'The official timer has stopped. Select the winning team on the Main Carrom Board to end the match.'
+                : 'Select the winning team on the Main Carrom Board. The winner will advance to the next round immediately.'}
             </p>
           </div>
 
@@ -455,6 +532,86 @@ export const LiveScoreKeeper = ({ match, onUpdate }) => {
           </div>
         </div>
       )}
+
+      {/* --- TIME UP / END MATCH WINNER SELECTION MODAL --- */}
+      <Modal
+        isOpen={isTimeUpModalOpen}
+        onClose={() => setIsTimeUpModalOpen(false)}
+        title="⏰ Match Time Completed · End Match"
+        maxWidth="max-w-lg"
+      >
+        <div className="space-y-5 py-2">
+          <div className="p-3.5 rounded-xl bg-[#FDEDEC] dark:bg-[#E74C3C]/15 border border-[#E74C3C]/30 text-xs font-mono text-[#E74C3C]">
+            The official <strong>{roundMinutes}m</strong> round timer has expired. Select the winning team to end this match immediately and advance the winner in the knockout bracket:
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button
+              onClick={() => {
+                setIsTimeUpModalOpen(false);
+                handleDeclareWinnerClick(match.team1);
+              }}
+              disabled={loading || !match.team1}
+              className="p-5 rounded-xl border-2 border-[#E8E1D5] hover:border-[#E74C3C] dark:border-[#2B3034] dark:hover:border-[#E74C3C] bg-white dark:bg-[#181C1F] text-left transition-all cursor-pointer shadow-xs hover:shadow-md flex flex-col justify-between"
+            >
+              <div>
+                <span className="text-[10px] font-mono font-bold text-[#7E7060] dark:text-[#817B72] uppercase block">
+                  Team 1 Win
+                </span>
+                <h4 className="text-base font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] mt-1">
+                  {match.team1?.name}
+                </h4>
+              </div>
+              <span className="text-xs font-bold text-[#E74C3C] dark:text-[#D4A94C] flex items-center gap-1 mt-4 font-mono uppercase">
+                <Trophy className="w-3.5 h-3.5" />
+                <span>Award Win</span>
+              </span>
+            </button>
+
+            <button
+              onClick={() => {
+                setIsTimeUpModalOpen(false);
+                handleDeclareWinnerClick(match.team2);
+              }}
+              disabled={loading || !match.team2}
+              className="p-5 rounded-xl border-2 border-[#E8E1D5] hover:border-[#E74C3C] dark:border-[#2B3034] dark:hover:border-[#E74C3C] bg-white dark:bg-[#181C1F] text-left transition-all cursor-pointer shadow-xs hover:shadow-md flex flex-col justify-between"
+            >
+              <div>
+                <span className="text-[10px] font-mono font-bold text-[#7E7060] dark:text-[#817B72] uppercase block">
+                  Team 2 Win
+                </span>
+                <h4 className="text-base font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] mt-1">
+                  {match.team2?.name}
+                </h4>
+              </div>
+              <span className="text-xs font-bold text-[#E74C3C] dark:text-[#D4A94C] flex items-center gap-1 mt-4 font-mono uppercase">
+                <Trophy className="w-3.5 h-3.5" />
+                <span>Award Win</span>
+              </span>
+            </button>
+          </div>
+
+          <div className="pt-3 border-t border-[#E8E1D5] dark:border-[#2B3034] flex items-center justify-between">
+            <button
+              type="button"
+              onClick={async () => {
+                setIsTimeUpModalOpen(false);
+                await handleTimerAction('add_time', { extraMinutes: 2 });
+              }}
+              className="text-xs font-mono font-bold text-[#7E7060] dark:text-[#817B72] hover:text-[#3E342B] dark:hover:text-[#F5F1E8] cursor-pointer"
+            >
+              + Add 2m Sudden Death Extra Time
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsTimeUpModalOpen(false)}
+              className="px-4 py-2 rounded-xl text-xs font-mono font-bold text-[#7E7060] dark:text-[#817B72] cursor-pointer"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       {/* --- IN-APP CONFIRMATION MODAL --- */}
       <Modal

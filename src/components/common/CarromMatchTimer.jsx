@@ -11,7 +11,8 @@ import {
   Timer,
   CheckCircle2,
   Sparkles,
-  Flame
+  Flame,
+  Trophy
 } from 'lucide-react';
 import { useConfirm, usePrompt } from '@/context/ToastContext';
 
@@ -22,22 +23,49 @@ export function CarromMatchTimer({
   onTimerAction = null, // callback for admin actions: (action, payload) => {}
   showControls = false,
   onStartMatch = null,
-  isStarting = false
+  isStarting = false,
+  onTimeExpired = null,
+  onEndMatchClick = null
 }) {
   const confirm = useConfirm();
   const prompt = usePrompt();
   const [now, setNow] = useState(Date.now());
+  const hasExpiredRef = React.useRef(false);
 
-  // Tick every second if live and not paused
+  // Tick every second if live, not paused, and not expired
   useEffect(() => {
     if (!match || match.status !== 'live' || match.isTimerPaused) return;
+
+    const baseMin = Number(match?.roundDurationMinutes || match?.durationMinutes || durationMinutes || 20);
+    const extraMin = Number(match?.extraTimeMinutes || 0);
+    const totalAllowedSeconds = (baseMin + extraMin) * 60;
+
+    let initialElapsed = Number(match.timeElapsedBeforePause || 0);
+    if (match.actualStartTime) {
+      const startTimeMs = new Date(match.actualStartTime).getTime();
+      initialElapsed += Math.max(0, Math.floor((Date.now() - startTimeMs) / 1000));
+    }
+
+    // Stop ticking if match has already reached or exceeded its duration
+    if (initialElapsed >= totalAllowedSeconds) {
+      return;
+    }
 
     const interval = setInterval(() => {
       setNow(Date.now());
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [match?.status, match?.isTimerPaused, match?.actualStartTime]);
+  }, [
+    match?.status,
+    match?.isTimerPaused,
+    match?.actualStartTime,
+    match?.roundDurationMinutes,
+    match?.durationMinutes,
+    match?.extraTimeMinutes,
+    match?.timeElapsedBeforePause,
+    durationMinutes
+  ]);
 
   const timerStats = useMemo(() => {
     if (!match || match.status !== 'live' || !match.actualStartTime) {
@@ -70,8 +98,13 @@ export function CarromMatchTimer({
       elapsed += currentSessionSeconds;
     }
 
-    const remaining = totalAllowedSeconds - elapsed;
-    const isExpired = remaining <= 0;
+    // STOP counting past completion: clamp at totalAllowedSeconds
+    const isExpired = elapsed >= totalAllowedSeconds;
+    if (isExpired) {
+      elapsed = totalAllowedSeconds;
+    }
+
+    const remaining = Math.max(0, totalAllowedSeconds - elapsed);
     const isUrgent = remaining > 0 && remaining <= 120; // <= 2 mins
     const isWarning = remaining > 120 && remaining <= 300; // <= 5 mins
 
@@ -79,9 +112,8 @@ export function CarromMatchTimer({
       ? Math.max(0, Math.min(100, (remaining / totalAllowedSeconds) * 100))
       : 0;
 
-    const displaySecs = isExpired ? Math.abs(remaining) : Math.max(0, remaining);
-    const mins = Math.floor(displaySecs / 60);
-    const secs = displaySecs % 60;
+    const mins = Math.floor(remaining / 60);
+    const secs = remaining % 60;
     const formatted = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 
     return {
@@ -101,6 +133,18 @@ export function CarromMatchTimer({
     };
   }, [match, durationMinutes, now]);
 
+  // Trigger onTimeExpired once when timer expires
+  useEffect(() => {
+    if (timerStats.isLive && timerStats.isExpired && !hasExpiredRef.current) {
+      hasExpiredRef.current = true;
+      if (onTimeExpired) {
+        onTimeExpired();
+      }
+    } else if (!timerStats.isExpired) {
+      hasExpiredRef.current = false;
+    }
+  }, [timerStats.isLive, timerStats.isExpired, onTimeExpired]);
+
   // Mini Badge Variant (For headers, live tickers, table badges)
   if (variant === 'badge') {
     return (
@@ -116,8 +160,8 @@ export function CarromMatchTimer({
         }`}
       >
         <Clock className="w-3 h-3 text-current shrink-0" />
-        <span>{timerStats.isExpired ? `+${timerStats.formattedTime} OT` : timerStats.formattedTime}</span>
-        {timerStats.isPaused && <span className="text-[9px] opacity-80">(PAUSED)</span>}
+        <span>{timerStats.isExpired ? '00:00 ENDED' : timerStats.formattedTime}</span>
+        {timerStats.isPaused && !timerStats.isExpired && <span className="text-[9px] opacity-80">(PAUSED)</span>}
       </span>
     );
   }
@@ -137,10 +181,10 @@ export function CarromMatchTimer({
               ? 'text-amber-700 dark:text-amber-400'
               : 'text-[#3E342B] dark:text-[#F5F1E8]'
           }`}>
-            {timerStats.isExpired ? `+${timerStats.formattedTime} Overtime` : timerStats.formattedTime}
+            {timerStats.isExpired ? '00:00 Time Ended' : timerStats.formattedTime}
           </span>
         </div>
-        {timerStats.isPaused && (
+        {timerStats.isPaused && !timerStats.isExpired && (
           <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 text-[10px] font-bold uppercase">
             Paused
           </span>
@@ -183,20 +227,20 @@ export function CarromMatchTimer({
                   : 'text-[#171614] dark:text-[#F7F4EC]'
               }`}
             >
-              {timerStats.isExpired ? `+${timerStats.formattedTime}` : timerStats.formattedTime}
+              {timerStats.formattedTime}
             </span>
             <span className="text-xs font-mono uppercase font-bold text-[#7E7060] dark:text-[#817B72]">
-              {!timerStats.isLive ? 'TOTAL' : timerStats.isExpired ? 'OVERTIME' : 'LEFT'}
+              {!timerStats.isLive ? 'TOTAL' : timerStats.isExpired ? 'TIME COMPLETED' : 'LEFT'}
             </span>
           </div>
 
           <p className="text-xs font-mono text-[#7E7060] dark:text-[#817B72]">
             {!timerStats.isLive ? (
               <span className="text-[#3E342B] dark:text-[#F5F1E8] font-bold">Match Scheduled · Ready to start on Main Carrom Board</span>
+            ) : timerStats.isExpired ? (
+              <span className="text-[#E74C3C] font-bold">⚠️ Official Round Time Expired · Match Ended (Declare Winner Below)</span>
             ) : timerStats.isPaused ? (
               <span className="text-amber-700 dark:text-amber-400 font-bold">⏸ Timer Paused by Referee</span>
-            ) : timerStats.isExpired ? (
-              <span className="text-[#E74C3C] font-bold">⚠️ Round Time Expired · Declare Winner or Add Extra Time</span>
             ) : timerStats.isUrgent ? (
               <span className="text-[#E74C3C] font-bold">⏳ Final 2 Minutes in Progress</span>
             ) : (
@@ -287,7 +331,22 @@ export function CarromMatchTimer({
             ) : (
               /* Live Match In-Play Controls */
               <div className="flex flex-wrap items-center justify-center gap-2">
-                {timerStats.isPaused ? (
+                {timerStats.isExpired ? (
+                  onEndMatchClick ? (
+                    <button
+                      type="button"
+                      onClick={onEndMatchClick}
+                      className="px-5 py-2 rounded-xl bg-[#E74C3C] hover:bg-[#C0392B] text-white text-xs font-mono font-bold flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer animate-pulse"
+                    >
+                      <Trophy className="w-4 h-4" />
+                      <span>End Match & Select Winner</span>
+                    </button>
+                  ) : (
+                    <span className="px-4 py-2 rounded-xl bg-[#FDEDEC] dark:bg-[#E74C3C]/20 border border-[#E74C3C]/40 text-[#E74C3C] text-xs font-mono font-bold">
+                      Round Finished · Select Winner Below
+                    </span>
+                  )
+                ) : timerStats.isPaused ? (
                   <button
                     type="button"
                     onClick={() => onTimerAction && onTimerAction('resume')}
@@ -382,15 +441,15 @@ export function CarromMatchTimer({
             <span>Official Round Timer · {timerStats.baseMinutes}m Cap</span>
           </div>
           <span className={`px-2.5 py-0.5 rounded-full font-bold uppercase text-[10px] tracking-wider ${
-            timerStats.isPaused
-              ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-              : timerStats.isExpired
+            timerStats.isExpired
               ? 'bg-[#E74C3C]/20 text-[#E74C3C] border border-[#E74C3C]/40 animate-pulse'
+              : timerStats.isPaused
+              ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
               : timerStats.isUrgent
               ? 'bg-[#E74C3C]/20 text-[#E74C3C] border border-[#E74C3C]/30 animate-pulse'
               : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
           }`}>
-            {timerStats.isPaused ? '⏸ Paused' : timerStats.isExpired ? '⚠️ Overtime' : '● Live In Play'}
+            {timerStats.isExpired ? '⚠️ Time Completed' : timerStats.isPaused ? '⏸ Paused' : '● Live In Play'}
           </span>
         </div>
 
@@ -407,10 +466,10 @@ export function CarromMatchTimer({
                 : 'text-white'
             }`}
           >
-            {timerStats.isExpired ? `+${timerStats.formattedTime}` : timerStats.formattedTime}
+            {timerStats.formattedTime}
           </span>
           <span className="text-xs font-mono font-bold uppercase text-white/50 tracking-wider">
-            {timerStats.isExpired ? 'OT' : 'Remaining'}
+            {timerStats.isExpired ? 'Ended' : 'Remaining'}
           </span>
         </div>
 
@@ -433,7 +492,7 @@ export function CarromMatchTimer({
         {/* Context Note */}
         <div className="text-[10px] font-mono text-white/60 flex items-center justify-between w-full pt-1">
           <span>Main Carrom Board 01</span>
-          <span>{timerStats.isExpired ? 'Buzzer Reached · Golden Point' : 'Sequential Match Flow'}</span>
+          <span>{timerStats.isExpired ? 'Buzzer Reached · Match Time Completed' : 'Sequential Match Flow'}</span>
         </div>
       </div>
     );
@@ -459,10 +518,10 @@ export function CarromMatchTimer({
               : 'text-white'
           }`}
         >
-          {timerStats.isExpired ? `+${timerStats.formattedTime}` : timerStats.formattedTime}
+          {timerStats.formattedTime}
         </span>
         <span className="text-[10px] font-mono uppercase text-white/60 font-semibold">
-          {timerStats.isExpired ? 'OT' : 'rem'}
+          {timerStats.isExpired ? 'ended' : 'rem'}
         </span>
       </div>
 
@@ -483,7 +542,7 @@ export function CarromMatchTimer({
       </div>
 
       <span className="text-[9px] font-mono uppercase text-white/70">
-        {timerStats.isPaused ? '⏸ PAUSED' : timerStats.isExpired ? 'TIME OUT' : 'MATCH IN PLAY'}
+        {timerStats.isExpired ? 'TIME COMPLETED' : timerStats.isPaused ? '⏸ PAUSED' : 'MATCH IN PLAY'}
       </span>
     </div>
   );
@@ -496,9 +555,13 @@ export function CarromMatchTimer({
 export function formatMatchDurationTaken(match) {
   if (!match) return null;
 
+  const roundMin = Number(match.roundDurationMinutes || match.durationMinutes || 20);
+  const extraMin = Number(match.extraTimeMinutes || 0);
+  const maxCapSecs = (roundMin + extraMin) * 60;
+
   // 1. If elapsedTimeSeconds is explicitly saved and > 0
   if (match.elapsedTimeSeconds && match.elapsedTimeSeconds > 0) {
-    const totalSecs = Math.round(match.elapsedTimeSeconds);
+    const totalSecs = Math.min(maxCapSecs, Math.round(match.elapsedTimeSeconds));
     const mins = Math.floor(totalSecs / 60);
     const secs = totalSecs % 60;
     if (mins === 0) return `${secs}s`;
@@ -511,7 +574,8 @@ export function formatMatchDurationTaken(match) {
     const start = new Date(match.actualStartTime).getTime();
     const end = new Date(match.actualEndTime).getTime();
     if (!isNaN(start) && !isNaN(end) && end >= start) {
-      const totalSecs = Math.max(1, Math.floor((end - start) / 1000));
+      const rawSecs = Math.max(1, Math.floor((end - start) / 1000));
+      const totalSecs = Math.min(maxCapSecs, rawSecs);
       const mins = Math.floor(totalSecs / 60);
       const secs = totalSecs % 60;
       if (mins === 0) return `${secs}s`;
@@ -522,7 +586,7 @@ export function formatMatchDurationTaken(match) {
 
   // 3. If timeElapsedBeforePause is stored and > 0
   if (match.timeElapsedBeforePause && match.timeElapsedBeforePause > 0) {
-    const totalSecs = Math.round(match.timeElapsedBeforePause);
+    const totalSecs = Math.min(maxCapSecs, Math.round(match.timeElapsedBeforePause));
     const mins = Math.floor(totalSecs / 60);
     const secs = totalSecs % 60;
     if (mins === 0) return `${secs}s`;
@@ -532,8 +596,7 @@ export function formatMatchDurationTaken(match) {
 
   // 4. If match is completed, show the allocated round duration
   if (match.status === 'completed') {
-    const dur = match.roundDurationMinutes || match.durationMinutes || 20;
-    return `${dur}m`;
+    return `${roundMin}m`;
   }
 
   return null;

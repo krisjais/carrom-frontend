@@ -26,6 +26,9 @@ export default function RegistrationPage() {
     fullName: '',
     gender: 'male',
     department: '',
+    participateSingles: true,
+    participateDoubles: false,
+    participateMixedDoubles: false,
     doublesPartnerName: '',
     mixedDoublesPartnerName: '',
   });
@@ -42,36 +45,91 @@ export default function RegistrationPage() {
   const [statusRecord, setStatusRecord] = useState(null);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value
     }));
+  };
+
+  const handleToggleDivision = (field) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: !prev[field]
+    }));
+  };
+
+  const getCombinationLabel = () => {
+    const s = formData.participateSingles;
+    const d = formData.participateDoubles;
+    const m = formData.participateMixedDoubles;
+    if (s && d && m) return 'Singles + Doubles + Mixed Doubles (All 3 Divisions)';
+    if (s && d && !m) return 'Singles + Doubles';
+    if (s && !d && m) return 'Singles + Mixed Doubles';
+    if (!s && d && m) return 'Doubles + Mixed Doubles';
+    if (s && !d && !m) return 'Singles Only (1 Division)';
+    if (!s && d && !m) return 'Doubles Only (1 Division)';
+    if (!s && !d && m) return 'Mixed Doubles Only (1 Division)';
+    return 'None selected (Please select at least 1 division)';
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+
+    // Validation
+    if (!formData.participateSingles && !formData.participateDoubles && !formData.participateMixedDoubles) {
+      setError('Please select at least one division to participate in (Singles, Doubles, or Mixed Doubles).');
+      return;
+    }
+
+    if (formData.participateDoubles && !formData.doublesPartnerName.trim()) {
+      setError(`Please provide your ${formData.gender === 'male' ? 'Boys' : 'Girls'} Doubles partner name.`);
+      return;
+    }
+
+    if (formData.participateMixedDoubles && !formData.mixedDoublesPartnerName.trim()) {
+      setError('Please provide your Mixed Doubles partner name.');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const res = await api.submitRegistration(formData);
+      const payload = {
+        ...formData,
+        doublesPartnerName: formData.participateDoubles ? formData.doublesPartnerName.trim() : '',
+        mixedDoublesPartnerName: formData.participateMixedDoubles ? formData.mixedDoublesPartnerName.trim() : ''
+      };
+
+      const res = await api.submitRegistration(payload);
       if (res.success || res.code === 'REGISTRATION_PENDING') {
         // Fetch full lookup record to display live status
         const lookupRes = await api.lookupRegistration(formData.fullName);
         if (lookupRes.success) {
           setStatusRecord(lookupRes);
         } else {
+          const events = [];
+          if (formData.participateSingles) {
+            events.push(formData.gender === 'male' ? 'Boys Singles' : 'Girls Singles');
+          }
+          if (formData.participateDoubles) {
+            events.push(formData.gender === 'male' ? 'Boys Doubles' : 'Girls Doubles');
+          }
+          if (formData.participateMixedDoubles) {
+            events.push('Mixed Doubles');
+          }
+
           setStatusRecord({
             participant: res.participant,
             registration: res.registration,
-            events: formData.gender === 'male'
-              ? ['Boys Singles', 'Boys Doubles', 'Mixed Doubles']
-              : formData.doublesPartnerName?.trim()
-              ? ['Girls Singles', 'Girls Doubles', 'Mixed Doubles']
-              : ['Girls Singles', 'Mixed Doubles'],
-            doublesValidation: { status: 'partner_not_registered', requestedName: formData.doublesPartnerName },
-            mixedDoublesValidation: { status: 'partner_not_registered', requestedName: formData.mixedDoublesPartnerName }
+            events,
+            doublesValidation: formData.participateDoubles
+              ? { status: 'partner_not_registered', requestedName: formData.doublesPartnerName }
+              : { status: 'not_participating', message: 'Not participating in Doubles' },
+            mixedDoublesValidation: formData.participateMixedDoubles
+              ? { status: 'partner_not_registered', requestedName: formData.mixedDoublesPartnerName }
+              : { status: 'not_participating', message: 'Not participating in Mixed Doubles' }
           });
         }
       }
@@ -276,16 +334,18 @@ export default function RegistrationPage() {
                 {/* Doubles Partner Card */}
                 <div className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] space-y-2">
                   <span className="text-[10px] text-[#7E7060] dark:text-[#817B72] font-sans uppercase font-bold tracking-wider block">
-                    {statusRecord.participant?.gender === 'male' ? 'Boys Doubles Partner' : 'Girls Doubles Partner (Optional)'}
+                    {statusRecord.participant?.gender === 'male' ? 'Boys Doubles Partner' : 'Girls Doubles Partner'}
                   </span>
                   <div className="text-sm font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8]">
-                    {statusRecord.registration?.doublesPartnerName || (statusRecord.participant?.gender === 'female' ? 'Not nominated (Optional)' : 'Not nominated')}
+                    {statusRecord.registration?.participateDoubles === false || statusRecord.doublesValidation?.status === 'not_participating'
+                      ? 'Not Enrolled in Doubles'
+                      : statusRecord.registration?.doublesPartnerName || 'Not nominated'}
                   </div>
 
                   <div>
-                    {!statusRecord.registration?.doublesPartnerName && statusRecord.participant?.gender === 'female' ? (
+                    {statusRecord.registration?.participateDoubles === false || statusRecord.doublesValidation?.status === 'not_participating' ? (
                       <span className="inline-flex items-center gap-1.5 text-[10px] bg-white dark:bg-[#15191C] text-[#7E7060] dark:text-[#817B72] px-3 py-1 rounded-full border border-[#E8E1D5] dark:border-[#2B3034] font-mono">
-                        <Info className="w-3 h-3 text-[#B8A47E]" /> Optional — Singles & Mixed Doubles
+                        <Info className="w-3 h-3 text-[#B8A47E]" /> Optional — Not Enrolled
                       </span>
                     ) : statusRecord.doublesValidation?.status === 'valid_paired' ? (
                       <span className="inline-flex items-center gap-1.5 text-[10px] bg-white dark:bg-[#15191C] text-[#3E342B] dark:text-[#F5F1E8] px-3 py-1 rounded-full border border-[#D5C4A1] dark:border-[rgba(212,169,76,0.3)] font-bold font-mono">
@@ -309,11 +369,17 @@ export default function RegistrationPage() {
                     Mixed Doubles Partner
                   </span>
                   <div className="text-sm font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8]">
-                    {statusRecord.registration?.mixedDoublesPartnerName || 'Not nominated'}
+                    {statusRecord.registration?.participateMixedDoubles === false || statusRecord.mixedDoublesValidation?.status === 'not_participating'
+                      ? 'Not Enrolled in Mixed Doubles'
+                      : statusRecord.registration?.mixedDoublesPartnerName || 'Not nominated'}
                   </div>
 
                   <div>
-                    {statusRecord.mixedDoublesValidation?.status === 'valid_paired' ? (
+                    {statusRecord.registration?.participateMixedDoubles === false || statusRecord.mixedDoublesValidation?.status === 'not_participating' ? (
+                      <span className="inline-flex items-center gap-1.5 text-[10px] bg-white dark:bg-[#15191C] text-[#7E7060] dark:text-[#817B72] px-3 py-1 rounded-full border border-[#E8E1D5] dark:border-[#2B3034] font-mono">
+                        <Info className="w-3 h-3 text-[#B8A47E]" /> Optional — Not Enrolled
+                      </span>
+                    ) : statusRecord.mixedDoublesValidation?.status === 'valid_paired' ? (
                       <span className="inline-flex items-center gap-1.5 text-[10px] bg-white dark:bg-[#15191C] text-[#3E342B] dark:text-[#F5F1E8] px-3 py-1 rounded-full border border-[#D5C4A1] dark:border-[rgba(212,169,76,0.3)] font-bold font-mono">
                         <Trophy className="w-3 h-3 text-[#E74C3C]" /> Team Paired
                       </span>
@@ -479,81 +545,177 @@ export default function RegistrationPage() {
             </div>
           </div>
 
-          {/* 2. Events Notice */}
-          <div className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] space-y-2 text-xs">
-            <div className="flex items-center gap-1.5 text-[#3E342B] dark:text-[#F5F1E8] font-bold uppercase text-[11px] font-mono">
-              <Trophy className="w-3.5 h-3.5 text-[#E74C3C]" />
-              <span>{formData.gender === 'male' ? 'Mandatory 3-Event Participation' : 'Championship Event Participation'}</span>
+          {/* 2. Division Selection (Participation is Completely Optional) */}
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#E8E1D5] dark:border-[#2B3034]">
+              <div className="flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-[#E74C3C]" />
+                <h3 className="font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] text-base">
+                  2. Select Divisions (Optional Participation)
+                </h3>
+              </div>
+              <span className="text-[11px] font-mono px-3 py-1 rounded-full bg-[#F4EFE6] dark:bg-[#181C1F] text-[#4A4238] dark:text-[#D5C4A1] border border-[#D5C4A1] dark:border-[#2B3034] font-bold">
+                {getCombinationLabel()}
+              </span>
             </div>
-            <p className="text-[11px] text-[#7E7060] dark:text-[#B8B1A5] leading-relaxed">
-              {formData.gender === 'male'
-                ? 'Every registered male athlete participates in all 3 tournament divisions:'
-                : 'Every registered female athlete participates in Singles and Mixed Doubles (Girls Doubles is optional):'}
+
+            <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] leading-relaxed">
+              Participation in each division is completely <strong>OPTIONAL</strong>. You can choose 1, 2, or all 3 divisions. If you enter Doubles or Mixed Doubles, you must nominate your own partner.
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
-              {(formData.gender === 'male'
-                ? ['✓ Boys Singles', '✓ Boys Doubles', '✓ Mixed Doubles']
-                : ['✓ Girls Singles', '✓ Girls Doubles (Optional)', '✓ Mixed Doubles']
-              ).map((evt) => (
-                <div key={evt} className="p-2 rounded-lg bg-white dark:bg-[#15191C] text-[#3E342B] dark:text-[#F5F1E8] font-bold text-[11px] border border-[#E8E1D5] dark:border-[#2B3034] text-center shadow-xs">
-                  {evt}
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+              {/* Singles Division Option */}
+              <div
+                onClick={() => handleToggleDivision('participateSingles')}
+                className={`p-4 rounded-xl border transition-all cursor-pointer space-y-2 select-none ${
+                  formData.participateSingles
+                    ? 'bg-white dark:bg-[#181C1F] border-emerald-500 dark:border-emerald-500/80 shadow-xs'
+                    : 'bg-[#FAF9F6] dark:bg-[#121517] border-[#E8E1D5] dark:border-[#2B3034] opacity-75 hover:opacity-100'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-[#7E7060] dark:text-[#817B72]">
+                    1 Player
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={formData.participateSingles}
+                    onChange={() => {}} // handled by parent div onClick
+                    className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer pointer-events-none"
+                  />
                 </div>
-              ))}
+                <div className="text-sm font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8]">
+                  {formData.gender === 'male' ? 'Boys Singles' : 'Girls Singles'}
+                </div>
+                <p className="text-[11px] text-[#7E7060] dark:text-[#B8B1A5] leading-tight">
+                  Individual knockout championship. No partner needed.
+                </p>
+              </div>
+
+              {/* Doubles Division Option */}
+              <div
+                onClick={() => handleToggleDivision('participateDoubles')}
+                className={`p-4 rounded-xl border transition-all cursor-pointer space-y-2 select-none ${
+                  formData.participateDoubles
+                    ? 'bg-white dark:bg-[#181C1F] border-emerald-500 dark:border-emerald-500/80 shadow-xs'
+                    : 'bg-[#FAF9F6] dark:bg-[#121517] border-[#E8E1D5] dark:border-[#2B3034] opacity-75 hover:opacity-100'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-[#7E7060] dark:text-[#817B72]">
+                    2 Players (Same Gender)
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={formData.participateDoubles}
+                    onChange={() => {}} // handled by parent div onClick
+                    className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer pointer-events-none"
+                  />
+                </div>
+                <div className="text-sm font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8]">
+                  {formData.gender === 'male' ? 'Boys Doubles' : 'Girls Doubles'}
+                </div>
+                <p className="text-[11px] text-[#7E7060] dark:text-[#B8B1A5] leading-tight">
+                  Requires your own {formData.gender === 'male' ? 'male' : 'female'} partner.
+                </p>
+              </div>
+
+              {/* Mixed Doubles Division Option */}
+              <div
+                onClick={() => handleToggleDivision('participateMixedDoubles')}
+                className={`p-4 rounded-xl border transition-all cursor-pointer space-y-2 select-none ${
+                  formData.participateMixedDoubles
+                    ? 'bg-white dark:bg-[#181C1F] border-emerald-500 dark:border-emerald-500/80 shadow-xs'
+                    : 'bg-[#FAF9F6] dark:bg-[#121517] border-[#E8E1D5] dark:border-[#2B3034] opacity-75 hover:opacity-100'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-[#7E7060] dark:text-[#817B72]">
+                    1 Male + 1 Female
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={formData.participateMixedDoubles}
+                    onChange={() => {}} // handled by parent div onClick
+                    className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer pointer-events-none"
+                  />
+                </div>
+                <div className="text-sm font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8]">
+                  Mixed Doubles
+                </div>
+                <p className="text-[11px] text-[#7E7060] dark:text-[#B8B1A5] leading-tight">
+                  Requires your own partner of opposite gender ({formData.gender === 'male' ? 'Female' : 'Male'}).
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* 3. Partner Nominations */}
+          {/* 3. Partner Nominations (Conditional) */}
           <div className="space-y-5">
             <div className="flex items-center gap-2 pb-3 border-b border-[#E8E1D5] dark:border-[#2B3034]">
               <Shield className="w-5 h-5 text-[#4A4238] dark:text-[#D4A94C]" />
               <h3 className="font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] text-base">
-                2. Partner Nominations
+                3. Partner Nominations
               </h3>
             </div>
 
-            <div className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-xs space-y-1 text-[#7E7060] dark:text-[#B8B1A5]">
-              <p className="font-bold text-[#3E342B] dark:text-[#F5F1E8] uppercase text-[11px] font-mono">Independent Partner Registration Flow:</p>
-              <p>
-                Your nominated partner does NOT need to have registered yet. If they register later, the system will automatically match and pair your team.
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="text-[11px] text-[#4A4238] dark:text-[#F5F1E8] font-bold block mb-1.5 uppercase font-mono">
-                  {formData.gender === 'male' ? 'Boys Doubles Partner Full Name *' : 'Girls Doubles Partner Full Name (Optional)'}
-                </label>
-                <input
-                  type="text"
-                  name="doublesPartnerName"
-                  required={formData.gender === 'male'}
-                  value={formData.doublesPartnerName}
-                  onChange={handleChange}
-                  placeholder={formData.gender === 'male' ? 'e.g. Siddharth Rao' : 'e.g. Priya Nair (Leave blank if you do not have a partner)'}
-                  className="w-full h-11 bg-[#FAF9F6] dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#E8E1D5] dark:border-[#2B3034] focus:outline-none focus:border-[#4A4238] dark:focus:border-[#D4A94C]"
-                />
-                {formData.gender === 'female' && (
-                  <p className="text-[10px] text-[#7E7060] dark:text-[#817B72] mt-1 font-mono">
-                    Optional: If you have a partner for Girls Doubles, enter their name. If not, you can leave this blank.
+            {/* If neither Doubles nor Mixed Doubles is checked */}
+            {!formData.participateDoubles && !formData.participateMixedDoubles ? (
+              <div className="p-4 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 text-xs space-y-1 text-emerald-900 dark:text-emerald-300">
+                <p className="font-bold uppercase text-[11px] font-mono flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  Singles Only Selected
+                </p>
+                <p>
+                  No partner nomination required. You will compete individually, and only opponents will be randomized during the tournament draw.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-xs space-y-1 text-[#7E7060] dark:text-[#B8B1A5]">
+                  <p className="font-bold text-[#3E342B] dark:text-[#F5F1E8] uppercase text-[11px] font-mono">Independent Partner Matching:</p>
+                  <p>
+                    Partners are always chosen by the players (never randomly assigned). Your nominated partner can register before or after you; the system will verify and pair your team automatically.
                   </p>
-                )}
-              </div>
+                </div>
 
-              <div>
-                <label className="text-[11px] text-[#4A4238] dark:text-[#F5F1E8] font-bold block mb-1.5 uppercase font-mono">
-                  Mixed Doubles Partner Full Name *
-                </label>
-                <input
-                  type="text"
-                  name="mixedDoublesPartnerName"
-                  required
-                  value={formData.mixedDoublesPartnerName}
-                  onChange={handleChange}
-                  placeholder={formData.gender === 'male' ? 'e.g. Ananya Patel (Female)' : 'e.g. Siddharth Rao (Male)'}
-                  className="w-full h-11 bg-[#FAF9F6] dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#E8E1D5] dark:border-[#2B3034] focus:outline-none focus:border-[#4A4238] dark:focus:border-[#D4A94C]"
-                />
-              </div>
-            </div>
+                <div className="space-y-4">
+                  {formData.participateDoubles && (
+                    <div>
+                      <label className="text-[11px] text-[#4A4238] dark:text-[#F5F1E8] font-bold block mb-1.5 uppercase font-mono">
+                        {formData.gender === 'male' ? 'Boys Doubles Partner Full Name *' : 'Girls Doubles Partner Full Name *'}
+                      </label>
+                      <input
+                        type="text"
+                        name="doublesPartnerName"
+                        required
+                        value={formData.doublesPartnerName}
+                        onChange={handleChange}
+                        placeholder={formData.gender === 'male' ? 'e.g. Siddharth Rao (Male)' : 'e.g. Priya Nair (Female)'}
+                        className="w-full h-11 bg-[#FAF9F6] dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#E8E1D5] dark:border-[#2B3034] focus:outline-none focus:border-[#4A4238] dark:focus:border-[#D4A94C]"
+                      />
+                    </div>
+                  )}
+
+                  {formData.participateMixedDoubles && (
+                    <div>
+                      <label className="text-[11px] text-[#4A4238] dark:text-[#F5F1E8] font-bold block mb-1.5 uppercase font-mono">
+                        Mixed Doubles Partner Full Name *
+                      </label>
+                      <input
+                        type="text"
+                        name="mixedDoublesPartnerName"
+                        required
+                        value={formData.mixedDoublesPartnerName}
+                        onChange={handleChange}
+                        placeholder={formData.gender === 'male' ? 'e.g. Ananya Patel (Female)' : 'e.g. Siddharth Rao (Male)'}
+                        className="w-full h-11 bg-[#FAF9F6] dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#E8E1D5] dark:border-[#2B3034] focus:outline-none focus:border-[#4A4238] dark:focus:border-[#D4A94C]"
+                      />
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </div>
 
           {/* Submit Button */}

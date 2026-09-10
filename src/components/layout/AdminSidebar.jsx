@@ -58,7 +58,7 @@ export const AdminSidebar = ({ isOpen = false, onClose = () => {} }) => {
       {/* Mobile Backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/75 backdrop-blur-xs z-40 lg:hidden animate-in fade-in duration-200"
+          className="fixed inset-0 bg-[#2C241E]/80 dark:bg-black/80 backdrop-blur-xs z-40 lg:hidden animate-in fade-in duration-200"
           onClick={onClose}
           aria-hidden="true"
         />
@@ -66,21 +66,21 @@ export const AdminSidebar = ({ isOpen = false, onClose = () => {} }) => {
 
       {/* Sidebar Aside */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 w-64 bg-[#171614] dark:bg-[#11100E] border-r border-[#24221E] dark:border-[#2E2B26] flex flex-col shrink-0 h-screen overflow-y-auto z-50 shadow-2xl transition-all duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:z-30 ${
+        className={`fixed top-0 bottom-0 left-0 w-64 bg-[#3E342B] dark:bg-[#121517] border-r border-[#4A4238] dark:border-[#2B3034] flex flex-col shrink-0 h-screen overflow-y-auto z-50 shadow-2xl transition-all duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:z-30 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Brand Header */}
-        <div className="p-6 border-b border-[#24221E] dark:border-[#2E2B26] flex items-center justify-between">
+        <div className="p-6 border-b border-[#4A4238] dark:border-[#2B3034] flex items-center justify-between">
           <Link href="/admin" onClick={handleLinkClick} className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-full bg-[#24221E] flex items-center justify-center border border-[#38342E] shadow-xs group-hover:scale-105 transition-transform">
+            <div className="w-10 h-10 rounded-full bg-white dark:bg-[#15191C] flex items-center justify-center border border-[#D5C4A1] dark:border-[#2B3034] shadow-xs group-hover:scale-105 transition-transform">
               <CarromCoin type="queen" size="xs" />
             </div>
             <div>
-              <span className="font-serif font-bold text-[#F7F4EC] text-base block leading-none tracking-tight">
-                CARROM<span className="italic font-normal text-[#D93829] ml-0.5">ADMIN</span>
+              <span className="font-serif font-bold text-white dark:text-[#F5F1E8] text-base block leading-none tracking-tight">
+                CARROM<span className="italic font-normal text-[#E74C3C] ml-0.5">ADMIN</span>
               </span>
-              <span className="text-[9px] text-[#C2A268] font-sans font-bold tracking-[0.2em] uppercase block mt-1">
+              <span className="text-[9px] text-[#D5C4A1] dark:text-[#D4A94C] font-sans font-bold tracking-[0.18em] uppercase block mt-1">
                 CONTROL ROOM
               </span>
             </div>
@@ -88,7 +88,7 @@ export const AdminSidebar = ({ isOpen = false, onClose = () => {} }) => {
 
           <button
             onClick={onClose}
-            className="lg:hidden text-[#A39C8F] hover:text-white p-1 rounded-lg"
+            className="lg:hidden text-[#D5C4A1] hover:text-white p-1 rounded-lg cursor-pointer"
             aria-label="Close menu"
           >
             <X className="w-5 h-5" />
@@ -99,7 +99,7 @@ export const AdminSidebar = ({ isOpen = false, onClose = () => {} }) => {
         <nav className="p-4 space-y-6 flex-1 text-xs font-semibold">
           {navItems.map((group) => (
             <div key={group.group} className="space-y-1">
-              <div className="px-3.5 pb-2 text-[9px] uppercase font-sans tracking-[0.2em] text-[#A39C8F] font-bold">
+              <div className="px-3.5 pb-2 text-[9px] uppercase font-sans tracking-[0.18em] text-[#D5C4A1] dark:text-[#817B72] font-bold">
                 {group.group}
               </div>
 
@@ -116,11 +116,11 @@ export const AdminSidebar = ({ isOpen = false, onClose = () => {} }) => {
                     onClick={handleLinkClick}
                     className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${
                       isCurrent
-                        ? 'bg-[#F7F4EC] text-[#171614] font-bold shadow-xs'
-                        : 'text-[#C8C2B4] hover:text-[#FFFFFF] hover:bg-white/5'
+                        ? 'bg-[#D5C4A1] dark:bg-[#1B2024] text-[#3E342B] dark:text-[#F5F1E8] dark:border dark:border-[rgba(212,169,76,0.3)] font-bold shadow-xs'
+                        : 'text-[#FAF9F6]/80 dark:text-[#B8B1A5] hover:text-white dark:hover:text-[#F5F1E8] hover:bg-[#4A4238] dark:hover:bg-[#181C1F]'
                     }`}
                   >
-                    <Icon className={`w-4 h-4 shrink-0 ${isCurrent ? 'text-[#D93829]' : 'text-[#A39C8F]'}`} />
+                    <Icon className={`w-4 h-4 shrink-0 ${isCurrent ? 'text-[#3E342B] dark:text-[#D4A94C]' : 'text-[#D5C4A1] dark:text-[#817B72]'}`} />
                     <span className="text-xs tracking-wide">{link.name}</span>
                   </Link>
                 );
@@ -130,24 +130,24 @@ export const AdminSidebar = ({ isOpen = false, onClose = () => {} }) => {
         </nav>
 
         {/* Footer Actions */}
-        <div className="p-4 border-t border-[#24221E] dark:border-[#2E2B26] space-y-2 text-xs">
-          <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-[#24221E] border border-[#2E2B26]">
-            <span className="text-[11px] font-mono uppercase text-[#A39C8F] font-bold">Theme</span>
+        <div className="p-4 border-t border-[#4A4238] dark:border-[#2B3034] space-y-2 text-xs">
+          <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-[#4A4238]/50 dark:bg-[#181C1F] border border-[#4A4238] dark:border-[#2B3034]">
+            <span className="text-[11px] font-mono uppercase text-[#D5C4A1] dark:text-[#B8B1A5] font-bold">Theme</span>
             <ThemeToggle />
           </div>
 
           <Link
             href="/"
             target="_blank"
-            className="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-[#C8C2B4] hover:text-[#FFFFFF] hover:bg-white/5 transition-colors font-mono"
+            className="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-[#FAF9F6]/80 dark:text-[#B8B1A5] hover:text-white dark:hover:text-[#F5F1E8] hover:bg-[#4A4238] dark:hover:bg-[#181C1F] transition-colors font-mono"
           >
             <span className="text-xs uppercase tracking-wider font-bold">Public Site</span>
-            <ExternalLink className="w-3.5 h-3.5 text-[#C2A268]" />
+            <ExternalLink className="w-3.5 h-3.5 text-[#D5C4A1] dark:text-[#D4A94C]" />
           </Link>
 
           <button
             onClick={logout}
-            className="w-full flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-950/30 transition-colors text-xs tracking-wider uppercase font-bold cursor-pointer"
+            className="w-full flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-rose-300 dark:text-rose-400 hover:text-rose-200 hover:bg-[#4A4238] dark:hover:bg-[#181C1F] transition-colors text-xs tracking-wider uppercase font-bold cursor-pointer"
           >
             <LogOut className="w-4 h-4" />
             <span>Sign Out</span>

@@ -46,7 +46,7 @@ export default function AdminLayout({ children }) {
             <CarromCoin type="queen" size="xs" />
           </div>
           <span className="font-serif font-bold text-white dark:text-[#F5F1E8] text-sm tracking-tight">
-            CARROM<span className="text-[#E74C3C]">PRO</span>
+            CARROM<span className="text-[#E74C3C]">ADMIN</span>
           </span>
         </div>
         <div className="flex items-center gap-2">
