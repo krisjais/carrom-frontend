@@ -9,9 +9,11 @@ import { PieceScore } from '@/components/chess/PieceScore';
 import { ChessFooter } from '@/components/chess/ChessFooter';
 import Link from 'next/link';
 import { ArrowLeft, Clock, ShieldCheck, Trophy, Info, Play, Loader2, Crown, Zap } from 'lucide-react';
+import { useToast } from '@/context/ToastContext';
 
 export default function ChessMatchDetailPage() {
   const params = useParams();
+  const toast = useToast();
   const [matchData, setMatchData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [startingMatch, setStartingMatch] = useState(false);
@@ -63,11 +65,12 @@ export default function ChessMatchDetailPage() {
             durationMinutes: 10
           }
         }));
+        toast.success('Live match started successfully!');
       } else {
-        alert(res.message || 'Failed to start match.');
+        toast.error(res.message || 'Failed to start match.');
       }
     } catch (err) {
-      alert(err.message || 'Error starting match.');
+      toast.error(err.message || 'Error starting match.');
     } finally {
       setStartingMatch(false);
     }

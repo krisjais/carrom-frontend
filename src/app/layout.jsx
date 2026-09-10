@@ -39,7 +39,7 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
       </head>
-      <body className="bg-[#FAF9F6] dark:bg-[#0B0D0E] text-[#4A4238] dark:text-[#F5F1E8] font-sans flex flex-col min-h-screen antialiased selection:bg-[#E74C3C] selection:text-white transition-colors duration-200">
+      <body className="bg-[#F4EFE6] dark:bg-[#0B0D0E] text-[#4A4238] dark:text-[#F5F1E8] font-sans flex flex-col min-h-screen antialiased selection:bg-[#E74C3C] selection:text-white transition-colors duration-200">
         <ThemeProvider>
           <ChessThemeProvider>
             <AuthProvider>

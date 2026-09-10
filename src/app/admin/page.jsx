@@ -19,12 +19,13 @@ import {
   Layers
 } from 'lucide-react';
 import { CategoryBadge, StatusBadge, MainBoardBadge } from '@/components/ui/Badge';
-import { useToast } from '@/context/ToastContext';
+import { useToast, useConfirm } from '@/context/ToastContext';
 import { CarromMatchTimer } from '@/components/common/CarromMatchTimer';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
   const toast = useToast();
+  const confirm = useConfirm();
   const [stats, setStats] = useState(null);
   const [arenaState, setArenaState] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -74,7 +75,14 @@ export default function AdminDashboardPage() {
   };
 
   const handleStopLive = async (matchId) => {
-    if (!window.confirm('Are you sure you want to stop this live match? It will be reverted back to Scheduled queue and free up the Main Carrom Board.')) {
+    const isConfirmed = await confirm({
+      title: 'Stop Live Match?',
+      message: 'Are you sure you want to stop this live match? It will be reverted back to Scheduled queue and free up the Main Carrom Board.',
+      confirmText: 'Stop Live Match',
+      cancelText: 'Cancel',
+      type: 'warning'
+    });
+    if (!isConfirmed) {
       return;
     }
     setStoppingMatchId(matchId);
@@ -330,7 +338,7 @@ export default function AdminDashboardPage() {
                   ) : (
                     <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 flex items-center gap-2 font-mono">
                       <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                      <span>All players rested & Main Carrom Board ready!</span>
+                      <span>Main Carrom Board ready!</span>
                     </div>
                   )}
                 </div>
@@ -366,7 +374,7 @@ export default function AdminDashboardPage() {
                     : isBoardOccupied
                     ? 'Start Match (Board Occupied)'
                     : readiness && !readiness.canStart
-                    ? 'Start Match (Players Resting)'
+                    ? 'Start Match (Not Ready)'
                     : 'Start Match Now'}
                 </span>
               </button>

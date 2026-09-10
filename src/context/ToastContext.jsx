@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import {
   CheckCircle2,
@@ -9,7 +9,10 @@ import {
   Info,
   X,
   Trash2,
-  HelpCircle
+  HelpCircle,
+  Clock,
+  Sparkles,
+  Edit3
 } from 'lucide-react';
 
 const ToastContext = createContext(null);
@@ -17,7 +20,10 @@ const ToastContext = createContext(null);
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
   const [dialog, setDialog] = useState(null);
+  const [promptDialog, setPromptDialog] = useState(null);
+  const [promptValue, setPromptValue] = useState('');
   const [mounted, setMounted] = useState(false);
+  const promptInputRef = useRef(null);
 
   useEffect(() => {
     setMounted(true);
@@ -54,7 +60,7 @@ export function ToastProvider({ children }) {
       message = '',
       confirmText = 'Confirm',
       cancelText = 'Cancel',
-      type = 'danger' // 'danger' | 'warning' | 'primary'
+      type = 'danger' // 'danger' | 'warning' | 'primary' | 'info'
     }) => {
       return new Promise((resolve) => {
         setDialog({
@@ -77,8 +83,69 @@ export function ToastProvider({ children }) {
     []
   );
 
+  // Promise-based prompt dialog
+  const prompt = useCallback(
+    ({
+      title = 'Input Required',
+      message = '',
+      defaultValue = '',
+      placeholder = '',
+      confirmText = 'Submit',
+      cancelText = 'Cancel',
+      inputType = 'text',
+      type = 'primary'
+    }) => {
+      return new Promise((resolve) => {
+        setPromptValue(String(defaultValue ?? ''));
+        setPromptDialog({
+          title,
+          message,
+          placeholder,
+          confirmText,
+          cancelText,
+          inputType,
+          type,
+          onConfirm: (val) => {
+            setPromptDialog(null);
+            resolve(val);
+          },
+          onCancel: () => {
+            setPromptDialog(null);
+            resolve(null);
+          }
+        });
+      });
+    },
+    []
+  );
+
+  // Keyboard accessibility: ESC to close, auto-focus prompt input
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (promptDialog) {
+          promptDialog.onCancel();
+        } else if (dialog) {
+          dialog.onCancel();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [dialog, promptDialog]);
+
+  useEffect(() => {
+    if (promptDialog && promptInputRef.current) {
+      const timer = setTimeout(() => {
+        promptInputRef.current?.focus();
+        promptInputRef.current?.select();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [promptDialog]);
+
   return (
-    <ToastContext.Provider value={{ toast, confirm }}>
+    <ToastContext.Provider value={{ toast, confirm, prompt }}>
       {children}
 
       {/* Floating Website Notifications (Mounted in Portal directly on document.body) */}
@@ -164,22 +231,22 @@ export function ToastProvider({ children }) {
               bottom: 0,
               zIndex: 2147483647
             }}
-            className="flex items-center justify-center p-4 bg-[#2C241E]/60 dark:bg-black/80 backdrop-blur-xs"
+            className="flex items-center justify-center p-4 bg-[#2C241E]/60 dark:bg-black/80 backdrop-blur-xs transition-opacity duration-200"
           >
             <div
               className="fixed inset-0"
               onClick={dialog.onCancel}
               aria-hidden="true"
             />
-            <div className="relative w-full max-w-md bg-white dark:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] rounded-2xl shadow-2xl p-6 sm:p-7 z-10 space-y-5 text-[#4A4238] dark:text-[#F5F1E8]">
+            <div className="relative w-full max-w-md bg-white dark:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] rounded-2xl sm:rounded-3xl shadow-2xl p-6 sm:p-7 z-10 space-y-5 text-[#4A4238] dark:text-[#F5F1E8] animate-in fade-in zoom-in-95 duration-150">
               <div className="flex items-start gap-4">
                 <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 border ${
+                  className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border shadow-xs ${
                     dialog.type === 'danger'
                       ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800/50'
                       : dialog.type === 'warning'
                       ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800/50'
-                      : 'bg-[#FAF9F6] dark:bg-[#1B2024] text-[#E74C3C] border-[#D5C4A1] dark:border-[#2B3034]'
+                      : 'bg-[#FAF9F6] dark:bg-[#1B2024] text-[#E74C3C] dark:text-[#D4A94C] border-[#D5C4A1] dark:border-[#2B3034]'
                   }`}
                 >
                   {dialog.type === 'danger' ? (
@@ -205,7 +272,7 @@ export function ToastProvider({ children }) {
                 <button
                   type="button"
                   onClick={dialog.onCancel}
-                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-[#7E7060] dark:text-[#B8B1A5] hover:text-[#3E342B] dark:hover:text-white transition-colors cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-[#7E7060] dark:text-[#B8B1A5] hover:text-[#3E342B] dark:hover:text-white transition-colors cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
                 >
                   {dialog.cancelText}
                 </button>
@@ -213,11 +280,12 @@ export function ToastProvider({ children }) {
                 <button
                   type="button"
                   onClick={dialog.onConfirm}
-                  className={`px-5 py-2.5 rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer uppercase tracking-wider ${
+                  autoFocus
+                  className={`px-5 py-2.5 rounded-xl text-xs font-bold shadow-md transition-all cursor-pointer uppercase tracking-wider ${
                     dialog.type === 'danger'
-                      ? 'bg-[#E74C3C] hover:bg-[#C0392B] text-white shadow-xs'
+                      ? 'bg-[#E74C3C] hover:bg-[#C0392B] text-white'
                       : dialog.type === 'warning'
-                      ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-xs'
+                      ? 'bg-amber-600 hover:bg-amber-500 text-white'
                       : 'btn-primary'
                   }`}
                 >
@@ -225,6 +293,83 @@ export function ToastProvider({ children }) {
                 </button>
               </div>
             </div>
+          </div>,
+          document.body
+        )}
+
+      {/* Website Prompt Dialog Modal (Mounted in Portal) */}
+      {mounted &&
+        promptDialog &&
+        createPortal(
+          <div
+            id="carrom-portal-prompt-modal"
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 2147483647
+            }}
+            className="flex items-center justify-center p-4 bg-[#2C241E]/60 dark:bg-black/80 backdrop-blur-xs transition-opacity duration-200"
+          >
+            <div
+              className="fixed inset-0"
+              onClick={promptDialog.onCancel}
+              aria-hidden="true"
+            />
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                promptDialog.onConfirm(promptValue);
+              }}
+              className="relative w-full max-w-md bg-white dark:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] rounded-2xl sm:rounded-3xl shadow-2xl p-6 sm:p-7 z-10 space-y-5 text-[#4A4238] dark:text-[#F5F1E8] animate-in fade-in zoom-in-95 duration-150"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border shadow-xs bg-[#FAF9F6] dark:bg-[#1B2024] text-[#E74C3C] dark:text-[#D4A94C] border-[#D5C4A1] dark:border-[#2B3034]">
+                  <Edit3 className="w-6 h-6" />
+                </div>
+
+                <div className="min-w-0 flex-1 space-y-1">
+                  <h3 className="text-lg font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8]">
+                    {promptDialog.title}
+                  </h3>
+                  {promptDialog.message && (
+                    <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] leading-relaxed">
+                      {promptDialog.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="pt-1">
+                <input
+                  ref={promptInputRef}
+                  type={promptDialog.inputType || 'text'}
+                  value={promptValue}
+                  onChange={(e) => setPromptValue(e.target.value)}
+                  placeholder={promptDialog.placeholder}
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#1B2024] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] font-mono text-sm focus:outline-none focus:ring-2 focus:ring-[#E74C3C] dark:focus:ring-[#D4A94C] transition-all"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E8E1D5] dark:border-[#2B3034]">
+                <button
+                  type="button"
+                  onClick={promptDialog.onCancel}
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-[#7E7060] dark:text-[#B8B1A5] hover:text-[#3E342B] dark:hover:text-white transition-colors cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
+                >
+                  {promptDialog.cancelText}
+                </button>
+
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold btn-primary shadow-md transition-all cursor-pointer uppercase tracking-wider"
+                >
+                  {promptDialog.confirmText}
+                </button>
+              </div>
+            </form>
           </div>,
           document.body
         )}
@@ -247,4 +392,13 @@ export function useConfirm() {
   }
   return context.confirm;
 }
+
+export function usePrompt() {
+  const context = useContext(ToastContext);
+  if (!context) {
+    throw new Error('usePrompt must be used within a ToastProvider');
+  }
+  return context.prompt;
+}
+
 

@@ -176,7 +176,7 @@ export default function AdminTeamsPage() {
           <button
             onClick={() => handleAutoPopulate('')}
             disabled={syncing}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-[#15191C] hover:bg-[#FAF9F6] dark:hover:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] text-xs font-bold transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-[#15191C] hover:bg-[#F4EFE6] dark:hover:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] text-xs font-bold transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
             title="Automatically populate teams from approved participant registrations"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin text-[#E74C3C]' : 'text-[#E74C3C]'}`} />
@@ -249,7 +249,7 @@ export default function AdminTeamsPage() {
             <button
               onClick={() => handleAutoPopulate(selectedCat)}
               disabled={syncing}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] hover:bg-white dark:hover:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F4EFE6] dark:bg-[#181C1F] hover:bg-white dark:hover:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin text-[#E74C3C]' : 'text-[#E74C3C]'}`} />
               <span>Sync {currentCatName}</span>
@@ -281,7 +281,7 @@ export default function AdminTeamsPage() {
         ) : teams.length === 0 ? (
           /* Rich Empty State Card with Direct Action Buttons */
           <div className="py-12 px-4 text-center space-y-5 max-w-lg mx-auto">
-            <div className="w-14 h-14 rounded-full bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] flex items-center justify-center mx-auto text-[#E74C3C] shadow-xs">
+            <div className="w-14 h-14 rounded-full bg-[#F4EFE6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] flex items-center justify-center mx-auto text-[#E74C3C] shadow-xs">
               <Users className="w-7 h-7" />
             </div>
 
@@ -306,7 +306,7 @@ export default function AdminTeamsPage() {
 
               <Link
                 href="/admin/registrations"
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white dark:bg-[#181C1F] hover:bg-[#FAF9F6] dark:hover:bg-[#121517] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] text-xs font-bold transition-all shadow-2xs"
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white dark:bg-[#181C1F] hover:bg-[#F4EFE6] dark:hover:bg-[#121517] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] text-xs font-bold transition-all shadow-2xs"
               >
                 <span>View Registrations</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -336,7 +336,7 @@ export default function AdminTeamsPage() {
               </thead>
               <tbody className="divide-y divide-[#E8E1D5] dark:divide-[#2B3034]">
                 {teams.map((t, idx) => (
-                  <tr key={t._id} className="hover:bg-[#FAF9F6] dark:hover:bg-[#181C1F] transition-colors">
+                  <tr key={t._id} className="hover:bg-[#F4EFE6] dark:hover:bg-[#181C1F] transition-colors">
                     <td className="py-3.5 text-[#7E7060] dark:text-[#817B72] font-bold">{idx + 1}</td>
                     <td className="py-3.5 font-bold text-[#3E342B] dark:text-[#F5F1E8] text-sm">{t.name}</td>
                     <td className="py-3.5">

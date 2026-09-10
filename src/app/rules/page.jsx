@@ -18,7 +18,7 @@ export default function RulesPage() {
       num: '02',
       title: 'Centralized Main Carrom Board',
       tag: 'STRICT FIFO QUEUE',
-      desc: 'All official fixtures across all 5 divisions are contested exclusively on the championship Main Carrom Board. Matches are called in sequential queue order with real-time referee score entry and verified rest timers.',
+      desc: 'All official fixtures across all 5 divisions are contested exclusively on the championship Main Carrom Board. Matches are called in sequential queue order with real-time referee score entry and official round timers.',
       coin: 'black'
     },
     {
@@ -30,9 +30,9 @@ export default function RulesPage() {
     },
     {
       num: '04',
-      title: 'Mandatory 3-Event Entry',
-      tag: 'TRI-DIVISION PARTICIPATION',
-      desc: 'Every registered competitor is eligible and auto-enrolled into Singles, Doubles, and Mixed Doubles. This ensures an active, full-spectrum championship experience for all participating student athletes.',
+      title: 'Division Event Participation',
+      tag: 'MULTI-DIVISION CHAMPIONSHIP',
+      desc: 'Every registered competitor participates across Singles, Doubles, and Mixed Doubles (Girls Doubles is optional if a partner is not nominated). This ensures an active championship experience for all student athletes.',
       coin: 'queen'
     },
     {

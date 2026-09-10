@@ -6,9 +6,11 @@ import { chessApi } from '@/lib/chessApi';
 import { AdminSidebar } from '@/components/chess/AdminSidebar';
 import { StandingsTable } from '@/components/chess/StandingsTable';
 import { RefreshCw } from 'lucide-react';
+import { useToast } from '@/context/ToastContext';
 
 export default function ChessAdminStandingsPage() {
   const router = useRouter();
+  const toast = useToast();
   const [standings, setStandings] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -38,10 +40,13 @@ export default function ChessAdminStandingsPage() {
     try {
       const res = await chessApi.refreshStandings();
       if (res.success) {
+        toast.success('Standings updated successfully!');
         loadStandings();
+      } else {
+        toast.error(res.message || 'Failed to refresh standings.');
       }
     } catch (err) {
-      alert(err.message || 'Error refreshing standings.');
+      toast.error(err.message || 'Error refreshing standings.');
     }
   };
 

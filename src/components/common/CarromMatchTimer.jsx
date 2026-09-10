@@ -13,6 +13,7 @@ import {
   Sparkles,
   Flame
 } from 'lucide-react';
+import { useConfirm, usePrompt } from '@/context/ToastContext';
 
 export function CarromMatchTimer({
   match,
@@ -23,6 +24,8 @@ export function CarromMatchTimer({
   onStartMatch = null,
   isStarting = false
 }) {
+  const confirm = useConfirm();
+  const prompt = usePrompt();
   const [now, setNow] = useState(Date.now());
 
   // Tick every second if live and not paused
@@ -262,8 +265,15 @@ export function CarromMatchTimer({
 
                   <button
                     type="button"
-                    onClick={() => {
-                      const custom = window.prompt('Set Custom Round Duration in Minutes:', String(timerStats.baseMinutes));
+                    onClick={async () => {
+                      const custom = await prompt({
+                        title: 'Set Round Duration',
+                        message: 'Enter custom round duration in minutes:',
+                        defaultValue: String(timerStats.baseMinutes),
+                        placeholder: 'e.g. 15',
+                        inputType: 'number',
+                        confirmText: 'Set Minutes'
+                      });
                       if (custom && Number(custom) > 0 && onTimerAction) {
                         onTimerAction('set_duration', { roundDurationMinutes: Number(custom) });
                       }
@@ -317,8 +327,15 @@ export function CarromMatchTimer({
 
                 <button
                   type="button"
-                  onClick={() => {
-                    const custom = window.prompt('Set Round Duration in Minutes:', String(timerStats.baseMinutes));
+                  onClick={async () => {
+                    const custom = await prompt({
+                      title: 'Set Round Duration',
+                      message: 'Enter official round duration in minutes:',
+                      defaultValue: String(timerStats.baseMinutes),
+                      placeholder: 'e.g. 20',
+                      inputType: 'number',
+                      confirmText: 'Set Minutes'
+                    });
                     if (custom && Number(custom) > 0 && onTimerAction) {
                       onTimerAction('set_duration', { roundDurationMinutes: Number(custom) });
                     }
@@ -330,8 +347,15 @@ export function CarromMatchTimer({
 
                 <button
                   type="button"
-                  onClick={() => {
-                    if (window.confirm('Reset round timer clock to zero elapsed?') && onTimerAction) {
+                  onClick={async () => {
+                    const isConfirmed = await confirm({
+                      title: 'Reset Round Timer?',
+                      message: 'Are you sure you want to reset the round timer clock back to zero elapsed time?',
+                      confirmText: 'Reset Timer',
+                      cancelText: 'Cancel',
+                      type: 'warning'
+                    });
+                    if (isConfirmed && onTimerAction) {
                       onTimerAction('reset');
                     }
                   }}

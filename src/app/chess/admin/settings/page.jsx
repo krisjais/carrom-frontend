@@ -5,9 +5,12 @@ import { useRouter } from 'next/navigation';
 import { chessApi } from '@/lib/chessApi';
 import { AdminSidebar } from '@/components/chess/AdminSidebar';
 import { Save, RotateCcw, Loader2 } from 'lucide-react';
+import { useToast, useConfirm } from '@/context/ToastContext';
 
 export default function ChessAdminSettingsPage() {
   const router = useRouter();
+  const toast = useToast();
+  const confirm = useConfirm();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({
@@ -50,27 +53,37 @@ export default function ChessAdminSettingsPage() {
     try {
       const res = await chessApi.updateSettings(settings);
       if (res.success) {
-        alert('Tournament settings updated successfully!');
+        toast.success('Tournament settings updated successfully!');
       } else {
-        alert(res.message || 'Failed to update settings.');
+        toast.error(res.message || 'Failed to update settings.');
       }
     } catch (err) {
-      alert(err.message || 'Error updating settings.');
+      toast.error(err.message || 'Error updating settings.');
     } finally {
       setSaving(false);
     }
   };
 
   const handleReset = async () => {
-    if (!confirm('CAUTION: Are you sure you want to RESET ALL TOURNAMENT DATA? This clears all registrations and match records.')) return;
+    const isConfirmed = await confirm({
+      title: 'Reset All Tournament Data?',
+      message: 'CAUTION: Are you sure you want to RESET ALL TOURNAMENT DATA? This clears all registrations, pairings, and match records.',
+      confirmText: 'Reset Tournament Data',
+      cancelText: 'Cancel',
+      type: 'danger'
+    });
+    if (!isConfirmed) return;
+
     try {
       const res = await chessApi.resetTournamentData();
       if (res.success) {
-        alert(res.message || 'Tournament reset successfully.');
-        window.location.reload();
+        toast.success(res.message || 'Tournament reset successfully.');
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       }
     } catch (err) {
-      alert(err.message || 'Error resetting tournament.');
+      toast.error(err.message || 'Error resetting tournament.');
     }
   };
 

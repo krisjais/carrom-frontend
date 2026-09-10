@@ -6,6 +6,7 @@ import { chessApi } from '@/lib/chessApi';
 import { AdminSidebar } from '@/components/chess/AdminSidebar';
 import { MatchTimer } from '@/components/chess/MatchTimer';
 import { Swords, Play, CheckCircle2, XCircle, Trophy, Loader2, Plus, Minus, Trash2, Clock, ShieldCheck, Zap, CheckSquare, Square } from 'lucide-react';
+import { useToast, useConfirm } from '@/context/ToastContext';
 
 const PIECE_CONFIG = [
   { key: 'pawns', label: 'Pawns', symbol: '♟', val: 1, max: 8 },
@@ -67,6 +68,8 @@ const ROUND_PRESETS = [
 
 export default function ChessAdminMatchesPage() {
   const router = useRouter();
+  const toast = useToast();
+  const confirm = useConfirm();
   const [matches, setMatches] = useState([]);
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -153,7 +156,14 @@ export default function ChessAdminMatchesPage() {
 
   const handleBulkDelete = async () => {
     if (selectedMatchIds.length === 0) return;
-    if (!confirm(`Are you sure you want to permanently delete ${selectedMatchIds.length} selected match(es)?`)) {
+    const isConfirmed = await confirm({
+      title: 'Delete Selected Matches?',
+      message: `Are you sure you want to permanently delete ${selectedMatchIds.length} selected match(es)?`,
+      confirmText: `Delete ${selectedMatchIds.length} Matches`,
+      cancelText: 'Cancel',
+      type: 'danger'
+    });
+    if (!isConfirmed) {
       return;
     }
 
@@ -163,13 +173,13 @@ export default function ChessAdminMatchesPage() {
       if (res.success) {
         setMatches((prev) => prev.filter((m) => !selectedMatchIds.includes(m._id)));
         setSelectedMatchIds([]);
-        alert(res.message || 'Matches deleted successfully.');
+        toast.success(res.message || 'Matches deleted successfully.');
         await loadData(true);
       } else {
-        alert(res.message || 'Failed to delete selected matches.');
+        toast.error(res.message || 'Failed to delete selected matches.');
       }
     } catch (err) {
-      alert(err.message || 'Error deleting matches.');
+      toast.error(err.message || 'Error deleting matches.');
     } finally {
       setBulkDeleting(false);
     }
@@ -178,20 +188,27 @@ export default function ChessAdminMatchesPage() {
   // Admin round generation (Knockout: losers eliminated, highest points gets bye)
   const handleGeneratePairings = async () => {
     const roundTitle = selectedRoundName || `Round ${selectedRound}`;
-    if (!confirm(`Generate pairings for ${roundTitle}? Note: In knockout format, players who lost earlier are excluded and the highest-points contestant receives any odd-player BYE.`)) {
+    const isConfirmed = await confirm({
+      title: `Generate ${roundTitle} Pairings?`,
+      message: `Generate pairings for ${roundTitle}? Note: In knockout format, players who lost earlier are excluded and the highest-points contestant receives any odd-player BYE.`,
+      confirmText: 'Generate Pairings',
+      cancelText: 'Cancel',
+      type: 'primary'
+    });
+    if (!isConfirmed) {
       return;
     }
     setGenerating(true);
     try {
       const res = await chessApi.generateMatches(selectedRound, roundTitle);
       if (res.success) {
-        alert(res.message || `${roundTitle} pairings generated successfully!`);
+        toast.success(res.message || `${roundTitle} pairings generated successfully!`);
         await loadData();
       } else {
-        alert(res.message || 'Failed to generate pairings.');
+        toast.error(res.message || 'Failed to generate pairings.');
       }
     } catch (err) {
-      alert(err.message || 'Error generating pairings.');
+      toast.error(err.message || 'Error generating pairings.');
     } finally {
       setGenerating(false);
     }
@@ -216,12 +233,13 @@ export default function ChessAdminMatchesPage() {
         if (started) {
           openLiveScoring({ ...started, status: 'live', actualStartTime: new Date(), durationMinutes: 10 });
         }
+        toast.success('Live match started successfully!');
         await loadData(true);
       } else {
-        alert(res.message || 'Failed to start match.');
+        toast.error(res.message || 'Failed to start match.');
       }
     } catch (err) {
-      alert(err.message || 'Failed to start match.');
+      toast.error(err.message || 'Failed to start match.');
     } finally {
       setStartingMatchId(null);
     }
@@ -289,18 +307,27 @@ export default function ChessAdminMatchesPage() {
 
   // Individual Match Delete
   const handleDeleteMatch = async (id, matchIdLabel) => {
-    if (!confirm(`Permanently delete match pairing ${matchIdLabel}?`)) return;
+    const isConfirmed = await confirm({
+      title: 'Delete Match Pairing?',
+      message: `Are you sure you want to permanently delete match pairing ${matchIdLabel}?`,
+      confirmText: 'Delete Match',
+      cancelText: 'Cancel',
+      type: 'danger'
+    });
+    if (!isConfirmed) return;
+
     setDeletingMatchId(id);
     try {
       const res = await chessApi.deleteMatch(id);
       if (res.success) {
         setMatches((prev) => prev.filter((m) => m._id !== id));
         setSelectedMatchIds((prev) => prev.filter((item) => item !== id));
+        toast.success(`Match ${matchIdLabel} deleted.`);
       } else {
-        alert(res.message || 'Failed to delete match.');
+        toast.error(res.message || 'Failed to delete match.');
       }
     } catch (err) {
-      alert(err.message || 'Error deleting match.');
+      toast.error(err.message || 'Error deleting match.');
     } finally {
       setDeletingMatchId(null);
     }
@@ -310,11 +337,11 @@ export default function ChessAdminMatchesPage() {
   const handleCreateManualMatch = async (e) => {
     e.preventDefault();
     if (!manualP1) {
-      alert('Please select Player 1 (White pieces).');
+      toast.warning('Please select Player 1 (White pieces).');
       return;
     }
     if (manualP1 === manualP2) {
-      alert('Player 1 and Player 2 cannot be the same contestant.');
+      toast.warning('Player 1 and Player 2 cannot be the same contestant.');
       return;
     }
 
@@ -330,16 +357,16 @@ export default function ChessAdminMatchesPage() {
       });
 
       if (res.success) {
-        alert(`Match pairing for "${finalRoundName}" created successfully!`);
+        toast.success(`Match pairing for "${finalRoundName}" created successfully!`);
         setShowCreateModal(false);
         setManualP1('');
         setManualP2('');
         await loadData();
       } else {
-        alert(res.message || 'Failed to create match pairing.');
+        toast.error(res.message || 'Failed to create match pairing.');
       }
     } catch (err) {
-      alert(err.message || 'Error creating manual match.');
+      toast.error(err.message || 'Error creating manual match.');
     } finally {
       setCreatingMatch(false);
     }
@@ -371,12 +398,13 @@ export default function ChessAdminMatchesPage() {
         if (liveScoringMatch && liveScoringMatch._id === resultModalMatch._id) {
           setLiveScoringMatch(null);
         }
+        toast.success('Match result recorded and standings recalculated.');
         await loadData();
       } else {
-        alert(res.message || 'Result submission failed.');
+        toast.error(res.message || 'Result submission failed.');
       }
     } catch (err) {
-      alert(err.message || 'Error submitting match result.');
+      toast.error(err.message || 'Error submitting match result.');
     } finally {
       setSubmitLoading(false);
     }

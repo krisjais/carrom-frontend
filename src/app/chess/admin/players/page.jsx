@@ -19,9 +19,11 @@ import {
   CheckCircle2,
   Loader2
 } from 'lucide-react';
+import { useConfirm } from '@/context/ToastContext';
 
 export default function ChessAdminPlayersPage() {
   const router = useRouter();
+  const confirm = useConfirm();
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -70,7 +72,14 @@ export default function ChessAdminPlayersPage() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this player?')) return;
+    const isConfirmed = await confirm({
+      title: 'Delete Chess Player?',
+      message: 'Are you sure you want to delete this player profile from the tournament?',
+      confirmText: 'Delete Player',
+      cancelText: 'Cancel',
+      type: 'danger'
+    });
+    if (!isConfirmed) return;
     try {
       const res = await chessApi.deletePlayer(id);
       if (res.success) {
@@ -132,7 +141,14 @@ export default function ChessAdminPlayersPage() {
 
   const handleBulkDelete = async () => {
     if (selectedIds.length === 0) return;
-    if (!confirm(`Are you sure you want to permanently delete ${selectedIds.length} player(s)?`)) return;
+    const isConfirmed = await confirm({
+      title: 'Delete Selected Players?',
+      message: `Are you sure you want to permanently delete ${selectedIds.length} selected player(s)?`,
+      confirmText: `Delete ${selectedIds.length} Players`,
+      cancelText: 'Cancel',
+      type: 'danger'
+    });
+    if (!isConfirmed) return;
 
     setBulkLoading(true);
     try {

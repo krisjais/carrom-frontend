@@ -23,7 +23,7 @@ export default function AdminLayout({ children }) {
 
   if (loading) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center min-h-screen bg-[#FAF9F6] dark:bg-[#0B0D0E] text-[#4A4238] dark:text-[#F5F1E8] p-6 space-y-4">
+      <div className="flex-1 flex flex-col items-center justify-center min-h-screen bg-[#F4EFE6] dark:bg-[#0B0D0E] text-[#4A4238] dark:text-[#F5F1E8] p-6 space-y-4">
         <div className="w-8 h-8 rounded-full border-2 border-[#E74C3C] border-t-transparent animate-spin" />
         <p className="text-xs font-mono font-semibold text-[#7E7060] dark:text-[#B8B1A5]">
           Loading Control Room...
@@ -38,7 +38,7 @@ export default function AdminLayout({ children }) {
   }
 
   return (
-    <div className="flex-1 flex flex-col lg:flex-row min-h-screen bg-[#FAF9F6] dark:bg-[#0B0D0E] text-[#4A4238] dark:text-[#F5F1E8] transition-colors duration-200">
+    <div className="flex-1 flex flex-col lg:flex-row min-h-screen bg-[#F4EFE6] dark:bg-[#0B0D0E] text-[#4A4238] dark:text-[#F5F1E8] transition-colors duration-200">
       {/* Mobile Top Header */}
       <div className="lg:hidden flex items-center justify-between px-4 py-3 bg-[#3E342B] dark:bg-[#121517] border-b border-[#4A4238] dark:border-[#2B3034] sticky top-0 z-30 shadow-lg text-white">
         <div className="flex items-center gap-2.5">

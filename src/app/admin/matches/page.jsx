@@ -28,13 +28,14 @@ import {
 } from 'lucide-react';
 import { StatusBadge, MainBoardBadge, CategoryBadge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
-import { useToast } from '@/context/ToastContext';
+import { useToast, useConfirm } from '@/context/ToastContext';
 import { CategoryCoinPair } from '@/components/ui/CarromElements';
 import { CarromMatchTimer, formatMatchDurationTaken } from '@/components/common/CarromMatchTimer';
 
 export default function AdminMatchesPage() {
   const router = useRouter();
   const toast = useToast();
+  const confirm = useConfirm();
   const [matches, setMatches] = useState([]);
   const [teams, setTeams] = useState([]);
   const [arenaState, setArenaState] = useState(null);
@@ -119,7 +120,14 @@ export default function AdminMatchesPage() {
   };
 
   const handleStopLive = async (matchId) => {
-    if (!window.confirm('Are you sure you want to stop this live match? It will be reverted back to Scheduled queue and free up the Main Carrom Board.')) {
+    const isConfirmed = await confirm({
+      title: 'Stop Live Match?',
+      message: 'Are you sure you want to stop this live match? It will be reverted back to Scheduled queue and free up the Main Carrom Board.',
+      confirmText: 'Stop Live Match',
+      cancelText: 'Cancel',
+      type: 'warning'
+    });
+    if (!isConfirmed) {
       return;
     }
     setStoppingMatchId(matchId);
@@ -289,7 +297,7 @@ export default function AdminMatchesPage() {
             Matches & Fixtures Manager
           </h1>
           <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] mt-1">
-            Sequential timeline manager, cross-category player rest monitor, and live scoring control.
+            Sequential timeline manager and live scoring control.
           </p>
         </div>
 

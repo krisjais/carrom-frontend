@@ -89,7 +89,7 @@ export const Navbar = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#F4F0E6] dark:bg-[#0F0E0D] border-b border-[#DCD6C8]/80 dark:border-[#2E2B26] transition-colors duration-200">
+    <header className="sticky top-0 z-40 w-full bg-[#F4EFE6] dark:bg-[#0F0E0D] border-b border-[#E8E1D5] dark:border-[#2E2B26] transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-18">
           
@@ -98,7 +98,7 @@ export const Navbar = () => {
           {/* ========================================================= */}
           <Link
             href="/"
-            className="group inline-flex items-center gap-2.5 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-[#171614] dark:bg-[#1D1C19] border border-[#24221E] dark:border-[#2E2B26] shadow-sm hover:bg-[#2A2824] transition-all shrink-0"
+            className="group inline-flex items-center gap-2.5 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-[#3E342B] dark:bg-[#1D1C19] border border-[#4A4238] dark:border-[#2E2B26] shadow-sm hover:bg-[#2D251E] transition-all shrink-0"
           >
             <CarromBoardIcon className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-[#F7F4EC] group-hover:scale-110 transition-transform" />
             <span className="font-sans font-medium text-xs sm:text-sm tracking-tight text-[#F7F4EC]">
@@ -118,18 +118,18 @@ export const Navbar = () => {
                   href={link.href}
                   className={`relative text-xs sm:text-[13px] font-sans transition-all py-1 ${
                     active
-                      ? 'text-[#171614] dark:text-[#F7F4EC] font-semibold'
-                      : 'text-[#6F6A60] dark:text-[#A39C8F] hover:text-[#171614] dark:hover:text-[#F7F4EC] font-medium'
+                      ? 'text-[#3E342B] dark:text-[#F7F4EC] font-semibold'
+                      : 'text-[#7E7060] dark:text-[#A39C8F] hover:text-[#3E342B] dark:hover:text-[#F7F4EC] font-medium'
                   }`}
                 >
                   <span className="flex items-center gap-1.5">
                     {link.isLive && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#D93829] animate-pulse" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#E74C3C] animate-pulse" />
                     )}
                     <span>{link.name}</span>
                   </span>
                   {active && (
-                    <span className="absolute left-0 right-0 -bottom-1 h-[2px] bg-[#171614] dark:bg-[#F7F4EC] rounded-full" />
+                    <span className="absolute left-0 right-0 -bottom-1 h-[2px] bg-[#3E342B] dark:bg-[#D4A94C] rounded-full" />
                   )}
                 </Link>
               );
@@ -186,7 +186,7 @@ export const Navbar = () => {
             <div className="relative flex items-center" ref={userDropdownRef}>
               <button
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-full bg-[#171614] dark:bg-[#F7F4EC] text-[#F7F4EC] dark:text-[#171614] border border-[#24221E] dark:border-[#2E2B26] flex items-center justify-center font-sans font-bold text-[11px] sm:text-xs tracking-tight shadow-xs hover:opacity-90 transition-opacity cursor-pointer"
+                className="w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-full bg-[#3E342B] dark:bg-[#D4A94C] text-[#F7F4EC] dark:text-[#15191C] border border-[#4A4238] dark:border-[#2B3034] flex items-center justify-center font-sans font-bold text-[11px] sm:text-xs tracking-tight shadow-xs hover:opacity-90 transition-opacity cursor-pointer"
                 title={user ? `${user.fullName || user.email}` : 'Player Profile'}
                 aria-label="User profile menu"
               >

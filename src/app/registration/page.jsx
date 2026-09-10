@@ -67,7 +67,9 @@ export default function RegistrationPage() {
             registration: res.registration,
             events: formData.gender === 'male'
               ? ['Boys Singles', 'Boys Doubles', 'Mixed Doubles']
-              : ['Girls Singles', 'Girls Doubles', 'Mixed Doubles'],
+              : formData.doublesPartnerName?.trim()
+              ? ['Girls Singles', 'Girls Doubles', 'Mixed Doubles']
+              : ['Girls Singles', 'Mixed Doubles'],
             doublesValidation: { status: 'partner_not_registered', requestedName: formData.doublesPartnerName },
             mixedDoublesValidation: { status: 'partner_not_registered', requestedName: formData.mixedDoublesPartnerName }
           });
@@ -123,7 +125,7 @@ export default function RegistrationPage() {
           Tournament Registration
         </h1>
         <p className="text-xs sm:text-sm text-[#7E7060] dark:text-[#B8B1A5] font-normal max-w-lg mx-auto">
-          Mandatory 3-event collegiate championship entry: Singles, Doubles, and Mixed Doubles.
+          Collegiate championship entry: Singles, Doubles, and Mixed Doubles (Girls Doubles optional).
         </p>
       </div>
 
@@ -236,18 +238,18 @@ export default function RegistrationPage() {
               </div>
             </div>
 
-            {/* YOUR EVENTS SECTION (Locked 3 Divisions) */}
+            {/* YOUR EVENTS SECTION */}
             <div className="space-y-3">
               <div className="flex items-center gap-2 pb-2 border-b border-[#E8E1D5] dark:border-[#2B3034]">
                 <Trophy className="w-4 h-4 text-[#E74C3C]" />
                 <h3 className="font-serif font-bold text-xs text-[#3E342B] dark:text-[#F5F1E8] uppercase tracking-wider">
-                  MANDATORY 3-DIVISION ENTRY
+                  ENROLLED CHAMPIONSHIP EVENTS
                 </h3>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {(statusRecord.events || (statusRecord.participant?.gender === 'female'
-                  ? ['Girls Singles', 'Girls Doubles', 'Mixed Doubles']
+                  ? (statusRecord.registration?.doublesPartnerName ? ['Girls Singles', 'Girls Doubles', 'Mixed Doubles'] : ['Girls Singles', 'Mixed Doubles'])
                   : ['Boys Singles', 'Boys Doubles', 'Mixed Doubles'])
                 ).map((evt) => (
                   <div
@@ -274,14 +276,18 @@ export default function RegistrationPage() {
                 {/* Doubles Partner Card */}
                 <div className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] space-y-2">
                   <span className="text-[10px] text-[#7E7060] dark:text-[#817B72] font-sans uppercase font-bold tracking-wider block">
-                    {statusRecord.participant?.gender === 'male' ? 'Boys Doubles Partner' : 'Girls Doubles Partner'}
+                    {statusRecord.participant?.gender === 'male' ? 'Boys Doubles Partner' : 'Girls Doubles Partner (Optional)'}
                   </span>
                   <div className="text-sm font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8]">
-                    {statusRecord.registration?.doublesPartnerName || 'Not nominated'}
+                    {statusRecord.registration?.doublesPartnerName || (statusRecord.participant?.gender === 'female' ? 'Not nominated (Optional)' : 'Not nominated')}
                   </div>
 
                   <div>
-                    {statusRecord.doublesValidation?.status === 'valid_paired' ? (
+                    {!statusRecord.registration?.doublesPartnerName && statusRecord.participant?.gender === 'female' ? (
+                      <span className="inline-flex items-center gap-1.5 text-[10px] bg-white dark:bg-[#15191C] text-[#7E7060] dark:text-[#817B72] px-3 py-1 rounded-full border border-[#E8E1D5] dark:border-[#2B3034] font-mono">
+                        <Info className="w-3 h-3 text-[#B8A47E]" /> Optional — Singles & Mixed Doubles
+                      </span>
+                    ) : statusRecord.doublesValidation?.status === 'valid_paired' ? (
                       <span className="inline-flex items-center gap-1.5 text-[10px] bg-white dark:bg-[#15191C] text-[#3E342B] dark:text-[#F5F1E8] px-3 py-1 rounded-full border border-[#D5C4A1] dark:border-[rgba(212,169,76,0.3)] font-bold font-mono">
                         <Trophy className="w-3 h-3 text-[#E74C3C]" /> Team Paired
                       </span>
@@ -473,19 +479,21 @@ export default function RegistrationPage() {
             </div>
           </div>
 
-          {/* 2. Mandatory Events Notice */}
+          {/* 2. Events Notice */}
           <div className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] space-y-2 text-xs">
             <div className="flex items-center gap-1.5 text-[#3E342B] dark:text-[#F5F1E8] font-bold uppercase text-[11px] font-mono">
               <Trophy className="w-3.5 h-3.5 text-[#E74C3C]" />
-              <span>Mandatory 3-Event Participation</span>
+              <span>{formData.gender === 'male' ? 'Mandatory 3-Event Participation' : 'Championship Event Participation'}</span>
             </div>
             <p className="text-[11px] text-[#7E7060] dark:text-[#B8B1A5] leading-relaxed">
-              Every registered athlete participates in all 3 tournament divisions:
+              {formData.gender === 'male'
+                ? 'Every registered male athlete participates in all 3 tournament divisions:'
+                : 'Every registered female athlete participates in Singles and Mixed Doubles (Girls Doubles is optional):'}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
               {(formData.gender === 'male'
                 ? ['✓ Boys Singles', '✓ Boys Doubles', '✓ Mixed Doubles']
-                : ['✓ Girls Singles', '✓ Girls Doubles', '✓ Mixed Doubles']
+                : ['✓ Girls Singles', '✓ Girls Doubles (Optional)', '✓ Mixed Doubles']
               ).map((evt) => (
                 <div key={evt} className="p-2 rounded-lg bg-white dark:bg-[#15191C] text-[#3E342B] dark:text-[#F5F1E8] font-bold text-[11px] border border-[#E8E1D5] dark:border-[#2B3034] text-center shadow-xs">
                   {evt}
@@ -513,17 +521,22 @@ export default function RegistrationPage() {
             <div className="space-y-4">
               <div>
                 <label className="text-[11px] text-[#4A4238] dark:text-[#F5F1E8] font-bold block mb-1.5 uppercase font-mono">
-                  {formData.gender === 'male' ? 'Boys Doubles Partner Full Name *' : 'Girls Doubles Partner Full Name *'}
+                  {formData.gender === 'male' ? 'Boys Doubles Partner Full Name *' : 'Girls Doubles Partner Full Name (Optional)'}
                 </label>
                 <input
                   type="text"
                   name="doublesPartnerName"
-                  required
+                  required={formData.gender === 'male'}
                   value={formData.doublesPartnerName}
                   onChange={handleChange}
-                  placeholder="e.g. Siddharth Rao"
+                  placeholder={formData.gender === 'male' ? 'e.g. Siddharth Rao' : 'e.g. Priya Nair (Leave blank if you do not have a partner)'}
                   className="w-full h-11 bg-[#FAF9F6] dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#E8E1D5] dark:border-[#2B3034] focus:outline-none focus:border-[#4A4238] dark:focus:border-[#D4A94C]"
                 />
+                {formData.gender === 'female' && (
+                  <p className="text-[10px] text-[#7E7060] dark:text-[#817B72] mt-1 font-mono">
+                    Optional: If you have a partner for Girls Doubles, enter their name. If not, you can leave this blank.
+                  </p>
+                )}
               </div>
 
               <div>

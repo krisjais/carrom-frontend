@@ -3,32 +3,32 @@
 @tailwind utilities;
 
 :root, html.light {
-  --bg-main: #F4F0E6;
+  --bg-main: #F4EFE6;
   --bg-surface: #FFFFFF;
-  --bg-surface-secondary: #F7F4EC;
-  --bg-surface-elevated: #FAF8F3;
-  --text-primary: #171614;
-  --text-heading: #171614;
-  --text-secondary: #6F6A60;
-  --text-muted: #8E887B;
-  --border: #DCD6C8;
-  --border-khaki: #DCD6C8;
+  --bg-surface-secondary: #F4EFE6;
+  --bg-surface-elevated: #FAF7F0;
+  --text-primary: #4A4238;
+  --text-heading: #3E342B;
+  --text-secondary: #7E7060;
+  --text-muted: #9E9080;
+  --border: #E8E1D5;
+  --border-khaki: #D5C4A1;
   --border-strong: #C5BCAC;
-  --accent-red: #D93829;
-  --gold: #C2A268;
+  --accent-red: #E74C3C;
+  --gold: #D4A94C;
   --success: #2E8555;
   --footer-bg: #171614;
   --charcoal-nav: #171614;
 
   /* Theme variables */
-  --bg-canvas: #F4F0E6;
+  --bg-canvas: #F4EFE6;
   --bg-card: #FFFFFF;
-  --bg-hover: #ECE6D8;
-  --border-color: #DCD6C8;
-  --accent-gold: #C2A268;
-  --btn-black-bg: #171614;
-  --btn-black-text: #F7F4EC;
-  --shadow-sm: 0 1px 3px rgba(23, 22, 20, 0.05);
+  --bg-hover: #EAE1D0;
+  --border-color: #E8E1D5;
+  --accent-gold: #D4A94C;
+  --btn-black-bg: #3E342B;
+  --btn-black-text: #FFFFFF;
+  --shadow-sm: 0 1px 3px rgba(74, 66, 56, 0.06);
 }
 
 .dark, html.dark {
@@ -110,7 +110,7 @@ nav, button, input, select, textarea, .font-sans, .ui-sans {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.18em;
-  color: #6F6A60;
+  color: #7E7060;
   display: inline-block;
 }
 
@@ -123,7 +123,7 @@ nav, button, input, select, textarea, .font-sans, .ui-sans {
   background-color: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: 1rem;
-  box-shadow: 0 1px 4px 0 rgba(23, 22, 20, 0.04), 0 1px 2px -1px rgba(23, 22, 20, 0.02);
+  box-shadow: 0 1px 4px 0 rgba(74, 66, 56, 0.04), 0 1px 2px -1px rgba(74, 66, 56, 0.02);
   transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -132,9 +132,9 @@ nav, button, input, select, textarea, .font-sans, .ui-sans {
 }
 
 .editorial-card:hover, .editorial-card-hover:hover {
-  border-color: #C5BCAC;
+  border-color: #D5C4A1;
   transform: translateY(-2px);
-  box-shadow: 0 10px 24px -4px rgba(23, 22, 20, 0.08), 0 2px 6px -1px rgba(23, 22, 20, 0.04);
+  box-shadow: 0 10px 24px -4px rgba(74, 66, 56, 0.08), 0 2px 6px -1px rgba(74, 66, 56, 0.04);
 }
 
 .dark .editorial-card:hover, .dark .editorial-card-hover:hover {
@@ -148,7 +148,7 @@ nav, button, input, select, textarea, .font-sans, .ui-sans {
   background-color: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: 1rem;
-  box-shadow: 0 1px 4px 0 rgba(23, 22, 20, 0.04);
+  box-shadow: 0 1px 4px 0 rgba(74, 66, 56, 0.04);
   transition: all 0.2s ease;
 }
 
@@ -161,7 +161,7 @@ nav, button, input, select, textarea, .font-sans, .ui-sans {
   background-color: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: 1rem;
-  box-shadow: 0 4px 16px -2px rgba(23, 22, 20, 0.05);
+  box-shadow: 0 4px 16px -2px rgba(74, 66, 56, 0.05);
 }
 
 .dark .scoreboard-strip {
@@ -170,10 +170,10 @@ nav, button, input, select, textarea, .font-sans, .ui-sans {
   box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.6);
 }
 
-/* Primary Button: Dark Charcoal #171614 with Cream Text */
+/* Primary Button: Deep Warm Wood Brown #3E342B with Cream/White Text */
 .btn-primary {
-  background-color: #171614;
-  color: #F7F4EC;
+  background-color: #3E342B;
+  color: #FFFFFF;
   font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
   font-weight: 700;
   font-size: 0.75rem;
@@ -182,7 +182,7 @@ nav, button, input, select, textarea, .font-sans, .ui-sans {
   border-radius: 0.625rem;
   padding: 0.625rem 1.35rem;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 2px 6px rgba(23, 22, 20, 0.15);
+  box-shadow: 0 2px 6px rgba(62, 52, 43, 0.18);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -191,29 +191,29 @@ nav, button, input, select, textarea, .font-sans, .ui-sans {
 }
 
 .btn-primary:hover {
-  background-color: #000000;
+  background-color: #2D251E;
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(23, 22, 20, 0.25);
+  box-shadow: 0 6px 16px rgba(62, 52, 43, 0.25);
   color: #FFFFFF;
 }
 
 .dark .btn-primary {
-  background-color: #F7F4EC;
-  color: #171614;
+  background-color: #D4A94C;
+  color: #15191C;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 .dark .btn-primary:hover {
-  background-color: #FFFFFF;
-  color: #000000;
-  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.15);
+  background-color: #E0BA63;
+  color: #0E1113;
+  box-shadow: 0 4px 16px rgba(212, 169, 76, 0.25);
 }
 
 /* Secondary Button: Warm Ivory / White with Clean Border */
 .btn-secondary, .btn-ghost {
   background-color: #FFFFFF;
   border: 1px solid var(--border);
-  color: #171614;
+  color: #3E342B;
   font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
   font-weight: 700;
   font-size: 0.75rem;
@@ -226,13 +226,13 @@ nav, button, input, select, textarea, .font-sans, .ui-sans {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  box-shadow: 0 1px 2px rgba(23, 22, 20, 0.03);
+  box-shadow: 0 1px 2px rgba(74, 66, 56, 0.03);
 }
 
 .btn-secondary:hover, .btn-ghost:hover {
-  background-color: #F7F4EC;
-  border-color: #C5BCAC;
-  color: #000000;
+  background-color: #F4EFE6;
+  border-color: #D5C4A1;
+  color: #3E342B;
   transform: translateY(-1px);
 }
 
@@ -289,22 +289,24 @@ nav, button, input, select, textarea, .font-sans, .ui-sans {
 }
 
 .pill-tab-active {
-  background-color: #171614;
-  color: #F7F4EC;
+  background-color: #D5C4A1;
+  color: #3E342B;
   font-weight: 700;
-  box-shadow: 0 1px 4px rgba(23, 22, 20, 0.15);
+  border: 1px solid #C4B28C;
+  box-shadow: 0 1px 4px rgba(74, 66, 56, 0.12);
 }
 
 .dark .pill-tab-active {
-  background-color: #F7F4EC;
-  color: #171614;
+  background-color: #1B2024;
+  color: #F5F1E8;
+  border: 1px solid rgba(212, 169, 76, 0.5);
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
 }
 
 .pill-tab-inactive {
-  background-color: #FFFFFF;
-  color: #6F6A60;
-  border: 1px solid var(--border);
+  background-color: #F4EFE6;
+  color: #7E7060;
+  border: 1px solid #E8E1D5;
 }
 
 .dark .pill-tab-inactive {
@@ -314,9 +316,9 @@ nav, button, input, select, textarea, .font-sans, .ui-sans {
 }
 
 .pill-tab-inactive:hover {
-  background-color: #F7F4EC;
-  color: #171614;
-  border-color: #C5BCAC;
+  background-color: #EAE1D0;
+  color: #3E342B;
+  border-color: #D5C4A1;
 }
 
 .dark .pill-tab-inactive:hover {
