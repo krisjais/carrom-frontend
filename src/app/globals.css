@@ -2,7 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-:root, html.light {
+:root,
+html.light {
   --bg-main: #F4EFE6;
   --bg-surface: #FFFFFF;
   --bg-surface-secondary: #F4EFE6;
@@ -31,7 +32,8 @@
   --shadow-sm: 0 1px 3px rgba(74, 66, 56, 0.06);
 }
 
-.dark, html.dark {
+.dark,
+html.dark {
   --bg-main: #0F0E0D;
   --bg-surface: #171614;
   --bg-surface-secondary: #1D1C19;
@@ -61,7 +63,9 @@
 }
 
 /* Global Disable Text Selection */
-*, body, html {
+*,
+body,
+html {
   user-select: none !important;
   -webkit-user-select: none !important;
   -moz-user-select: none !important;
@@ -69,10 +73,22 @@
 }
 
 /* Theme Smooth Transitions */
-body, div, header, main, footer, table, tr, td, th, input, select, button, a {
+body,
+div,
+header,
+main,
+footer,
+table,
+tr,
+td,
+th,
+input,
+select,
+button,
+a {
   transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-              color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 body {
@@ -85,7 +101,15 @@ body {
 }
 
 /* Editorial Serif Headings Hierarchy */
-h1, h2, h3, h4, h5, h6, .font-serif, .font-editorial, .font-display {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.font-serif,
+.font-editorial,
+.font-display {
   font-family: 'Playfair Display', Georgia, serif;
   letter-spacing: -0.02em;
 }
@@ -98,7 +122,13 @@ h1, h2, h3, h4, h5, h6, .font-serif, .font-editorial, .font-display {
 }
 
 /* Clean UI Sans-serif for controls, labels, badges */
-nav, button, input, select, textarea, .font-sans, .ui-sans {
+nav,
+button,
+input,
+select,
+textarea,
+.font-sans,
+.ui-sans {
   font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
 }
 
@@ -131,20 +161,23 @@ nav, button, input, select, textarea, .font-sans, .ui-sans {
   box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.6), 0 0 0 1px #2E2B26;
 }
 
-.editorial-card:hover, .editorial-card-hover:hover {
+.editorial-card:hover,
+.editorial-card-hover:hover {
   border-color: #D5C4A1;
   transform: translateY(-2px);
   box-shadow: 0 10px 24px -4px rgba(74, 66, 56, 0.08), 0 2px 6px -1px rgba(74, 66, 56, 0.04);
 }
 
-.dark .editorial-card:hover, .dark .editorial-card-hover:hover {
+.dark .editorial-card:hover,
+.dark .editorial-card-hover:hover {
   border-color: rgba(194, 162, 104, 0.4);
   background-color: #1D1C19;
   box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(194, 162, 104, 0.25);
 }
 
 /* Compatibility card aliases */
-.sport-card, .arena-card {
+.sport-card,
+.arena-card {
   background-color: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: 1rem;
@@ -152,7 +185,8 @@ nav, button, input, select, textarea, .font-sans, .ui-sans {
   transition: all 0.2s ease;
 }
 
-.dark .sport-card, .dark .arena-card {
+.dark .sport-card,
+.dark .arena-card {
   box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.6);
 }
 
@@ -210,7 +244,8 @@ nav, button, input, select, textarea, .font-sans, .ui-sans {
 }
 
 /* Secondary Button: Warm Ivory / White with Clean Border */
-.btn-secondary, .btn-ghost {
+.btn-secondary,
+.btn-ghost {
   background-color: #FFFFFF;
   border: 1px solid var(--border);
   color: #3E342B;
@@ -229,20 +264,23 @@ nav, button, input, select, textarea, .font-sans, .ui-sans {
   box-shadow: 0 1px 2px rgba(74, 66, 56, 0.03);
 }
 
-.btn-secondary:hover, .btn-ghost:hover {
+.btn-secondary:hover,
+.btn-ghost:hover {
   background-color: #F4EFE6;
   border-color: #D5C4A1;
   color: #3E342B;
   transform: translateY(-1px);
 }
 
-.dark .btn-secondary, .dark .btn-ghost {
+.dark .btn-secondary,
+.dark .btn-ghost {
   background-color: #1D1C19;
   border-color: #2E2B26;
   color: #F7F4EC;
 }
 
-.dark .btn-secondary:hover, .dark .btn-ghost:hover {
+.dark .btn-secondary:hover,
+.dark .btn-ghost:hover {
   background-color: #24221E;
   border-color: rgba(194, 162, 104, 0.4);
   color: #FFFFFF;
@@ -378,7 +416,7 @@ html.dark .border-\[\#E5E5E5\] {
   border-color: #232A3B !important;
 }
 
-html.dark .divide-\[\#E5E5E5\] > :not([hidden]) ~ :not([hidden]) {
+html.dark .divide-\[\#E5E5E5\]> :not([hidden])~ :not([hidden]) {
   border-color: #232A3B !important;
 }
 
@@ -398,8 +436,8 @@ html.dark .hover\:bg-gray-100:hover {
   background-color: #26334D !important;
 }
 
-html.dark input, 
-html.dark select, 
+html.dark input,
+html.dark select,
 html.dark textarea {
   background-color: #1A2337 !important;
   color: #F8FAFC !important;
@@ -425,10 +463,13 @@ html.dark input::placeholder {
 
 /* LIVE Indicator Pulse */
 @keyframes red-live-pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.35;
     transform: scale(1.35);
@@ -493,14 +534,14 @@ html.dark input::placeholder {
 
 /* Board Geometry Grid Pattern */
 .board-grid-pattern {
-  background-image: 
+  background-image:
     linear-gradient(rgba(74, 66, 56, 0.04) 1px, transparent 1px),
     linear-gradient(90deg, rgba(74, 66, 56, 0.04) 1px, transparent 1px);
   background-size: 32px 32px;
 }
 
 .dark .board-grid-pattern {
-  background-image: 
+  background-image:
     linear-gradient(rgba(212, 169, 76, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(212, 169, 76, 0.03) 1px, transparent 1px);
   background-size: 32px 32px;
@@ -511,14 +552,16 @@ html.dark input::placeholder {
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--bg-canvas);
 }
+
 ::-webkit-scrollbar-thumb {
   background: #475569;
   border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent-gold);
 }
-

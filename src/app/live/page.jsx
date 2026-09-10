@@ -19,8 +19,6 @@ import {
   GitFork,
   CheckCircle2,
   Calendar,
-  Volume2,
-  VolumeX,
   Zap,
   Info
 } from 'lucide-react';
@@ -36,7 +34,6 @@ export default function LivePage() {
   const [cheersTeam2, setCheersTeam2] = useState(15);
   const [cheerEffect1, setCheerEffect1] = useState(false);
   const [cheerEffect2, setCheerEffect2] = useState(false);
-  const [soundEnabled, setSoundEnabled] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState(new Date());
 
   const fetchLive = async (isManual = false) => {
@@ -72,22 +69,6 @@ export default function LivePage() {
       setCheersTeam2((prev) => prev + 1);
       setCheerEffect2(true);
       setTimeout(() => setCheerEffect2(false), 800);
-    }
-
-    if (soundEnabled && typeof window !== 'undefined') {
-      try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(teamNum === 1 ? 587.33 : 659.25, audioCtx.currentTime); // D5 or E5
-        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.25);
-      } catch (e) {}
     }
   };
 
@@ -171,7 +152,7 @@ export default function LivePage() {
           </p>
         </div>
 
-        {/* Action Controls: Refresh, Sound Toggle & Quick Links */}
+        {/* Action Controls: Refresh & Quick Links */}
         <div className="flex items-center gap-2.5 flex-wrap justify-center sm:justify-end">
           <button
             onClick={() => fetchLive(true)}
@@ -183,19 +164,6 @@ export default function LivePage() {
             <span className="font-mono text-[11px]">
               {refreshing ? 'Syncing...' : 'Sync (4s)'}
             </span>
-          </button>
-
-          <button
-            onClick={() => setSoundEnabled(!soundEnabled)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-mono font-bold transition-colors cursor-pointer shadow-2xs ${
-              soundEnabled
-                ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800'
-                : 'bg-white dark:bg-[#15191C] text-[#7E7060] dark:text-[#817B72] border-[#E8E1D5] dark:border-[#2B3034] hover:text-[#3E342B]'
-            }`}
-            title="Toggle buzzer and cheer sound effects"
-          >
-            {soundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
-            <span className="hidden sm:inline">{soundEnabled ? 'Audio On' : 'Muted'}</span>
           </button>
 
           <Link

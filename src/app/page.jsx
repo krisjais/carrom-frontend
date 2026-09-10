@@ -163,7 +163,7 @@ export default function HomePage() {
                     className="object-cover object-center group-hover:scale-103 transition-transform duration-500"
                     sizes="(max-width: 768px) 100vw, 550px"
                   />
-                  
+
                   {/* Subtle Carousel Indicator Dots */}
                   <div className="absolute bottom-4 right-4 flex items-center gap-1.5 pointer-events-none">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#171614] dark:bg-white" />
