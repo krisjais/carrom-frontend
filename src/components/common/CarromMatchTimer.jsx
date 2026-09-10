@@ -372,6 +372,73 @@ export function CarromMatchTimer({
     );
   }
 
+  // Arena Stadium Variant (For Live Broadcast Hero Board)
+  if (variant === 'arena') {
+    return (
+      <div className="flex flex-col items-center justify-center space-y-3.5 w-full max-w-md mx-auto p-4 sm:p-5 rounded-2xl bg-black/45 backdrop-blur-md border border-white/10 shadow-2xl">
+        <div className="flex items-center justify-between w-full text-[11px] font-mono border-b border-white/10 pb-2">
+          <div className="flex items-center gap-1.5 text-[#D5C4A1] font-bold uppercase tracking-wider">
+            <Clock className={`w-3.5 h-3.5 ${timerStats.isExpired || timerStats.isUrgent ? 'text-[#E74C3C] animate-pulse' : 'text-[#D5C4A1]'}`} />
+            <span>Official Round Timer · {timerStats.baseMinutes}m Cap</span>
+          </div>
+          <span className={`px-2.5 py-0.5 rounded-full font-bold uppercase text-[10px] tracking-wider ${
+            timerStats.isPaused
+              ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+              : timerStats.isExpired
+              ? 'bg-[#E74C3C]/20 text-[#E74C3C] border border-[#E74C3C]/40 animate-pulse'
+              : timerStats.isUrgent
+              ? 'bg-[#E74C3C]/20 text-[#E74C3C] border border-[#E74C3C]/30 animate-pulse'
+              : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+          }`}>
+            {timerStats.isPaused ? '⏸ Paused' : timerStats.isExpired ? '⚠️ Overtime' : '● Live In Play'}
+          </span>
+        </div>
+
+        {/* Stadium Giant Digits */}
+        <div className="flex items-baseline justify-center gap-2 py-1">
+          <span
+            className={`text-5xl sm:text-6xl font-mono font-black tabular-nums tracking-tight filter drop-shadow-lg ${
+              timerStats.isExpired
+                ? 'text-[#E74C3C] animate-pulse'
+                : timerStats.isUrgent
+                ? 'text-[#E74C3C] animate-pulse'
+                : timerStats.isWarning
+                ? 'text-amber-400'
+                : 'text-white'
+            }`}
+          >
+            {timerStats.isExpired ? `+${timerStats.formattedTime}` : timerStats.formattedTime}
+          </span>
+          <span className="text-xs font-mono font-bold uppercase text-white/50 tracking-wider">
+            {timerStats.isExpired ? 'OT' : 'Remaining'}
+          </span>
+        </div>
+
+        {/* Glowing Progress Track */}
+        <div className="w-full bg-white/10 h-2.5 rounded-full overflow-hidden p-0.5 border border-white/10">
+          <div
+            className={`h-full rounded-full transition-all duration-1000 ${
+              timerStats.isExpired
+                ? 'bg-gradient-to-r from-rose-600 to-red-500 animate-pulse'
+                : timerStats.isUrgent
+                ? 'bg-gradient-to-r from-orange-500 to-red-500 shadow-[0_0_12px_rgba(231,76,60,0.6)]'
+                : timerStats.isWarning
+                ? 'bg-gradient-to-r from-amber-400 to-orange-400 shadow-[0_0_10px_rgba(251,191,36,0.5)]'
+                : 'bg-gradient-to-r from-emerald-400 to-teal-300 shadow-[0_0_12px_rgba(52,211,153,0.5)]'
+            }`}
+            style={{ width: `${timerStats.progressPercent}%` }}
+          />
+        </div>
+
+        {/* Context Note */}
+        <div className="text-[10px] font-mono text-white/60 flex items-center justify-between w-full pt-1">
+          <span>Main Carrom Board 01</span>
+          <span>{timerStats.isExpired ? 'Buzzer Reached · Golden Point' : 'Sequential Match Flow'}</span>
+        </div>
+      </div>
+    );
+  }
+
   // Standard Variant (For Home, Live Broadcast, Admin Dashboard Hero cards)
   return (
     <div className="flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl bg-white/10 dark:bg-black/20 backdrop-blur-xs border border-white/15 dark:border-white/10 text-center space-y-2 w-full max-w-[200px] sm:max-w-[220px]">
