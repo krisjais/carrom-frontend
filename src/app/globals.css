@@ -91,6 +91,13 @@ a {
     color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+html,
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
 body {
   background-color: var(--bg-main);
   color: var(--text-primary);

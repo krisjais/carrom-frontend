@@ -27,18 +27,18 @@ export function ConfirmationModal({
             }`}>
               <AlertTriangle className="w-5 h-5" />
             </div>
-            <h3 className="text-xl font-bold font-serif text-[#171715] dark:text-[#FAF8F3]">{title}</h3>
+            <h3 className="text-xl font-bold font-sans text-[#171715] dark:text-[#FAF8F3]">{title}</h3>
           </div>
           <button
             onClick={onCancel}
             disabled={loading}
-            className="text-[#77736B] hover:text-[#171715] dark:text-[#8E8E93] dark:hover:text-[#FAF8F3] p-1 rounded-lg hover:bg-[#EFEAE1] dark:hover:bg-[#1D1D1B]"
+            className="text-[#77736B] hover:text-[#171715] dark:text-[#8E8E93] dark:hover:text-[#FAF8F3] p-1.5 rounded-xl hover:bg-[#EFEAE1] dark:hover:bg-[#1D1D1B] transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <p className="text-sm text-[#4E4C47] dark:text-[#9E9B93] leading-relaxed">
+        <p className="text-sm font-sans text-[#4E4C47] dark:text-[#9E9B93] leading-relaxed">
           {message}
         </p>
 
@@ -46,17 +46,17 @@ export function ConfirmationModal({
           <button
             onClick={onCancel}
             disabled={loading}
-            className="px-5 py-2.5 rounded-xl border border-[#D5CFC5] dark:border-[#262624] hover:bg-[#EFEAE1] dark:hover:bg-[#1D1D1B] text-[#171715] dark:text-[#FAF8F3] text-xs uppercase tracking-wider font-mono font-medium transition-colors"
+            className="px-5 py-2.5 rounded-xl border border-[#D5CFC5] dark:border-[#262624] hover:bg-[#EFEAE1] dark:hover:bg-[#1D1D1B] text-[#171715] dark:text-[#FAF8F3] text-xs uppercase tracking-wider font-sans font-semibold transition-colors cursor-pointer"
           >
             {cancelText}
           </button>
           <button
             onClick={onConfirm}
             disabled={loading}
-            className={`px-6 py-2.5 rounded-xl font-medium text-xs uppercase tracking-wider font-mono transition-all ${
+            className={`px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider font-sans transition-all cursor-pointer ${
               isDestructive
                 ? 'bg-red-600 hover:bg-red-700 text-white shadow-xs'
-                : 'bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-[#000000] dark:hover:bg-[#FFFFFF] text-[#FAF8F3] dark:text-[#0D0D0D] shadow-xs'
+                : 'bg-[#171715] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-white dark:text-[#0D0D0D] shadow-xs'
             }`}
           >
             {loading ? 'Processing...' : confirmText}
