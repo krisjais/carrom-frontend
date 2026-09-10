@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { chessApi } from '@/lib/chessApi';
 import { AdminSidebar } from '@/components/chess/AdminSidebar';
 import { MatchTimer } from '@/components/chess/MatchTimer';
-import { Swords, Play, CheckCircle2, XCircle, Trophy, Loader2, Plus, Minus, Trash2, Clock, ShieldCheck, Zap, CheckSquare, Square } from 'lucide-react';
+import { Swords, Play, CheckCircle2, XCircle, Trophy, Loader2, Plus, Minus, Trash2, Clock, ShieldCheck, Zap, CheckSquare, Square, ChevronDown, X } from 'lucide-react';
 import { useToast, useConfirm } from '@/context/ToastContext';
 
 const PIECE_CONFIG = [
@@ -724,10 +724,12 @@ export default function ChessAdminMatchesPage() {
                     <MatchTimer match={liveScoringMatch} durationMinutes={liveScoringMatch.durationMinutes || 10} />
                   </div>
                   <button
+                    type="button"
                     onClick={() => setLiveScoringMatch(null)}
-                    className="w-8 h-8 rounded-xl flex items-center justify-center bg-[#EFEAE1] dark:bg-[#1E1E1C] hover:bg-[#E4DED5] text-[#77736B] dark:text-[#8E8E93] text-sm cursor-pointer"
+                    className="w-8 h-8 rounded-xl flex items-center justify-center bg-[#EFEAE1] dark:bg-[#1E1E1C] hover:bg-[#E4DED5] text-[#77736B] dark:text-[#8E8E93] transition-colors cursor-pointer"
+                    aria-label="Close"
                   >
-                    ✕
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -894,22 +896,24 @@ export default function ChessAdminMatchesPage() {
 
         {/* CREATE MANUAL MATCH MODAL WITH CUSTOM ROUND NAME / GRAND FINAL */}
         {showCreateModal && (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-5 text-xs text-[#171715] dark:text-[#FAF8F3]">
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all">
+            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#2B2B28] rounded-2xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 text-[#171715] dark:text-[#FAF8F3] antialiased">
               <div className="border-b border-[#D5CFC5] dark:border-[#262624] pb-3 flex justify-between items-center">
                 <div>
-                  <span className="text-[10px] font-mono font-semibold text-[#77736B] dark:text-[#A8A49C] uppercase tracking-wider block">
+                  <span className="text-[11px] font-sans font-bold text-[#77736B] dark:text-[#A8A49C] uppercase tracking-[0.14em] block">
                     MANUAL PAIRING CREATOR
                   </span>
-                  <h3 className="text-base font-bold font-serif text-[#171715] dark:text-[#FAF8F3] mt-0.5">
+                  <h3 className="text-xl font-bold font-sans text-[#171715] dark:text-[#FAF8F3] mt-0.5 tracking-tight">
                     Schedule New Chess Match
                   </h3>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#EFEAE1] dark:hover:bg-[#1D1D1B] text-[#77736B] dark:text-[#8E8E93] text-sm cursor-pointer"
+                  className="w-8 h-8 flex items-center justify-center rounded-xl bg-[#EFEAE1]/70 dark:bg-[#1E1E1C] hover:bg-[#E4DED5] dark:hover:bg-[#282826] text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715] dark:hover:text-[#FAF8F3] transition-colors cursor-pointer"
+                  aria-label="Close"
                 >
-                  ✕
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
@@ -917,16 +921,16 @@ export default function ChessAdminMatchesPage() {
                 {/* Custom Round Name & Stage */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="block font-semibold text-[#171715] dark:text-[#FAF8F3]">
-                      Tournament Stage / Round Name *
+                    <label className="block text-xs font-bold text-[#171715] dark:text-[#FAF8F3]">
+                      Tournament Round / Stage <span className="text-rose-500">*</span>
                     </label>
-                    <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93]">
-                      Click preset or type custom
+                    <span className="text-[11px] font-sans font-medium text-[#77736B] dark:text-[#8E8E93]">
+                      Round {manualRound}
                     </span>
                   </div>
 
                   {/* Preset quick selection pills */}
-                  <div className="flex flex-wrap gap-1.5 mb-2">
+                  <div className="flex flex-wrap gap-1.5 mb-2.5">
                     {ROUND_PRESETS.map((p) => (
                       <button
                         key={p.label}
@@ -935,10 +939,10 @@ export default function ChessAdminMatchesPage() {
                           setManualRoundName(p.label);
                           setManualRound(p.round);
                         }}
-                        className={`text-[10px] font-mono px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                        className={`text-[11px] font-sans font-medium px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
                           manualRoundName === p.label
-                            ? 'bg-[#22221F] text-white dark:bg-[#FAF8F3] dark:text-[#0D0D0D] border-transparent font-bold shadow-xs'
-                            : 'bg-[#F5F2EB] dark:bg-[#1D1D1B] border-[#D5CFC5] dark:border-[#262624] text-[#77736B] hover:text-[#171715] dark:hover:text-[#FAF8F3]'
+                            ? 'bg-[#171715] text-white dark:bg-[#FAF8F3] dark:text-[#0D0D0D] border-transparent font-semibold shadow-xs'
+                            : 'bg-[#F2ECE1]/80 dark:bg-[#1D1D1B] border-[#D5CFC5] dark:border-[#262624] text-[#6E685F] hover:text-[#171715] dark:hover:text-[#FAF8F3]'
                         }`}
                       >
                         {p.label}
@@ -946,80 +950,116 @@ export default function ChessAdminMatchesPage() {
                     ))}
                   </div>
 
-                  {/* Text input where admin can name the round like "Grand Final", "Final", etc. */}
-                  <input
-                    type="text"
-                    value={manualRoundName}
-                    onChange={(e) => setManualRoundName(e.target.value)}
-                    placeholder="e.g. Grand Final, Final, Semi-Final, Round 1..."
-                    className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl p-2.5 font-bold text-sm text-[#171715] dark:text-[#FAF8F3] focus:outline-none"
-                    required
-                  />
+                  {/* Dual Input: Round Number + Custom Stage Name */}
+                  <div className="grid grid-cols-4 gap-2">
+                    <div className="col-span-1">
+                      <label className="block text-[10px] font-medium text-[#77736B] dark:text-[#8E8E93] mb-1">
+                        Round No.
+                      </label>
+                      <input
+                        type="number"
+                        min={1}
+                        max={20}
+                        value={manualRound}
+                        onChange={(e) => {
+                          const r = Number(e.target.value) || 1;
+                          setManualRound(r);
+                          if (!manualRoundName || manualRoundName.startsWith('Round ')) {
+                            setManualRoundName(`Round ${r}`);
+                          }
+                        }}
+                        className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#2A2A28] focus:border-[#171715] dark:focus:border-[#FAF8F3] focus:ring-1 focus:ring-[#171715]/15 rounded-xl px-2.5 py-2.5 font-bold text-sm text-center text-[#171715] dark:text-[#FAF8F3] focus:outline-none transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                    </div>
+                    <div className="col-span-3">
+                      <label className="block text-[10px] font-medium text-[#77736B] dark:text-[#8E8E93] mb-1">
+                        Stage / Match Title
+                      </label>
+                      <input
+                        type="text"
+                        value={manualRoundName}
+                        onChange={(e) => setManualRoundName(e.target.value)}
+                        placeholder="e.g. Grand Final, Final, Semi-Final, Round 1..."
+                        className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#2A2A28] focus:border-[#171715] dark:focus:border-[#FAF8F3] focus:ring-1 focus:ring-[#171715]/15 rounded-xl px-3.5 py-2.5 font-medium text-sm text-[#171715] dark:text-[#FAF8F3] focus:outline-none transition-all"
+                        required
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-[#171715] dark:text-[#FAF8F3] mb-1">
-                    Player 1 (White Pieces) *
+                  <label className="block font-semibold text-xs text-[#171715] dark:text-[#FAF8F3] mb-1.5 flex items-center justify-between">
+                    <span>Player 1 (White Pieces) <span className="text-rose-500">*</span></span>
+                    <span className="text-[10px] font-normal text-[#77736B] dark:text-[#8E8E93]">⚪ White moves first</span>
                   </label>
-                  <select
-                    value={manualP1}
-                    onChange={(e) => setManualP1(e.target.value)}
-                    className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] rounded-xl p-2.5 font-medium text-[#171715] dark:text-[#FAF8F3] focus:outline-none"
-                    required
-                  >
-                    <option value="">Select White Player...</option>
-                    {players.map((p) => (
-                      <option key={p._id || p.playerId} value={p._id || p.playerId}>
-                        {p.fullName} ({p.playerId} • {p.department})
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      value={manualP1}
+                      onChange={(e) => setManualP1(e.target.value)}
+                      className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#2A2A28] focus:border-[#171715] dark:focus:border-[#FAF8F3] focus:ring-1 focus:ring-[#171715]/15 rounded-xl py-2.5 pl-3.5 pr-10 font-medium text-sm text-[#171715] dark:text-[#FAF8F3] appearance-none focus:outline-none cursor-pointer transition-all"
+                      required
+                    >
+                      <option value="">Select White Player...</option>
+                      {players.map((p) => (
+                        <option key={p._id || p.playerId} value={p._id || p.playerId}>
+                          {p.fullName} ({p.playerId} • {p.department})
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="w-4 h-4 text-[#77736B] dark:text-[#8E8E93] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-[#171715] dark:text-[#FAF8F3] mb-1">
-                    Player 2 (Black Pieces)
+                  <label className="block font-semibold text-xs text-[#171715] dark:text-[#FAF8F3] mb-1.5 flex items-center justify-between">
+                    <span>Player 2 (Black Pieces)</span>
+                    <span className="text-[10px] font-normal text-[#77736B] dark:text-[#8E8E93]">⚫ Leave empty for Bye</span>
                   </label>
-                  <select
-                    value={manualP2}
-                    onChange={(e) => setManualP2(e.target.value)}
-                    className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] rounded-xl p-2.5 font-medium text-[#171715] dark:text-[#FAF8F3] focus:outline-none"
-                  >
-                    <option value="">Select Black Player (or leave empty for Bye)...</option>
-                    {players.map((p) => (
-                      <option key={p._id || p.playerId} value={p._id || p.playerId}>
-                        {p.fullName} ({p.playerId} • {p.department})
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      value={manualP2}
+                      onChange={(e) => setManualP2(e.target.value)}
+                      className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#2A2A28] focus:border-[#171715] dark:focus:border-[#FAF8F3] focus:ring-1 focus:ring-[#171715]/15 rounded-xl py-2.5 pl-3.5 pr-10 font-medium text-sm text-[#171715] dark:text-[#FAF8F3] appearance-none focus:outline-none cursor-pointer transition-all"
+                    >
+                      <option value="">Select Black Player (or leave empty for Bye)...</option>
+                      {players.map((p) => (
+                        <option key={p._id || p.playerId} value={p._id || p.playerId}>
+                          {p.fullName} ({p.playerId} • {p.department})
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="w-4 h-4 text-[#77736B] dark:text-[#8E8E93] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  </div>
                 </div>
 
                 {/* Match Duration Notice */}
-                <div className="bg-[#EFEAE1]/70 dark:bg-[#1E1E1C] p-3 rounded-xl border border-[#D5CFC5] dark:border-[#282826] flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-amber-600" />
+                <div className="bg-[#F0EBE0]/80 dark:bg-[#191917] p-3.5 rounded-xl border border-[#D5CFC5] dark:border-[#2A2A28] flex items-center justify-between shadow-xs">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/15 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0">
+                      <Clock className="w-4 h-4" />
+                    </div>
                     <div>
-                      <span className="font-bold text-[#171715] dark:text-[#FAF8F3] block">Match Duration</span>
-                      <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93]">Strict official tournament speed clock</span>
+                      <span className="font-bold text-xs text-[#171715] dark:text-[#FAF8F3] block">Match Duration</span>
+                      <span className="text-[11px] text-[#77736B] dark:text-[#8E8E93]">Strict official tournament speed clock</span>
                     </div>
                   </div>
-                  <span className="font-mono font-bold text-xs bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400 px-2.5 py-1 rounded-full border border-amber-300 dark:border-amber-800">
+                  <span className="font-sans font-bold text-xs bg-amber-500/15 dark:bg-amber-500/25 text-amber-800 dark:text-amber-300 px-3 py-1 rounded-full border border-amber-400/40 dark:border-amber-600/30 shrink-0">
                     10:00 Minutes
                   </span>
                 </div>
 
-                <div className="pt-3 border-t border-[#D5CFC5] dark:border-[#262624] flex justify-end gap-2.5">
+                <div className="pt-3 border-t border-[#D5CFC5] dark:border-[#262624] flex items-center justify-end gap-2.5">
                   <button
                     type="button"
                     onClick={() => setShowCreateModal(false)}
-                    className="px-4 py-2 border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1] dark:bg-[#1D1D1B] text-[#171715] dark:text-[#FAF8F3] rounded-xl font-semibold hover:bg-[#E4DED5] dark:hover:bg-[#262624] transition-colors cursor-pointer"
+                    className="px-5 py-2.5 border border-[#D5CFC5] dark:border-[#2A2A28] bg-transparent hover:bg-[#EFEAE1] dark:hover:bg-[#1E1E1C] text-[#171715] dark:text-[#FAF8F3] rounded-xl font-semibold text-xs tracking-wider uppercase transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={creatingMatch}
-                    className="px-5 py-2 bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] rounded-xl font-semibold uppercase tracking-wider transition-all shadow-xs flex items-center gap-2 cursor-pointer"
+                    className="px-6 py-2.5 bg-[#171715] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-white dark:text-[#0D0D0D] rounded-xl font-bold text-xs tracking-wider uppercase transition-all shadow-xs flex items-center gap-2 cursor-pointer disabled:opacity-50"
                   >
                     {creatingMatch ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                     <span>Create Pairing</span>
@@ -1032,22 +1072,24 @@ export default function ChessAdminMatchesPage() {
 
         {/* Enter Final Result Modal */}
         {resultModalMatch && (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-5 text-xs text-[#171715] dark:text-[#FAF8F3]">
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all">
+            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#2B2B28] rounded-2xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 text-[#171715] dark:text-[#FAF8F3] antialiased">
               <div className="border-b border-[#D5CFC5] dark:border-[#262624] pb-3 flex justify-between items-center">
                 <div>
-                  <span className="text-[10px] font-mono font-semibold text-[#77736B] dark:text-[#A8A49C] uppercase tracking-wider block">
+                  <span className="text-[11px] font-sans font-bold text-[#77736B] dark:text-[#A8A49C] uppercase tracking-[0.14em] block">
                     FINAL SCORING & DECISION
                   </span>
-                  <h3 className="text-base font-bold font-serif text-[#171715] dark:text-[#FAF8F3] mt-0.5">
+                  <h3 className="text-xl font-bold font-sans text-[#171715] dark:text-[#FAF8F3] mt-0.5 tracking-tight">
                     Match Result — {resultModalMatch.matchId} ({resultModalMatch.roundName || `Round ${resultModalMatch.round}`})
                   </h3>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setResultModalMatch(null)}
-                  className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#EFEAE1] dark:hover:bg-[#1D1D1B] text-[#77736B] dark:text-[#8E8E93] text-sm cursor-pointer"
+                  className="w-8 h-8 flex items-center justify-center rounded-xl bg-[#EFEAE1]/70 dark:bg-[#1E1E1C] hover:bg-[#E4DED5] dark:hover:bg-[#282826] text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715] dark:hover:text-[#FAF8F3] transition-colors cursor-pointer"
+                  aria-label="Close"
                 >
-                  ✕
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
@@ -1055,10 +1097,10 @@ export default function ChessAdminMatchesPage() {
                 {/* Captured counts player 1 */}
                 <div className="bg-[#F5F2EB] dark:bg-[#1D1D1B] p-3.5 rounded-xl border border-[#D5CFC5] dark:border-[#262624]">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold font-serif text-[#171715] dark:text-[#FAF8F3]">
+                    <span className="font-bold font-sans text-xs text-[#171715] dark:text-[#FAF8F3]">
                       ⚪ {resultModalMatch.player1?.fullName} (White) Captured Pieces:
                     </span>
-                    <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93]">
+                    <span className="text-[11px] font-sans font-bold text-amber-800 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/40 px-2 py-0.5 rounded-md border border-amber-300 dark:border-amber-800/60">
                       {calcMaterial(p1Captured)} pts
                     </span>
                   </div>
@@ -1071,7 +1113,7 @@ export default function ChessAdminMatchesPage() {
                           <span className="text-[10px] font-bold block text-[#171715] dark:text-[#FAF8F3]">
                             {label}
                           </span>
-                          <span className="text-[9px] font-mono text-[#77736B] dark:text-[#8E8E93] mb-1">
+                          <span className="text-[9px] font-sans text-[#77736B] dark:text-[#8E8E93] mb-1">
                             Max {max}
                           </span>
                           <div className="flex items-center gap-1 w-full justify-center">
@@ -1092,7 +1134,7 @@ export default function ChessAdminMatchesPage() {
                                 const raw = Number(e.target.value) || 0;
                                 setP1Captured(prev => ({ ...prev, [key]: Math.max(0, Math.min(max, raw)) }));
                               }}
-                              className="w-8 bg-transparent text-center font-mono font-bold text-xs text-[#171715] dark:text-[#FAF8F3] focus:outline-none"
+                              className="w-8 bg-transparent text-center font-bold text-xs text-[#171715] dark:text-[#FAF8F3] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             />
                             <button
                               type="button"
@@ -1112,10 +1154,10 @@ export default function ChessAdminMatchesPage() {
                 {/* Captured counts player 2 */}
                 <div className="bg-[#F5F2EB] dark:bg-[#1D1D1B] p-3.5 rounded-xl border border-[#D5CFC5] dark:border-[#262624]">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold font-serif text-[#171715] dark:text-[#FAF8F3]">
+                    <span className="font-bold font-sans text-xs text-[#171715] dark:text-[#FAF8F3]">
                       ⚫ {resultModalMatch.player2?.fullName} (Black) Captured Pieces:
                     </span>
-                    <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93]">
+                    <span className="text-[11px] font-sans font-bold text-amber-800 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/40 px-2 py-0.5 rounded-md border border-amber-300 dark:border-amber-800/60">
                       {calcMaterial(p2Captured)} pts
                     </span>
                   </div>
@@ -1128,7 +1170,7 @@ export default function ChessAdminMatchesPage() {
                           <span className="text-[10px] font-bold block text-[#171715] dark:text-[#FAF8F3]">
                             {label}
                           </span>
-                          <span className="text-[9px] font-mono text-[#77736B] dark:text-[#8E8E93] mb-1">
+                          <span className="text-[9px] font-sans text-[#77736B] dark:text-[#8E8E93] mb-1">
                             Max {max}
                           </span>
                           <div className="flex items-center gap-1 w-full justify-center">
@@ -1149,7 +1191,7 @@ export default function ChessAdminMatchesPage() {
                                 const raw = Number(e.target.value) || 0;
                                 setP2Captured(prev => ({ ...prev, [key]: Math.max(0, Math.min(max, raw)) }));
                               }}
-                              className="w-8 bg-transparent text-center font-mono font-bold text-xs text-[#171715] dark:text-[#FAF8F3] focus:outline-none"
+                              className="w-8 bg-transparent text-center font-bold text-xs text-[#171715] dark:text-[#FAF8F3] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             />
                             <button
                               type="button"
@@ -1168,44 +1210,50 @@ export default function ChessAdminMatchesPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block font-semibold text-[#171715] dark:text-[#FAF8F3] mb-1">
+                    <label className="block font-semibold text-xs text-[#171715] dark:text-[#FAF8F3] mb-1.5">
                       Declare Winner
                     </label>
-                    <select
-                      value={winnerChoice}
-                      onChange={(e) => setWinnerChoice(e.target.value)}
-                      className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl p-2.5 font-medium text-[#171715] dark:text-[#FAF8F3] focus:outline-none"
-                    >
-                      <option value="none">Auto-Calculate from Material Score</option>
-                      <option value="player1">Player 1 ({resultModalMatch.player1?.fullName})</option>
-                      <option value="player2">Player 2 ({resultModalMatch.player2?.fullName})</option>
-                      <option value="draw">Draw</option>
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={winnerChoice}
+                        onChange={(e) => setWinnerChoice(e.target.value)}
+                        className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#2A2A28] focus:border-[#171715] dark:focus:border-[#FAF8F3] focus:ring-1 focus:ring-[#171715]/15 rounded-xl py-2.5 pl-3.5 pr-10 font-medium text-sm text-[#171715] dark:text-[#FAF8F3] appearance-none focus:outline-none cursor-pointer transition-all"
+                      >
+                        <option value="none">Auto-Calculate from Material Score</option>
+                        <option value="player1">Player 1 ({resultModalMatch.player1?.fullName})</option>
+                        <option value="player2">Player 2 ({resultModalMatch.player2?.fullName})</option>
+                        <option value="draw">Draw</option>
+                      </select>
+                      <ChevronDown className="w-4 h-4 text-[#77736B] dark:text-[#8E8E93] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
                   </div>
 
                   <div>
-                    <label className="block font-semibold text-[#171715] dark:text-[#FAF8F3] mb-1">
+                    <label className="block font-semibold text-xs text-[#171715] dark:text-[#FAF8F3] mb-1.5">
                       Result Type
                     </label>
-                    <select
-                      value={resultTypeChoice}
-                      onChange={(e) => setResultTypeChoice(e.target.value)}
-                      className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl p-2.5 font-medium text-[#171715] dark:text-[#FAF8F3] focus:outline-none"
-                    >
-                      <option value="checkmate">Checkmate</option>
-                      <option value="time_out">Time Out (10:00 Expired)</option>
-                      <option value="resignation">Resignation</option>
-                      <option value="points">Points Leader</option>
-                      <option value="draw_agreed">Draw Agreed</option>
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={resultTypeChoice}
+                        onChange={(e) => setResultTypeChoice(e.target.value)}
+                        className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#2A2A28] focus:border-[#171715] dark:focus:border-[#FAF8F3] focus:ring-1 focus:ring-[#171715]/15 rounded-xl py-2.5 pl-3.5 pr-10 font-medium text-sm text-[#171715] dark:text-[#FAF8F3] appearance-none focus:outline-none cursor-pointer transition-all"
+                      >
+                        <option value="checkmate">Checkmate</option>
+                        <option value="time_out">Time Out (10:00 Expired)</option>
+                        <option value="resignation">Resignation</option>
+                        <option value="points">Points Leader</option>
+                        <option value="draw_agreed">Draw Agreed</option>
+                      </select>
+                      <ChevronDown className="w-4 h-4 text-[#77736B] dark:text-[#8E8E93] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-[#D5CFC5] dark:border-[#262624] flex justify-end gap-2.5">
+                <div className="pt-3 border-t border-[#D5CFC5] dark:border-[#262624] flex items-center justify-end gap-2.5">
                   <button
                     type="button"
                     onClick={() => setResultModalMatch(null)}
-                    className="px-4 py-2 border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1] dark:bg-[#1D1D1B] text-[#171715] dark:text-[#FAF8F3] rounded-xl font-semibold hover:bg-[#E4DED5] dark:hover:bg-[#262624] transition-colors cursor-pointer"
+                    className="px-5 py-2.5 border border-[#D5CFC5] dark:border-[#2A2A28] bg-transparent hover:bg-[#EFEAE1] dark:hover:bg-[#1E1E1C] text-[#171715] dark:text-[#FAF8F3] rounded-xl font-semibold text-xs tracking-wider uppercase transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -1213,7 +1261,7 @@ export default function ChessAdminMatchesPage() {
                   <button
                     type="submit"
                     disabled={submitLoading}
-                    className="px-5 py-2 bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] rounded-xl font-semibold uppercase tracking-wider transition-all shadow-xs cursor-pointer"
+                    className="px-6 py-2.5 bg-[#171715] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-white dark:text-[#0D0D0D] rounded-xl font-bold text-xs tracking-wider uppercase transition-all shadow-xs cursor-pointer disabled:opacity-50"
                   >
                     {submitLoading ? 'Saving...' : 'Submit Result'}
                   </button>
