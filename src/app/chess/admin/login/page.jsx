@@ -10,7 +10,7 @@ import { useChessTheme } from '@/context/ChessThemeContext';
 export default function ChessAdminLoginPage() {
   const router = useRouter();
   const { theme, toggleTheme, mounted } = useChessTheme();
-  const [credentials, setCredentials] = useState({ username: 'admin', password: 'admin123' });
+  const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -51,7 +51,9 @@ export default function ChessAdminLoginPage() {
         <div className="relative z-10 flex items-center justify-between">
           <Link href="/chess" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-xl bg-[#FAF8F3] text-[#0D0D0D] flex items-center justify-center font-bold text-xl shadow-md group-hover:scale-105 transition-transform">
-              ♛
+              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z" />
+              </svg>
             </div>
             <div>
               <span className="text-base font-bold tracking-tight text-[#FAF8F3] block leading-none font-serif">
@@ -130,7 +132,7 @@ export default function ChessAdminLoginPage() {
           {/* Header */}
           <div className="space-y-2">
             <div className="w-10 h-10 rounded-xl bg-[#22221F] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] flex items-center justify-center font-bold text-lg shadow-xs">
-              ♟
+              <Lock className="w-5 h-5" />
             </div>
             <span className="text-[10px] font-mono text-[#77736B] dark:text-[#A8A49C] font-semibold uppercase tracking-widest block pt-1">
               AUTHORIZED ACCESS ONLY
@@ -160,25 +162,24 @@ export default function ChessAdminLoginPage() {
                 type="text"
                 value={credentials.username}
                 onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
-                placeholder="admin"
+                placeholder="Enter username"
                 required
+                autoComplete="username"
                 className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-4 py-3 text-xs text-[#171715] dark:text-[#FAF8F3] placeholder-[#77736B] focus:outline-none transition-all"
               />
             </div>
 
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="block text-xs font-mono font-semibold text-[#171715] dark:text-[#FAF8F3] uppercase tracking-wider">
-                  Password
-                </label>
-                <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93] font-mono">Default: admin123</span>
-              </div>
+              <label className="block text-xs font-mono font-semibold text-[#171715] dark:text-[#FAF8F3] uppercase tracking-wider">
+                Password
+              </label>
               <input
                 type="password"
                 value={credentials.password}
                 onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-                placeholder="••••••••"
+                placeholder="Enter password"
                 required
+                autoComplete="current-password"
                 className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-4 py-3 text-xs text-[#171715] dark:text-[#FAF8F3] placeholder-[#77736B] focus:outline-none transition-all"
               />
             </div>
