@@ -80,7 +80,7 @@ export function CategoryCoinPair({ category = 'boys_singles', className = '' }) 
 }
 
 // Subtle Carrom Board Geometric Watermark / Graphic
-export function CarromBoardGeometry({ className = '' }) {
+export function CarromBoardGeometry({ className = '', hideCenter = false }) {
   return (
     <svg
       viewBox="0 0 400 400"
@@ -93,9 +93,13 @@ export function CarromBoardGeometry({ className = '' }) {
       <rect x="36" y="36" width="328" height="328" rx="8" stroke="currentColor" strokeWidth="1" className="text-[#4A4238]/8 dark:text-[#D4A94C]/8" />
 
       {/* Center circle */}
-      <circle cx="200" cy="200" r="45" stroke="currentColor" strokeWidth="1.5" className="text-[#4A4238]/15 dark:text-[#D4A94C]/15" />
-      <circle cx="200" cy="200" r="16" stroke="#E74C3C" strokeWidth="1.5" strokeOpacity="0.25" />
-      <circle cx="200" cy="200" r="4" fill="#E74C3C" fillOpacity="0.4" />
+      {!hideCenter && (
+        <>
+          <circle cx="200" cy="200" r="45" stroke="currentColor" strokeWidth="1.5" className="text-[#4A4238]/15 dark:text-[#D4A94C]/15" />
+          <circle cx="200" cy="200" r="16" stroke="#E74C3C" strokeWidth="1.5" strokeOpacity="0.25" />
+          <circle cx="200" cy="200" r="4" fill="#E74C3C" fillOpacity="0.4" />
+        </>
+      )}
 
       {/* Diagonal Baseline Arrows */}
       <line x1="75" y1="75" x2="140" y2="140" stroke="currentColor" strokeWidth="1" strokeDasharray="3 3" className="text-[#4A4238]/10 dark:text-[#D4A94C]/8" />

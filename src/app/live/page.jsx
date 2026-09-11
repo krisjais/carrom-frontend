@@ -86,7 +86,7 @@ export default function LivePage() {
     if (!p1 && !p2) {
       return (
         <div className="flex items-center gap-1.5 pt-1">
-          <span className="text-xs text-[#D5C4A1]/80 font-mono tracking-wide">
+          <span className="text-xs text-[#7A614A] font-mono tracking-wide">
             Collegiate Approved Entry
           </span>
         </div>
@@ -96,31 +96,31 @@ export default function LivePage() {
     return (
       <div className="space-y-1.5 pt-2">
         {p1 && (
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-white/[0.07] border border-white/10 backdrop-blur-xs text-xs text-white shadow-xs">
-            <span className={`w-2 h-2 rounded-full ${sideColor === 'white' ? 'bg-[#FAF9F6] ring-1 ring-[#D5C4A1]' : 'bg-[#2A2420] ring-1 ring-white/40'}`} />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-[#F8F4EB] border border-[#D9C8B0] shadow-xs text-xs text-[#2B1B10]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#8C6D4F]" />
             <span className="font-semibold">{p1.fullName || 'Athlete 1'}</span>
             {p1.department && (
-              <span className="px-1.5 py-0.2 rounded bg-black/40 text-[10px] font-mono text-[#D5C4A1] uppercase font-bold tracking-wider">
+              <span className="px-1.5 py-0.5 rounded bg-[#EBE0CD] text-[10px] font-mono text-[#5A3E28] uppercase font-bold tracking-wider">
                 {p1.department}
               </span>
             )}
             {p1.collegeYear && (
-              <span className="text-[10px] text-white/50 font-mono">Yr {p1.collegeYear}</span>
+              <span className="text-[10px] text-[#7A6753] font-mono font-semibold">Yr {p1.collegeYear}</span>
             )}
           </div>
         )}
 
         {p2 && (
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-white/[0.07] border border-white/10 backdrop-blur-xs text-xs text-white shadow-xs ml-0 sm:ml-1">
-            <span className={`w-2 h-2 rounded-full ${sideColor === 'white' ? 'bg-[#FAF9F6] ring-1 ring-[#D5C4A1]' : 'bg-[#2A2420] ring-1 ring-white/40'}`} />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-[#F8F4EB] border border-[#D9C8B0] shadow-xs text-xs text-[#2B1B10] ml-0 sm:ml-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#8C6D4F]" />
             <span className="font-semibold">{p2.fullName || 'Athlete 2'}</span>
             {p2.department && (
-              <span className="px-1.5 py-0.2 rounded bg-black/40 text-[10px] font-mono text-[#D5C4A1] uppercase font-bold tracking-wider">
+              <span className="px-1.5 py-0.5 rounded bg-[#EBE0CD] text-[10px] font-mono text-[#5A3E28] uppercase font-bold tracking-wider">
                 {p2.department}
               </span>
             )}
             {p2.collegeYear && (
-              <span className="text-[10px] text-white/50 font-mono">Yr {p2.collegeYear}</span>
+              <span className="text-[10px] text-[#7A6753] font-mono font-semibold">Yr {p2.collegeYear}</span>
             )}
           </div>
         )}
@@ -176,82 +176,87 @@ export default function LivePage() {
         </div>
       </div>
 
-      {/* 2. THE CHAMPIONSHIP CARROM BOARD ARENA (HERO SHOWPIECE) */}
-      <section className="space-y-4">
+      {/* 2. THE CHAMPIONSHIP CARROM BOARD ARENA (COMPACT HERO SHOWPIECE) */}
+      <section className="space-y-4 max-w-4xl mx-auto w-full">
         {currentMatch ? (
           /* ========================================================================= */
-          /* AUTHENTIC CHAMPIONSHIP CARROM BOARD HERO DISPLAY                           */
+          /* AUTHENTIC CHAMPIONSHIP CARROM BOARD HERO DISPLAY - COMPACT LIGHT THEME     */
           /* ========================================================================= */
-          <div className="relative rounded-3xl p-1.5 sm:p-2.5 bg-gradient-to-b from-[#4A382A] via-[#2F241B] to-[#1C1613] border-2 border-[#5C4736] shadow-[0_24px_70px_-15px_rgba(0,0,0,0.65),0_0_0_1px_rgba(213,196,161,0.2)] overflow-hidden">
+          <div className="relative rounded-2xl sm:rounded-3xl p-1.5 sm:p-2 bg-gradient-to-b from-[#442D1C] via-[#332013] to-[#25160C] border-[3px] border-[#5A3E28] shadow-[0_16px_50px_-10px_rgba(42,26,14,0.3)] overflow-hidden">
             
-            {/* Real Rosewood Carrom Board Outer Rim with Bevel & Corner Net Insets */}
-            <div className="relative rounded-[22px] sm:rounded-[26px] bg-gradient-to-br from-[#1C1A17] via-[#141311] to-[#0D0C0B] p-5 sm:p-8 lg:p-10 text-white overflow-hidden border border-white/5 shadow-inner">
+            {/* Real Polished Birch Plywood Carrom Playing Surface */}
+            <div className="relative rounded-[14px] sm:rounded-[20px] bg-gradient-to-br from-[#FCF9F2] via-[#F7EFE1] to-[#EFE3CF] p-3.5 sm:p-5 lg:p-6 text-[#2B1B10] overflow-hidden border border-[#DFCBB5] shadow-[inset_0_3px_20px_rgba(62,40,24,0.1)]">
               
-              {/* Corner Pockets: Authentic visual insets representing the 4 carrom net pockets */}
-              <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-gradient-to-br from-black to-[#221C18] border border-black/90 shadow-[inset_0_2px_5px_rgba(0,0,0,0.95)] opacity-80 pointer-events-none" />
-              <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-gradient-to-bl from-black to-[#221C18] border border-black/90 shadow-[inset_0_2px_5px_rgba(0,0,0,0.95)] opacity-80 pointer-events-none" />
-              <div className="absolute bottom-3 left-3 w-8 h-8 rounded-full bg-gradient-to-tr from-black to-[#221C18] border border-black/90 shadow-[inset_0_2px_5px_rgba(0,0,0,0.95)] opacity-80 pointer-events-none" />
-              <div className="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-gradient-to-tl from-black to-[#221C18] border border-black/90 shadow-[inset_0_2px_5px_rgba(0,0,0,0.95)] opacity-80 pointer-events-none" />
-
-              {/* Authentic Carrom Center Circles and Arrows Watermark */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.07]">
-                <CarromBoardGeometry className="w-[500px] h-[500px] max-w-none text-[#D4AF37]" />
+              {/* Corner Pockets: Compact authentic visual insets */}
+              <div className="absolute top-2 left-2 sm:top-3 sm:left-3 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-[#1E1712] to-[#0E0A08] border-[1.5px] border-[#8C6D4F] shadow-[inset_0_2px_5px_rgba(0,0,0,0.85)] flex items-center justify-center pointer-events-none">
+                <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-[#0A0705]" />
+              </div>
+              <div className="absolute top-2 right-2 sm:top-3 sm:right-3 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-bl from-[#1E1712] to-[#0E0A08] border-[1.5px] border-[#8C6D4F] shadow-[inset_0_2px_5px_rgba(0,0,0,0.85)] flex items-center justify-center pointer-events-none">
+                <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-[#0A0705]" />
+              </div>
+              <div className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-tr from-[#1E1712] to-[#0E0A08] border-[1.5px] border-[#8C6D4F] shadow-[inset_0_2px_5px_rgba(0,0,0,0.85)] flex items-center justify-center pointer-events-none">
+                <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-[#0A0705]" />
+              </div>
+              <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-tl from-[#1E1712] to-[#0E0A08] border-[1.5px] border-[#8C6D4F] shadow-[inset_0_2px_5px_rgba(0,0,0,0.85)] flex items-center justify-center pointer-events-none">
+                <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-[#0A0705]" />
               </div>
 
-              {/* Ambient Golden Arena Spotlight */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-48 bg-gradient-to-b from-[#D4AF37]/15 to-transparent blur-3xl pointer-events-none" />
+              {/* Authentic Carrom Center Circles and Arrows Watermark */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-15">
+                <CarromBoardGeometry hideCenter className="w-[360px] h-[360px] sm:w-[420px] sm:h-[420px] max-w-none text-[#7D5E3F]" />
+              </div>
+
+              {/* Subtle Warm Arena Spotlight */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-gradient-to-b from-[#D5C4A1]/20 to-transparent blur-2xl pointer-events-none" />
 
               {/* ------------------------------------------------------------- */}
               {/* TOP HUD BAR: Championship Board Status & Match Metadata        */}
               {/* ------------------------------------------------------------- */}
-              <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 pb-5 border-b border-white/10 text-xs">
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  <span className="px-3 py-1 rounded-full bg-[#E74C3C] text-white text-[10px] font-mono font-black tracking-widest uppercase shadow-[0_0_12px_rgba(231,76,60,0.5)] flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+              <div className="relative z-10 flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#DFCBB5] text-xs px-4 sm:px-6">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#E74C3C] text-white text-[9px] font-mono font-black tracking-widest uppercase shadow-xs flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
                     LIVE ON BOARD 01
                   </span>
 
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 backdrop-blur-xs">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/90 border border-[#D5C4A1] text-xs shadow-2xs">
                     <CategoryCoinPair category={currentMatch.category} />
                     <CategoryBadge category={currentMatch.category} />
                   </div>
 
-                  <span className="px-3 py-1 rounded-full bg-[#D5C4A1]/20 border border-[#D5C4A1]/40 text-[#D5C4A1] text-[11px] font-mono font-bold uppercase tracking-wider">
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#EFE4D0] border border-[#D0BF9F] text-[#5A3E28] text-[10px] font-mono font-bold uppercase tracking-wider shadow-2xs">
                     {currentMatch.roundName || 'Championship Round'}
                   </span>
                 </div>
 
-                <div className="flex items-center gap-3 font-mono text-[11px] text-white/70">
+                <div className="flex items-center gap-2 font-mono text-[10px] text-[#635140]">
                   <span className="hidden sm:inline">
-                    Match <strong className="text-white">#{currentMatch.matchNumber}</strong>
+                    Match <strong className="text-[#2B1B10]">#{currentMatch.matchNumber}</strong>
                   </span>
-                  <span className="px-2.5 py-0.5 rounded bg-white/10 text-[#D5C4A1] font-bold">
+                  <span className="px-2 py-0.5 rounded bg-[#E8DEC7] border border-[#D0BF9F] text-[#5A3E28] font-bold">
                     Knockout Decider
                   </span>
                 </div>
               </div>
 
               {/* ------------------------------------------------------------- */}
-              {/* BATTLE ARENA: Side A (White) vs Center Duel (Queen) vs Side B  */}
+              {/* BATTLE ARENA: Side A vs Center Duel (Queen) vs Side B          */}
               {/* ------------------------------------------------------------- */}
-              <div className="relative z-10 grid grid-cols-1 lg:grid-cols-11 items-center gap-6 py-8">
+              <div className="relative z-10 grid grid-cols-1 lg:grid-cols-11 items-center gap-3 sm:gap-4 py-3 sm:py-4">
                 
-                {/* SIDE A: Team 1 (White Coin) */}
-                <div className="lg:col-span-5 relative group rounded-2xl p-6 sm:p-7 bg-white/[0.04] hover:bg-white/[0.06] border border-white/10 backdrop-blur-sm transition-all duration-300 shadow-xl flex flex-col justify-between">
-                  <div className="space-y-3">
+                {/* SIDE A: Team 1 */}
+                <div className="lg:col-span-5 relative group rounded-xl p-3.5 sm:p-4 bg-white/85 hover:bg-white/95 border border-[#D5C4A1] backdrop-blur-xs transition-all duration-300 shadow-xs flex flex-col justify-between">
+                  <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <CarromCoin type="white" size="md" />
-                        <span className="text-[11px] font-mono font-bold tracking-[0.2em] text-[#D5C4A1] uppercase">
-                          SIDE A · WHITE COIN
-                        </span>
-                      </div>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold uppercase">
+                      <span className="text-[10px] font-mono font-bold tracking-[0.2em] text-[#7A614A] uppercase">
+                        SIDE A
+                      </span>
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold uppercase">
                         First Break
                       </span>
                     </div>
 
-                    <h2 className="font-serif font-black text-2xl sm:text-3xl lg:text-4xl text-white tracking-tight leading-tight">
+                    <h2 className="font-serif font-black text-lg sm:text-xl lg:text-2xl text-[#2B1B10] tracking-tight leading-snug truncate">
                       {currentMatch.team1?.name || 'Team 1'}
                     </h2>
 
@@ -259,60 +264,56 @@ export default function LivePage() {
                   </div>
 
                   {/* Spectator Cheer for Team 1 */}
-                  <div className="pt-5 mt-4 border-t border-white/10 flex items-center justify-between">
+                  <div className="pt-2.5 mt-2 border-t border-[#DFCBB5] flex items-center justify-between">
                     <button
                       onClick={() => handleCheer(1)}
-                      className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-mono font-bold transition-all cursor-pointer ${
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-bold transition-all cursor-pointer ${
                         cheerEffect1
-                          ? 'bg-[#E74C3C] text-white scale-105 shadow-[0_0_15px_rgba(231,76,60,0.8)]'
-                          : 'bg-white/10 hover:bg-white/20 text-white/90 border border-white/15'
+                          ? 'bg-[#E74C3C] text-white scale-105 shadow-md'
+                          : 'bg-white hover:bg-[#F8F4EB] text-[#442D1C] border border-[#D5C4A1] shadow-2xs'
                       }`}
                     >
-                      <Heart className={`w-3.5 h-3.5 ${cheerEffect1 ? 'fill-white animate-bounce' : 'fill-rose-500 text-rose-500'}`} />
+                      <Heart className={`w-3 h-3 ${cheerEffect1 ? 'fill-white animate-bounce' : 'fill-rose-500 text-rose-500'}`} />
                       <span>Cheer Side A</span>
                     </button>
-                    <span className="text-[11px] font-mono text-[#D5C4A1] font-semibold">
+                    <span className="text-[10px] font-mono text-[#7A614A] font-bold">
                       {cheersTeam1} Cheers
                     </span>
                   </div>
                 </div>
 
                 {/* CENTER DUEL: Queen Emblem & Clash Marker */}
-                <div className="lg:col-span-1 flex flex-col items-center justify-center my-2 lg:my-0 space-y-3">
+                <div className="lg:col-span-1 flex flex-col items-center justify-center my-1 lg:my-0 space-y-1">
                   <div className="relative flex items-center justify-center">
-                    {/* Glowing Queen Ring */}
-                    <div className="absolute w-16 h-16 rounded-full bg-[#E74C3C]/25 animate-ping pointer-events-none" />
-                    <div className="w-14 h-14 rounded-full bg-[#1F1B18] border-2 border-[#D5C4A1] shadow-[0_0_20px_rgba(213,196,161,0.3)] flex items-center justify-center">
-                      <CarromCoin type="queen" size="md" />
+                    <div className="absolute w-12 h-12 rounded-full bg-[#E74C3C]/15 animate-ping pointer-events-none" />
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#FCF9F2] border-2 border-[#C0392B] shadow-sm flex items-center justify-center">
+                      <CarromCoin type="queen" size="sm" />
                     </div>
                   </div>
 
                   <div className="text-center">
-                    <span className="font-serif italic font-bold text-lg sm:text-xl text-[#D5C4A1] block">
+                    <span className="font-serif italic font-bold text-sm sm:text-base text-[#7A614A] block">
                       VS
                     </span>
-                    <span className="text-[9px] font-mono uppercase tracking-widest text-white/40 block">
-                      Match #{currentMatch.matchNumber}
+                    <span className="text-[8px] font-mono uppercase tracking-widest text-[#937C64] block">
+                      #{currentMatch.matchNumber}
                     </span>
                   </div>
                 </div>
 
-                {/* SIDE B: Team 2 (Black Coin) */}
-                <div className="lg:col-span-5 relative group rounded-2xl p-6 sm:p-7 bg-white/[0.04] hover:bg-white/[0.06] border border-white/10 backdrop-blur-sm transition-all duration-300 shadow-xl flex flex-col justify-between text-left lg:text-right">
-                  <div className="space-y-3">
+                {/* SIDE B: Team 2 */}
+                <div className="lg:col-span-5 relative group rounded-xl p-3.5 sm:p-4 bg-white/85 hover:bg-white/95 border border-[#D5C4A1] backdrop-blur-xs transition-all duration-300 shadow-xs flex flex-col justify-between text-left lg:text-right">
+                  <div className="space-y-2">
                     <div className="flex items-center justify-between lg:flex-row-reverse">
-                      <div className="flex items-center gap-2">
-                        <CarromCoin type="black" size="md" />
-                        <span className="text-[11px] font-mono font-bold tracking-[0.2em] text-[#D5C4A1] uppercase">
-                          SIDE B · BLACK COIN
-                        </span>
-                      </div>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-white/10 text-white/80 border border-white/15 font-bold uppercase">
+                      <span className="text-[10px] font-mono font-bold tracking-[0.2em] text-[#7A614A] uppercase">
+                        SIDE B
+                      </span>
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-[#EFE4D0] text-[#5A3E28] border border-[#D0BF9F] font-bold uppercase">
                         Counter Strike
                       </span>
                     </div>
 
-                    <h2 className="font-serif font-black text-2xl sm:text-3xl lg:text-4xl text-white tracking-tight leading-tight">
+                    <h2 className="font-serif font-black text-lg sm:text-xl lg:text-2xl text-[#2B1B10] tracking-tight leading-snug truncate">
                       {currentMatch.team2?.name || 'Team 2'}
                     </h2>
 
@@ -322,19 +323,19 @@ export default function LivePage() {
                   </div>
 
                   {/* Spectator Cheer for Team 2 */}
-                  <div className="pt-5 mt-4 border-t border-white/10 flex items-center justify-between lg:flex-row-reverse">
+                  <div className="pt-2.5 mt-2 border-t border-[#DFCBB5] flex items-center justify-between lg:flex-row-reverse">
                     <button
                       onClick={() => handleCheer(2)}
-                      className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-mono font-bold transition-all cursor-pointer ${
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-bold transition-all cursor-pointer ${
                         cheerEffect2
-                          ? 'bg-amber-500 text-white scale-105 shadow-[0_0_15px_rgba(245,158,11,0.8)]'
-                          : 'bg-white/10 hover:bg-white/20 text-white/90 border border-white/15'
+                          ? 'bg-amber-600 text-white scale-105 shadow-md'
+                          : 'bg-white hover:bg-[#F8F4EB] text-[#442D1C] border border-[#D5C4A1] shadow-2xs'
                       }`}
                     >
-                      <Flame className={`w-3.5 h-3.5 ${cheerEffect2 ? 'fill-white animate-bounce' : 'fill-amber-400 text-amber-400'}`} />
+                      <Flame className={`w-3 h-3 ${cheerEffect2 ? 'fill-white animate-bounce' : 'fill-amber-600 text-amber-600'}`} />
                       <span>Cheer Side B</span>
                     </button>
-                    <span className="text-[11px] font-mono text-[#D5C4A1] font-semibold">
+                    <span className="text-[10px] font-mono text-[#7A614A] font-bold">
                       {cheersTeam2} Cheers
                     </span>
                   </div>
@@ -343,33 +344,33 @@ export default function LivePage() {
               </div>
 
               {/* ------------------------------------------------------------- */}
-              {/* ARENA STADIUM TIMER: High-Impact Clock Display                */}
+              {/* ARENA STADIUM TIMER: High-Impact Compact Clock Display        */}
               {/* ------------------------------------------------------------- */}
-              <div className="relative z-10 py-3">
+              <div className="relative z-10 py-1 sm:py-2">
                 <CarromMatchTimer match={currentMatch} variant="arena" />
               </div>
 
               {/* ------------------------------------------------------------- */}
               {/* LOWER TELEMETRY STRIP: Broadcast Metadata                     */}
               {/* ------------------------------------------------------------- */}
-              <div className="relative z-10 pt-5 mt-4 border-t border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center sm:text-left text-xs font-mono">
-                <div className="space-y-0.5">
-                  <span className="text-[10px] uppercase text-white/40 block">Official Board</span>
-                  <p className="font-bold text-white text-xs truncate">Table 01 · 29" Sissoo Wood</p>
+              <div className="relative z-10 pt-3 mt-2 border-t border-[#DFCBB5] grid grid-cols-2 sm:grid-cols-4 gap-2 text-center sm:text-left text-[11px] font-mono px-6 sm:px-8">
+                <div className="space-y-0">
+                  <span className="text-[9px] uppercase text-[#7A6753] block font-bold">Official Board</span>
+                  <p className="font-bold text-[#2B1B10] text-[11px] truncate">Table 01 · 29" Sissoo</p>
                 </div>
-                <div className="space-y-0.5">
-                  <span className="text-[10px] uppercase text-white/40 block">Match Format</span>
-                  <p className="font-bold text-[#D5C4A1] text-xs truncate">Single-Game Knockout</p>
+                <div className="space-y-0">
+                  <span className="text-[9px] uppercase text-[#7A6753] block font-bold">Match Format</span>
+                  <p className="font-bold text-[#5A3E28] text-[11px] truncate">Knockout Decider</p>
                 </div>
-                <div className="space-y-0.5">
-                  <span className="text-[10px] uppercase text-white/40 block">Referee Desk</span>
-                  <p className="font-bold text-emerald-400 text-xs truncate flex items-center justify-center sm:justify-start gap-1">
-                    <CheckCircle2 className="w-3 h-3 inline" /> Live Adjudication
+                <div className="space-y-0">
+                  <span className="text-[9px] uppercase text-[#7A6753] block font-bold">Referee Desk</span>
+                  <p className="font-bold text-emerald-800 text-[11px] truncate flex items-center justify-center sm:justify-start gap-1">
+                    <CheckCircle2 className="w-3 h-3 inline text-emerald-700" /> Live In Play
                   </p>
                 </div>
-                <div className="space-y-0.5">
-                  <span className="text-[10px] uppercase text-white/40 block">Next On Deck</span>
-                  <p className="font-bold text-white text-xs truncate">
+                <div className="space-y-0">
+                  <span className="text-[9px] uppercase text-[#7A6753] block font-bold">Next On Deck</span>
+                  <p className="font-bold text-[#2B1B10] text-[11px] truncate">
                     {nextMatch ? `${nextMatch.team1?.name || 'TBD'} vs ${nextMatch.team2?.name || 'TBD'}` : 'Waiting on Bracket'}
                   </p>
                 </div>
@@ -379,60 +380,76 @@ export default function LivePage() {
           </div>
         ) : (
           /* ========================================================================= */
-          /* OPEN ARENA (NO MATCH LIVE RIGHT NOW): INVITATION & SPOTLIGHT               */
+          /* OPEN ARENA (NO MATCH LIVE RIGHT NOW): COMPACT BROWN & BEIGE THEME          */
           /* ========================================================================= */
-          <div className="relative rounded-3xl p-1.5 sm:p-2.5 bg-gradient-to-b from-[#4A382A] via-[#2F241B] to-[#1C1613] border-2 border-[#5C4736] shadow-xl overflow-hidden">
-            <div className="relative rounded-[22px] sm:rounded-[26px] bg-gradient-to-br from-[#1C1A17] via-[#141311] to-[#0D0C0B] p-8 sm:p-14 text-white text-center space-y-6 overflow-hidden">
+          <div className="relative rounded-2xl sm:rounded-3xl p-1.5 sm:p-2 bg-gradient-to-b from-[#442D1C] via-[#332013] to-[#25160C] border-[3px] border-[#5A3E28] shadow-[0_16px_50px_-10px_rgba(42,26,14,0.3)] overflow-hidden">
+            {/* Real Polished Birch Plywood Carrom Playing Surface */}
+            <div className="relative rounded-[14px] sm:rounded-[20px] bg-gradient-to-br from-[#FCF9F2] via-[#F7EFE1] to-[#EFE3CF] p-5 sm:p-8 text-[#2B1B10] text-center space-y-3.5 overflow-hidden border border-[#DFCBB5] shadow-[inset_0_3px_20px_rgba(62,40,24,0.1)]">
               
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.06]">
-                <CarromBoardGeometry className="w-[450px] h-[450px] max-w-none text-[#D4AF37]" />
+              {/* Corner Pockets: Compact authentic visual insets */}
+              <div className="absolute top-2 left-2 sm:top-3 sm:left-3 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-[#1E1712] to-[#0E0A08] border-[1.5px] border-[#8C6D4F] shadow-[inset_0_2px_5px_rgba(0,0,0,0.85)] flex items-center justify-center pointer-events-none">
+                <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-[#0A0705]" />
+              </div>
+              <div className="absolute top-2 right-2 sm:top-3 sm:right-3 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-bl from-[#1E1712] to-[#0E0A08] border-[1.5px] border-[#8C6D4F] shadow-[inset_0_2px_5px_rgba(0,0,0,0.85)] flex items-center justify-center pointer-events-none">
+                <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-[#0A0705]" />
+              </div>
+              <div className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-tr from-[#1E1712] to-[#0E0A08] border-[1.5px] border-[#8C6D4F] shadow-[inset_0_2px_5px_rgba(0,0,0,0.85)] flex items-center justify-center pointer-events-none">
+                <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-[#0A0705]" />
+              </div>
+              <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-tl from-[#1E1712] to-[#0E0A08] border-[1.5px] border-[#8C6D4F] shadow-[inset_0_2px_5px_rgba(0,0,0,0.85)] flex items-center justify-center pointer-events-none">
+                <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-[#0A0705]" />
               </div>
 
-              <div className="relative z-10 w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#2A221C] border-2 border-[#D5C4A1] flex items-center justify-center mx-auto shadow-xl">
-                <CarromCoin type="queen" size="lg" className="shadow-lg" />
+              {/* Authentic Carrom Center Circles and Arrows Watermark */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-15">
+                <CarromBoardGeometry hideCenter className="w-[340px] h-[340px] sm:w-[400px] sm:h-[400px] max-w-none text-[#7D5E3F]" />
               </div>
 
-              <div className="relative z-10 space-y-2 max-w-lg mx-auto">
-                <span className="px-3 py-1 rounded-full bg-[#D5C4A1]/20 border border-[#D5C4A1]/40 text-[#D5C4A1] text-[11px] font-mono font-bold tracking-widest uppercase inline-block">
+              {/* Authentic Center Concentric Carrom Rings with Queen Coin */}
+              <div className="relative z-10 mx-auto flex items-center justify-center">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border border-dashed border-[#C0392B]/40 flex items-center justify-center p-1 bg-gradient-to-b from-[#F4E8D3]/80 to-[#E8DCBF]/80 shadow-inner">
+                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full border-2 border-[#C0392B] bg-[#FCF9F2] flex items-center justify-center shadow-xs">
+                    <CarromCoin type="queen" size="md" className="shadow-xs" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="relative z-10 space-y-1.5 max-w-md mx-auto">
+                <span className="px-3 py-0.5 rounded-full bg-[#EFE4D0] border border-[#D0BF9F] text-[#5A3E28] text-[10px] font-mono font-bold tracking-widest uppercase inline-block shadow-2xs">
                   CHAMPIONSHIP TABLE 01 OPEN
                 </span>
-                <h2 className="text-2xl sm:text-4xl font-serif font-bold text-white tracking-tight">
+                <h2 className="text-xl sm:text-2xl lg:text-3xl font-serif font-black text-[#2B1B10] tracking-tight">
                   Main Carrom Board is Free
                 </h2>
-                <p className="text-xs sm:text-sm text-white/70 leading-relaxed font-sans">
+                <p className="text-xs text-[#635140] leading-relaxed font-sans max-w-sm mx-auto">
                   {nextMatch
-                    ? `Next match on deck: ${nextMatch.team1?.name || 'TBD'} vs ${nextMatch.team2?.name || 'TBD'} in ${nextMatch.roundName}. Waiting for players to report to the referee desk.`
-                    : 'All current scheduled games for this session are complete or pending bracket seeding. Check back shortly for the next knockout round.'}
+                    ? `Next on deck: ${nextMatch.team1?.name || 'TBD'} vs ${nextMatch.team2?.name || 'TBD'} in ${nextMatch.roundName}. Waiting for players to report.`
+                    : 'All scheduled games for this session are complete or pending bracket seeding. Check back shortly for the next round.'}
                 </p>
               </div>
 
               {nextMatch && (
-                <div className="relative z-10 p-4 rounded-2xl bg-white/[0.06] border border-white/10 max-w-md mx-auto space-y-2 text-xs">
-                  <div className="flex items-center justify-between text-[11px] text-[#D5C4A1] font-mono">
+                <div className="relative z-10 p-3 rounded-xl bg-white/90 border border-[#D5C4A1] max-w-sm mx-auto space-y-1.5 text-xs shadow-xs">
+                  <div className="flex items-center justify-between text-[10px] text-[#7A614A] font-mono font-semibold">
                     <span>Next Match On Deck</span>
                     <CategoryBadge category={nextMatch.category} />
                   </div>
-                  <p className="font-serif font-bold text-white text-base">
-                    {nextMatch.team1?.name || 'TBD'} <span className="italic font-normal text-white/60">vs</span> {nextMatch.team2?.name || 'TBD'}
+                  <p className="font-serif font-bold text-[#2B1B10] text-sm">
+                    {nextMatch.team1?.name || 'TBD'} <span className="italic font-normal text-[#7A614A]">vs</span> {nextMatch.team2?.name || 'TBD'}
                   </p>
-                  <p className="text-[11px] text-white/60 font-mono">
+                  <p className="text-[10px] text-[#7A614A] font-mono">
                     Sequential Queue Position #1 · 10m Knockout Round
                   </p>
                 </div>
               )}
 
-              <div className="relative z-10 flex flex-wrap items-center justify-center gap-3 pt-2">
-                <Link
-                  href="/admin/matches"
-                  className="px-5 py-2.5 rounded-xl bg-[#D5C4A1] hover:bg-[#EAE1D0] text-[#3E342B] text-xs font-bold font-mono tracking-wider uppercase transition-all shadow-md"
-                >
-                  Referee Desk Control
-                </Link>
+              <div className="relative z-10 flex flex-wrap items-center justify-center gap-2.5 pt-1">
                 <Link
                   href="/fixtures"
-                  className="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white text-xs font-bold font-mono tracking-wider uppercase transition-all"
+                  className="px-4 py-2 rounded-xl bg-[#442D1C] hover:bg-[#301F12] text-[#FCF9F2] text-xs font-bold font-mono tracking-wider uppercase transition-all shadow-md hover:shadow-lg inline-flex items-center gap-1.5"
                 >
-                  View All Fixtures
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>View All Fixtures</span>
                 </Link>
               </div>
             </div>
