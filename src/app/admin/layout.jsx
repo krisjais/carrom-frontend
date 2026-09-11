@@ -7,7 +7,6 @@ import { AdminSidebar } from '@/components/layout/AdminSidebar';
 import { Menu } from 'lucide-react';
 import AdminLoginPage from './login/page';
 import { CarromCoin } from '@/components/ui/CarromElements';
-import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 export default function AdminLayout({ children }) {
   const router = useRouter();
@@ -50,7 +49,6 @@ export default function AdminLayout({ children }) {
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <ThemeToggle />
           <button
             onClick={() => setMobileMenuOpen(true)}
             className="p-2 rounded-xl bg-[#4A4238] dark:bg-[#181C1F] text-[#D5C4A1] hover:text-white transition-colors cursor-pointer"

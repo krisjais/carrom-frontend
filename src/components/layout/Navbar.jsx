@@ -19,7 +19,6 @@ import {
   Trophy,
   Radio
 } from 'lucide-react';
-import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 // Authentic Concentric Carrom Center Circle Icon
 const CarromBoardIcon = ({ className = 'w-5 h-5 text-white' }) => (
@@ -177,10 +176,6 @@ export const Navbar = () => {
               )}
             </div>
 
-            {/* Theme Toggle (Subtle) */}
-            <div className="hidden sm:flex items-center">
-              <ThemeToggle />
-            </div>
 
             {/* Circular Profile Avatar Badge: [RK] */}
             <div className="relative flex items-center" ref={userDropdownRef}>
@@ -323,10 +318,6 @@ export const Navbar = () => {
             })}
           </div>
 
-          <div className="pt-3 border-t border-[#DCD6C8] dark:border-[#2E2B26] flex items-center justify-between">
-            <span className="text-xs text-[#857B6C] font-mono">Theme Appearance</span>
-            <ThemeToggle />
-          </div>
 
           <div className="pt-2 flex flex-col gap-2">
             <Link

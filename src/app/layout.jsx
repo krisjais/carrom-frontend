@@ -19,11 +19,19 @@ export default function RootLayout({ children }) {
   const themeInitScript = `
     (function() {
       try {
-        var saved = localStorage.getItem('chess-portal-theme') || localStorage.getItem('carrompro-theme');
-        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        var theme = saved || (prefersDark ? 'dark' : 'light');
-        document.documentElement.classList.add(theme);
-        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.removeItem('carrompro-theme');
+        var isChess = window.location.pathname.indexOf('/chess') === 0;
+        if (isChess) {
+          var saved = localStorage.getItem('chess-portal-theme');
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var theme = saved || (prefersDark ? 'dark' : 'light');
+          document.documentElement.classList.add(theme);
+          document.documentElement.setAttribute('data-theme', theme);
+        } else {
+          document.documentElement.classList.remove('dark');
+          document.documentElement.classList.add('light');
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
       } catch (e) {}
     })();
   `;

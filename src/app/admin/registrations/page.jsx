@@ -1129,6 +1129,11 @@ export default function AdminRegistrationsPage() {
                                 Mixed
                               </span>
                             )}
+                            {reg.isAutoCreatedPartner && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40 font-semibold" title="Auto-registered via partner nomination">
+                                Partner Entry
+                              </span>
+                            )}
                           </div>
                         </div>
                       </td>

@@ -18,7 +18,6 @@ import {
   Radio
 } from 'lucide-react';
 import { CarromCoin } from '@/components/ui/CarromElements';
-import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 export const AdminSidebar = ({ isOpen = false, onClose = () => {} }) => {
   const pathname = usePathname();
@@ -131,11 +130,6 @@ export const AdminSidebar = ({ isOpen = false, onClose = () => {} }) => {
 
         {/* Footer Actions */}
         <div className="p-4 border-t border-[#4A4238] dark:border-[#2B3034] space-y-2 text-xs">
-          <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-[#4A4238]/50 dark:bg-[#181C1F] border border-[#4A4238] dark:border-[#2B3034]">
-            <span className="text-[11px] font-mono uppercase text-[#D5C4A1] dark:text-[#B8B1A5] font-bold">Theme</span>
-            <ThemeToggle />
-          </div>
-
           <Link
             href="/"
             target="_blank"

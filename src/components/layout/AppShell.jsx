@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Navbar } from '@/components/layout/Navbar';
 import { LiveTicker } from '@/components/layout/LiveTicker';
@@ -11,6 +11,16 @@ export function AppShell({ children }) {
   const pathname = usePathname();
   const isAdminRoute = pathname?.startsWith('/admin');
   const isChessRoute = pathname?.startsWith('/chess');
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (!isChessRoute) {
+      // Carrom routes: ALWAYS strictly light mode
+      root.classList.remove('dark');
+      root.classList.add('light');
+      root.setAttribute('data-theme', 'light');
+    }
+  }, [isChessRoute, pathname]);
 
   if (isChessRoute) {
     return (

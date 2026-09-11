@@ -125,10 +125,10 @@ export default function RegistrationPage() {
             registration: res.registration,
             events,
             doublesValidation: formData.participateDoubles
-              ? { status: 'partner_not_registered', requestedName: formData.doublesPartnerName }
+              ? { status: 'pending_approval', requestedName: formData.doublesPartnerName, message: 'Partner automatically registered & pending approval' }
               : { status: 'not_participating', message: 'Not participating in Doubles' },
             mixedDoublesValidation: formData.participateMixedDoubles
-              ? { status: 'partner_not_registered', requestedName: formData.mixedDoublesPartnerName }
+              ? { status: 'pending_approval', requestedName: formData.mixedDoublesPartnerName, message: 'Partner automatically registered & pending approval' }
               : { status: 'not_participating', message: 'Not participating in Mixed Doubles' }
           });
         }
@@ -355,6 +355,10 @@ export default function RegistrationPage() {
                       <span className="inline-flex items-center gap-1.5 text-[10px] bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-800/40 font-bold font-mono">
                         <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> Partner Registered
                       </span>
+                    ) : statusRecord.doublesValidation?.status === 'pending_approval' ? (
+                      <span className="inline-flex items-center gap-1.5 text-[10px] bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 px-3 py-1 rounded-full border border-amber-200 dark:border-amber-800/40 font-bold font-mono">
+                        <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400" /> Partner Registered (Awaiting Approval)
+                      </span>
                     ) : (
                       <span className="inline-flex items-center gap-1.5 text-[10px] bg-white dark:bg-[#15191C] text-[#7E7060] dark:text-[#817B72] px-3 py-1 rounded-full border border-[#E8E1D5] dark:border-[#2B3034] font-mono">
                         <Clock className="w-3 h-3 text-[#B8A47E]" /> Partner Not Registered Yet
@@ -386,6 +390,10 @@ export default function RegistrationPage() {
                     ) : statusRecord.mixedDoublesValidation?.status === 'partner_registered' ? (
                       <span className="inline-flex items-center gap-1.5 text-[10px] bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-800/40 font-bold font-mono">
                         <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> Partner Registered
+                      </span>
+                    ) : statusRecord.mixedDoublesValidation?.status === 'pending_approval' ? (
+                      <span className="inline-flex items-center gap-1.5 text-[10px] bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 px-3 py-1 rounded-full border border-amber-200 dark:border-amber-800/40 font-bold font-mono">
+                        <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400" /> Partner Registered (Awaiting Approval)
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1.5 text-[10px] bg-white dark:bg-[#15191C] text-[#7E7060] dark:text-[#817B72] px-3 py-1 rounded-full border border-[#E8E1D5] dark:border-[#2B3034] font-mono">
@@ -673,9 +681,9 @@ export default function RegistrationPage() {
             ) : (
               <>
                 <div className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-xs space-y-1 text-[#7E7060] dark:text-[#B8B1A5]">
-                  <p className="font-bold text-[#3E342B] dark:text-[#F5F1E8] uppercase text-[11px] font-mono">Independent Partner Matching:</p>
+                  <p className="font-bold text-[#3E342B] dark:text-[#F5F1E8] uppercase text-[11px] font-mono">Partner Auto-Registration:</p>
                   <p>
-                    Partners are always chosen by the players (never randomly assigned). Your nominated partner can register before or after you; the system will verify and pair your team automatically.
+                    Partners are chosen by you (never randomly assigned). <strong>If your partner only plays Doubles or Mixed Doubles with you, they do NOT need to register separately!</strong> The system automatically registers them and links your team upon approval.
                   </p>
                 </div>
 

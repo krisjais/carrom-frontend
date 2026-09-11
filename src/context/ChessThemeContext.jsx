@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 const ChessThemeContext = createContext({
   theme: 'light',
@@ -9,6 +10,8 @@ const ChessThemeContext = createContext({
 });
 
 export function ChessThemeProvider({ children }) {
+  const pathname = usePathname();
+  const isChessRoute = pathname?.startsWith('/chess');
   const [theme, setThemeState] = useState('light');
   const [mounted, setMounted] = useState(false);
 
@@ -17,16 +20,29 @@ export function ChessThemeProvider({ children }) {
     const saved = localStorage.getItem('chess-portal-theme');
     if (saved === 'dark' || saved === 'light') {
       setThemeState(saved);
-      applyTheme(saved);
+      if (isChessRoute) applyTheme(saved);
     } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
       const initial = prefersDark ? 'dark' : 'light';
       setThemeState(initial);
-      applyTheme(initial);
+      if (isChessRoute) applyTheme(initial);
     }
   }, []);
 
+  // Sync theme to root element only when on Chess routes
+  useEffect(() => {
+    if (!mounted) return;
+    if (isChessRoute) {
+      applyTheme(theme);
+    }
+  }, [isChessRoute, theme, mounted]);
+
   const applyTheme = (newTheme) => {
+    // Only apply to HTML element if currently browsing Chess
+    if (typeof window === 'undefined') return;
+    const isCurrentChess = window.location.pathname.indexOf('/chess') === 0;
+    if (!isCurrentChess) return;
+
     const root = document.documentElement;
     if (newTheme === 'dark') {
       root.classList.add('dark');
@@ -40,8 +56,12 @@ export function ChessThemeProvider({ children }) {
 
   const setTheme = (newTheme) => {
     setThemeState(newTheme);
-    localStorage.setItem('chess-portal-theme', newTheme);
-    applyTheme(newTheme);
+    try {
+      localStorage.setItem('chess-portal-theme', newTheme);
+    } catch (e) {}
+    if (isChessRoute) {
+      applyTheme(newTheme);
+    }
   };
 
   const toggleTheme = () => {
