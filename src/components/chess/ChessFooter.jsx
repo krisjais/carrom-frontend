@@ -13,7 +13,9 @@ export function ChessFooter() {
           <div className="space-y-2 max-w-sm">
             <Link href="/chess" className="flex items-center gap-3 group">
               <div className="w-8 h-8 rounded-full bg-[#22221F] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] font-bold flex items-center justify-center text-base shadow-xs group-hover:scale-105 transition-transform">
-                ♛
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
+                </svg>
               </div>
               <span className="text-lg font-bold font-serif tracking-tight text-[#171715] dark:text-[#FAF8F3]">
                 CHESS CHAMPIONSHIP
@@ -41,7 +43,6 @@ export function ChessFooter() {
           </div>
           <div className="flex items-center gap-6">
             <Link href="/chess/rules" className="hover:underline">Tournament Regulations</Link>
-            <Link href="/chess/admin/login" className="hover:underline">Admin Console</Link>
           </div>
         </div>
 

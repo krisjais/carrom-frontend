@@ -57,13 +57,13 @@ function calcMaterial(captured) {
 }
 
 const ROUND_PRESETS = [
-  { label: 'Grand Final', round: 5 },
-  { label: 'Final', round: 5 },
-  { label: 'Semi-Final', round: 4 },
-  { label: 'Quarter-Final', round: 3 },
-  { label: 'Round 3', round: 3 },
+  { label: 'Round 1', round: 1 },
   { label: 'Round 2', round: 2 },
-  { label: 'Round 1', round: 1 }
+  { label: 'Round 3', round: 3 },
+  { label: 'Quarter-Final', round: 4 },
+  { label: 'Semi-Final', round: 5 },
+  { label: 'Final', round: 6 },
+  { label: 'Grand Finals', round: 7 }
 ];
 
 export default function ChessAdminMatchesPage() {
@@ -76,6 +76,8 @@ export default function ChessAdminMatchesPage() {
   const [generating, setGenerating] = useState(false);
   const [selectedRound, setSelectedRound] = useState(1);
   const [selectedRoundName, setSelectedRoundName] = useState('Round 1');
+  const [deletingRound, setDeletingRound] = useState(false);
+  const [deletingAllRounds, setDeletingAllRounds] = useState(false);
   const [startingMatchId, setStartingMatchId] = useState(null);
   const [deletingMatchId, setDeletingMatchId] = useState(null);
 
@@ -100,7 +102,7 @@ export default function ChessAdminMatchesPage() {
   // Manual Match Pairing Modal with Custom Round Name
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [manualRound, setManualRound] = useState(1);
-  const [manualRoundName, setManualRoundName] = useState('Grand Final');
+  const [manualRoundName, setManualRoundName] = useState('Round 1');
   const [manualP1, setManualP1] = useState('');
   const [manualP2, setManualP2] = useState('');
   const [creatingMatch, setCreatingMatch] = useState(false);
@@ -211,6 +213,62 @@ export default function ChessAdminMatchesPage() {
       toast.error(err.message || 'Error generating pairings.');
     } finally {
       setGenerating(false);
+    }
+  };
+
+  // Delete an entire round of matches
+  const handleDeleteRound = async () => {
+    const roundMatches = matches.filter((m) => m.round === selectedRound);
+    const count = roundMatches.length;
+    const isConfirmed = await confirm({
+      title: `Delete ${selectedRoundName}?`,
+      message: `Are you sure you want to delete ${selectedRoundName}? This will permanently remove all ${count} fixture(s) in this round and re-compute standings.`,
+      confirmText: `Delete ${selectedRoundName}`,
+      cancelText: 'Cancel',
+      type: 'danger'
+    });
+    if (!isConfirmed) return;
+
+    setDeletingRound(true);
+    try {
+      const res = await chessApi.deleteRound(selectedRound);
+      if (res.success) {
+        toast.success(res.message || `${selectedRoundName} deleted successfully.`);
+        await loadData();
+      } else {
+        toast.error(res.message || 'Failed to delete round.');
+      }
+    } catch (err) {
+      toast.error(err.message || 'Error deleting round.');
+    } finally {
+      setDeletingRound(false);
+    }
+  };
+
+  // Delete all rounds and fixtures
+  const handleDeleteAllRounds = async () => {
+    const isConfirmed = await confirm({
+      title: 'Delete ALL Rounds & Matches?',
+      message: 'Are you sure you want to permanently delete ALL rounds and matches? This will reset the tournament back to Round 1 and zero all match statistics while keeping all registered players.',
+      confirmText: 'Delete All Rounds',
+      cancelText: 'Cancel',
+      type: 'danger'
+    });
+    if (!isConfirmed) return;
+
+    setDeletingAllRounds(true);
+    try {
+      const res = await chessApi.deleteAllRounds();
+      if (res.success) {
+        toast.success(res.message || 'All rounds and matches deleted successfully.');
+        await loadData();
+      } else {
+        toast.error(res.message || 'Failed to delete all rounds.');
+      }
+    } catch (err) {
+      toast.error(err.message || 'Error deleting all rounds.');
+    } finally {
+      setDeletingAllRounds(false);
     }
   };
 
@@ -438,7 +496,7 @@ export default function ChessAdminMatchesPage() {
             {/* Create Custom Pairing Button */}
             <button
               onClick={() => {
-                setManualRoundName('Grand Final');
+                setManualRoundName(`Round ${selectedRound}`);
                 setShowCreateModal(true);
               }}
               className="bg-[#EFEAE1] dark:bg-[#1E1E1C] hover:bg-[#E4DED5] dark:hover:bg-[#282826] border border-[#D5CFC5] dark:border-[#2E2E2B] text-[#171715] dark:text-[#FAF8F3] font-semibold px-3.5 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
@@ -447,39 +505,67 @@ export default function ChessAdminMatchesPage() {
               <span>New Custom Match</span>
             </button>
 
-            {/* Round Generation Controls with Stage Name */}
-            <div className="flex items-center gap-2">
-              <select
+            {/* Round Generation Controls (Admin creates and names rounds like Round 1, Semi-Final, Final, Grand Finals) */}
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="text"
                 value={selectedRoundName}
                 onChange={(e) => {
                   const val = e.target.value;
                   setSelectedRoundName(val);
-                  if (val.includes('1')) setSelectedRound(1);
-                  else if (val.includes('2')) setSelectedRound(2);
-                  else if (val.includes('3') || val.includes('Quarter')) setSelectedRound(3);
-                  else if (val.includes('Semi')) setSelectedRound(4);
-                  else if (val.includes('Final')) setSelectedRound(5);
+                  const matchNum = val.match(/\d+/);
+                  if (matchNum) {
+                    setSelectedRound(parseInt(matchNum[0], 10));
+                  } else if (val.toLowerCase().includes('grand final')) {
+                    setSelectedRound(7);
+                  } else if (val.toLowerCase().includes('final')) {
+                    setSelectedRound(6);
+                  } else if (val.toLowerCase().includes('semi')) {
+                    setSelectedRound(5);
+                  } else if (val.toLowerCase().includes('quarter')) {
+                    setSelectedRound(4);
+                  }
                 }}
-                className="bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-3 py-2.5 text-xs font-semibold text-[#171715] dark:text-[#FAF8F3] transition-colors focus:outline-none"
-              >
-                <option value="Round 1">Round 1</option>
-                <option value="Round 2">Round 2</option>
-                <option value="Round 3">Round 3</option>
-                <option value="Quarter-Finals">Quarter-Finals</option>
-                <option value="Semi-Finals">Semi-Finals</option>
-                <option value="Grand Final">Grand Final</option>
-              </select>
+                placeholder="Stage name (e.g. Final, Grand Finals, Round 1)"
+                className="w-56 sm:w-64 bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#171715] dark:text-[#FAF8F3] focus:outline-none shadow-xs transition-colors"
+                title="Type any round name: Final, Grand Finals, Round 1, Semi-Final..."
+              />
 
               <button
                 onClick={handleGeneratePairings}
                 disabled={generating}
                 className="bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] font-semibold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-xs flex items-center gap-2 transition-all hover:-translate-y-0.5 cursor-pointer"
+                title={`Generate pairings for ${selectedRoundName || 'selected round'}`}
               >
                 {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Swords className="w-4 h-4" />}
-                <span>Generate {selectedRoundName}</span>
+                <span>Generate {selectedRoundName || 'Pairings'}</span>
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Quick Stage Presets Bar */}
+        <div className="flex flex-wrap items-center gap-1.5 px-1 text-xs">
+          <span className="text-[10px] font-mono uppercase font-bold text-[#77736B] dark:text-[#8E8E93] mr-1">
+            Quick Stages:
+          </span>
+          {ROUND_PRESETS.map((p) => (
+            <button
+              key={p.label}
+              type="button"
+              onClick={() => {
+                setSelectedRoundName(p.label);
+                setSelectedRound(p.round);
+              }}
+              className={`text-[11px] font-sans px-3 py-1 rounded-lg border transition-all cursor-pointer ${
+                selectedRoundName === p.label
+                  ? 'bg-[#171715] text-white dark:bg-[#FAF8F3] dark:text-[#0D0D0D] border-transparent font-semibold shadow-xs'
+                  : 'bg-[#FAF8F3] dark:bg-[#1A1A18] border-[#D5CFC5] dark:border-[#262624] text-[#6E685F] dark:text-[#A8A49C] hover:text-[#171715] dark:hover:text-[#FAF8F3] hover:border-[#171715]/40'
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
         </div>
 
         {/* BULK ACTIONS FLOATING BAR (Visible when 1 or more matches selected) */}
@@ -603,7 +689,11 @@ export default function ChessAdminMatchesPage() {
                               : 'bg-[#EFEAE1] dark:bg-[#1E1E1C] text-[#171715] dark:text-[#FAF8F3] border border-[#D5CFC5] dark:border-[#2E2E2B]'
                           }`}
                         >
-                          {isFinalStage && <span className="mr-1">👑</span>}
+                          {isFinalStage && (
+                            <svg className="w-3.5 h-3.5 mr-1 fill-current inline" viewBox="0 0 24 24">
+                              <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
+                            </svg>
+                          )}
                           {stageTitle}
                         </span>
                       </td>
@@ -760,8 +850,9 @@ export default function ChessAdminMatchesPage() {
                 {/* Player 1 (White) Controls */}
                 <div className="bg-[#FAF8F3] dark:bg-[#191917] border border-[#D5CFC5] dark:border-[#262624] p-4 rounded-2xl space-y-3">
                   <div className="flex items-center justify-between border-b border-[#D5CFC5]/60 dark:border-[#262624] pb-2">
-                    <span className="font-serif font-bold text-sm text-[#171715] dark:text-[#FAF8F3]">
-                      ⚪ {liveScoringMatch.player1?.fullName}
+                    <span className="font-serif font-bold text-sm text-[#171715] dark:text-[#FAF8F3] flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full border border-[#171715] bg-white inline-block" />
+                      <span>{liveScoringMatch.player1?.fullName} (White)</span>
                     </span>
                     <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93]">
                       Pieces Captured
@@ -816,8 +907,9 @@ export default function ChessAdminMatchesPage() {
                 {/* Player 2 (Black) Controls */}
                 <div className="bg-[#FAF8F3] dark:bg-[#191917] border border-[#D5CFC5] dark:border-[#262624] p-4 rounded-2xl space-y-3">
                   <div className="flex items-center justify-between border-b border-[#D5CFC5]/60 dark:border-[#262624] pb-2">
-                    <span className="font-serif font-bold text-sm text-[#171715] dark:text-[#FAF8F3]">
-                      ⚫ {liveScoringMatch.player2?.fullName}
+                    <span className="font-serif font-bold text-sm text-[#171715] dark:text-[#FAF8F3] flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#171715] dark:bg-white inline-block" />
+                      <span>{liveScoringMatch.player2?.fullName} (Black)</span>
                     </span>
                     <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93]">
                       Pieces Captured
@@ -950,47 +1042,44 @@ export default function ChessAdminMatchesPage() {
                     ))}
                   </div>
 
-                  {/* Dual Input: Round Number + Custom Stage Name */}
-                  <div className="grid grid-cols-4 gap-2">
-                    <div className="col-span-1">
-                      <label className="block text-[10px] font-medium text-[#77736B] dark:text-[#8E8E93] mb-1">
-                        Round No.
-                      </label>
-                      <input
-                        type="number"
-                        min={1}
-                        max={20}
-                        value={manualRound}
-                        onChange={(e) => {
-                          const r = Number(e.target.value) || 1;
-                          setManualRound(r);
-                          if (!manualRoundName || manualRoundName.startsWith('Round ')) {
-                            setManualRoundName(`Round ${r}`);
-                          }
-                        }}
-                        className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#2A2A28] focus:border-[#171715] dark:focus:border-[#FAF8F3] focus:ring-1 focus:ring-[#171715]/15 rounded-xl px-2.5 py-2.5 font-bold text-sm text-center text-[#171715] dark:text-[#FAF8F3] focus:outline-none transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      />
-                    </div>
-                    <div className="col-span-3">
-                      <label className="block text-[10px] font-medium text-[#77736B] dark:text-[#8E8E93] mb-1">
-                        Stage / Match Title
-                      </label>
-                      <input
-                        type="text"
-                        value={manualRoundName}
-                        onChange={(e) => setManualRoundName(e.target.value)}
-                        placeholder="e.g. Grand Final, Final, Semi-Final, Round 1..."
-                        className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#2A2A28] focus:border-[#171715] dark:focus:border-[#FAF8F3] focus:ring-1 focus:ring-[#171715]/15 rounded-xl px-3.5 py-2.5 font-medium text-sm text-[#171715] dark:text-[#FAF8F3] focus:outline-none transition-all"
-                        required
-                      />
-                    </div>
+                  {/* Single Input: Custom Stage / Round Name */}
+                  <div>
+                    <label className="block text-[10px] font-medium text-[#77736B] dark:text-[#8E8E93] mb-1">
+                      Stage / Match Title (e.g. Final, Grand Finals, Semi-Final, Round 1)
+                    </label>
+                    <input
+                      type="text"
+                      value={manualRoundName}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setManualRoundName(val);
+                        const matchNum = val.match(/\d+/);
+                        if (matchNum) {
+                          setManualRound(parseInt(matchNum[0], 10));
+                        } else if (val.toLowerCase().includes('grand final')) {
+                          setManualRound(7);
+                        } else if (val.toLowerCase().includes('final')) {
+                          setManualRound(6);
+                        } else if (val.toLowerCase().includes('semi')) {
+                          setManualRound(5);
+                        } else if (val.toLowerCase().includes('quarter')) {
+                          setManualRound(4);
+                        }
+                      }}
+                      placeholder="e.g. Final, Grand Finals, Semi-Final, Round 1..."
+                      className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#2A2A28] focus:border-[#171715] dark:focus:border-[#FAF8F3] focus:ring-1 focus:ring-[#171715]/15 rounded-xl px-3.5 py-2.5 font-medium text-sm text-[#171715] dark:text-[#FAF8F3] focus:outline-none transition-all"
+                      required
+                    />
                   </div>
                 </div>
 
                 <div>
                   <label className="block font-semibold text-xs text-[#171715] dark:text-[#FAF8F3] mb-1.5 flex items-center justify-between">
                     <span>Player 1 (White Pieces) <span className="text-rose-500">*</span></span>
-                    <span className="text-[10px] font-normal text-[#77736B] dark:text-[#8E8E93]">⚪ White moves first</span>
+                    <span className="text-[10px] font-normal text-[#77736B] dark:text-[#8E8E93] flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full border border-current bg-white inline-block" />
+                      <span>White moves first</span>
+                    </span>
                   </label>
                   <div className="relative">
                     <select
@@ -1013,7 +1102,10 @@ export default function ChessAdminMatchesPage() {
                 <div>
                   <label className="block font-semibold text-xs text-[#171715] dark:text-[#FAF8F3] mb-1.5 flex items-center justify-between">
                     <span>Player 2 (Black Pieces)</span>
-                    <span className="text-[10px] font-normal text-[#77736B] dark:text-[#8E8E93]">⚫ Leave empty for Bye</span>
+                    <span className="text-[10px] font-normal text-[#77736B] dark:text-[#8E8E93] flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-current inline-block" />
+                      <span>Leave empty for Bye</span>
+                    </span>
                   </label>
                   <div className="relative">
                     <select
@@ -1097,8 +1189,9 @@ export default function ChessAdminMatchesPage() {
                 {/* Captured counts player 1 */}
                 <div className="bg-[#F5F2EB] dark:bg-[#1D1D1B] p-3.5 rounded-xl border border-[#D5CFC5] dark:border-[#262624]">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold font-sans text-xs text-[#171715] dark:text-[#FAF8F3]">
-                      ⚪ {resultModalMatch.player1?.fullName} (White) Captured Pieces:
+                    <span className="font-bold font-sans text-xs text-[#171715] dark:text-[#FAF8F3] flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full border border-[#171715] bg-white inline-block" />
+                      <span>{resultModalMatch.player1?.fullName} (White) Captured Pieces:</span>
                     </span>
                     <span className="text-[11px] font-sans font-bold text-amber-800 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/40 px-2 py-0.5 rounded-md border border-amber-300 dark:border-amber-800/60">
                       {calcMaterial(p1Captured)} pts
@@ -1154,8 +1247,9 @@ export default function ChessAdminMatchesPage() {
                 {/* Captured counts player 2 */}
                 <div className="bg-[#F5F2EB] dark:bg-[#1D1D1B] p-3.5 rounded-xl border border-[#D5CFC5] dark:border-[#262624]">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold font-sans text-xs text-[#171715] dark:text-[#FAF8F3]">
-                      ⚫ {resultModalMatch.player2?.fullName} (Black) Captured Pieces:
+                    <span className="font-bold font-sans text-xs text-[#171715] dark:text-[#FAF8F3] flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#171715] dark:bg-white inline-block" />
+                      <span>{resultModalMatch.player2?.fullName} (Black) Captured Pieces:</span>
                     </span>
                     <span className="text-[11px] font-sans font-bold text-amber-800 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/40 px-2 py-0.5 rounded-md border border-amber-300 dark:border-amber-800/60">
                       {calcMaterial(p2Captured)} pts

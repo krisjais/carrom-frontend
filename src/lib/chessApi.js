@@ -191,6 +191,28 @@ export const chessApi = {
     return await safeFetch(`/admin/players${query ? `?${query}` : ''}`, { headers: getHeaders() });
   },
 
+  createPlayer: async (playerData) => {
+    return await safeFetch('/admin/players', {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(playerData)
+    });
+  },
+
+  deleteRound: async (round) => {
+    return await safeFetch(`/admin/rounds/${round}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
+  },
+
+  deleteAllRounds: async () => {
+    return await safeFetch('/admin/rounds/all', {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
+  },
+
   updateRegistrationStatus: async (id, status, adminNotes = '') => {
     return await safeFetch(`/admin/players/${id}/status`, {
       method: 'PUT',

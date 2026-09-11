@@ -60,8 +60,11 @@ export function StandingsTable({ standings = [], loading = false }) {
           {/* 2nd place */}
           <div className="order-2 md:order-1 bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-6 text-center space-y-3 flex flex-col justify-between">
             <div>
-              <span className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-[#EFEAE1] dark:bg-[#20201E] text-[#77736B] dark:text-[#8E8E93]">
-                🥈 2nd Place
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-[#EFEAE1] dark:bg-[#20201E] text-[#77736B] dark:text-[#8E8E93] font-semibold">
+                <svg className="w-3.5 h-3.5 fill-slate-400 dark:fill-slate-300 shrink-0" viewBox="0 0 24 24">
+                  <path d="M12 2l2.4 7.2h7.6l-6 4.8 2.3 7-6.3-4.6-6.3 4.6 2.3-7-6-4.8h7.6z"/>
+                </svg>
+                <span>2nd Place</span>
               </span>
               <h4 className="font-serif font-bold text-lg text-[#171715] dark:text-[#FAF8F3] mt-2">
                 {top3[1]?.fullName}
@@ -84,7 +87,10 @@ export function StandingsTable({ standings = [], loading = false }) {
           <div className="order-1 md:order-2 bg-[#171715] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] rounded-2xl p-7 text-center space-y-3 shadow-xl transform md:-translate-y-2 flex flex-col justify-between">
             <div>
               <span className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest px-3 py-1 rounded-full bg-white/10 dark:bg-black/10 text-[#FAF8F3] dark:text-[#0D0D0D] font-bold">
-                👑 1st Place • Championship Leader
+                <svg className="w-3.5 h-3.5 fill-amber-400 shrink-0" viewBox="0 0 24 24">
+                  <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
+                </svg>
+                <span>1st Place • Championship Leader</span>
               </span>
               <h4 className="font-serif font-bold text-2xl tracking-tight mt-3">
                 {top3[0]?.fullName}
@@ -106,8 +112,11 @@ export function StandingsTable({ standings = [], loading = false }) {
           {/* 3rd place */}
           <div className="order-3 md:order-3 bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-6 text-center space-y-3 flex flex-col justify-between">
             <div>
-              <span className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-[#EFEAE1] dark:bg-[#20201E] text-[#77736B] dark:text-[#8E8E93]">
-                🥉 3rd Place
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-[#EFEAE1] dark:bg-[#20201E] text-[#77736B] dark:text-[#8E8E93] font-semibold">
+                <svg className="w-3.5 h-3.5 fill-amber-700 dark:fill-amber-600 shrink-0" viewBox="0 0 24 24">
+                  <path d="M12 2l2.4 7.2h7.6l-6 4.8 2.3 7-6.3-4.6-6.3 4.6 2.3-7-6-4.8h7.6z"/>
+                </svg>
+                <span>3rd Place</span>
               </span>
               <h4 className="font-serif font-bold text-lg text-[#171715] dark:text-[#FAF8F3] mt-2">
                 {top3[2]?.fullName || 'Contender'}
@@ -128,11 +137,9 @@ export function StandingsTable({ standings = [], loading = false }) {
         </div>
       )}
 
-      {/* Search & Department Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] p-3 sm:p-4 rounded-2xl">
-        
-        {/* Search */}
-        <div className="relative flex-1">
+      {/* Search Input Bar (Filter buttons removed as requested) */}
+      <div className="bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] p-3 sm:p-4 rounded-2xl shadow-xs">
+        <div className="relative w-full">
           <Search className="w-4 h-4 text-[#77736B] dark:text-[#8E8E93] absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
@@ -142,24 +149,6 @@ export function StandingsTable({ standings = [], loading = false }) {
             className="w-full bg-[#EFEAE1]/60 dark:bg-[#1B1B19] border border-[#D5CFC5]/70 dark:border-[#282826] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl pl-11 pr-4 py-2.5 text-xs text-[#171715] dark:text-[#FAF8F3] placeholder-[#77736B] dark:placeholder-[#8E8E93] focus:outline-none transition-colors"
           />
         </div>
-
-        {/* Dept Filter */}
-        <div className="flex items-center gap-2">
-          <Filter className="w-3.5 h-3.5 text-[#77736B] dark:text-[#8E8E93] shrink-0" />
-          <select
-            value={selectedDept}
-            onChange={(e) => setSelectedDept(e.target.value)}
-            className="bg-[#EFEAE1]/60 dark:bg-[#1B1B19] border border-[#D5CFC5]/70 dark:border-[#282826] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-4 py-2.5 text-xs font-mono text-[#171715] dark:text-[#FAF8F3] focus:outline-none transition-colors cursor-pointer"
-          >
-            <option value="all">All Departments</option>
-            {departments.filter((d) => d !== 'all').map((dept) => (
-              <option key={dept} value={dept}>
-                {dept}
-              </option>
-            ))}
-          </select>
-        </div>
-
       </div>
 
       {/* Desktop Table View */}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { chessApi } from '@/lib/chessApi';
 import { ChessHeader } from '@/components/chess/ChessHeader';
@@ -39,10 +39,10 @@ export default function ChessMatchDetailPage() {
 
     fetchMatch(false);
 
-    // Live real-time sync polling every 2.5 seconds: captures, scores, status, clocks update automatically!
+    // Live real-time sync polling every 3 seconds
     intervalId = setInterval(() => {
       fetchMatch(true);
-    }, 2500);
+    }, 3000);
 
     return () => {
       if (intervalId) clearInterval(intervalId);
@@ -76,20 +76,34 @@ export default function ChessMatchDetailPage() {
     }
   };
 
-  const handleTimeExpired = () => {
+  const handleTimeExpired = useCallback(() => {
     setIsTimeUp(true);
-  };
+  }, []);
 
   const match = matchData?.match;
-  const player1 = match?.player1 || { fullName: 'Player 1 (White)', department: 'TBD' };
-  const player2 = match?.player2 || { fullName: 'Player 2 (Black)', department: 'TBD' };
+  const p1Raw = match?.player1;
+  const p2Raw = match?.player2;
 
-  const p1Initials = player1.fullName
-    ? player1.fullName.split(' ').filter(Boolean).map((n) => n[0]).slice(0, 2).join('')
+  const player1 = (p1Raw && typeof p1Raw === 'object' && p1Raw.fullName)
+    ? p1Raw
+    : {
+        fullName: typeof p1Raw === 'string' ? p1Raw : (match?.isBye ? (match?.byePlayer?.fullName || 'Player') : 'Player 1 (White)'),
+        department: (p1Raw && typeof p1Raw === 'object' && p1Raw.department) || 'TBD'
+      };
+
+  const player2 = (p2Raw && typeof p2Raw === 'object' && p2Raw.fullName)
+    ? p2Raw
+    : {
+        fullName: typeof p2Raw === 'string' ? p2Raw : (match?.isBye ? 'BYE' : 'Player 2 (Black)'),
+        department: (p2Raw && typeof p2Raw === 'object' && p2Raw.department) || (match?.isBye ? 'Automatic' : 'TBD')
+      };
+
+  const p1Initials = player1?.fullName
+    ? String(player1.fullName).split(' ').filter(Boolean).map((n) => n[0]).slice(0, 2).join('')
     : 'W';
 
-  const p2Initials = player2.fullName
-    ? player2.fullName.split(' ').filter(Boolean).map((n) => n[0]).slice(0, 2).join('')
+  const p2Initials = player2?.fullName
+    ? String(player2.fullName).split(' ').filter(Boolean).map((n) => n[0]).slice(0, 2).join('')
     : 'B';
 
   const isCompleted = match?.status === 'completed';
@@ -98,16 +112,16 @@ export default function ChessMatchDetailPage() {
   // Winner calculation
   let winnerName = null;
   let winnerDepartment = '';
-  if (isCompleted) {
+  if (isCompleted && match) {
     if (match.isBye) {
       winnerName = player1.fullName;
-      winnerDepartment = player1.department;
+      winnerDepartment = player1.department || '';
     } else if (match.winner === 'player1') {
       winnerName = player1.fullName;
-      winnerDepartment = player1.department;
+      winnerDepartment = player1.department || '';
     } else if (match.winner === 'player2') {
       winnerName = player2.fullName;
-      winnerDepartment = player2.department;
+      winnerDepartment = player2.department || '';
     } else if (match.winner === 'draw') {
       winnerName = 'Match Drawn (Material Tiebreak)';
     }
@@ -212,7 +226,7 @@ export default function ChessMatchDetailPage() {
                 <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/20 to-amber-500/10 border border-amber-500/40 rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-lg">
-                      👑
+                      <Crown className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                     </div>
                     <div>
                       <span className="text-[10px] font-mono uppercase tracking-widest text-amber-700 dark:text-amber-400 font-bold block">

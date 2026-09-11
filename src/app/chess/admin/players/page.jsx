@@ -17,7 +17,9 @@ import {
   Square,
   AlertCircle,
   CheckCircle2,
-  Loader2
+  Loader2,
+  UserPlus,
+  X
 } from 'lucide-react';
 import { useConfirm } from '@/context/ToastContext';
 
@@ -36,6 +38,17 @@ export default function ChessAdminPlayersPage() {
   // Import modal state
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [feedback, setFeedback] = useState(null);
+
+  // Manual Add Player state
+  const [addPlayerModalOpen, setAddPlayerModalOpen] = useState(false);
+  const [newPlayerForm, setNewPlayerForm] = useState({
+    fullName: '',
+    department: 'First Year',
+    email: '',
+    phone: '',
+    status: 'Approved'
+  });
+  const [creatingPlayer, setCreatingPlayer] = useState(false);
 
   async function loadPlayers() {
     if (!chessApi.isAdminAuthenticated()) {
@@ -170,13 +183,43 @@ export default function ChessAdminPlayersPage() {
     loadPlayers();
   };
 
+  const handleAddPlayer = async (e) => {
+    e.preventDefault();
+    if (!newPlayerForm.fullName.trim() || !newPlayerForm.department.trim()) {
+      setFeedback({ type: 'error', message: 'Full Name and Department are required.' });
+      return;
+    }
+    setCreatingPlayer(true);
+    try {
+      const res = await chessApi.createPlayer(newPlayerForm);
+      if (res.success) {
+        setFeedback({ type: 'success', message: res.message || 'Player registered and approved!' });
+        setNewPlayerForm({
+          fullName: '',
+          department: 'First Year',
+          email: '',
+          phone: '',
+          status: 'Approved'
+        });
+        setAddPlayerModalOpen(false);
+        loadPlayers();
+      } else {
+        setFeedback({ type: 'error', message: res.message || 'Failed to add player.' });
+      }
+    } catch (err) {
+      setFeedback({ type: 'error', message: err.message || 'Error creating player.' });
+    } finally {
+      setCreatingPlayer(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F5F2EB] dark:bg-[#0D0D0D] flex flex-col lg:flex-row font-sans text-[#171715] dark:text-[#FAF8F3] antialiased transition-colors">
       <AdminSidebar />
 
       <main className="flex-1 p-4 sm:p-8 max-w-7xl mx-auto w-full space-y-6">
         
-        {/* Header with Import Excel button */}
+        {/* Header with Import Excel button & Add Player */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] p-6 sm:p-8 rounded-3xl shadow-xs">
           <div>
             <span className="text-[10px] font-mono font-semibold text-[#77736B] dark:text-[#A8A49C] uppercase tracking-widest block">
@@ -188,13 +231,22 @@ export default function ChessAdminPlayersPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            {/* Direct Add Player Button */}
+            <button
+              onClick={() => setAddPlayerModalOpen(true)}
+              className="inline-flex items-center gap-2 bg-[#171715] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] px-4 py-2.5 rounded-xl font-mono text-xs font-semibold uppercase tracking-wider transition-all shadow-xs cursor-pointer"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>+ Add Player</span>
+            </button>
+
             {/* Import Button */}
             <button
               onClick={() => setImportModalOpen(true)}
-              className="inline-flex items-center gap-2 bg-[#171715] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] px-4 py-2.5 rounded-xl font-mono text-xs font-semibold uppercase tracking-wider transition-all shadow-xs"
+              className="inline-flex items-center gap-2 bg-[#EFEAE1] dark:bg-[#1D1D1B] hover:bg-[#E4DED5] dark:hover:bg-[#262624] border border-[#D5CFC5] dark:border-[#262624] text-[#171715] dark:text-[#FAF8F3] px-4 py-2.5 rounded-xl font-mono text-xs font-semibold uppercase tracking-wider transition-all shadow-xs cursor-pointer"
             >
               <FileSpreadsheet className="w-4 h-4" />
-              <span>Import Excel / CSV</span>
+              <span>Import Excel</span>
             </button>
 
             {/* Total count badge */}
@@ -425,6 +477,129 @@ export default function ChessAdminPlayersPage() {
         onClose={() => setImportModalOpen(false)}
         onImportSuccess={handleImportSuccess}
       />
+
+      {/* Manual Add Player Modal */}
+      {addPlayerModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6">
+            <div className="flex items-center justify-between border-b border-[#D5CFC5] dark:border-[#262624] pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-[#171715] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] flex items-center justify-center">
+                  <UserPlus className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono font-semibold uppercase tracking-widest text-[#77736B] dark:text-[#8E8E93] block">
+                    MANUAL ENROLLMENT
+                  </span>
+                  <h3 className="text-lg font-bold font-serif text-[#171715] dark:text-[#FAF8F3]">
+                    Add New Competitor
+                  </h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAddPlayerModalOpen(false)}
+                className="w-8 h-8 rounded-full border border-[#D5CFC5] dark:border-[#262624] flex items-center justify-center text-[#77736B] hover:text-[#171715] dark:hover:text-[#FAF8F3] transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddPlayer} className="space-y-4 text-xs font-sans">
+              <div>
+                <label className="block text-[#77736B] dark:text-[#8E8E93] font-mono uppercase text-[10px] font-semibold mb-1">
+                  Full Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newPlayerForm.fullName}
+                  onChange={(e) => setNewPlayerForm({ ...newPlayerForm, fullName: e.target.value })}
+                  placeholder="e.g. Magnus Carlsen"
+                  className="w-full bg-[#EFEAE1]/70 dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-4 py-2.5 text-[#171715] dark:text-[#FAF8F3] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[#77736B] dark:text-[#8E8E93] font-mono uppercase text-[10px] font-semibold mb-1">
+                  Department / Team *
+                </label>
+                <select
+                  value={newPlayerForm.department}
+                  onChange={(e) => setNewPlayerForm({ ...newPlayerForm, department: e.target.value })}
+                  className="w-full bg-[#EFEAE1]/70 dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-4 py-2.5 text-[#171715] dark:text-[#FAF8F3] focus:outline-none cursor-pointer"
+                >
+                  <option value="First Year">First Year</option>
+                  <option value="Second Year">Second Year</option>
+                  <option value="IT Team">IT Team</option>
+                  <option value="MJ Team">MJ Team</option>
+                  <option value="HR Team">HR Team</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[#77736B] dark:text-[#8E8E93] font-mono uppercase text-[10px] font-semibold mb-1">
+                    Email Address (Optional)
+                  </label>
+                  <input
+                    type="email"
+                    value={newPlayerForm.email}
+                    onChange={(e) => setNewPlayerForm({ ...newPlayerForm, email: e.target.value })}
+                    placeholder="player@example.com"
+                    className="w-full bg-[#EFEAE1]/70 dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-4 py-2.5 text-[#171715] dark:text-[#FAF8F3] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[#77736B] dark:text-[#8E8E93] font-mono uppercase text-[10px] font-semibold mb-1">
+                    Phone (Optional)
+                  </label>
+                  <input
+                    type="tel"
+                    value={newPlayerForm.phone}
+                    onChange={(e) => setNewPlayerForm({ ...newPlayerForm, phone: e.target.value })}
+                    placeholder="+91 9876543210"
+                    className="w-full bg-[#EFEAE1]/70 dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-4 py-2.5 text-[#171715] dark:text-[#FAF8F3] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[#77736B] dark:text-[#8E8E93] font-mono uppercase text-[10px] font-semibold mb-1">
+                  Registration Status
+                </label>
+                <select
+                  value={newPlayerForm.status}
+                  onChange={(e) => setNewPlayerForm({ ...newPlayerForm, status: e.target.value })}
+                  className="w-full bg-[#EFEAE1]/70 dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-4 py-2.5 text-[#171715] dark:text-[#FAF8F3] focus:outline-none cursor-pointer"
+                >
+                  <option value="Approved">Approved (Ready for pairing)</option>
+                  <option value="Registered">Registered (Pending approval)</option>
+                </select>
+              </div>
+
+              <div className="pt-4 border-t border-[#D5CFC5] dark:border-[#262624] flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setAddPlayerModalOpen(false)}
+                  className="px-4 py-2.5 rounded-xl border border-[#D5CFC5] dark:border-[#262624] text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715] dark:hover:text-[#FAF8F3] font-mono text-xs uppercase"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={creatingPlayer}
+                  className="bg-[#171715] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] px-6 py-2.5 rounded-xl font-mono text-xs font-semibold uppercase tracking-wider flex items-center gap-2 shadow-xs cursor-pointer"
+                >
+                  {creatingPlayer ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
+                  <span>Add Player</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -35,7 +35,7 @@ export function PieceScore({ captured = {}, materialScore = 0, playerName = 'Pla
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-        {piecesConfig.map(({ key, symbol, name, val }) => {
+        {piecesConfig.map(({ key, symbol, name, val, max }) => {
           const count = captured[key] || 0;
           const totalPts = count * val;
           const hasCaptured = count > 0;

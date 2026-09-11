@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { BookOpen, Shield, Trophy, Users, Sparkles, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { BookOpen, Shield, Trophy, Users, Sparkles, ArrowRight, CheckCircle2, Download, FileText } from 'lucide-react';
 import { CarromCoin } from '@/components/ui/CarromElements';
 
 export default function RulesPage() {
@@ -65,6 +65,23 @@ export default function RulesPage() {
         <p className="text-xs sm:text-sm text-[#6F6A60] dark:text-[#A8A194] leading-relaxed">
           Standardized single-game knockout rules, sequential Main Carrom Board tournament operations, and verified pairing criteria.
         </p>
+        <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+          <a
+            href="/Nexcore_Chess_Rules.pdf"
+            download="Nexcore_Chess_Rules.pdf"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#171614] dark:bg-[#F7F4EC] text-[#F7F4EC] dark:text-[#171614] font-mono text-xs uppercase tracking-wider font-semibold shadow-xs hover:opacity-90 transition-all cursor-pointer"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Download Official PDF</span>
+          </a>
+          <Link
+            href="/chess/rules"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-[#DCD6C8] dark:border-[#2E2B25] text-[#857B6C] hover:text-[#171614] dark:hover:text-[#F7F4EC] font-mono text-xs uppercase tracking-wider transition-colors"
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>View Chess Rules</span>
+          </Link>
+        </div>
       </div>
 
       {/* Rules Grid (Editorial numbered layout) */}

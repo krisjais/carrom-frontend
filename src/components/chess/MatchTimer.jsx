@@ -1,33 +1,58 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Clock, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
 
 export function MatchTimer({ match, durationMinutes = 10, onTimeExpired }) {
   const [timeLeftSeconds, setTimeLeftSeconds] = useState(durationMinutes * 60);
   const [isExpired, setIsExpired] = useState(false);
 
+  // Store callback in a ref to avoid infinite re-render cycles
+  const onTimeExpiredRef = useRef(onTimeExpired);
   useEffect(() => {
-    if (!match || match.status !== 'live' || !match.actualStartTime) {
-      if (match?.status === 'completed' || match?.status === 'cancelled') {
+    onTimeExpiredRef.current = onTimeExpired;
+  }, [onTimeExpired]);
+
+  const hasExpiredFiredRef = useRef(false);
+
+  const matchStatus = match?.status;
+  const actualStartTime = match?.actualStartTime;
+  const matchDuration = match?.durationMinutes || durationMinutes;
+
+  useEffect(() => {
+    if (matchStatus !== 'live' || !actualStartTime) {
+      if (matchStatus === 'completed' || matchStatus === 'cancelled') {
         setTimeLeftSeconds(0);
+        setIsExpired(true);
       } else {
-        setTimeLeftSeconds(durationMinutes * 60);
+        setTimeLeftSeconds(matchDuration * 60);
+        setIsExpired(false);
       }
+      hasExpiredFiredRef.current = false;
       return;
     }
 
     const calculateTimeLeft = () => {
-      const startTimeMs = new Date(match.actualStartTime).getTime();
+      const startTimeDate = new Date(actualStartTime);
+      const startTimeMs = startTimeDate.getTime();
+      if (isNaN(startTimeMs)) {
+        setTimeLeftSeconds(matchDuration * 60);
+        return;
+      }
+
       const nowMs = Date.now();
       const elapsedSeconds = Math.floor((nowMs - startTimeMs) / 1000);
-      const totalAllowedSeconds = (match.durationMinutes || durationMinutes) * 60;
+      const totalAllowedSeconds = matchDuration * 60;
       const remaining = totalAllowedSeconds - elapsedSeconds;
 
       if (remaining <= 0) {
         setTimeLeftSeconds(0);
         setIsExpired(true);
-        if (onTimeExpired) onTimeExpired();
+        if (!hasExpiredFiredRef.current) {
+          hasExpiredFiredRef.current = true;
+          if (onTimeExpiredRef.current) {
+            onTimeExpiredRef.current();
+          }
+        }
       } else {
         setTimeLeftSeconds(remaining);
         setIsExpired(false);
@@ -38,9 +63,9 @@ export function MatchTimer({ match, durationMinutes = 10, onTimeExpired }) {
     const interval = setInterval(calculateTimeLeft, 1000);
 
     return () => clearInterval(interval);
-  }, [match, durationMinutes, onTimeExpired]);
+  }, [matchStatus, actualStartTime, matchDuration]);
 
-  const totalAllowedSeconds = (match?.durationMinutes || durationMinutes) * 60;
+  const totalAllowedSeconds = matchDuration * 60;
   const progressPercent = Math.max(0, Math.min(100, (timeLeftSeconds / totalAllowedSeconds) * 100));
 
   const formatTime = (totalSeconds) => {

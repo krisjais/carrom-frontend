@@ -7,8 +7,6 @@ import { PlayerCard } from '@/components/chess/PlayerCard';
 import { ChessFooter } from '@/components/chess/ChessFooter';
 import { Search, Filter, Users, Trophy, Sparkles } from 'lucide-react';
 
-import { DEMO_CHESS_PLAYERS } from '@/lib/chessDemoData';
-
 export default function ChessPlayersPage() {
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,14 +19,14 @@ export default function ChessPlayersPage() {
     async function loadPlayers() {
       try {
         const res = await chessApi.getPlayers();
-        if (res.success && res.data && res.data.length > 0) {
+        if (res.success && res.data) {
           setPlayers(res.data);
         } else {
-          setPlayers(DEMO_CHESS_PLAYERS);
+          setPlayers([]);
         }
       } catch (err) {
         console.error('Error loading players:', err);
-        setPlayers(DEMO_CHESS_PLAYERS);
+        setPlayers([]);
       } finally {
         setLoading(false);
       }
@@ -36,7 +34,7 @@ export default function ChessPlayersPage() {
     loadPlayers();
   }, []);
 
-  const activePlayers = players.length > 0 ? players : DEMO_CHESS_PLAYERS;
+  const activePlayers = players;
 
   const filtered = activePlayers.filter((p) => {
     const matchesDept = selectedDept === 'all' || p.department === selectedDept;

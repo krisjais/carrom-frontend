@@ -33,7 +33,11 @@ export function TopPlayersCard({ standings = [] }) {
       {/* Players list */}
       {top3.length === 0 ? (
         <div className="text-center py-10 space-y-2">
-          <div className="text-2xl opacity-40">♛</div>
+          <div className="flex justify-center opacity-40">
+            <svg className="w-8 h-8 fill-current" viewBox="0 0 24 24">
+              <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
+            </svg>
+          </div>
           <p className="text-xs text-[#77736B] dark:text-[#8E8E93]">
             No competitors on the leaderboard yet. Standings update after Round 1 results.
           </p>
@@ -63,7 +67,13 @@ export function TopPlayersCard({ standings = [] }) {
                         : 'bg-[#EFEAE1] dark:bg-[#262624] text-[#171715] dark:text-[#FAF8F3]'
                     }`}
                   >
-                    {isFirst ? '👑' : p.name.split(' ').map(n => n[0]).join('')}
+                    {isFirst ? (
+                      <svg className="w-4 h-4 fill-amber-500" viewBox="0 0 24 24">
+                        <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
+                      </svg>
+                    ) : (
+                      p.name.split(' ').map(n => n[0]).join('')
+                    )}
                   </div>
 
                   <div>

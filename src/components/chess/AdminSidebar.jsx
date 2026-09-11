@@ -41,14 +41,16 @@ export function AdminSidebar() {
   };
 
   return (
-    <aside className="w-full lg:w-64 bg-[#FAF8F3] dark:bg-[#151514] border-b lg:border-b-0 lg:border-r border-[#D5CFC5] dark:border-[#262624] flex flex-col justify-between min-h-screen p-4 sm:p-5 shrink-0 transition-colors">
+    <aside className="w-full lg:w-64 bg-[#FAF8F3] dark:bg-[#151514] border-b lg:border-b-0 lg:border-r border-[#D5CFC5] dark:border-[#262624] flex flex-col justify-between lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto p-4 sm:p-5 shrink-0 transition-colors z-30">
       <div className="space-y-6">
         
         {/* Admin Brand Header */}
         <div className="flex items-center justify-between border-b border-[#D5CFC5] dark:border-[#262624] pb-4">
           <Link href="/chess/admin" className="flex items-center gap-3 group">
             <div className="w-9 h-9 rounded-xl bg-[#22221F] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] flex items-center justify-center font-bold text-lg shadow-xs group-hover:scale-105 transition-transform">
-              ♛
+              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
+              </svg>
             </div>
             <div>
               <span className="text-[9px] font-mono text-[#77736B] dark:text-[#A8A49C] font-semibold uppercase tracking-widest block leading-none">
