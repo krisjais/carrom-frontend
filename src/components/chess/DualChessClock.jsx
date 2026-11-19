@@ -112,8 +112,21 @@ export function DualChessClock({
       }
     }
 
-    setP1Time(wSec);
-    setP2Time(bSec);
+    // Smooth clock sync: Prevent server poll delays from overwriting local smooth countdown
+    setP1Time((prev) => {
+      if (isRunning && running && activeTurn === turn && Math.abs(prev - wSec) <= 2) {
+        return prev;
+      }
+      return wSec;
+    });
+
+    setP2Time((prev) => {
+      if (isRunning && running && activeTurn === turn && Math.abs(prev - bSec) <= 2) {
+        return prev;
+      }
+      return bSec;
+    });
+
     setActiveTurn(turn);
     setIsRunning(running && wSec > 0 && bSec > 0);
     setMovesCount(match.movesCount || 0);
@@ -121,7 +134,7 @@ export function DualChessClock({
     if (wSec <= 0) setFlagFall('white');
     else if (bSec <= 0) setFlagFall('black');
     else setFlagFall(null);
-  }, [match?._id, match?.matchId, match?.whiteTimeRemaining, match?.blackTimeRemaining, match?.activeTurn, match?.isClockRunning, match?.movesCount, match?.lastClockUpdate, initialSeconds]);
+  }, [match?._id, match?.matchId, match?.whiteTimeRemaining, match?.blackTimeRemaining, match?.activeTurn, match?.isClockRunning, match?.movesCount, match?.lastClockUpdate, initialSeconds, isRunning, activeTurn]);
 
   // BroadcastChannel for instant multi-tab synchronization
   useEffect(() => {
@@ -135,10 +148,14 @@ export function DualChessClock({
       if (!data) return;
       if (matchId && data.matchId && data.matchId !== matchId) return;
 
-      if (typeof data.p1Time === 'number') setP1Time(data.p1Time);
-      if (typeof data.p2Time === 'number') setP2Time(data.p2Time);
+      const w = typeof data.p1Time === 'number' ? data.p1Time : (typeof data.whiteSeconds === 'number' ? data.whiteSeconds : null);
+      const b = typeof data.p2Time === 'number' ? data.p2Time : (typeof data.blackSeconds === 'number' ? data.blackSeconds : null);
+
+      if (w !== null) setP1Time(w);
+      if (b !== null) setP2Time(b);
       if (data.activeTurn) setActiveTurn(data.activeTurn);
-      if (typeof data.isRunning === 'boolean') setIsRunning(data.isRunning);
+      const running = data.isRunning !== undefined ? data.isRunning : data.isClockRunning;
+      if (typeof running === 'boolean') setIsRunning(running);
       if (typeof data.movesCount === 'number') setMovesCount(data.movesCount);
       if (data.flagFall !== undefined) setFlagFall(data.flagFall);
     };

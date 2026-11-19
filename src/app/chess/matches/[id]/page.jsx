@@ -4,7 +4,6 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { chessApi } from '@/lib/chessApi';
 import { ChessHeader } from '@/components/chess/ChessHeader';
-import { MatchTimer } from '@/components/chess/MatchTimer';
 import { DualChessClock } from '@/components/chess/DualChessClock';
 import { PieceScore } from '@/components/chess/PieceScore';
 import { ChessFooter } from '@/components/chess/ChessFooter';
@@ -12,13 +11,27 @@ import Link from 'next/link';
 import { ArrowLeft, Clock, ShieldCheck, Trophy, Info, Play, Loader2, Crown, Zap } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 
+function formatClockTime(seconds) {
+  if (typeof seconds !== 'number' || isNaN(seconds) || seconds < 0) return '00:00';
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
 export default function ChessMatchDetailPage() {
   const params = useParams();
   const toast = useToast();
   const [matchData, setMatchData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [startingMatch, setStartingMatch] = useState(false);
-  const [isTimeUp, setIsTimeUp] = useState(false);
+
+  // Live Turn-Based Clocks for Spectator View
+  const [whiteSeconds, setWhiteSeconds] = useState(600);
+  const [blackSeconds, setBlackSeconds] = useState(600);
+  const [activeTurn, setActiveTurn] = useState('white');
+  const [isClockRunning, setIsClockRunning] = useState(false);
+  const [movesCount, setMovesCount] = useState(0);
+  const [flagFall, setFlagFall] = useState(null);
 
   useEffect(() => {
     let intervalId;
@@ -50,6 +63,99 @@ export default function ChessMatchDetailPage() {
     };
   }, [params?.id]);
 
+  // Sync clocks when matchData updates from server
+  useEffect(() => {
+    if (!matchData?.match) return;
+    const m = matchData.match;
+    const initialSec = (m.durationMinutes || 10) * 60;
+    let wSec = typeof m.whiteTimeRemaining === 'number' ? m.whiteTimeRemaining : initialSec;
+    let bSec = typeof m.blackTimeRemaining === 'number' ? m.blackTimeRemaining : initialSec;
+    const running = m.isClockRunning ?? (m.status === 'live');
+    const turn = m.activeTurn && m.activeTurn !== 'none' ? m.activeTurn : 'white';
+
+    if (running && m.lastClockUpdate) {
+      const elapsed = Math.max(0, Math.floor((Date.now() - new Date(m.lastClockUpdate).getTime()) / 1000));
+      if (turn === 'white') wSec = Math.max(0, wSec - elapsed);
+      else if (turn === 'black') bSec = Math.max(0, bSec - elapsed);
+    }
+
+    setWhiteSeconds(prev => {
+      if (isClockRunning && running && activeTurn === turn && Math.abs(prev - wSec) <= 2) return prev;
+      return wSec;
+    });
+    setBlackSeconds(prev => {
+      if (isClockRunning && running && activeTurn === turn && Math.abs(prev - bSec) <= 2) return prev;
+      return bSec;
+    });
+    setActiveTurn(turn);
+    setIsClockRunning(running && wSec > 0 && bSec > 0);
+    setMovesCount(m.movesCount || 0);
+
+    if (wSec <= 0) setFlagFall('white');
+    else if (bSec <= 0) setFlagFall('black');
+    else setFlagFall(null);
+  }, [matchData?.match]);
+
+  // BroadcastChannel for instant 0ms sync with phone clock moves & ticks
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.BroadcastChannel) return;
+
+    const channel = new BroadcastChannel('chess_tournament_clock');
+    channel.onmessage = (event) => {
+      const data = event.data;
+      if (!data) return;
+
+      const currentMId = matchData?.match?._id || matchData?.match?.matchId;
+      const targetId = params?.id;
+      if (data.matchId && data.matchId !== currentMId && data.matchId !== targetId) return;
+
+      const w = typeof data.whiteSeconds === 'number' ? data.whiteSeconds : (typeof data.p1Time === 'number' ? data.p1Time : null);
+      const b = typeof data.blackSeconds === 'number' ? data.blackSeconds : (typeof data.p2Time === 'number' ? data.p2Time : null);
+
+      if (w !== null) setWhiteSeconds(w);
+      if (b !== null) setBlackSeconds(b);
+      if (data.activeTurn) setActiveTurn(data.activeTurn);
+      const running = data.isClockRunning !== undefined ? data.isClockRunning : data.isRunning;
+      if (typeof running === 'boolean') setIsClockRunning(running);
+      if (typeof data.movesCount === 'number') setMovesCount(data.movesCount);
+      if (data.flagFall !== undefined) setFlagFall(data.flagFall);
+    };
+
+    return () => {
+      channel.close();
+    };
+  }, [params?.id, matchData?.match?._id, matchData?.match?.matchId]);
+
+  // 1-second tick down for audience view
+  useEffect(() => {
+    const isLive = matchData?.match?.status === 'live';
+    if (!isClockRunning || !isLive || flagFall) return;
+
+    const timer = setInterval(() => {
+      if (activeTurn === 'white') {
+        setWhiteSeconds(prev => {
+          if (prev <= 1) {
+            setFlagFall('white');
+            setIsClockRunning(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      } else if (activeTurn === 'black') {
+        setBlackSeconds(prev => {
+          if (prev <= 1) {
+            setFlagFall('black');
+            setIsClockRunning(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isClockRunning, activeTurn, flagFall, matchData?.match?.status]);
+
   const handleStartLiveMatch = async () => {
     if (!matchData?.match?._id && !matchData?.match?.matchId) return;
     setStartingMatch(true);
@@ -76,10 +182,6 @@ export default function ChessMatchDetailPage() {
       setStartingMatch(false);
     }
   };
-
-  const handleTimeExpired = useCallback(() => {
-    setIsTimeUp(true);
-  }, []);
 
   const match = matchData?.match;
   const p1Raw = match?.player1;
@@ -250,12 +352,12 @@ export default function ChessMatchDetailPage() {
                 </div>
               )}
 
-              {/* 10-Minute Limit Expiry Notice */}
-              {isLive && isTimeUp && (
-                <div className="bg-amber-500/15 border border-amber-500/40 rounded-2xl p-3 sm:p-4 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-semibold font-mono">
+              {/* Flag Fall Notice */}
+              {isLive && flagFall && (
+                <div className="bg-rose-500/15 border border-rose-500/40 rounded-2xl p-3 sm:p-4 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 text-rose-700 dark:text-rose-400 font-semibold font-mono">
                     <Clock className="w-4 h-4" />
-                    <span>10-Minute Rapid Clock Expired!</span>
+                    <span>Time expired! Flag fell on {flagFall.toUpperCase()} ({flagFall === 'white' ? player1.fullName : player2.fullName})!</span>
                   </div>
                   <span className="font-mono text-[11px] text-[#77736B] dark:text-[#A8A49C]">
                     Current Standings: {leaderText}
@@ -290,22 +392,67 @@ export default function ChessMatchDetailPage() {
                       Material Points
                     </span>
                   </div>
+
+                  {/* Player 1 Specific Clock */}
+                  <div className={`w-full max-w-[210px] mt-2.5 px-3 py-2 rounded-xl border font-mono transition-all ${
+                    isLive && activeTurn === 'white'
+                      ? 'bg-amber-100 dark:bg-amber-950/50 border-amber-400 dark:border-amber-600 shadow-sm ring-2 ring-amber-400/40 text-amber-900 dark:text-amber-200'
+                      : 'bg-[#EFEAE1]/80 dark:bg-[#1C1C1A] border-[#D5CFC5] dark:border-[#2A2A28] text-[#171715] dark:text-[#FAF8F3]'
+                  }`}>
+                    <div className="text-[10px] uppercase tracking-wider font-semibold flex items-center justify-center gap-1.5 mb-0.5">
+                      {isLive && activeTurn === 'white' && (
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      )}
+                      <span>White Clock</span>
+                    </div>
+                    <div className="text-2xl sm:text-3xl font-bold tracking-tight">
+                      {formatClockTime(whiteSeconds)}
+                    </div>
+                    {isLive && activeTurn === 'white' && (
+                      <span className="text-[9px] uppercase tracking-widest font-bold text-amber-700 dark:text-amber-400 block mt-0.5 animate-pulse">
+                        Turn Counting
+                      </span>
+                    )}
+                  </div>
                 </div>
 
-                {/* Divider / Timer */}
+                {/* Divider / Match Status */}
                 <div className="md:col-span-1 flex flex-col items-center justify-center space-y-3 py-4 md:py-0 border-y md:border-y-0 md:border-x border-[#D5CFC5]/50 dark:border-[#262624]">
                   <span className="text-2xl font-serif italic text-[#77736B] dark:text-[#8E8E93] font-normal select-none">
                     VS
                   </span>
-                  <MatchTimer
-                    match={match}
-                    durationMinutes={match.durationMinutes || 10}
-                    onTimeExpired={handleTimeExpired}
-                  />
-                  {isLive && (
-                    <span className="text-[9px] font-mono uppercase text-[#77736B] dark:text-[#8E8E93] tracking-widest text-center">
-                      Auto-Syncing Live
-                    </span>
+
+                  {isLive ? (
+                    <div className="flex flex-col items-center gap-1.5 text-center">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-bold bg-amber-500/15 text-amber-900 dark:text-amber-200 border border-amber-500/30 shadow-xs">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping inline-block" />
+                        <span>{activeTurn === 'white' ? 'White Turn' : 'Black Turn'}</span>
+                      </div>
+                      <span className="text-xs font-mono font-medium text-[#77736B] dark:text-[#8E8E93]">
+                        {movesCount} Move{movesCount === 1 ? '' : 's'} Played
+                      </span>
+                      <span className="text-[9px] font-mono uppercase text-[#77736B] dark:text-[#8E8E93] tracking-widest mt-0.5">
+                        Live Auto-Sync
+                      </span>
+                    </div>
+                  ) : isCompleted ? (
+                    <div className="flex flex-col items-center gap-1 text-center">
+                      <span className="px-3.5 py-1 rounded-full text-xs font-mono font-bold bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300">
+                        FINAL
+                      </span>
+                      <span className="text-[11px] font-mono text-[#77736B] dark:text-[#8E8E93]">
+                        {movesCount} Moves
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-1 text-center">
+                      <span className="px-3.5 py-1 rounded-full text-xs font-mono font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+                        SCHEDULED
+                      </span>
+                      <span className="text-[10px] font-mono uppercase text-[#77736B] dark:text-[#8E8E93]">
+                        10:00 Each
+                      </span>
+                    </div>
                   )}
                 </div>
 
@@ -332,6 +479,28 @@ export default function ChessMatchDetailPage() {
                     <span className="text-[10px] font-mono uppercase tracking-wider text-[#77736B] dark:text-[#8E8E93] block">
                       Material Points
                     </span>
+                  </div>
+
+                  {/* Player 2 Specific Clock */}
+                  <div className={`w-full max-w-[210px] mt-2.5 px-3 py-2 rounded-xl border font-mono transition-all ${
+                    isLive && activeTurn === 'black'
+                      ? 'bg-amber-100 dark:bg-amber-950/50 border-amber-400 dark:border-amber-600 shadow-sm ring-2 ring-amber-400/40 text-amber-900 dark:text-amber-200'
+                      : 'bg-[#EFEAE1]/80 dark:bg-[#1C1C1A] border-[#D5CFC5] dark:border-[#2A2A28] text-[#171715] dark:text-[#FAF8F3]'
+                  }`}>
+                    <div className="text-[10px] uppercase tracking-wider font-semibold flex items-center justify-center gap-1.5 mb-0.5">
+                      {isLive && activeTurn === 'black' && (
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      )}
+                      <span>Black Clock</span>
+                    </div>
+                    <div className="text-2xl sm:text-3xl font-bold tracking-tight">
+                      {formatClockTime(blackSeconds)}
+                    </div>
+                    {isLive && activeTurn === 'black' && (
+                      <span className="text-[9px] uppercase tracking-widest font-bold text-amber-700 dark:text-amber-400 block mt-0.5 animate-pulse">
+                        Turn Counting
+                      </span>
+                    )}
                   </div>
                 </div>
 

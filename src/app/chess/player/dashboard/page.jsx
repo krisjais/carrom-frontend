@@ -69,6 +69,7 @@ export default function ChessPlayerDashboardPage() {
   const [lastTurnState, setLastTurnState] = useState(null);
 
   const clockIntervalRef = useRef(null);
+  const channelRef = useRef(null);
 
   // 1. Check Authentication on Mount
   useEffect(() => {
@@ -149,6 +150,8 @@ export default function ChessPlayerDashboardPage() {
     if (typeof window === 'undefined' || !window.BroadcastChannel) return;
 
     const channel = new BroadcastChannel('chess_tournament_clock');
+    channelRef.current = channel;
+
     channel.onmessage = (event) => {
       const data = event.data;
       if (!data) return;
@@ -173,6 +176,7 @@ export default function ChessPlayerDashboardPage() {
 
     return () => {
       channel.close();
+      channelRef.current = null;
     };
   }, [dashboardData?.currentMatch?._id, dashboardData?.currentMatch?.matchId]);
 
@@ -196,9 +200,13 @@ export default function ChessPlayerDashboardPage() {
     };
 
     try {
-      const bc = new BroadcastChannel('chess_tournament_clock');
-      bc.postMessage(payload);
-      bc.close();
+      if (channelRef.current) {
+        channelRef.current.postMessage(payload);
+      } else if (typeof window !== 'undefined' && window.BroadcastChannel) {
+        const bc = new BroadcastChannel('chess_tournament_clock');
+        bc.postMessage(payload);
+        bc.close();
+      }
     } catch {
       // BroadcastChannel unavailable
     }
@@ -215,12 +223,15 @@ export default function ChessPlayerDashboardPage() {
     }
   }, [dashboardData?.currentMatch, whiteSeconds, blackSeconds, activeTurn, isClockRunning, movesCount, flagFall]);
 
-  // 3. Countdown Loop for Phone Clock
+  // 3. Countdown Loop for Phone Clock with 1-Second Zero-Latency Broadcast
   useEffect(() => {
     if (!isClockRunning || flagFall) {
       if (clockIntervalRef.current) clearInterval(clockIntervalRef.current);
       return;
     }
+
+    const match = dashboardData?.currentMatch;
+    const mId = match?._id || match?.matchId;
 
     clockIntervalRef.current = setInterval(() => {
       if (activeTurn === 'white') {
@@ -233,7 +244,42 @@ export default function ChessPlayerDashboardPage() {
             broadcastAndSync({ whiteSeconds: 0, isClockRunning: false, flagFall: 'white' });
             return 0;
           }
-          return prev - 1;
+          const nextW = prev - 1;
+          const tickPayload = {
+            type: 'tick',
+            matchId: mId,
+            whiteSeconds: nextW,
+            blackSeconds,
+            p1Time: nextW,
+            p2Time: blackSeconds,
+            activeTurn: 'white',
+            isClockRunning: true,
+            isRunning: true,
+            movesCount,
+            timestamp: Date.now()
+          };
+          try {
+            if (channelRef.current) channelRef.current.postMessage(tickPayload);
+            else if (typeof window !== 'undefined' && window.BroadcastChannel) {
+              const bc = new BroadcastChannel('chess_tournament_clock');
+              bc.postMessage(tickPayload);
+              bc.close();
+            }
+          } catch {}
+
+          // Periodic background sync every 5 seconds for non-local devices
+          if (mId && nextW % 5 === 0) {
+            chessApi.syncMatchClock(mId, {
+              activeTurn: 'white',
+              whiteTimeRemaining: nextW,
+              blackTimeRemaining: blackSeconds,
+              movesCount,
+              isClockRunning: true,
+              status: 'live'
+            }).catch(() => {});
+          }
+
+          return nextW;
         });
       } else if (activeTurn === 'black') {
         setBlackSeconds((prev) => {
@@ -245,13 +291,48 @@ export default function ChessPlayerDashboardPage() {
             broadcastAndSync({ blackSeconds: 0, isClockRunning: false, flagFall: 'black' });
             return 0;
           }
-          return prev - 1;
+          const nextB = prev - 1;
+          const tickPayload = {
+            type: 'tick',
+            matchId: mId,
+            whiteSeconds,
+            blackSeconds: nextB,
+            p1Time: whiteSeconds,
+            p2Time: nextB,
+            activeTurn: 'black',
+            isClockRunning: true,
+            isRunning: true,
+            movesCount,
+            timestamp: Date.now()
+          };
+          try {
+            if (channelRef.current) channelRef.current.postMessage(tickPayload);
+            else if (typeof window !== 'undefined' && window.BroadcastChannel) {
+              const bc = new BroadcastChannel('chess_tournament_clock');
+              bc.postMessage(tickPayload);
+              bc.close();
+            }
+          } catch {}
+
+          // Periodic background sync every 5 seconds for non-local devices
+          if (mId && nextB % 5 === 0) {
+            chessApi.syncMatchClock(mId, {
+              activeTurn: 'black',
+              whiteTimeRemaining: whiteSeconds,
+              blackTimeRemaining: nextB,
+              movesCount,
+              isClockRunning: true,
+              status: 'live'
+            }).catch(() => {});
+          }
+
+          return nextB;
         });
       }
     }, 1000);
 
     return () => clearInterval(clockIntervalRef.current);
-  }, [isClockRunning, activeTurn, flagFall, soundEnabled, broadcastAndSync]);
+  }, [isClockRunning, activeTurn, flagFall, soundEnabled, movesCount, whiteSeconds, blackSeconds, dashboardData?.currentMatch, broadcastAndSync]);
 
   // 4. Switch Clock Turn (When player completes their pawn / piece move)
   const handlePassTurn = () => {
