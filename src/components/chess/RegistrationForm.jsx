@@ -3,14 +3,18 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { chessApi } from '@/lib/chessApi';
-import { UserCheck, AlertCircle, Loader2, UserPlus, CheckCircle2, Copy, ArrowRight } from 'lucide-react';
+import { UserCheck, AlertCircle, Loader2, UserPlus, CheckCircle2, Copy, ArrowRight, Lock, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 
 export function RegistrationForm() {
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
-    department: 'IT Team'
+    department: 'IT Team',
+    phone: '',
+    password: '',
+    confirmPassword: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
@@ -37,6 +41,16 @@ export function RegistrationForm() {
       errs.department = 'Please select your Department / Team';
     }
 
+    if (!formData.password) {
+      errs.password = 'Please create a secure password';
+    } else if (formData.password.length < 4) {
+      errs.password = 'Password must be at least 4 characters long';
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      errs.confirmPassword = 'Passwords do not match';
+    }
+
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -48,7 +62,13 @@ export function RegistrationForm() {
 
     setLoading(true);
     try {
-      const response = await chessApi.registerPlayer(formData);
+      const response = await chessApi.registerPlayer({
+        fullName: formData.fullName.trim(),
+        email: formData.email.trim(),
+        department: formData.department,
+        phone: formData.phone.trim(),
+        password: formData.password
+      });
       if (response.success && response.data) {
         setRegisteredPlayer(response.data);
       } else {
@@ -123,18 +143,24 @@ export function RegistrationForm() {
 
         <div className="flex flex-col sm:flex-row gap-3 pt-2">
           <Link
-            href="/chess/players"
-            className="flex-1 inline-flex items-center justify-center gap-2 bg-[#171715] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] font-mono text-xs uppercase tracking-wider py-3.5 px-5 rounded-xl transition-all shadow-sm"
+            href="/chess/login"
+            className="flex-1 inline-flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 text-white font-mono font-bold text-xs uppercase tracking-wider py-3.5 px-5 rounded-xl transition-all shadow-md"
           >
-            <span>View Competitor Roster</span>
+            <span>Log In to Match Portal & Clocks →</span>
             <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+          <Link
+            href="/chess/players"
+            className="inline-flex items-center justify-center gap-2 bg-[#171715] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] font-mono text-xs uppercase tracking-wider py-3.5 px-5 rounded-xl transition-all shadow-sm"
+          >
+            <span>Competitor Roster</span>
           </Link>
           <button
             onClick={() => {
               setRegisteredPlayer(null);
               setFormData({ fullName: '', email: '', department: 'IT Team' });
             }}
-            className="inline-flex items-center justify-center text-xs font-mono uppercase tracking-wider text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715] dark:hover:text-[#FAF8F3] py-3.5 px-5 rounded-xl border border-[#D5CFC5] dark:border-[#262624] transition-colors"
+            className="inline-flex items-center justify-center text-xs font-mono uppercase tracking-wider text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715] dark:hover:text-[#FAF8F3] py-3.5 px-4 rounded-xl border border-[#D5CFC5] dark:border-[#262624] transition-colors"
           >
             Register Another
           </button>
@@ -219,6 +245,58 @@ export function RegistrationForm() {
           ))}
         </select>
         {errors.department && <p className="text-xs text-red-600 dark:text-red-400">{errors.department}</p>}
+      </div>
+
+      {/* Create Account Password */}
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <label className="block text-[11px] font-mono font-medium text-[#171715] dark:text-[#FAF8F3] uppercase tracking-wider">
+            Create Password <span className="text-red-500">*</span>
+          </label>
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715] dark:hover:text-[#FAF8F3] inline-flex items-center gap-1 cursor-pointer"
+          >
+            {showPassword ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+            <span>{showPassword ? 'Hide' : 'Show'}</span>
+          </button>
+        </div>
+        <div className="relative">
+          <input
+            type={showPassword ? 'text' : 'password'}
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            placeholder="At least 4 characters"
+            disabled={loading}
+            className={`w-full bg-[#EFEAE1]/60 dark:bg-[#1B1B19] border ${
+              errors.password ? 'border-red-400' : 'border-[#D5CFC5]/80 dark:border-[#282826] focus:border-[#171715] dark:focus:border-[#FAF8F3]'
+            } rounded-xl px-4 py-3 text-[#171715] dark:text-[#FAF8F3] placeholder-[#77736B] dark:placeholder-[#8E8E93] focus:outline-none transition-colors text-xs font-sans`}
+          />
+        </div>
+        {errors.password && <p className="text-xs text-red-600 dark:text-red-400">{errors.password}</p>}
+      </div>
+
+      {/* Confirm Password */}
+      <div className="space-y-1.5">
+        <label className="block text-[11px] font-mono font-medium text-[#171715] dark:text-[#FAF8F3] uppercase tracking-wider">
+          Confirm Password <span className="text-red-500">*</span>
+        </label>
+        <input
+          type={showPassword ? 'text' : 'password'}
+          value={formData.confirmPassword}
+          onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+          placeholder="Re-enter password to confirm"
+          disabled={loading}
+          className={`w-full bg-[#EFEAE1]/60 dark:bg-[#1B1B19] border ${
+            errors.confirmPassword ? 'border-red-400' : 'border-[#D5CFC5]/80 dark:border-[#282826] focus:border-[#171715] dark:focus:border-[#FAF8F3]'
+          } rounded-xl px-4 py-3 text-[#171715] dark:text-[#FAF8F3] placeholder-[#77736B] dark:placeholder-[#8E8E93] focus:outline-none transition-colors text-xs font-sans`}
+        />
+        {errors.confirmPassword && <p className="text-xs text-red-600 dark:text-red-400">{errors.confirmPassword}</p>}
+        <p className="text-[10px] text-[#77736B] dark:text-[#8E8E93] font-mono flex items-center gap-1 pt-0.5">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+          <span>Your password secures your competitor profile and mobile game clocks.</span>
+        </p>
       </div>
 
       {/* Submit Button */}

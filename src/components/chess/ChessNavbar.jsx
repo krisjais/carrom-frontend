@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Trophy, Shield, Users, Swords, UserPlus, Menu, X, Lock } from 'lucide-react';
+import { Trophy, Shield, Users, Swords, UserPlus, Menu, X, Lock, User } from 'lucide-react';
 
 export function ChessNavbar() {
   const pathname = usePathname();
@@ -14,6 +14,7 @@ export function ChessNavbar() {
     { label: 'Players', href: '/chess/players', icon: Users },
     { label: 'Matches', href: '/chess/matches', icon: Swords },
     { label: 'Standings', href: '/chess/standings', icon: Shield },
+    { label: 'Player Login', href: '/chess/login', icon: User },
   ];
 
   const isActive = (path) => {

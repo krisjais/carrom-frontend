@@ -1,21 +1,35 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, ArrowRight, Sun, Moon } from 'lucide-react';
+import { Menu, X, ArrowRight, Sun, Moon, Clock } from 'lucide-react';
 import { useChessTheme } from '@/context/ChessThemeContext';
+import { chessApi } from '@/lib/chessApi';
 
 export function ChessHeader() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme, toggleTheme, mounted } = useChessTheme();
+  const [playerAuth, setPlayerAuth] = useState({ isAuthenticated: false, player: null });
+
+  useEffect(() => {
+    try {
+      const auth = chessApi.getPlayerAuth();
+      setPlayerAuth(auth);
+    } catch {
+      // Ignore in SSR
+    }
+  }, [pathname]);
 
   const navItems = [
     { label: 'Home', href: '/chess' },
     { label: 'Players', href: '/chess/players' },
     { label: 'Matches', href: '/chess/matches' },
     { label: 'Standings', href: '/chess/standings' },
+    ...(playerAuth.isAuthenticated
+      ? [{ label: 'My Clock & Match', href: '/chess/player/dashboard' }]
+      : [{ label: 'Player Login', href: '/chess/login' }]),
     { label: 'Rules', href: '/chess/rules' },
   ];
 
@@ -82,6 +96,24 @@ export function ChessHeader() {
               <Moon className="w-3.5 h-3.5 text-[#171715]" />
             )}
           </button>
+
+          {/* Competitor Login or Portal Button */}
+          {playerAuth.isAuthenticated ? (
+            <Link
+              href="/chess/player/dashboard"
+              className="inline-flex items-center gap-1.5 border border-amber-600/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 font-semibold px-3 py-1.5 rounded-full text-xs uppercase tracking-wider transition-colors shrink-0"
+            >
+              <Clock className="w-3.5 h-3.5 text-amber-600" />
+              <span>My Clock</span>
+            </Link>
+          ) : (
+            <Link
+              href="/chess/login"
+              className="hidden sm:inline-flex items-center gap-1 border border-[#D5CFC5] dark:border-[#262624] bg-[#FAF8F3] dark:bg-[#1D1D1B] hover:bg-[#EFEAE1] dark:hover:bg-[#262624] text-[#171715] dark:text-[#FAF8F3] font-semibold px-3.5 py-2 rounded-full text-xs uppercase tracking-wider transition-colors shrink-0"
+            >
+              <span>Login</span>
+            </Link>
+          )}
 
           {/* Register Button */}
           <Link

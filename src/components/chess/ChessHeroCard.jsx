@@ -100,15 +100,22 @@ export function ChessHeroCard({ stats }) {
                 href="/chess/register"
                 className="inline-flex items-center gap-2 bg-[#12110E] hover:bg-black text-white dark:bg-white dark:hover:bg-[#FAF8F3] dark:text-[#12110E] font-bold px-7 py-3.5 rounded-full text-xs uppercase tracking-wider transition-all duration-200 shadow-md hover:-translate-y-0.5 active:translate-y-0 font-mono"
               >
-                <span>Start Playing</span>
+                <span>Register</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
 
               <Link
-                href="/chess/standings"
-                className="inline-flex items-center gap-2 border-2 border-[#12110E]/30 dark:border-white/30 bg-white/70 dark:bg-white/10 hover:bg-[#12110E] hover:text-white dark:hover:bg-white dark:hover:text-[#12110E] text-[#12110E] dark:text-white font-bold px-7 py-3.5 rounded-full text-xs uppercase tracking-wider transition-all duration-200 font-mono backdrop-blur-md"
+                href="/chess/login"
+                className="inline-flex items-center gap-2 border-2 border-amber-600/60 dark:border-amber-400/60 bg-amber-500/15 hover:bg-amber-600 hover:text-white dark:hover:bg-amber-400 dark:hover:text-[#12110E] text-amber-900 dark:text-amber-300 font-bold px-6 py-3.5 rounded-full text-xs uppercase tracking-wider transition-all duration-200 font-mono backdrop-blur-md"
               >
-                <span>Explore Standings</span>
+                <span>Player Login & Clock</span>
+              </Link>
+
+              <Link
+                href="/chess/standings"
+                className="inline-flex items-center gap-2 border-2 border-[#12110E]/30 dark:border-white/30 bg-white/70 dark:bg-white/10 hover:bg-[#12110E] hover:text-white dark:hover:bg-white dark:hover:text-[#12110E] text-[#12110E] dark:text-white font-bold px-6 py-3.5 rounded-full text-xs uppercase tracking-wider transition-all duration-200 font-mono backdrop-blur-md"
+              >
+                <span>Standings</span>
               </Link>
             </div>
           </div>

@@ -156,6 +156,53 @@ export const chessApi = {
     return await safeFetch('/rounds');
   },
 
+  // Competitor / Player Authentication & Portal
+  playerLogin: async (identifier, password) => {
+    const payload = typeof identifier === 'object' ? identifier : { identifier, password };
+    const data = await safeFetch('/player/login', {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(payload)
+    });
+    if (data.success && data.token && typeof window !== 'undefined') {
+      localStorage.setItem('chess_player_token', data.token);
+      localStorage.setItem('chess_player_user', JSON.stringify(data.data?.player || {}));
+    }
+    return data;
+  },
+
+  getPlayerDashboard: async (id) => {
+    return await safeFetch(`/player/dashboard/${id}`, { headers: getHeaders() });
+  },
+
+  syncMatchClock: async (matchId, clockData) => {
+    return await safeFetch(`/matches/${matchId}/clock`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(clockData)
+    });
+  },
+
+  getPlayerAuth: () => {
+    if (typeof window === 'undefined') return { token: null, player: null, isAuthenticated: false };
+    const token = localStorage.getItem('chess_player_token');
+    const userJson = localStorage.getItem('chess_player_user');
+    let player = null;
+    try {
+      player = userJson ? JSON.parse(userJson) : null;
+    } catch {
+      player = null;
+    }
+    return { token, player, isAuthenticated: !!token && !!player };
+  },
+
+  logoutPlayer: () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('chess_player_token');
+      localStorage.removeItem('chess_player_user');
+    }
+  },
+
   // Admin Authentication
   adminLogin: async (credentials) => {
     const data = await safeFetch('/admin/login', {
