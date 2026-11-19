@@ -88,6 +88,7 @@ export function DualChessClock({
   const [flagFall, setFlagFall] = useState(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [lastTurnState, setLastTurnState] = useState(null);
 
   const timerRef = useRef(null);
   const channelRef = useRef(null);
@@ -259,6 +260,14 @@ export function DualChessClock({
       }
     }
 
+    // Save snapshot for Undo
+    setLastTurnState({
+      activeTurn,
+      p1Time,
+      p2Time,
+      movesCount
+    });
+
     const nextMoves = activeTurn === 'black' ? movesCount + 1 : movesCount;
     setActiveTurn(nextTurn);
     setIsRunning(true);
@@ -278,6 +287,39 @@ export function DualChessClock({
       onTurnChange(nextTurn);
     }
   }, [flagFall, isRunning, activeTurn, movesCount, soundEnabled, p1Time, p2Time, onTurnChange, broadcastAndSync]);
+
+  // Undo accidental turn switch
+  const handleUndoTurn = () => {
+    if (flagFall) return;
+
+    let targetTurn = activeTurn === 'white' ? 'black' : 'white';
+    let targetP1 = p1Time;
+    let targetP2 = p2Time;
+    let targetMoves = Math.max(0, movesCount - 1);
+
+    if (lastTurnState) {
+      targetTurn = lastTurnState.activeTurn;
+      targetP1 = lastTurnState.p1Time;
+      targetP2 = lastTurnState.p2Time;
+      targetMoves = Math.max(0, lastTurnState.movesCount);
+      setLastTurnState(null);
+    }
+
+    setActiveTurn(targetTurn);
+    setP1Time(targetP1);
+    setP2Time(targetP2);
+    setMovesCount(targetMoves);
+
+    if (soundEnabled) playAudioTone('click');
+
+    broadcastAndSync({
+      activeTurn: targetTurn,
+      p1Time: targetP1,
+      p2Time: targetP2,
+      movesCount: targetMoves,
+      isRunning
+    });
+  };
 
   // Reset clock
   const handleReset = () => {
@@ -310,6 +352,9 @@ export function DualChessClock({
         e.preventDefault();
         if (isRunning) handlePause();
         else handleStartResume();
+      } else if (e.key === 'u' || e.key === 'U') {
+        e.preventDefault();
+        handleUndoTurn();
       }
     };
 
@@ -415,6 +460,16 @@ export function DualChessClock({
             >
               <RotateCcw className="w-3 h-3" />
             </button>
+            {(movesCount > 0 || lastTurnState) && (
+              <button
+                type="button"
+                onClick={handleUndoTurn}
+                className="px-2 py-0.5 rounded-lg bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-[9px] font-mono font-bold uppercase inline-flex items-center gap-1 cursor-pointer transition-transform active:scale-95"
+                title="Undo accidental turn switch"
+              >
+                <span>Undo ↩</span>
+              </button>
+            )}
           </div>
 
           <button
@@ -610,10 +665,21 @@ export function DualChessClock({
             <span className="font-bold text-[#171715] dark:text-[#FAF8F3] bg-[#FAF8F3] dark:bg-[#20201E] px-2 py-0.5 rounded-md border border-[#D5CFC5] dark:border-[#2E2E2B]">
               {movesCount}
             </span>
+            {(movesCount > 0 || lastTurnState) && (
+              <button
+                type="button"
+                onClick={handleUndoTurn}
+                className="ml-1 px-2.5 py-0.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-[10px] font-bold uppercase inline-flex items-center gap-1 cursor-pointer transition-transform active:scale-95 shadow-xs"
+                title="Undo accidental turn switch"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>Undo Turn ↩</span>
+              </button>
+            )}
           </div>
           <span className="text-[#D5CFC5] dark:text-[#2E2E2B]">|</span>
           <span className="text-[11px] font-mono text-[#77736B] dark:text-[#8E8E93]">
-            Shortcuts: <kbd className="px-1.5 py-0.5 bg-white dark:bg-[#242422] rounded border text-[10px] font-bold">Space</kbd> switch turn • <kbd className="px-1.5 py-0.5 bg-white dark:bg-[#242422] rounded border text-[10px] font-bold">P</kbd> pause
+            Shortcuts: <kbd className="px-1.5 py-0.5 bg-white dark:bg-[#242422] rounded border text-[10px] font-bold">Space</kbd> switch • <kbd className="px-1.5 py-0.5 bg-white dark:bg-[#242422] rounded border text-[10px] font-bold">P</kbd> pause • <kbd className="px-1.5 py-0.5 bg-white dark:bg-[#242422] rounded border text-[10px] font-bold">U</kbd> undo
           </span>
         </div>
 

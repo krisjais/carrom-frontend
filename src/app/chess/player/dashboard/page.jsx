@@ -66,6 +66,7 @@ export default function ChessPlayerDashboardPage() {
   const [flagFall, setFlagFall] = useState(null); // 'white' | 'black'
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showFaceToFaceClock, setShowFaceToFaceClock] = useState(false);
+  const [lastTurnState, setLastTurnState] = useState(null);
 
   const clockIntervalRef = useRef(null);
 
@@ -273,7 +274,14 @@ export default function ChessPlayerDashboardPage() {
       return;
     }
 
-    // Subsequent taps pass turn to opponent
+    // Subsequent taps pass turn to opponent (save current state for undo)
+    setLastTurnState({
+      activeTurn,
+      whiteSeconds,
+      blackSeconds,
+      movesCount
+    });
+
     const nextTurn = activeTurn === 'white' ? 'black' : 'white';
     const nextMoves = movesCount + 1;
 
@@ -290,6 +298,41 @@ export default function ChessPlayerDashboardPage() {
       whiteSeconds,
       blackSeconds
     });
+  };
+
+  // 5. Undo Mistaken Turn Switch (Player accidentally tapped button)
+  const handleUndoTurn = () => {
+    if (flagFall) return;
+
+    let targetTurn = activeTurn === 'white' ? 'black' : 'white';
+    let targetWhite = whiteSeconds;
+    let targetBlack = blackSeconds;
+    let targetMoves = Math.max(0, movesCount - 1);
+
+    if (lastTurnState) {
+      targetTurn = lastTurnState.activeTurn;
+      targetWhite = lastTurnState.whiteSeconds;
+      targetBlack = lastTurnState.blackSeconds;
+      targetMoves = Math.max(0, lastTurnState.movesCount);
+      setLastTurnState(null);
+    }
+
+    setActiveTurn(targetTurn);
+    setWhiteSeconds(targetWhite);
+    setBlackSeconds(targetBlack);
+    setMovesCount(targetMoves);
+
+    if (soundEnabled) playClockTone('click');
+
+    broadcastAndSync({
+      activeTurn: targetTurn,
+      whiteSeconds: targetWhite,
+      blackSeconds: targetBlack,
+      movesCount: targetMoves,
+      isClockRunning
+    });
+
+    toast.info(`Turn undone. Reverted back to ${targetTurn.toUpperCase()}'s move.`);
   };
 
   const handlePauseClock = () => {
@@ -736,6 +779,23 @@ export default function ChessPlayerDashboardPage() {
                   )}
                 </div>
 
+                {/* Accidental Tap Helper Banner */}
+                {!isCompleted && (movesCount > 0 || lastTurnState) && (
+                  <div className="flex items-center justify-between text-[11px] font-mono px-3 py-1.5 rounded-xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/30">
+                    <span className="text-[#77736B] dark:text-[#8E8E93] text-[10px]">
+                      Accidentally switched turn?
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleUndoTurn}
+                      className="text-amber-800 dark:text-amber-300 hover:text-amber-950 dark:hover:text-amber-100 inline-flex items-center gap-1 font-bold cursor-pointer text-[11px] uppercase tracking-wider transition-transform active:scale-95"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span>Undo Turn Switch ↩</span>
+                    </button>
+                  </div>
+                )}
+
                 {/* Clock Controls Strip */}
                 <div className="flex items-center justify-between text-xs font-mono pt-2 border-t border-[#D5CFC5]/50 dark:border-[#262624]">
                   <div className="flex items-center gap-2">
@@ -743,6 +803,19 @@ export default function ChessPlayerDashboardPage() {
                     <span className="font-bold text-[#171715] dark:text-[#FAF8F3] bg-[#EFEAE1] dark:bg-[#20201E] px-2 py-0.5 rounded">
                       {movesCount}
                     </span>
+
+                    {/* Quick Undo Button */}
+                    {!isCompleted && (movesCount > 0 || lastTurnState) && (
+                      <button
+                        type="button"
+                        onClick={handleUndoTurn}
+                        className="px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-[10px] font-bold uppercase inline-flex items-center gap-1 cursor-pointer transition-all active:scale-95 shadow-xs"
+                        title="Undo accidental turn switch"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                        <span>Undo ↩</span>
+                      </button>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-2">
