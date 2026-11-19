@@ -26,8 +26,8 @@ export function HowItWorksGrid() {
     {
       num: '04',
       icon: Trophy,
-      title: 'SCORE & WIN',
-      desc: 'Points are calculated based on pieces captured and match outcomes.'
+      title: 'WIN & ADVANCE',
+      desc: 'Admin directly declares the match winner to advance them to the next round.'
     }
   ];
 

@@ -574,7 +574,6 @@ export default function ChessAdminMatchesPage() {
             matches={matches}
             isAdmin={true}
             onStartMatch={handleStartMatch}
-            onOpenLiveScoring={openLiveScoring}
             onOpenResultModal={openResultModal}
             onDeleteMatch={handleDeleteMatch}
             startingMatchId={startingMatchId}

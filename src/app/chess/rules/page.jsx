@@ -23,65 +23,6 @@ import Link from 'next/link';
 export function ChessRulesPage() {
   const [showPdfViewer, setShowPdfViewer] = useState(false);
 
-  const pieceValues = [
-    {
-      name: 'Pawn',
-      val: '1 pt',
-      svg: (
-        <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-          <circle cx="12" cy="7" r="3" />
-          <path d="M10 10h4l1 5H9l1-5zm-3 8h10v2H7v-2z"/>
-        </svg>
-      )
-    },
-    {
-      name: 'Knight',
-      val: '3 pts',
-      svg: (
-        <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-          <path d="M19 14.5c0-1.8-1-3.3-2.5-4C16 8.5 14.5 5 11 4c-.5 0-1 .5-1 1 0 1-1.5 2-2.5 2C6 7 5 8.5 5 10c0 1.5.8 2.5 2 3l-1 4h12l-1-2.5c1.2-.5 2-1.7 2-3z"/>
-        </svg>
-      )
-    },
-    {
-      name: 'Bishop',
-      val: '3 pts',
-      svg: (
-        <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-          <circle cx="12" cy="4" r="1.5" />
-          <path d="M12 6c-3 0-5 3-5 6 0 2 1.5 4 3 5l-1 2h6l-1-2c1.5-1 3-3 3-5 0-3-2-6-5-6zm-1 3h2v2h-2V9zm0 3h2v3h-2v-3z"/>
-        </svg>
-      )
-    },
-    {
-      name: 'Rook',
-      val: '5 pts',
-      svg: (
-        <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-          <path d="M5 5v3h2V6h3v2h4V6h3v2h2V5H5zm2 5h10l-1 7H8L7 10zm-2 9h14v2H5v-2z"/>
-        </svg>
-      )
-    },
-    {
-      name: 'Queen',
-      val: '9 pts',
-      svg: (
-        <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-          <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
-        </svg>
-      )
-    },
-    {
-      name: 'King',
-      val: '∞ (Game)',
-      svg: (
-        <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-          <path d="M11 2h2v2h2v2h-2v2h3l2 5H6l2-5h3V6H9V4h2V2zm-5 13h12l-1 3H7l-1-3zm-1 5h14v2H5v-2z"/>
-        </svg>
-      )
-    }
-  ];
-
   const officialRules = [
     {
       num: '01',
@@ -119,9 +60,9 @@ export function ChessRulesPage() {
       title: 'Time & Game Result',
       tag: '10:00 RAPID LIMIT',
       items: [
-        'When the overall 10-minute match limit expires, the referee stops the game and records the result according to the announced tournament timing procedure (highest material points).',
-        'If a chess clock is used instead, the organiser announces the clock format before the round. A player whose allotted clock time reaches zero normally loses.',
-        'Checkmate wins the game immediately. A recognised draw condition or mutual agreement may result in a draw.'
+        'Each match features a strict 10-minute rapid clock control.',
+        'Checkmate ends the game immediately in victory. If a player runs out of time on their clock, they lose.',
+        'The referee declares the official winner directly by choosing the winning competitor name, advancing them in the knockout bracket.'
       ]
     },
     {
@@ -281,7 +222,7 @@ export function ChessRulesPage() {
           </div>
         </div>
 
-        {/* Piece Scoring Table */}
+        {/* Match Decision & Progression Banner */}
         <div className="bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl p-6 sm:p-8 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-[#D5CFC5]/70 dark:border-[#262624] pb-3">
             <div className="flex items-center gap-3">
@@ -289,31 +230,50 @@ export function ChessRulesPage() {
                 <Trophy className="w-4 h-4 text-amber-500" />
               </div>
               <h3 className="text-base font-bold font-serif text-[#171715] dark:text-[#FAF8F3] tracking-tight">
-                Standard Piece Material Valuation
+                Match Decision & Knockout Progression
               </h3>
             </div>
             <span className="font-mono text-[10px] uppercase font-bold tracking-wider text-[#77736B] dark:text-[#8E8E93]">
-              FIDE Tie-Break Standard
+              Direct Winner Selection
             </span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {pieceValues.map((p) => (
-              <div
-                key={p.name}
-                className="flex items-center justify-between bg-[#EFEAE1]/60 dark:bg-[#1B1B19] border border-[#D5CFC5]/80 dark:border-[#282826] p-3 rounded-xl"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-[#171715] dark:text-[#FAF8F3]">{p.svg}</span>
-                  <span className="font-serif font-medium text-xs text-[#171715] dark:text-[#FAF8F3]">
-                    {p.name}
-                  </span>
-                </div>
-                <span className="font-mono font-bold text-xs text-[#171715] dark:text-[#FAF8F3]">
-                  {p.val}
-                </span>
-              </div>
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="p-4 rounded-2xl bg-[#EFEAE1]/60 dark:bg-[#1B1B19] border border-[#D5CFC5]/80 dark:border-[#282826] space-y-1">
+              <span className="text-[10px] font-mono uppercase font-bold text-amber-700 dark:text-amber-400 block">
+                01 • Direct Declaration
+              </span>
+              <h4 className="font-serif font-bold text-sm text-[#171715] dark:text-[#FAF8F3]">
+                Winner Declared by Name
+              </h4>
+              <p className="text-xs text-[#77736B] dark:text-[#8E8E93] leading-relaxed">
+                No complex piece points or captured pointer calculations. The arbiter directly clicks the winning player to confirm victory.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[#EFEAE1]/60 dark:bg-[#1B1B19] border border-[#D5CFC5]/80 dark:border-[#282826] space-y-1">
+              <span className="text-[10px] font-mono uppercase font-bold text-emerald-700 dark:text-emerald-400 block">
+                02 • Knockout Progression
+              </span>
+              <h4 className="font-serif font-bold text-sm text-[#171715] dark:text-[#FAF8F3]">
+                Instant Bracket Advancement
+              </h4>
+              <p className="text-xs text-[#77736B] dark:text-[#8E8E93] leading-relaxed">
+                Declared winners automatically propagate to the subsequent championship round across the bracket tree.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[#EFEAE1]/60 dark:bg-[#1B1B19] border border-[#D5CFC5]/80 dark:border-[#282826] space-y-1">
+              <span className="text-[10px] font-mono uppercase font-bold text-sky-700 dark:text-sky-400 block">
+                03 • Rapid Speed Clock
+              </span>
+              <h4 className="font-serif font-bold text-sm text-[#171715] dark:text-[#FAF8F3]">
+                10-Minute Rapid Control
+              </h4>
+              <p className="text-xs text-[#77736B] dark:text-[#8E8E93] leading-relaxed">
+                Standard tournament chess clocks govern over-the-board pacing. A flag fall (clock expiration) results in loss on time.
+              </p>
+            </div>
           </div>
         </div>
 

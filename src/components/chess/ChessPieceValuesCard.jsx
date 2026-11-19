@@ -1,15 +1,30 @@
 'use client';
 
 import React from 'react';
+import { Crown, Clock, Swords, ShieldCheck } from 'lucide-react';
 
 export function ChessPieceValuesCard() {
-  const pieces = [
-    { symbol: '♟', name: 'Pawn', points: '1 Pt', isSpecial: false },
-    { symbol: '♞', name: 'Knight', points: '3 Pts', isSpecial: false },
-    { symbol: '♝', name: 'Bishop', points: '3 Pts', isSpecial: false },
-    { symbol: '♜', name: 'Rook', points: '5 Pts', isSpecial: false },
-    { symbol: '♛', name: 'Queen', points: '9 Pts', isSpecial: true },
-    { symbol: '♚', name: 'King', points: '0 Pts', isSpecial: true },
+  const rules = [
+    {
+      icon: Clock,
+      title: '10:00 Rapid Clock',
+      desc: 'Speed chess time control for intense head-to-head play.'
+    },
+    {
+      icon: Crown,
+      title: 'Direct Winner Declaration',
+      desc: 'No piece point counting. Winner declared directly by name.'
+    },
+    {
+      icon: Swords,
+      title: 'Knockout Elimination',
+      desc: 'Victorious competitor advances directly to the next stage.'
+    },
+    {
+      icon: ShieldCheck,
+      title: 'BYE Nominations',
+      desc: 'Odd-bracket players automatically advance to the next round.'
+    }
   ];
 
   return (
@@ -19,43 +34,40 @@ export function ChessPieceValuesCard() {
       <div className="flex items-center justify-between border-b border-[#D5CFC5]/60 dark:border-[#262624] pb-4">
         <div>
           <span className="text-[10px] font-mono uppercase tracking-widest text-[#77736B] dark:text-[#8E8E93] font-semibold block">
-            MATERIAL SCORING WEIGHTS
+            TOURNAMENT FORMAT
           </span>
           <h3 className="text-sm font-bold font-serif text-[#171715] dark:text-[#FAF8F3] tracking-wide uppercase mt-0.5">
-            KNOW THE VALUE OF EVERY MOVE
+            Knockout Championship Rules
           </h3>
         </div>
-        <span className="text-sm">♛</span>
+        <Crown className="w-5 h-5 text-amber-500" />
       </div>
 
       <p className="text-xs text-[#77736B] dark:text-[#8E8E93] leading-relaxed">
-        Material points are accumulated from opponent pieces captured during the 10-minute game clock and serve as crucial tiebreakers.
+        Matches are decided directly over the board by checkmate, resignation, or clock expiration. The referee declares the winner directly by competitor name.
       </p>
 
-      {/* Pieces Grid */}
-      <div className="grid grid-cols-2 gap-2.5 text-xs">
-        {pieces.map((p) => (
-          <div
-            key={p.name}
-            className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl border transition-all ${
-              p.isSpecial
-                ? 'bg-[#EFEAE1] dark:bg-[#1D1D1B] border-[#BDB6AA] dark:border-[#383733]'
-                : 'bg-[#FAF8F3] dark:bg-[#181816] border-[#D5CFC5]/60 dark:border-[#262624]'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <span className={`text-base leading-none ${p.name === 'Queen' ? 'text-amber-500' : p.name === 'King' ? 'text-amber-600' : 'text-[#171715] dark:text-[#FAF8F3]'}`}>
-                {p.symbol}
-              </span>
-              <span className={`font-serif ${p.isSpecial ? 'font-bold' : 'font-medium'} text-[#171715] dark:text-[#FAF8F3]`}>
-                {p.name}
-              </span>
+      {/* Rules Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+        {rules.map((r) => {
+          const Icon = r.icon;
+          return (
+            <div
+              key={r.title}
+              className="p-3.5 rounded-2xl border border-[#D5CFC5]/70 dark:border-[#262624] bg-[#EFEAE1]/50 dark:bg-[#1A1A18] space-y-1"
+            >
+              <div className="flex items-center gap-2">
+                <Icon className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                <h4 className="font-serif font-bold text-xs text-[#171715] dark:text-[#FAF8F3]">
+                  {r.title}
+                </h4>
+              </div>
+              <p className="text-[11px] text-[#77736B] dark:text-[#8E8E93] leading-snug">
+                {r.desc}
+              </p>
             </div>
-            <span className="font-mono font-bold text-xs text-[#171715] dark:text-[#FAF8F3]">
-              {p.points}
-            </span>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
     </div>

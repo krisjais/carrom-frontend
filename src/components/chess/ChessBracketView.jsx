@@ -53,7 +53,6 @@ export function ChessBracketView({
   matches = [],
   isAdmin = false,
   onStartMatch,
-  onOpenLiveScoring,
   onOpenResultModal,
   onDeleteMatch,
   startingMatchId = null,
@@ -172,7 +171,6 @@ export function ChessBracketView({
                       isFinal={isFinalStage}
                       isAdmin={isAdmin}
                       onStartMatch={onStartMatch}
-                      onOpenLiveScoring={onOpenLiveScoring}
                       onOpenResultModal={onOpenResultModal}
                       onDeleteMatch={onDeleteMatch}
                       isStarting={startingMatchId === match._id}
@@ -205,7 +203,6 @@ function ChessMatchNode({
   isFinal,
   isAdmin,
   onStartMatch,
-  onOpenLiveScoring,
   onOpenResultModal,
   onDeleteMatch,
   isStarting,
@@ -394,15 +391,26 @@ function ChessMatchNode({
         <div className="flex items-center gap-1.5">
           {/* Scheduled Match -> Start (10m) */}
           {isAdmin && isScheduled && !isBye && (
-            <button
-              type="button"
-              onClick={() => onStartMatch && onStartMatch(match._id)}
-              disabled={isStarting}
-              className="bg-[#171715] dark:bg-[#FAF8F3] text-white dark:text-[#0D0D0D] hover:bg-black px-2.5 py-1 rounded-lg uppercase font-bold inline-flex items-center gap-1 shadow-2xs transition-transform active:scale-95 cursor-pointer"
-            >
-              <Play className="w-2.5 h-2.5 fill-current" />
-              <span>Start</span>
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => onStartMatch && onStartMatch(match._id)}
+                disabled={isStarting}
+                className="bg-[#171715] dark:bg-[#FAF8F3] text-white dark:text-[#0D0D0D] hover:bg-black px-2.5 py-1 rounded-lg uppercase font-bold inline-flex items-center gap-1 shadow-2xs transition-transform active:scale-95 cursor-pointer"
+              >
+                <Play className="w-2.5 h-2.5 fill-current" />
+                <span>Start</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onOpenResultModal && onOpenResultModal(match)}
+                className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded-lg uppercase font-bold inline-flex items-center gap-1 shadow-2xs cursor-pointer"
+                title="Declare Winner directly"
+              >
+                <Crown className="w-2.5 h-2.5 fill-current" />
+                <span>Winner</span>
+              </button>
+            </>
           )}
 
           {/* Live Match -> Declare Winner */}
