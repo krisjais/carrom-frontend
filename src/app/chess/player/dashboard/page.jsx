@@ -763,26 +763,32 @@ export default function ChessPlayerDashboardPage() {
                     </div>
                   ) : isLive ? (
                     <div className="space-y-3">
-                      {/* Giant Tactile Tap-to-Move Button for Phone */}
-                      <button
-                        type="button"
-                        onClick={handlePassTurn}
-                        disabled={!isClockRunning || !!flagFall}
-                        className={`w-full py-4 sm:py-5 px-4 rounded-2xl font-mono font-bold text-sm sm:text-base uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all duration-150 shadow-md cursor-pointer active:scale-[0.98] select-none ${
-                          isMyTurn
-                            ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-amber-600/30 ring-4 ring-amber-500/25'
-                            : 'bg-[#171715] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] hover:bg-black dark:hover:bg-white'
-                        }`}
-                      >
-                        <span className="flex items-center gap-2">
-                          {isMyTurn ? 'TAP WHEN YOU MOVE PAWN / PIECE ⇆' : 'TAP TO SWITCH TURN ⇆'}
-                        </span>
-                        <span className="text-[11px] font-normal tracking-wide opacity-90 font-sans">
-                          {isMyTurn
-                            ? 'Pauses your time and starts opponent clock immediately'
-                            : 'Opponent turn active • Tap if opponent completed move on board'}
-                        </span>
-                      </button>
+                      {/* Tap-to-Move Button: Only shown when it is YOUR turn to move */}
+                      {isMyTurn ? (
+                        <button
+                          type="button"
+                          onClick={handlePassTurn}
+                          disabled={!isClockRunning || !!flagFall}
+                          className="w-full py-4 sm:py-5 px-4 rounded-2xl font-mono font-bold text-sm sm:text-base uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all duration-150 shadow-md cursor-pointer active:scale-[0.98] select-none bg-amber-600 hover:bg-amber-700 text-white shadow-amber-600/30 ring-4 ring-amber-500/25"
+                        >
+                          <span className="flex items-center gap-2">
+                            TAP WHEN YOU MOVE PAWN / PIECE ⇆
+                          </span>
+                          <span className="text-[11px] font-normal tracking-wide opacity-90 font-sans">
+                            Pauses your time and starts opponent clock immediately
+                          </span>
+                        </button>
+                      ) : (
+                        <div className="w-full py-4 px-4 rounded-2xl bg-[#EFEAE1]/60 dark:bg-[#1C1C1A] border border-[#D5CFC5]/80 dark:border-[#282826] text-center space-y-1">
+                          <div className="flex items-center justify-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
+                            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                            <span>Opponent's Turn Active ({opponentName})</span>
+                          </div>
+                          <p className="text-[11px] text-[#77736B] dark:text-[#8E8E93] font-sans">
+                            Opponent clock is counting down. Your button activates once opponent moves.
+                          </p>
+                        </div>
+                      )}
 
                       {/* Status Strip & Undo Button */}
                       <div className="flex items-center justify-between px-1 text-xs font-mono">
