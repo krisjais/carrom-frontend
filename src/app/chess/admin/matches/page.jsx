@@ -1,22 +1,65 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { chessApi } from '@/lib/chessApi';
 import { AdminSidebar } from '@/components/chess/AdminSidebar';
 import { ChessBracketView } from '@/components/chess/ChessBracketView';
-import { Swords, Play, CheckCircle2, XCircle, Trophy, Loader2, Plus, Minus, Trash2, Clock, ShieldCheck, Zap, CheckSquare, Square, ChevronDown, X, LayoutGrid, List, Crown } from 'lucide-react';
+import { Swords, Play, CheckCircle2, XCircle, Trophy, Loader2, Plus, Minus, Trash2, Clock, ShieldCheck, Zap, CheckSquare, Square, ChevronDown, X, LayoutGrid, List, Crown, Sparkles } from 'lucide-react';
 import { useToast, useConfirm } from '@/context/ToastContext';
 
-const ROUND_PRESETS = [
-  { label: 'Round 1', round: 1 },
-  { label: 'Round 2', round: 2 },
-  { label: 'Round 3', round: 3 },
-  { label: 'Quarter-Final', round: 4 },
-  { label: 'Semi-Final', round: 5 },
-  { label: 'Final', round: 6 },
-  { label: 'Grand Finals', round: 7 }
-];
+/**
+ * Dynamic Round & Stage Calculator
+ * Calculates dynamic round progression and naming based on active contestants,
+ * exactly like the Carrom draw engine (N = 2 -> Final, N <= 4 -> Semi-Final, etc.)
+ */
+const getDynamicRoundPlan = (activePlayersCount, currentRoundNumber = 1) => {
+  const N = Math.max(0, activePlayersCount);
+  if (N <= 1) {
+    return {
+      stageName: 'Final',
+      realMatches: Math.floor(N / 2),
+      byes: N % 2,
+      totalRounds: 1
+    };
+  }
+
+  const plan = [];
+  let curr = N;
+  let rNum = currentRoundNumber;
+
+  while (curr > 1) {
+    const realMatches = Math.floor(curr / 2);
+    const byes = curr % 2;
+    const nextEntries = realMatches + byes;
+    plan.push({
+      roundNumber: rNum,
+      entriesCount: curr,
+      realMatches,
+      byes,
+      nextEntries
+    });
+    curr = nextEntries;
+    rNum++;
+  }
+
+  const currentPlan = plan[0] || { realMatches: Math.floor(N / 2), byes: N % 2, entriesCount: N };
+  let stageName = `Round ${currentRoundNumber}`;
+  if (currentPlan.entriesCount === 2) stageName = 'Final';
+  else if (currentPlan.entriesCount <= 4) stageName = 'Semi-Final';
+  else if (currentPlan.entriesCount <= 8) stageName = 'Quarter-Final';
+  else if (currentPlan.entriesCount <= 16) stageName = 'Round of 16';
+  else if (currentPlan.entriesCount <= 32) stageName = 'Round of 32';
+
+  return {
+    stageName,
+    roundNumber: currentRoundNumber,
+    activePlayers: N,
+    realMatches: currentPlan.realMatches,
+    byes: currentPlan.byes,
+    totalRounds: plan.length
+  };
+};
 
 export default function ChessAdminMatchesPage() {
   const router = useRouter();
@@ -83,6 +126,83 @@ export default function ChessAdminMatchesPage() {
       if (!silent) setLoading(false);
     }
   }
+
+  // Calculate dynamic tournament progression and stage based on actual active players (adapts like Carrom)
+  const dynamicProgression = useMemo(() => {
+    const approvedPlayers = players.filter(p => ['Approved', 'Active', 'approved', 'active'].includes(p.status));
+    if (matches.length === 0) {
+      const plan = getDynamicRoundPlan(approvedPlayers.length, 1);
+      return {
+        targetRound: 1,
+        suggestedName: plan.stageName,
+        activePlayersCount: approvedPlayers.length,
+        realMatches: plan.realMatches,
+        byes: plan.byes,
+        isNewTournament: true,
+        allCompleted: false
+      };
+    }
+
+    const maxRound = Math.max(...matches.map(m => m.round || 1));
+    const currentRoundMatches = matches.filter(m => m.round === maxRound);
+    const uncompleted = currentRoundMatches.filter(m => m.status !== 'completed');
+
+    if (uncompleted.length > 0) {
+      return {
+        targetRound: maxRound,
+        suggestedName: currentRoundMatches[0]?.roundName || `Round ${maxRound}`,
+        activePlayersCount: currentRoundMatches.length * 2,
+        realMatches: currentRoundMatches.filter(m => !m.isBye).length,
+        byes: currentRoundMatches.filter(m => m.isBye).length,
+        isNewTournament: false,
+        allCompleted: false,
+        uncompletedCount: uncompleted.length
+      };
+    }
+
+    // Current round finished -> advancing pool
+    const advancingIds = new Set();
+    currentRoundMatches.forEach(m => {
+      const p1Id = (m.player1?._id || m.player1 || m.byePlayer?._id || m.byePlayer)?.toString();
+      const p2Id = (m.player2?._id || m.player2)?.toString();
+      if (m.isBye) {
+        if (p1Id) advancingIds.add(p1Id);
+      } else if (m.winner === 'player1') {
+        if (p1Id) advancingIds.add(p1Id);
+      } else if (m.winner === 'player2') {
+        if (p2Id) advancingIds.add(p2Id);
+      } else if (m.winnerPlayer) {
+        advancingIds.add((m.winnerPlayer._id || m.winnerPlayer).toString());
+      }
+    });
+
+    const advancingCount = advancingIds.size;
+    const nextRoundNum = maxRound + 1;
+    const plan = getDynamicRoundPlan(advancingCount, nextRoundNum);
+
+    return {
+      targetRound: nextRoundNum,
+      suggestedName: plan.stageName,
+      activePlayersCount: advancingCount,
+      realMatches: plan.realMatches,
+      byes: plan.byes,
+      isNewTournament: false,
+      allCompleted: true
+    };
+  }, [matches, players]);
+
+  // Sync default round name when dynamicProgression changes
+  useEffect(() => {
+    if (dynamicProgression?.suggestedName) {
+      setSelectedRoundName((prev) => {
+        if (!prev || prev.startsWith('Round ') || ['Final', 'Grand Finals', 'Semi-Final', 'Quarter-Final', 'Round of 16', 'Round of 32'].includes(prev)) {
+          return dynamicProgression.suggestedName;
+        }
+        return prev;
+      });
+      setSelectedRound(dynamicProgression.targetRound || 1);
+    }
+  }, [dynamicProgression]);
 
   useEffect(() => {
     loadData();
@@ -570,28 +690,34 @@ export default function ChessAdminMatchesPage() {
           </div>
         </div>
 
-        {/* Quick Stage Presets Bar */}
-        <div className="flex flex-wrap items-center gap-1.5 px-1 text-xs">
-          <span className="text-[10px] font-mono uppercase font-bold text-[#77736B] dark:text-[#8E8E93] mr-1">
-            Quick Stages:
-          </span>
-          {ROUND_PRESETS.map((p) => (
-            <button
-              key={p.label}
-              type="button"
-              onClick={() => {
-                setSelectedRoundName(p.label);
-                setSelectedRound(p.round);
-              }}
-              className={`text-[11px] font-sans px-3 py-1 rounded-lg border transition-all cursor-pointer ${
-                selectedRoundName === p.label
-                  ? 'bg-[#171715] text-white dark:bg-[#FAF8F3] dark:text-[#0D0D0D] border-transparent font-semibold shadow-xs'
-                  : 'bg-[#FAF8F3] dark:bg-[#1A1A18] border-[#D5CFC5] dark:border-[#262624] text-[#6E685F] dark:text-[#A8A49C] hover:text-[#171715] dark:hover:text-[#FAF8F3] hover:border-[#171715]/40'
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
+        {/* Dynamic Tournament Stage Info Strip (Adapts based on entries, like Carrom) */}
+        <div className="flex flex-wrap items-center justify-between gap-3 px-3 py-2 rounded-xl bg-[#FAF8F3] dark:bg-[#1A1A18] border border-[#E2DDD5] dark:border-[#282826] text-xs">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="font-mono text-[10px] uppercase font-bold tracking-wider text-[#77736B] dark:text-[#8E8E93]">
+              Dynamic Stage Plan:
+            </span>
+            <span className="font-serif font-bold text-[#171715] dark:text-[#FAF8F3] text-sm">
+              {dynamicProgression.suggestedName}
+            </span>
+            <span className="text-[11px] font-mono text-[#8C867A] dark:text-[#8E8E93] bg-[#EFEAE1]/70 dark:bg-[#252522] px-2 py-0.5 rounded-md border border-[#D5CFC5]/50 dark:border-[#383733]">
+              {dynamicProgression.activePlayersCount} Active Players • {dynamicProgression.realMatches} Match{dynamicProgression.realMatches !== 1 ? 'es' : ''}
+              {dynamicProgression.byes > 0 ? ' + 1 BYE Nomination' : ''}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93]">
+              {dynamicProgression.byes > 0 ? (
+                <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400 font-semibold">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  Odd player gets nominated to next round (BYE)
+                </span>
+              ) : (
+                <span>Even contestant draw • No byes needed</span>
+              )}
+            </span>
+          </div>
         </div>
 
         {/* BULK ACTIONS FLOATING BAR (Visible when 1 or more matches selected) */}
@@ -792,21 +918,32 @@ export default function ChessAdminMatchesPage() {
                       <td className="py-3.5 px-3 text-center">
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold ${
-                            isLive
+                            m.isBye
+                              ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-800/60'
+                              : isLive
                               ? 'bg-rose-100 dark:bg-rose-950/40 text-rose-800 dark:text-rose-400 border border-rose-300 dark:border-rose-800/60'
                               : isCompleted
                               ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800/60'
                               : 'bg-[#EFEAE1] dark:bg-[#1D1D1B] text-[#4E4C47] dark:text-[#8E8E93] border border-[#D5CFC5] dark:border-[#262624]'
                           }`}
                         >
-                          {isLive && <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1 animate-ping" />}
-                          {m.status}
+                          {m.isBye ? (
+                            <span className="inline-flex items-center gap-1 font-bold">
+                              <ShieldCheck className="w-3 h-3 text-amber-600" />
+                              <span>BYE NOMINATION</span>
+                            </span>
+                          ) : (
+                            <>
+                              {isLive && <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1 animate-ping" />}
+                              {m.status}
+                            </>
+                          )}
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-center font-serif font-bold text-xs">
                         {isCompleted ? (
                           <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-300 dark:border-emerald-800/60">
-                            👑 {m.isBye ? `${p1} (BYE)` : m.winner === 'player1' ? p1 : m.winner === 'player2' ? p2 : 'Draw'}
+                            👑 {m.isBye ? `${p1} — Nominated to Next Round (BYE)` : m.winner === 'player1' ? p1 : m.winner === 'player2' ? p2 : 'Draw'}
                           </span>
                         ) : isLive ? (
                           <span className="font-mono text-rose-600 dark:text-rose-400 font-bold text-[11px] animate-pulse">
@@ -927,25 +1064,22 @@ export default function ChessAdminMatchesPage() {
                     </span>
                   </div>
 
-                  {/* Preset quick selection pills */}
-                  <div className="flex flex-wrap gap-1.5 mb-2.5">
-                    {ROUND_PRESETS.map((p) => (
-                      <button
-                        key={p.label}
-                        type="button"
-                        onClick={() => {
-                          setManualRoundName(p.label);
-                          setManualRound(p.round);
-                        }}
-                        className={`text-[11px] font-sans font-medium px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
-                          manualRoundName === p.label
-                            ? 'bg-[#171715] text-white dark:bg-[#FAF8F3] dark:text-[#0D0D0D] border-transparent font-semibold shadow-xs'
-                            : 'bg-[#F2ECE1]/80 dark:bg-[#1D1D1B] border-[#D5CFC5] dark:border-[#262624] text-[#6E685F] hover:text-[#171715] dark:hover:text-[#FAF8F3]'
-                        }`}
-                      >
-                        {p.label}
-                      </button>
-                    ))}
+                  {/* Dynamic Stage Quick Fill Button */}
+                  <div className="flex items-center gap-2 mb-2.5">
+                    <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93]">
+                      Dynamic Stage:
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setManualRoundName(dynamicProgression.suggestedName);
+                        setManualRound(dynamicProgression.targetRound);
+                      }}
+                      className="text-[11px] font-sans font-medium px-2.5 py-1 rounded-lg border border-[#D5CFC5] dark:border-[#262624] bg-[#FAF8F3] dark:bg-[#1A1A18] hover:bg-[#171715] hover:text-white dark:hover:bg-[#FAF8F3] dark:hover:text-[#0D0D0D] transition-all cursor-pointer inline-flex items-center gap-1"
+                    >
+                      <Sparkles className="w-3 h-3 text-amber-500" />
+                      <span>{dynamicProgression.suggestedName} (Round {dynamicProgression.targetRound})</span>
+                    </button>
                   </div>
 
                   {/* Single Input: Custom Stage / Round Name */}

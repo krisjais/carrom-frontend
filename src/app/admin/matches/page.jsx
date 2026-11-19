@@ -25,7 +25,11 @@ import {
   Timer,
   Square,
   Save,
-  Users
+  Users,
+  Plus,
+  Trash2,
+  Radio,
+  LayoutGrid
 } from 'lucide-react';
 import { StatusBadge, MainBoardBadge, CategoryBadge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
@@ -41,8 +45,20 @@ export default function AdminMatchesPage() {
   const [matches, setMatches] = useState([]);
   const [teams, setTeams] = useState([]);
   const [arenaState, setArenaState] = useState(null);
+  const [boards, setBoards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [substituteMatch, setSubstituteMatch] = useState(null);
+
+  // Multi-Board Carrom Arena Management
+  const [addBoardModalOpen, setAddBoardModalOpen] = useState(false);
+  const [creatingBoard, setCreatingBoard] = useState(false);
+  const [newBoardData, setNewBoardData] = useState({
+    name: '',
+    boardNumber: '',
+    assignedCategory: 'all',
+    adminInCharge: ''
+  });
+  const [boardSelectMatch, setBoardSelectMatch] = useState(null);
 
   // Category Level Hierarchy: 'singles' | 'doubles' | 'mixed'
   const [mainTab, setMainTab] = useState('singles');
@@ -83,7 +99,10 @@ export default function AdminMatchesPage() {
       ]);
       if (matchesRes.success) setMatches(matchesRes.matches || []);
       if (teamsRes.success) setTeams(teamsRes.teams || []);
-      if (arenaRes.success) setArenaState(arenaRes);
+      if (arenaRes.success) {
+        setArenaState(arenaRes);
+        if (arenaRes.boards) setBoards(arenaRes.boards);
+      }
       if (tournRes.success && tournRes.tournament?.scheduleSettings) {
         const s = tournRes.tournament.scheduleSettings;
         setScheduleSettings({
@@ -108,10 +127,30 @@ export default function AdminMatchesPage() {
   const [stoppingMatchId, setStoppingMatchId] = useState(null);
 
   const handleStartMatch = async (matchId) => {
+    // If multiple available boards exist, prompt admin to choose which board
+    const availableBoards = boards.filter((b) => b.status === 'available');
+    if (availableBoards.length > 1) {
+      const matchObj = matches.find((m) => m._id === matchId);
+      if (matchObj) {
+        setBoardSelectMatch(matchObj);
+        return;
+      }
+    }
+    const targetBoard = availableBoards[0] || boards[0];
+    handleStartMatchOnBoard(matchId, targetBoard?.boardNumber || 1, targetBoard?.name || 'Carrom Board 1');
+  };
+
+  const handleStartMatchOnBoard = async (matchId, boardNumber = 1, boardName = '') => {
     setStartingMatchId(matchId);
     try {
-      const res = await api.startMatch(matchId);
+      const res = await api.startMatch(matchId, {
+        carromBoardNumber: boardNumber,
+        boardName: boardName || `Carrom Board ${boardNumber}`,
+        roundDurationMinutes: scheduleSettings.roundDurationMinutes || 20
+      });
       if (res.success) {
+        setBoardSelectMatch(null);
+        toast.success(res.message || `Match launched on Board #${boardNumber}!`);
         router.push(`/admin/matches/${matchId}/score`);
       }
     } catch (err) {
@@ -119,6 +158,55 @@ export default function AdminMatchesPage() {
       fetchMatchesAndTeams();
     } finally {
       setStartingMatchId(null);
+    }
+  };
+
+  const fetchBoards = async () => {
+    try {
+      const res = await api.getBoards();
+      if (res?.success) setBoards(res.boards || []);
+    } catch (err) {
+      console.warn('Failed to load boards:', err);
+    }
+  };
+
+  const handleAddBoard = async (e) => {
+    e.preventDefault();
+    setCreatingBoard(true);
+    try {
+      const res = await api.createBoard(newBoardData);
+      if (res.success) {
+        toast.success(res.message || 'New Carrom Board added successfully!');
+        setAddBoardModalOpen(false);
+        setNewBoardData({ name: '', boardNumber: '', assignedCategory: 'all', adminInCharge: '' });
+        fetchMatchesAndTeams();
+        fetchBoards();
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to create board.');
+    } finally {
+      setCreatingBoard(false);
+    }
+  };
+
+  const handleDeleteBoard = async (board) => {
+    const isConfirmed = await confirm({
+      title: `Delete ${board.name}?`,
+      message: `Are you sure you want to remove Board #${board.boardNumber}? This court will be removed from tournament management.`,
+      confirmText: 'Delete Board',
+      cancelText: 'Cancel',
+      type: 'danger'
+    });
+    if (!isConfirmed) return;
+    try {
+      const res = await api.deleteBoard(board._id);
+      if (res.success) {
+        toast.success(res.message || 'Board deleted.');
+        fetchMatchesAndTeams();
+        fetchBoards();
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to delete board.');
     }
   };
 
@@ -322,6 +410,207 @@ export default function AdminMatchesPage() {
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[#E74C3C]' : ''}`} />
             <span>Refresh</span>
           </button>
+        </div>
+      </div>
+
+      {/* 1.5 MULTI-BOARD CARROM ARENA MANAGEMENT */}
+      <div className="editorial-card p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#15191C] border border-[#E8E1D5] dark:border-[#2B3034] shadow-xs space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#E8E1D5] dark:border-[#2B3034]">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#E74C3C] animate-ping" />
+              <span className="font-mono text-[10px] uppercase font-bold tracking-wider text-[#E74C3C]">
+                Multi-Court Arena Control
+              </span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-[#7E7060] dark:text-[#B8B1A5]">
+                {boards.length} Boards Total • {boards.filter((b) => b.status === 'live').length} Live
+              </span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8]">
+              Carrom Boards & Live Courts
+            </h2>
+            <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5]">
+              Multiple arbiters can manage and score different boards simultaneously (e.g. Board 1 = Boys Singles, Board 2 = Girls Singles or Doubles).
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                const nextNum = boards.reduce((max, b) => Math.max(max, b.boardNumber || 0), 0) + 1;
+                setNewBoardData({
+                  name: `Carrom Board ${nextNum}`,
+                  boardNumber: nextNum,
+                  assignedCategory: 'all',
+                  adminInCharge: ''
+                });
+                setAddBoardModalOpen(true);
+              }}
+              className="px-3.5 py-2 rounded-xl btn-primary text-xs font-bold shadow-xs flex items-center gap-1.5 uppercase tracking-wider cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Board</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Dynamic Boards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {boards.map((b) => {
+            const isLive = b.status === 'live' && b.currentMatch;
+            const currentM = b.currentMatch;
+            const isMaintenance = b.status === 'maintenance';
+
+            return (
+              <div
+                key={b._id || b.boardNumber}
+                className={`p-4 rounded-xl border transition-all flex flex-col justify-between space-y-3 ${
+                  isLive
+                    ? 'bg-[#FAF9F6] dark:bg-[#181C1F] border-[#E74C3C] ring-2 ring-[#E74C3C]/20 shadow-sm'
+                    : isMaintenance
+                    ? 'bg-[#FAF9F6]/50 dark:bg-[#181C1F]/40 border-amber-300 dark:border-amber-800/40 opacity-75'
+                    : 'bg-[#FAF9F6] dark:bg-[#181C1F] border-[#E8E1D5] dark:border-[#2B3034]'
+                }`}
+              >
+                {/* Board Card Header */}
+                <div className="flex items-center justify-between pb-2 border-b border-[#E8E1D5] dark:border-[#2B3034]">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-white dark:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8]">
+                      COURT #{String(b.boardNumber).padStart(2, '0')}
+                    </span>
+                    <span className="font-serif font-bold text-sm text-[#3E342B] dark:text-[#F5F1E8] truncate max-w-[140px]">
+                      {b.name}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    {isLive ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#E74C3C]/10 text-[#E74C3C] border border-[#E74C3C]/30 animate-pulse">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#E74C3C]" />
+                        <span>LIVE IN PLAY</span>
+                      </span>
+                    ) : isMaintenance ? (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-800/60">
+                        MAINTENANCE
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800/60">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                        <span>AVAILABLE</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Board Card Content */}
+                {isLive && currentM ? (
+                  <div className="space-y-2.5">
+                    <div className="flex items-center justify-between text-[11px] font-mono">
+                      <div className="flex items-center gap-1 text-[#E74C3C] font-bold">
+                        <span>M#{currentM.matchNumber}</span>
+                        <span>•</span>
+                        <span>{currentM.roundName}</span>
+                      </div>
+                      <CategoryBadge category={currentM.category} />
+                    </div>
+
+                    {/* Teams and Current Score */}
+                    <div className="p-2.5 rounded-lg bg-white dark:bg-[#15191C] border border-[#E8E1D5] dark:border-[#2B3034] space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-semibold truncate max-w-[140px] text-[#3E342B] dark:text-[#F5F1E8]">
+                          {currentM.team1?.name || 'Team 1'}
+                        </span>
+                        <span className="font-mono font-bold text-sm text-[#3E342B] dark:text-[#F5F1E8]">
+                          {currentM.boards?.[0]?.team1Score ?? 0}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-semibold truncate max-w-[140px] text-[#3E342B] dark:text-[#F5F1E8]">
+                          {currentM.team2?.name || 'Team 2'}
+                        </span>
+                        <span className="font-mono font-bold text-sm text-[#3E342B] dark:text-[#F5F1E8]">
+                          {currentM.boards?.[0]?.team2Score ?? 0}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] font-mono pt-1">
+                      <CarromMatchTimer match={currentM} variant="compact" />
+                      {b.adminInCharge && (
+                        <span className="text-[10px] text-[#7E7060] dark:text-[#817B72]">
+                          Arbiter: {b.adminInCharge}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="py-4 text-center space-y-2 text-[#7E7060] dark:text-[#817B72]">
+                    <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto text-xs font-bold font-mono">
+                      {b.boardNumber}
+                    </div>
+                    <p className="text-xs font-mono">Court is vacant and ready</p>
+                    {b.assignedCategory && b.assignedCategory !== 'all' && (
+                      <span className="inline-block text-[10px] font-mono px-2 py-0.5 rounded bg-white dark:bg-[#15191C] border border-[#E8E1D5] dark:border-[#2B3034] text-[#5A3E28] dark:text-[#D4A94C]">
+                        Focus: {CATEGORIES.find((c) => c.id === b.assignedCategory)?.name || b.assignedCategory}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Board Card Action Footer */}
+                <div className="pt-2 border-t border-[#E8E1D5] dark:border-[#2B3034] flex items-center justify-between gap-2">
+                  {isLive && currentM ? (
+                    <>
+                      <Link
+                        href={`/admin/matches/${currentM._id}/score`}
+                        className="flex-1 py-1.5 px-3 rounded-lg btn-primary text-[11px] font-bold shadow-xs flex items-center justify-center gap-1.5 uppercase tracking-wider cursor-pointer"
+                        title="Open live score desk for this board"
+                      >
+                        <span>Score Desk</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </Link>
+
+                      <button
+                        onClick={() => handleStopLive(currentM._id)}
+                        disabled={stoppingMatchId === currentM._id}
+                        className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-[#15191C] hover:bg-[#FDEDEC] dark:hover:bg-[#E74C3C]/15 text-[#E74C3C] border border-[#E74C3C]/30 text-[11px] font-mono font-bold cursor-pointer transition-colors shadow-2xs"
+                        title="Stop match and vacate this board"
+                      >
+                        <Square className="w-3 h-3 fill-current" />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => {
+                          const readyMatch = matches.find((m) => m.status === 'scheduled' && !m.isBye && m.team1 && m.team2);
+                          if (readyMatch) {
+                            handleStartMatchOnBoard(readyMatch._id, b.boardNumber, b.name);
+                          } else {
+                            toast.error('No ready matches waiting in queue.');
+                          }
+                        }}
+                        className="flex-1 py-1.5 px-3 rounded-lg bg-white dark:bg-[#15191C] hover:bg-[#FAF9F6] dark:hover:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-[11px] font-bold text-[#3E342B] dark:text-[#F5F1E8] flex items-center justify-center gap-1 uppercase tracking-wider cursor-pointer shadow-2xs"
+                      >
+                        <Play className="w-3 h-3 fill-current text-[#E74C3C]" />
+                        <span>Launch Next Match</span>
+                      </button>
+
+                      {boards.length > 1 && (
+                        <button
+                          onClick={() => handleDeleteBoard(b)}
+                          className="p-1.5 rounded-lg text-[#7E7060] hover:text-[#E74C3C] hover:bg-[#FDEDEC] dark:hover:bg-[#E74C3C]/10 transition-colors cursor-pointer"
+                          title="Delete this board"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -636,12 +925,21 @@ export default function AdminMatchesPage() {
                             ) : isReady ? (
                               <div className="flex items-center gap-2">
                                 <button
-                                  onClick={() => handleStartMatch(m._id)}
-                                  disabled={isBoardOccupied || startingMatchId === m._id}
-                                  className="flex-1 py-2 rounded-xl btn-primary text-xs font-bold shadow-xs transition-colors flex items-center justify-center gap-1 disabled:opacity-50 cursor-pointer uppercase"
+                                  onClick={() => {
+                                    const availableBoards = boards.filter((b) => b.status === 'available');
+                                    if (availableBoards.length === 0) {
+                                      toast.error('All carrom boards are currently occupied! Add another board or wait for a match to conclude.');
+                                    } else if (availableBoards.length === 1) {
+                                      handleStartMatchOnBoard(m._id, availableBoards[0].boardNumber, availableBoards[0].name);
+                                    } else {
+                                      setBoardSelectMatch(m);
+                                    }
+                                  }}
+                                  disabled={startingMatchId === m._id}
+                                  className="flex-1 py-2 rounded-xl btn-primary text-xs font-bold shadow-xs transition-colors flex items-center justify-center gap-1 cursor-pointer uppercase"
                                 >
                                   <Play className="w-3 h-3 fill-current" />
-                                  <span>{isBoardOccupied ? 'Queued' : 'Start Match'}</span>
+                                  <span>{startingMatchId === m._id ? 'Starting...' : 'Start Match'}</span>
                                 </button>
                                 <button
                                   onClick={() => setSubstituteMatch(m)}
@@ -952,6 +1250,185 @@ export default function AdminMatchesPage() {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* MODAL 3: Add New Carrom Board */}
+      <Modal
+        isOpen={addBoardModalOpen}
+        onClose={() => setAddBoardModalOpen(false)}
+        title="Add New Carrom Board"
+      >
+        <form onSubmit={handleAddBoard} className="space-y-4">
+          <div className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-xs space-y-1 font-mono text-[#7E7060] dark:text-[#B8B1A5]">
+            <p className="font-bold text-[#3E342B] dark:text-[#F5F1E8]">Multi-Board Management:</p>
+            <p>Create another Carrom board so multiple arbiters can run and score matches simultaneously across different categories.</p>
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] uppercase font-mono block mb-1">
+                Board Number:
+              </label>
+              <input
+                type="number"
+                min="1"
+                required
+                value={newBoardData.boardNumber}
+                onChange={(e) => setNewBoardData({ ...newBoardData, boardNumber: e.target.value })}
+                className="w-full h-10 bg-white dark:bg-[#181C1F] px-3 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] uppercase font-mono block mb-1">
+                Board Name / Arena Label:
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Carrom Board 3 - Arena C"
+                value={newBoardData.name}
+                onChange={(e) => setNewBoardData({ ...newBoardData, name: e.target.value })}
+                className="w-full h-10 bg-white dark:bg-[#181C1F] px-3 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] uppercase font-mono block mb-1">
+                Preferred Category (Optional):
+              </label>
+              <select
+                value={newBoardData.assignedCategory}
+                onChange={(e) => setNewBoardData({ ...newBoardData, assignedCategory: e.target.value })}
+                className="w-full h-10 bg-white dark:bg-[#181C1F] px-3 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
+              >
+                <option value="all">All Categories (Flexible)</option>
+                {CATEGORIES.map((cat) => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] uppercase font-mono block mb-1">
+                Arbiter / Admin In Charge (Optional):
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Admin Rohit"
+                value={newBoardData.adminInCharge}
+                onChange={(e) => setNewBoardData({ ...newBoardData, adminInCharge: e.target.value })}
+                className="w-full h-10 bg-white dark:bg-[#181C1F] px-3 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E8E1D5] dark:border-[#2B3034]">
+            <button
+              type="button"
+              onClick={() => setAddBoardModalOpen(false)}
+              className="px-4 py-2 rounded-xl text-xs text-[#7E7060] dark:text-[#817B72] hover:text-[#3E342B] dark:hover:text-[#F5F1E8] cursor-pointer font-mono"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={creatingBoard}
+              className="btn-primary text-xs font-bold px-6 py-2.5 shadow-xs transition-all cursor-pointer uppercase tracking-wider flex items-center gap-1.5"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>{creatingBoard ? 'Adding Board...' : 'Create Board'}</span>
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* MODAL 4: Select Board to Start Match */}
+      <Modal
+        isOpen={Boolean(boardSelectMatch)}
+        onClose={() => setBoardSelectMatch(null)}
+        title={`Choose Board — Match #${boardSelectMatch?.matchNumber}`}
+      >
+        <div className="space-y-4">
+          <div className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-xs space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[10px] text-[#E74C3C] uppercase font-bold">
+                Match #{boardSelectMatch?.matchNumber} • {boardSelectMatch?.roundName}
+              </span>
+              {boardSelectMatch?.category && (
+                <CategoryBadge category={boardSelectMatch.category} />
+              )}
+            </div>
+            <div className="font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] text-base">
+              {boardSelectMatch?.team1?.name || 'TBD'} vs {boardSelectMatch?.team2?.name || 'TBD'}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] uppercase font-mono block">
+              Select available Carrom Board court:
+            </label>
+
+            <div className="space-y-2 max-h-72 overflow-y-auto">
+              {boards.map((b) => {
+                const isAvailable = b.status === 'available';
+                const isLive = b.status === 'live';
+
+                return (
+                  <div
+                    key={b._id || b.boardNumber}
+                    className={`p-3.5 rounded-xl border flex items-center justify-between transition-all ${
+                      isAvailable
+                        ? 'bg-white dark:bg-[#15191C] border-[#D5C4A1] dark:border-[#2B3034] hover:border-[#E74C3C]'
+                        : 'bg-[#FAF9F6]/60 dark:bg-[#181C1F]/40 border-[#E8E1D5] dark:border-[#2B3034] opacity-70'
+                    }`}
+                  >
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8]">
+                          Court #{b.boardNumber}
+                        </span>
+                        <span className="font-serif font-bold text-xs text-[#3E342B] dark:text-[#F5F1E8]">
+                          {b.name}
+                        </span>
+                      </div>
+                      <p className="text-[10px] font-mono text-[#7E7060] dark:text-[#817B72]">
+                        {isLive
+                          ? `Occupied by Match #${b.currentMatch?.matchNumber || 'Live'}`
+                          : 'Ready & Available'}
+                      </p>
+                    </div>
+
+                    {isAvailable ? (
+                      <button
+                        onClick={() => handleStartMatchOnBoard(boardSelectMatch._id, b.boardNumber, b.name)}
+                        disabled={startingMatchId === boardSelectMatch._id}
+                        className="px-3.5 py-2 rounded-xl btn-primary text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-xs"
+                      >
+                        <Play className="w-3 h-3 fill-current" />
+                        <span>Launch Here</span>
+                      </button>
+                    ) : (
+                      <span className="text-[10px] font-mono text-[#E74C3C] font-bold uppercase px-2 py-1 rounded bg-[#E74C3C]/10 border border-[#E74C3C]/30">
+                        In Use
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end pt-3 border-t border-[#E8E1D5] dark:border-[#2B3034]">
+            <button
+              type="button"
+              onClick={() => setBoardSelectMatch(null)}
+              className="px-4 py-2 rounded-xl text-xs text-[#7E7060] dark:text-[#817B72] hover:text-[#3E342B] dark:hover:text-[#F5F1E8] cursor-pointer font-mono"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
       </Modal>
 
       {/* Substitute Partner Modal */}

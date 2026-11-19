@@ -393,6 +393,41 @@ export const api = {
     return handleResponse(res);
   },
 
+  // Carrom Multiple Boards Management
+  getBoards: async (tournamentId) => {
+    const query = tournamentId ? `?tournamentId=${tournamentId}` : '';
+    const res = await fetchWithRetry(`${API_BASE}/boards${query}`, {
+      headers: getHeaders()
+    });
+    return handleResponse(res);
+  },
+
+  createBoard: async (boardData) => {
+    const res = await fetchWithRetry(`${API_BASE}/boards`, {
+      method: 'POST',
+      headers: getHeaders(true),
+      body: JSON.stringify(boardData)
+    });
+    return handleResponse(res);
+  },
+
+  updateBoard: async (id, boardData) => {
+    const res = await fetchWithRetry(`${API_BASE}/boards/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(true),
+      body: JSON.stringify(boardData)
+    });
+    return handleResponse(res);
+  },
+
+  deleteBoard: async (id) => {
+    const res = await fetchWithRetry(`${API_BASE}/boards/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(true)
+    });
+    return handleResponse(res);
+  },
+
   getMatchById: async (id) => {
     const res = await fetchWithRetry(`${API_BASE}/matches/${id}`, {
       headers: getHeaders()

@@ -35,6 +35,7 @@ export default function LivePage() {
   const [cheerEffect1, setCheerEffect1] = useState(false);
   const [cheerEffect2, setCheerEffect2] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState(new Date());
+  const [selectedBoardNumber, setSelectedBoardNumber] = useState(1);
 
   const fetchLive = async (isManual = false) => {
     if (isManual) setRefreshing(true);
@@ -72,7 +73,9 @@ export default function LivePage() {
     }
   };
 
-  const currentMatch = liveData?.currentMatch;
+  const boards = liveData?.boards || [];
+  const activeCourtBoard = boards.find((b) => b.boardNumber === selectedBoardNumber) || boards[0];
+  const currentMatch = activeCourtBoard?.currentMatch || (selectedBoardNumber === (boards[0]?.boardNumber || 1) ? liveData?.currentMatch : null);
   const nextMatch = liveData?.nextMatch;
   const readyQueue = liveData?.readyQueue || [];
   const completedMatches = liveData?.completedMatches || [];
@@ -176,6 +179,52 @@ export default function LivePage() {
         </div>
       </div>
 
+      {/* MULTI-COURT ARENA SELECTION BAR */}
+      {boards.length > 1 && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-xs font-mono">
+            <span className="font-bold text-[#7E7060] dark:text-[#817B72] uppercase tracking-wider">
+              Championship Courts ({boards.length} Boards)
+            </span>
+            <span className="text-[#E74C3C] font-semibold text-[11px]">
+              {boards.filter((b) => b.status === 'live').length} Court(s) Live Now
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+            {boards.map((b) => {
+              const isSelected = selectedBoardNumber === b.boardNumber;
+              const isCourtLive = b.status === 'live' && b.currentMatch;
+
+              return (
+                <button
+                  key={b._id || b.boardNumber}
+                  onClick={() => setSelectedBoardNumber(b.boardNumber)}
+                  className={`px-3.5 py-2 rounded-xl border text-xs font-mono font-bold flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
+                    isSelected
+                      ? 'bg-[#3E342B] dark:bg-[#D4A94C] text-white dark:text-[#15191C] border-[#3E342B] dark:border-[#D4A94C] shadow-sm'
+                      : 'bg-white dark:bg-[#15191C] border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] hover:border-[#3E342B]'
+                  }`}
+                >
+                  {isCourtLive ? (
+                    <span className="w-2 h-2 rounded-full bg-[#E74C3C] animate-ping" />
+                  ) : (
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  )}
+                  <span>Court #{b.boardNumber}</span>
+                  <span className="opacity-75 font-normal truncate max-w-[120px]">({b.name})</span>
+                  {isCourtLive && (
+                    <span className="px-1.5 py-0.5 rounded text-[9px] bg-[#E74C3C] text-white uppercase font-black">
+                      LIVE
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* 2. THE CHAMPIONSHIP CARROM BOARD ARENA (COMPACT HERO SHOWPIECE) */}
       <section className="space-y-4 max-w-4xl mx-auto w-full">
         {currentMatch ? (
@@ -216,7 +265,7 @@ export default function LivePage() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="px-2.5 py-0.5 rounded-full bg-[#E74C3C] text-white text-[9px] font-mono font-black tracking-widest uppercase shadow-xs flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
-                    LIVE ON BOARD 01
+                    LIVE ON COURT {String(activeCourtBoard?.boardNumber || 1).padStart(2, '0')}
                   </span>
 
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/90 border border-[#D5C4A1] text-xs shadow-2xs">
@@ -416,10 +465,10 @@ export default function LivePage() {
 
               <div className="relative z-10 space-y-1.5 max-w-md mx-auto">
                 <span className="px-3 py-0.5 rounded-full bg-[#EFE4D0] border border-[#D0BF9F] text-[#5A3E28] text-[10px] font-mono font-bold tracking-widest uppercase inline-block shadow-2xs">
-                  CHAMPIONSHIP TABLE 01 OPEN
+                  COURT #{String(activeCourtBoard?.boardNumber || 1).padStart(2, '0')} READY
                 </span>
                 <h2 className="text-xl sm:text-2xl lg:text-3xl font-serif font-black text-[#2B1B10] tracking-tight">
-                  Main Carrom Board is Free
+                  {activeCourtBoard?.name || 'Carrom Court'} is Free
                 </h2>
                 <p className="text-xs text-[#635140] leading-relaxed font-sans max-w-sm mx-auto">
                   {nextMatch
