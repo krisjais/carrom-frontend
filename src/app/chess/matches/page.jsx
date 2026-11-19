@@ -5,14 +5,16 @@ import Link from 'next/link';
 import { chessApi } from '@/lib/chessApi';
 import { ChessHeader } from '@/components/chess/ChessHeader';
 import { LiveMatchCard } from '@/components/chess/LiveMatchCard';
+import { ChessBracketView } from '@/components/chess/ChessBracketView';
 import { ChessFooter } from '@/components/chess/ChessFooter';
-import { Filter, Calendar, Swords, Radio } from 'lucide-react';
+import { Filter, Calendar, Swords, Radio, LayoutGrid, List, Clock, Trophy } from 'lucide-react';
 
 export default function ChessMatchesPage() {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
   const [roundFilter, setRoundFilter] = useState('all');
+  const [viewMode, setViewMode] = useState('bracket'); // 'bracket' | 'table'
 
   useEffect(() => {
     async function loadMatches() {
@@ -89,50 +91,96 @@ export default function ChessMatchesPage() {
           </div>
         </div>
 
-        {/* Filter Bar */}
-        <div className="flex flex-wrap gap-4 justify-between items-center bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] p-3 sm:p-4 rounded-2xl">
-          <div className="flex flex-wrap items-center gap-3 text-xs">
-            <div className="flex items-center gap-2">
-              <Filter className="w-3.5 h-3.5 text-[#77736B] dark:text-[#8E8E93]" />
-              <span className="font-mono text-[11px] uppercase tracking-wider text-[#77736B] dark:text-[#8E8E93]">Status:</span>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="bg-[#EFEAE1]/60 dark:bg-[#1B1B19] border border-[#D5CFC5]/70 dark:border-[#282826] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-3 py-2 text-xs font-mono text-[#171715] dark:text-[#FAF8F3] focus:outline-none transition-colors cursor-pointer"
-              >
-                <option value="all">All Statuses</option>
-                <option value="scheduled">Scheduled</option>
-                <option value="live">Live Now</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Calendar className="w-3.5 h-3.5 text-[#77736B] dark:text-[#8E8E93]" />
-              <span className="font-mono text-[11px] uppercase tracking-wider text-[#77736B] dark:text-[#8E8E93]">Round:</span>
-              <select
-                value={roundFilter}
-                onChange={(e) => setRoundFilter(e.target.value)}
-                className="bg-[#EFEAE1]/60 dark:bg-[#1B1B19] border border-[#D5CFC5]/70 dark:border-[#282826] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-3 py-2 text-xs font-mono text-[#171715] dark:text-[#FAF8F3] focus:outline-none transition-colors cursor-pointer"
-              >
-                <option value="all">All Rounds</option>
-                <option value="1">Round 1</option>
-                <option value="2">Round 2</option>
-                <option value="3">Round 3</option>
-                <option value="4">Round 4</option>
-                <option value="5">Round 5</option>
-                <option value="6">Round 6</option>
-                <option value="7">Round 7</option>
-                <option value="8">Round 8</option>
-              </select>
-            </div>
+        {/* View Mode Switcher */}
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] p-3 sm:p-4 rounded-2xl shadow-xs">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-mono uppercase font-bold text-[#77736B] dark:text-[#8E8E93] mr-2">
+              Championship View:
+            </span>
+            <button
+              type="button"
+              onClick={() => setViewMode('bracket')}
+              className={`px-3.5 py-1.5 rounded-xl font-mono text-xs font-bold uppercase transition-all flex items-center gap-1.5 cursor-pointer ${
+                viewMode === 'bracket'
+                  ? 'bg-[#171715] text-[#FAF8F3] dark:bg-[#FAF8F3] dark:text-[#0D0D0D] shadow-xs'
+                  : 'bg-[#EFEAE1]/60 dark:bg-[#1B1B19] text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715]'
+              }`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>Bracket Tree View</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('table')}
+              className={`px-3.5 py-1.5 rounded-xl font-mono text-xs font-bold uppercase transition-all flex items-center gap-1.5 cursor-pointer ${
+                viewMode === 'table'
+                  ? 'bg-[#171715] text-[#FAF8F3] dark:bg-[#FAF8F3] dark:text-[#0D0D0D] shadow-xs'
+                  : 'bg-[#EFEAE1]/60 dark:bg-[#1B1B19] text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715]'
+              }`}
+            >
+              <List className="w-3.5 h-3.5" />
+              <span>Table & Fixtures List</span>
+            </button>
           </div>
 
-          <div className="font-mono text-[11px] text-[#77736B] dark:text-[#8E8E93]">
-            Showing <span className="font-bold text-[#171715] dark:text-[#FAF8F3]">{filteredMatches.length}</span> matches
+          <div className="flex items-center gap-2 text-xs font-mono text-amber-700 dark:text-amber-400 font-semibold">
+            <Clock className="w-3.5 h-3.5" />
+            <span>10:00 Dual Rapid Clocks</span>
           </div>
         </div>
+
+        {/* BRACKET VIEW (Knockout Bracket Tree Structure like Carrom) */}
+        {viewMode === 'bracket' && (
+          <ChessBracketView matches={matches} isAdmin={false} />
+        )}
+
+        {/* TABLE & LIST VIEW */}
+        {viewMode === 'table' && (
+          <div className="space-y-8">
+            {/* Filter Bar */}
+            <div className="flex flex-wrap gap-4 justify-between items-center bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] p-3 sm:p-4 rounded-2xl">
+              <div className="flex flex-wrap items-center gap-3 text-xs">
+                <div className="flex items-center gap-2">
+                  <Filter className="w-3.5 h-3.5 text-[#77736B] dark:text-[#8E8E93]" />
+                  <span className="font-mono text-[11px] uppercase tracking-wider text-[#77736B] dark:text-[#8E8E93]">Status:</span>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="bg-[#EFEAE1]/60 dark:bg-[#1B1B19] border border-[#D5CFC5]/70 dark:border-[#282826] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-3 py-2 text-xs font-mono text-[#171715] dark:text-[#FAF8F3] focus:outline-none transition-colors cursor-pointer"
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="scheduled">Scheduled</option>
+                    <option value="live">Live Now</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-3.5 h-3.5 text-[#77736B] dark:text-[#8E8E93]" />
+                  <span className="font-mono text-[11px] uppercase tracking-wider text-[#77736B] dark:text-[#8E8E93]">Round:</span>
+                  <select
+                    value={roundFilter}
+                    onChange={(e) => setRoundFilter(e.target.value)}
+                    className="bg-[#EFEAE1]/60 dark:bg-[#1B1B19] border border-[#D5CFC5]/70 dark:border-[#282826] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-3 py-2 text-xs font-mono text-[#171715] dark:text-[#FAF8F3] focus:outline-none transition-colors cursor-pointer"
+                  >
+                    <option value="all">All Rounds</option>
+                    <option value="1">Round 1</option>
+                    <option value="2">Round 2</option>
+                    <option value="3">Round 3</option>
+                    <option value="4">Round 4</option>
+                    <option value="5">Round 5</option>
+                    <option value="6">Round 6</option>
+                    <option value="7">Round 7</option>
+                    <option value="8">Round 8</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="font-mono text-[11px] text-[#77736B] dark:text-[#8E8E93]">
+                Showing <span className="font-bold text-[#171715] dark:text-[#FAF8F3]">{filteredMatches.length}</span> matches
+              </div>
+            </div>
 
         {/* Live Matches Hero Section if any */}
         {liveMatches.length > 0 && (
@@ -293,6 +341,8 @@ export default function ChessMatchesPage() {
             </>
           )}
         </div>
+        </div>
+        )}
 
       </main>
 

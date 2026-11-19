@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation';
 import { chessApi } from '@/lib/chessApi';
 import { AdminSidebar } from '@/components/chess/AdminSidebar';
 import { MatchTimer } from '@/components/chess/MatchTimer';
-import { Swords, Play, CheckCircle2, XCircle, Trophy, Loader2, Plus, Minus, Trash2, Clock, ShieldCheck, Zap, CheckSquare, Square, ChevronDown, X } from 'lucide-react';
+import { ChessBracketView } from '@/components/chess/ChessBracketView';
+import { DualChessClock } from '@/components/chess/DualChessClock';
+import { Swords, Play, CheckCircle2, XCircle, Trophy, Loader2, Plus, Minus, Trash2, Clock, ShieldCheck, Zap, CheckSquare, Square, ChevronDown, X, LayoutGrid, List } from 'lucide-react';
 import { useToast, useConfirm } from '@/context/ToastContext';
 
 const PIECE_CONFIG = [
@@ -80,6 +82,9 @@ export default function ChessAdminMatchesPage() {
   const [deletingAllRounds, setDeletingAllRounds] = useState(false);
   const [startingMatchId, setStartingMatchId] = useState(null);
   const [deletingMatchId, setDeletingMatchId] = useState(null);
+
+  // View Mode: 'bracket' (like Carrom) or 'table'
+  const [viewMode, setViewMode] = useState('bracket');
 
   // Bulk Selection & Deletion
   const [selectedMatchIds, setSelectedMatchIds] = useState([]);
@@ -599,9 +604,63 @@ export default function ChessAdminMatchesPage() {
           </div>
         )}
 
-        {/* Matches Table */}
-        <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl shadow-xs overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
+        {/* Layout View Toggle (Bracket Tree vs Table View) */}
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] p-3 rounded-2xl shadow-xs">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-mono uppercase font-bold text-[#77736B] dark:text-[#8E8E93] mr-2">
+              View Layout:
+            </span>
+            <button
+              type="button"
+              onClick={() => setViewMode('bracket')}
+              className={`px-3.5 py-1.5 rounded-xl font-mono text-xs font-bold uppercase transition-all flex items-center gap-1.5 cursor-pointer ${
+                viewMode === 'bracket'
+                  ? 'bg-[#171715] text-[#FAF8F3] dark:bg-[#FAF8F3] dark:text-[#0D0D0D] shadow-xs'
+                  : 'bg-[#EFEAE1]/60 dark:bg-[#1E1E1C] text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715] dark:hover:text-[#FAF8F3]'
+              }`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>Bracket Tree View</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('table')}
+              className={`px-3.5 py-1.5 rounded-xl font-mono text-xs font-bold uppercase transition-all flex items-center gap-1.5 cursor-pointer ${
+                viewMode === 'table'
+                  ? 'bg-[#171715] text-[#FAF8F3] dark:bg-[#FAF8F3] dark:text-[#0D0D0D] shadow-xs'
+                  : 'bg-[#EFEAE1]/60 dark:bg-[#1E1E1C] text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715] dark:hover:text-[#FAF8F3]'
+              }`}
+            >
+              <List className="w-3.5 h-3.5" />
+              <span>Table View ({matches.length})</span>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3 text-xs font-mono text-[#77736B] dark:text-[#8E8E93]">
+            <span>Total: <strong className="text-[#171715] dark:text-[#FAF8F3]">{matches.length} Matches</strong></span>
+            <span>•</span>
+            <span>Live: <strong className="text-rose-600">{matches.filter((m) => m.status === 'live').length}</strong></span>
+          </div>
+        </div>
+
+        {/* BRACKET VIEW (Knockout Bracket Tree Structure like Carrom) */}
+        {viewMode === 'bracket' && (
+          <ChessBracketView
+            matches={matches}
+            isAdmin={true}
+            onStartMatch={handleStartMatch}
+            onOpenLiveScoring={openLiveScoring}
+            onOpenResultModal={openResultModal}
+            onDeleteMatch={handleDeleteMatch}
+            startingMatchId={startingMatchId}
+            deletingMatchId={deletingMatchId}
+          />
+        )}
+
+        {/* TABLE VIEW */}
+        {viewMode === 'table' && (
+          <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl shadow-xs overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
             <thead>
               <tr className="border-b border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1] dark:bg-[#1D1D1B] text-[#77736B] dark:text-[#8E8E93] font-mono uppercase text-[10px]">
                 {/* Select All Checkbox */}
@@ -784,6 +843,7 @@ export default function ChessAdminMatchesPage() {
             </tbody>
           </table>
         </div>
+        )}
 
         {/* LIVE IN-GAME PIECE CAPTURES CONTROLLER MODAL */}
         {liveScoringMatch && (
@@ -842,6 +902,19 @@ export default function ChessAdminMatchesPage() {
                     {calcMaterial(liveP2Captured)} pts
                   </div>
                 </div>
+              </div>
+
+              {/* Turn-Based 10:00 Dual Chess Clock */}
+              <div className="space-y-1.5">
+                <DualChessClock
+                  initialMinutes={liveScoringMatch.durationMinutes || 10}
+                  player1Name={liveScoringMatch.player1?.fullName || 'White'}
+                  player2Name={liveScoringMatch.player2?.fullName || 'Black'}
+                  variant="compact"
+                  onTimeExpired={(flaggedColor) => {
+                    toast.error(`Time expired! Flag fell on ${flaggedColor.toUpperCase()}!`);
+                  }}
+                />
               </div>
 
               {/* Two Column In-Game Piece Controls */}

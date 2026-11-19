@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { chessApi } from '@/lib/chessApi';
 import { ChessHeader } from '@/components/chess/ChessHeader';
 import { MatchTimer } from '@/components/chess/MatchTimer';
+import { DualChessClock } from '@/components/chess/DualChessClock';
 import { PieceScore } from '@/components/chess/PieceScore';
 import { ChessFooter } from '@/components/chess/ChessFooter';
 import Link from 'next/link';
@@ -353,6 +354,19 @@ export default function ChessMatchDetailPage() {
               </div>
 
             </div>
+
+            {/* Interactive Turn-Based Dual Chess Clock (10:00 Rapid Control) */}
+            {!match.isBye && (
+              <DualChessClock
+                initialMinutes={match.durationMinutes || 10}
+                player1Name={`${player1.fullName} (White)`}
+                player2Name={`${player2.fullName} (Black)`}
+                variant="standard"
+                onTimeExpired={(flaggedColor) => {
+                  toast.error(`Time expired! Flag fell on ${flaggedColor.toUpperCase()}!`);
+                }}
+              />
+            )}
 
             {/* Captured Piece Breakdown (Updates Live) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
