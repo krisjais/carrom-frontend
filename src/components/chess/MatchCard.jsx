@@ -89,10 +89,15 @@ export function MatchCard({ match }) {
               <p className="text-xs text-[#9BB0D3]">{player1.department}</p>
             </div>
             <div className="text-right">
-              <span className="text-xs font-mono text-[#9BB0D3] block">Material</span>
-              <span className="text-xl font-bold font-mono text-[#F2C94C]">
-                {match.player1MaterialScore || 0}
-              </span>
+              {match.status === 'completed' && match.winner === 'player1' ? (
+                <span className="text-xs font-mono font-bold text-[#F2C94C] bg-[#F2C94C]/10 px-2 py-0.5 rounded">
+                  👑 Winner
+                </span>
+              ) : (
+                <span className="text-xs font-mono text-[#9BB0D3] block">
+                  ♔ White
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -117,10 +122,15 @@ export function MatchCard({ match }) {
               <p className="text-xs text-[#9BB0D3]">{player2.department}</p>
             </div>
             <div className="text-right">
-              <span className="text-xs font-mono text-[#9BB0D3] block">Material</span>
-              <span className="text-xl font-bold font-mono text-[#F2C94C]">
-                {match.player2MaterialScore || 0}
-              </span>
+              {match.status === 'completed' && match.winner === 'player2' ? (
+                <span className="text-xs font-mono font-bold text-[#F2C94C] bg-[#F2C94C]/10 px-2 py-0.5 rounded">
+                  👑 Winner
+                </span>
+              ) : (
+                <span className="text-xs font-mono text-[#9BB0D3] block">
+                  ♚ Black
+                </span>
+              )}
             </div>
           </div>
         </div>

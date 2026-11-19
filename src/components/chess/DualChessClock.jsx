@@ -362,22 +362,16 @@ export function DualChessClock({
       const tag = e.target?.tagName?.toLowerCase();
       if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
 
-      if (e.code === 'Space') {
-        e.preventDefault();
-        handleSwitchTurn();
-      } else if (e.key === 'p' || e.key === 'P') {
+      if (e.key === 'p' || e.key === 'P') {
         e.preventDefault();
         if (isRunning) handlePause();
         else handleStartResume();
-      } else if (e.key === 'u' || e.key === 'U') {
-        e.preventDefault();
-        handleUndoTurn();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleSwitchTurn, isRunning]);
+  }, [isRunning]);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -405,13 +399,8 @@ export function DualChessClock({
 
         <div className="grid grid-cols-2 gap-2">
           {/* White Clock */}
-          <button
-            type="button"
-            onClick={() => {
-              if (isWhiteActive) handleSwitchTurn('black');
-              else handleStartResume();
-            }}
-            className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+          <div
+            className={`p-2.5 rounded-xl border text-center transition-all ${
               isWhiteActive
                 ? 'bg-amber-100 dark:bg-amber-950/60 border-amber-400 dark:border-amber-600 ring-2 ring-amber-400/40'
                 : 'bg-[#EFEAE1]/60 dark:bg-[#1B1B19] border-[#D5CFC5] dark:border-[#282826]'
@@ -423,16 +412,11 @@ export function DualChessClock({
             <span className={`text-xl font-mono font-black ${isWhiteUrgent ? 'text-rose-600 animate-pulse' : 'text-[#171715] dark:text-[#FAF8F3]'}`}>
               {formatTime(p1Time)}
             </span>
-          </button>
+          </div>
 
           {/* Black Clock */}
-          <button
-            type="button"
-            onClick={() => {
-              if (isBlackActive) handleSwitchTurn('white');
-              else handleStartResume();
-            }}
-            className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+          <div
+            className={`p-2.5 rounded-xl border text-center transition-all ${
               isBlackActive
                 ? 'bg-amber-100 dark:bg-amber-950/60 border-amber-400 dark:border-amber-600 ring-2 ring-amber-400/40'
                 : 'bg-[#EFEAE1]/60 dark:bg-[#1B1B19] border-[#D5CFC5] dark:border-[#282826]'
@@ -444,7 +428,7 @@ export function DualChessClock({
             <span className={`text-xl font-mono font-black ${isBlackUrgent ? 'text-rose-600 animate-pulse' : 'text-[#171715] dark:text-[#FAF8F3]'}`}>
               {formatTime(p2Time)}
             </span>
-          </button>
+          </div>
         </div>
 
         {/* Small Action Strip */}
@@ -479,24 +463,8 @@ export function DualChessClock({
             </button>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleUndoTurn}
-              disabled={movesCount === 0 && !lastTurnState}
-              className="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-900 dark:text-amber-200 border border-amber-500/40 text-[10px] font-mono font-bold uppercase inline-flex items-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95 shadow-2xs"
-              title="Undo accidental turn switch"
-            >
-              <RotateCcw className="w-3 h-3" />
-              <span>Undo ↩</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSwitchTurn()}
-              className="px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-mono font-bold text-[10px] uppercase shadow-xs transition-transform active:scale-95 cursor-pointer"
-            >
-              Tap Switch ⇋
-            </button>
+          <div className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93]">
+            {isRunning ? '10:00 Rapid Live' : 'Clock Paused'}
           </div>
         </div>
       </div>
@@ -564,14 +532,10 @@ export function DualChessClock({
         
         {/* PLAYER 1: WHITE CLOCK PAD */}
         <div
-          onClick={() => {
-            if (isWhiteActive) handleSwitchTurn('black');
-            else if (!isRunning) handleStartResume();
-          }}
-          className={`relative p-6 sm:p-8 rounded-3xl border-2 transition-all duration-200 cursor-pointer text-center flex flex-col justify-between min-h-[190px] ${
+          className={`relative p-6 sm:p-8 rounded-3xl border-2 transition-all duration-200 text-center flex flex-col justify-between min-h-[190px] ${
             isWhiteActive
               ? 'bg-[#FAF8F3] dark:bg-[#1A1A17] border-amber-500 ring-4 ring-amber-500/20 shadow-2xl scale-[1.02]'
-              : 'bg-[#FAF8F3]/60 dark:bg-[#141414] border-[#D5CFC5] dark:border-[#282826] opacity-80 hover:opacity-100'
+              : 'bg-[#FAF8F3]/60 dark:bg-[#141414] border-[#D5CFC5] dark:border-[#282826] opacity-80'
           }`}
         >
           {/* Header */}
@@ -612,21 +576,17 @@ export function DualChessClock({
               {player1Name}
             </h4>
             <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93] block">
-              {isWhiteActive ? 'Tap to complete move & pass time →' : 'Waiting for White...'}
+              {isWhiteActive ? 'White Clock Active' : 'Waiting for White...'}
             </span>
           </div>
         </div>
 
         {/* PLAYER 2: BLACK CLOCK PAD */}
         <div
-          onClick={() => {
-            if (isBlackActive) handleSwitchTurn('white');
-            else if (!isRunning) handleStartResume();
-          }}
-          className={`relative p-6 sm:p-8 rounded-3xl border-2 transition-all duration-200 cursor-pointer text-center flex flex-col justify-between min-h-[190px] ${
+          className={`relative p-6 sm:p-8 rounded-3xl border-2 transition-all duration-200 text-center flex flex-col justify-between min-h-[190px] ${
             isBlackActive
               ? 'bg-[#171715] text-[#FAF8F3] dark:bg-[#1E1E1B] border-amber-500 ring-4 ring-amber-500/20 shadow-2xl scale-[1.02]'
-              : 'bg-[#2B2925] text-[#FAF8F3] dark:bg-[#161614] border-[#3E3C37] dark:border-[#282826] opacity-80 hover:opacity-100'
+              : 'bg-[#2B2925] text-[#FAF8F3] dark:bg-[#161614] border-[#3E3C37] dark:border-[#282826] opacity-80'
           }`}
         >
           {/* Header */}
@@ -667,7 +627,7 @@ export function DualChessClock({
               {player2Name}
             </h4>
             <span className="text-[10px] font-mono text-[#D5CFC5]/80 block">
-              {isBlackActive ? 'Tap to complete move & pass time →' : 'Waiting for Black...'}
+              {isBlackActive ? 'Black Clock Active' : 'Waiting for Black...'}
             </span>
           </div>
         </div>
@@ -684,21 +644,10 @@ export function DualChessClock({
             <span className="font-bold text-[#171715] dark:text-[#FAF8F3] bg-[#FAF8F3] dark:bg-[#20201E] px-2 py-0.5 rounded-md border border-[#D5CFC5] dark:border-[#2E2E2B]">
               {movesCount}
             </span>
-            {(movesCount > 0 || lastTurnState) && (
-              <button
-                type="button"
-                onClick={handleUndoTurn}
-                className="ml-1 px-2.5 py-0.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-[10px] font-bold uppercase inline-flex items-center gap-1 cursor-pointer transition-transform active:scale-95 shadow-xs"
-                title="Undo accidental turn switch"
-              >
-                <RotateCcw className="w-3 h-3" />
-                <span>Undo Turn ↩</span>
-              </button>
-            )}
           </div>
           <span className="text-[#D5CFC5] dark:text-[#2E2E2B]">|</span>
           <span className="text-[11px] font-mono text-[#77736B] dark:text-[#8E8E93]">
-            Shortcuts: <kbd className="px-1.5 py-0.5 bg-white dark:bg-[#242422] rounded border text-[10px] font-bold">Space</kbd> switch • <kbd className="px-1.5 py-0.5 bg-white dark:bg-[#242422] rounded border text-[10px] font-bold">P</kbd> pause • <kbd className="px-1.5 py-0.5 bg-white dark:bg-[#242422] rounded border text-[10px] font-bold">U</kbd> undo
+            Shortcuts: <kbd className="px-1.5 py-0.5 bg-white dark:bg-[#242422] rounded border text-[10px] font-bold">P</kbd> pause/resume
           </span>
         </div>
 
@@ -723,16 +672,6 @@ export function DualChessClock({
               <span>{activeTurn ? 'Resume Clock' : 'Start 10:00 (White Moves)'}</span>
             </button>
           )}
-
-          {/* Giant Switch Turn Button */}
-          <button
-            type="button"
-            onClick={() => handleSwitchTurn()}
-            className="bg-[#171715] dark:bg-[#FAF8F3] text-white dark:text-[#0D0D0D] hover:bg-black dark:hover:bg-white px-5 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider inline-flex items-center gap-1.5 shadow-md transition-all active:scale-95 cursor-pointer"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-amber-400 dark:text-amber-600" />
-            <span>Switch Turn ⇋</span>
-          </button>
 
           {/* Reset */}
           <button

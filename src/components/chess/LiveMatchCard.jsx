@@ -36,8 +36,8 @@ export function LiveMatchCard({ match }) {
             {p1.fullName}
           </h4>
           <span className="text-[9px] text-[#77736B] dark:text-[#8E8E93]">{p1.department}</span>
-          <span className="text-xl font-bold font-serif text-[#171715] dark:text-[#FAF8F3] pt-0.5">
-            {match.player1MaterialScore || 0}
+          <span className="text-[10px] font-mono font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full mt-0.5">
+            ♔ White
           </span>
         </div>
 
@@ -58,8 +58,8 @@ export function LiveMatchCard({ match }) {
             {p2.fullName}
           </h4>
           <span className="text-[9px] text-[#77736B] dark:text-[#8E8E93]">{p2.department}</span>
-          <span className="text-xl font-bold font-serif text-[#171715] dark:text-[#FAF8F3] pt-0.5">
-            {match.player2MaterialScore || 0}
+          <span className="text-[10px] font-mono font-bold text-[#77736B] dark:text-[#8E8E93] bg-[#EFEAE1] dark:bg-[#20201E] px-2 py-0.5 rounded-full mt-0.5">
+            ♚ Black
           </span>
         </div>
 

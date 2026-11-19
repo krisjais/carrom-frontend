@@ -77,9 +77,9 @@ export function ChessLiveSection({ liveMatches = [] }) {
                           {p1.fullName}
                         </h4>
                         <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93] block">{p1.department}</span>
-                        <div className="text-2xl font-serif font-bold text-[#171715] dark:text-[#FAF8F3] pt-1">
-                          {match.player1MaterialScore || 0}
-                        </div>
+                        <span className="inline-block mt-1 text-[10px] font-mono font-bold uppercase text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full">
+                          ♔ White
+                        </span>
                       </div>
 
                       {/* VS & Timer */}
@@ -97,9 +97,9 @@ export function ChessLiveSection({ liveMatches = [] }) {
                           {p2.fullName}
                         </h4>
                         <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93] block">{p2.department}</span>
-                        <div className="text-2xl font-serif font-bold text-[#171715] dark:text-[#FAF8F3] pt-1">
-                          {match.player2MaterialScore || 0}
-                        </div>
+                        <span className="inline-block mt-1 text-[10px] font-mono font-bold uppercase text-[#77736B] dark:text-[#8E8E93] bg-[#EFEAE1] dark:bg-[#20201E] px-2.5 py-0.5 rounded-full">
+                          ♚ Black
+                        </span>
                       </div>
 
                     </div>

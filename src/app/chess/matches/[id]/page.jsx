@@ -5,7 +5,6 @@ import { useParams } from 'next/navigation';
 import { chessApi } from '@/lib/chessApi';
 import { ChessHeader } from '@/components/chess/ChessHeader';
 import { DualChessClock } from '@/components/chess/DualChessClock';
-import { PieceScore } from '@/components/chess/PieceScore';
 import { ChessFooter } from '@/components/chess/ChessFooter';
 import Link from 'next/link';
 import { ArrowLeft, Clock, ShieldCheck, Trophy, Info, Play, Loader2, Crown, Zap } from 'lucide-react';
@@ -385,12 +384,30 @@ export default function ChessMatchDetailPage() {
                     </span>
                   </div>
                   <div className="pt-2">
-                    <span className="text-4xl font-serif font-bold text-[#171715] dark:text-[#FAF8F3]">
-                      {p1Score}
-                    </span>
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-[#77736B] dark:text-[#8E8E93] block">
-                      Material Points
-                    </span>
+                    {isCompleted ? (
+                      match.winner === 'player1' ? (
+                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 font-mono text-xs font-bold uppercase">
+                          <Crown className="w-3.5 h-3.5 text-amber-500" />
+                          <span>Winner 👑</span>
+                        </span>
+                      ) : match.winner === 'draw' ? (
+                        <span className="inline-block px-3 py-1 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-300 font-mono text-xs font-bold uppercase">
+                          Draw 🤝
+                        </span>
+                      ) : (
+                        <span className="text-xs font-mono text-[#77736B] dark:text-[#8E8E93]">
+                          Defeated
+                        </span>
+                      )
+                    ) : isLive ? (
+                      <span className="inline-block px-3 py-1 rounded-full bg-rose-500/15 text-rose-800 dark:text-rose-300 font-mono text-xs font-bold uppercase">
+                        Live In Game
+                      </span>
+                    ) : (
+                      <span className="text-xs font-mono text-[#77736B] dark:text-[#8E8E93]">
+                        Pending Start
+                      </span>
+                    )}
                   </div>
 
                   {/* Player 1 Specific Clock */}
@@ -473,12 +490,30 @@ export default function ChessMatchDetailPage() {
                     </span>
                   </div>
                   <div className="pt-2">
-                    <span className="text-4xl font-serif font-bold text-[#171715] dark:text-[#FAF8F3]">
-                      {p2Score}
-                    </span>
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-[#77736B] dark:text-[#8E8E93] block">
-                      Material Points
-                    </span>
+                    {isCompleted ? (
+                      match.winner === 'player2' ? (
+                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 font-mono text-xs font-bold uppercase">
+                          <Crown className="w-3.5 h-3.5 text-amber-500" />
+                          <span>Winner 👑</span>
+                        </span>
+                      ) : match.winner === 'draw' ? (
+                        <span className="inline-block px-3 py-1 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-300 font-mono text-xs font-bold uppercase">
+                          Draw 🤝
+                        </span>
+                      ) : (
+                        <span className="text-xs font-mono text-[#77736B] dark:text-[#8E8E93]">
+                          Defeated
+                        </span>
+                      )
+                    ) : isLive ? (
+                      <span className="inline-block px-3 py-1 rounded-full bg-rose-500/15 text-rose-800 dark:text-rose-300 font-mono text-xs font-bold uppercase">
+                        Live In Game
+                      </span>
+                    ) : (
+                      <span className="text-xs font-mono text-[#77736B] dark:text-[#8E8E93]">
+                        Pending Start
+                      </span>
+                    )}
                   </div>
 
                   {/* Player 2 Specific Clock */}
@@ -537,20 +572,6 @@ export default function ChessMatchDetailPage() {
                 }}
               />
             )}
-
-            {/* Captured Piece Breakdown (Updates Live) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <PieceScore
-                captured={match.player1Captured}
-                materialScore={p1Score}
-                playerName={`${player1.fullName} (White)`}
-              />
-              <PieceScore
-                captured={match.player2Captured}
-                materialScore={p2Score}
-                playerName={`${player2.fullName} (Black)`}
-              />
-            </div>
 
           </div>
         )}

@@ -4,59 +4,9 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { chessApi } from '@/lib/chessApi';
 import { AdminSidebar } from '@/components/chess/AdminSidebar';
-import { MatchTimer } from '@/components/chess/MatchTimer';
 import { ChessBracketView } from '@/components/chess/ChessBracketView';
-import { DualChessClock } from '@/components/chess/DualChessClock';
-import { Swords, Play, CheckCircle2, XCircle, Trophy, Loader2, Plus, Minus, Trash2, Clock, ShieldCheck, Zap, CheckSquare, Square, ChevronDown, X, LayoutGrid, List } from 'lucide-react';
+import { Swords, Play, CheckCircle2, XCircle, Trophy, Loader2, Plus, Minus, Trash2, Clock, ShieldCheck, Zap, CheckSquare, Square, ChevronDown, X, LayoutGrid, List, Crown } from 'lucide-react';
 import { useToast, useConfirm } from '@/context/ToastContext';
-
-const PIECE_CONFIG = [
-  { key: 'pawns', label: 'Pawns', symbol: '♟', val: 1, max: 8 },
-  { key: 'knights', label: 'Knights', symbol: '♞', val: 3, max: 2 },
-  { key: 'bishops', label: 'Bishops', symbol: '♝', val: 3, max: 2 },
-  { key: 'rooks', label: 'Rooks', symbol: '♜', val: 5, max: 2 },
-  { key: 'queens', label: 'Queen', symbol: '♛', val: 9, max: 1 },
-  { key: 'kings', label: 'King', symbol: '♚', val: 0, max: 1 }
-];
-
-const PIECE_LIMITS = {
-  pawns: 8,
-  knights: 2,
-  bishops: 2,
-  rooks: 2,
-  queens: 1,
-  kings: 1
-};
-
-const PIECE_VALUES = {
-  pawns: 1,
-  knights: 3,
-  bishops: 3,
-  rooks: 5,
-  queens: 9,
-  kings: 0
-};
-
-const PIECE_ICONS = {
-  pawns: '♟',
-  knights: '♞',
-  bishops: '♝',
-  rooks: '♜',
-  queens: '♛',
-  kings: '♚'
-};
-
-function calcMaterial(captured) {
-  if (!captured) return 0;
-  return (
-    (captured.pawns || 0) * 1 +
-    (captured.knights || 0) * 3 +
-    (captured.bishops || 0) * 3 +
-    (captured.rooks || 0) * 5 +
-    (captured.queens || 0) * 9 +
-    (captured.kings || 0) * 0
-  );
-}
 
 const ROUND_PRESETS = [
   { label: 'Round 1', round: 1 },
@@ -90,18 +40,8 @@ export default function ChessAdminMatchesPage() {
   const [selectedMatchIds, setSelectedMatchIds] = useState([]);
   const [bulkDeleting, setBulkDeleting] = useState(false);
 
-  // Live in-game scoring modal
-  const [liveScoringMatch, setLiveScoringMatch] = useState(null);
-  const [liveP1Captured, setLiveP1Captured] = useState({ pawns: 0, knights: 0, bishops: 0, rooks: 0, queens: 0 });
-  const [liveP2Captured, setLiveP2Captured] = useState({ pawns: 0, knights: 0, bishops: 0, rooks: 0, queens: 0 });
-  const [savingLiveScore, setSavingLiveScore] = useState(false);
-
-  // Final Result modal
+  // Declare Winner Modal
   const [resultModalMatch, setResultModalMatch] = useState(null);
-  const [p1Captured, setP1Captured] = useState({ pawns: 0, knights: 0, bishops: 0, rooks: 0, queens: 0 });
-  const [p2Captured, setP2Captured] = useState({ pawns: 0, knights: 0, bishops: 0, rooks: 0, queens: 0 });
-  const [winnerChoice, setWinnerChoice] = useState('none');
-  const [resultTypeChoice, setResultTypeChoice] = useState('checkmate');
   const [submitLoading, setSubmitLoading] = useState(false);
 
   // Manual Match Pairing Modal with Custom Round Name
@@ -128,19 +68,10 @@ export default function ChessAdminMatchesPage() {
         const freshMatches = matchesRes.value.data || [];
         setMatches(freshMatches);
 
-        // Keep live scoring modal synced in real-time with player move taps & clock
-        setLiveScoringMatch((prev) => {
+        // Keep active result modal synced with fresh data
+        setResultModalMatch((prev) => {
           if (!prev) return null;
-          const updated = freshMatches.find(m => m._id === prev._id || m.matchId === prev.matchId);
-          if (!updated) return prev;
-          return {
-            ...prev,
-            ...updated,
-            player1Captured: updated.player1Captured || prev.player1Captured,
-            player2Captured: updated.player2Captured || prev.player2Captured,
-            player1MaterialScore: updated.player1MaterialScore ?? prev.player1MaterialScore,
-            player2MaterialScore: updated.player2MaterialScore ?? prev.player2MaterialScore
-          };
+          return freshMatches.find(m => m._id === prev._id || m.matchId === prev.matchId) || prev;
         });
       }
       if (playersRes.status === 'fulfilled' && playersRes.value?.success) {
@@ -171,7 +102,7 @@ export default function ChessAdminMatchesPage() {
       if (!data) return;
 
       // Instantly update active modal if it corresponds to this match
-      setLiveScoringMatch((prev) => {
+      setResultModalMatch((prev) => {
         if (!prev) return null;
         if (data.matchId && data.matchId !== prev._id && data.matchId !== prev.matchId) return prev;
         return {
@@ -350,11 +281,6 @@ export default function ChessAdminMatchesPage() {
               : m
           )
         );
-        // Automatically open live scorer for this match!
-        const started = matches.find(m => m._id === id || m.matchId === id);
-        if (started) {
-          openLiveScoring({ ...started, status: 'live', actualStartTime: new Date(), durationMinutes: 10 });
-        }
         toast.success('Live match started successfully!');
         await loadData(true);
       } else {
@@ -364,66 +290,6 @@ export default function ChessAdminMatchesPage() {
       toast.error(err.message || 'Failed to start match.');
     } finally {
       setStartingMatchId(null);
-    }
-  };
-
-  // Open Live In-Game Scoring Modal
-  const openLiveScoring = (match) => {
-    setLiveScoringMatch(match);
-    setLiveP1Captured(match.player1Captured || { pawns: 0, knights: 0, bishops: 0, rooks: 0, queens: 0, kings: 0 });
-    setLiveP2Captured(match.player2Captured || { pawns: 0, knights: 0, bishops: 0, rooks: 0, queens: 0, kings: 0 });
-  };
-
-  // Live capture increment / decrement with strict piece limits
-  const handleAdjustLiveCapture = async (playerNum, pieceKey, delta) => {
-    if (!liveScoringMatch) return;
-
-    let updatedP1 = { ...liveP1Captured };
-    let updatedP2 = { ...liveP2Captured };
-    const maxLimit = PIECE_LIMITS[pieceKey] ?? 8;
-
-    if (playerNum === 1) {
-      const current = updatedP1[pieceKey] || 0;
-      const nextVal = Math.max(0, Math.min(maxLimit, current + delta));
-      if (nextVal === current) return;
-      updatedP1[pieceKey] = nextVal;
-      setLiveP1Captured(updatedP1);
-    } else {
-      const current = updatedP2[pieceKey] || 0;
-      const nextVal = Math.max(0, Math.min(maxLimit, current + delta));
-      if (nextVal === current) return;
-      updatedP2[pieceKey] = nextVal;
-      setLiveP2Captured(updatedP2);
-    }
-
-    // Optimistically update local matches list
-    const newP1Score = calcMaterial(updatedP1);
-    const newP2Score = calcMaterial(updatedP2);
-    setMatches((prev) =>
-      prev.map((m) =>
-        m._id === liveScoringMatch._id
-          ? {
-              ...m,
-              player1Captured: updatedP1,
-              player2Captured: updatedP2,
-              player1MaterialScore: newP1Score,
-              player2MaterialScore: newP2Score
-            }
-          : m
-      )
-    );
-
-    // Save live captures to backend asynchronously
-    try {
-      setSavingLiveScore(true);
-      await chessApi.updateLiveCaptures(liveScoringMatch._id, {
-        player1Captured: updatedP1,
-        player2Captured: updatedP2
-      });
-    } catch (err) {
-      console.error('Failed to sync live piece captures:', err);
-    } finally {
-      setSavingLiveScore(false);
     }
   };
 
@@ -496,31 +362,31 @@ export default function ChessAdminMatchesPage() {
 
   const openResultModal = (match) => {
     setResultModalMatch(match);
-    setP1Captured(match.player1Captured || { pawns: 0, knights: 0, bishops: 0, rooks: 0, queens: 0, kings: 0 });
-    setP2Captured(match.player2Captured || { pawns: 0, knights: 0, bishops: 0, rooks: 0, queens: 0, kings: 0 });
-    setWinnerChoice(match.winner || 'none');
-    setResultTypeChoice(match.resultType || 'checkmate');
   };
 
-  const handleSubmitResult = async (e) => {
-    e.preventDefault();
-    if (!resultModalMatch) return;
+  // Admin directly clicks the name of who is the winner!
+  const handleDeclareWinner = async (match, winnerChoice) => {
+    if (!match) return;
     setSubmitLoading(true);
 
     try {
       const payload = {
-        player1Captured: p1Captured,
-        player2Captured: p2Captured,
         winner: winnerChoice,
-        resultType: resultTypeChoice
+        resultType: winnerChoice === 'draw' ? 'draw_agreed' : 'checkmate'
       };
-      const res = await chessApi.submitMatchResult(resultModalMatch._id, payload);
+      const res = await chessApi.submitMatchResult(match._id, payload);
       if (res.success) {
         setResultModalMatch(null);
-        if (liveScoringMatch && liveScoringMatch._id === resultModalMatch._id) {
-          setLiveScoringMatch(null);
-        }
-        toast.success('Match result recorded and standings recalculated.');
+        const winnerName = winnerChoice === 'player1'
+          ? (match.player1?.fullName || 'Player 1 (White)')
+          : winnerChoice === 'player2'
+          ? (match.player2?.fullName || 'Player 2 (Black)')
+          : 'Official Draw';
+        toast.success(
+          winnerChoice === 'draw'
+            ? 'Match recorded as Draw!'
+            : `Winner declared: ${winnerName}!`
+        );
         await loadData();
       } else {
         toast.error(res.message || 'Result submission failed.');
@@ -738,7 +604,7 @@ export default function ChessAdminMatchesPage() {
                 <th className="py-3.5 px-4 font-semibold">Player 2 (Black)</th>
                 <th className="py-3.5 px-3 text-center font-semibold">Clock</th>
                 <th className="py-3.5 px-3 text-center font-semibold">Status</th>
-                <th className="py-3.5 px-4 text-center font-semibold">Score</th>
+                <th className="py-3.5 px-4 text-center font-semibold">Winner / Result</th>
                 <th className="py-3.5 px-4 text-right font-semibold">Actions</th>
               </tr>
             </thead>
@@ -841,22 +707,22 @@ export default function ChessAdminMatchesPage() {
                           {m.status}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-center font-mono font-bold text-sm text-[#171715] dark:text-[#FAF8F3]">
-                        {m.player1MaterialScore || 0} - {m.player2MaterialScore || 0}
+                      <td className="py-3.5 px-4 text-center font-serif font-bold text-xs">
+                        {isCompleted ? (
+                          <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-300 dark:border-emerald-800/60">
+                            👑 {m.isBye ? `${p1} (BYE)` : m.winner === 'player1' ? p1 : m.winner === 'player2' ? p2 : 'Draw'}
+                          </span>
+                        ) : isLive ? (
+                          <span className="font-mono text-rose-600 dark:text-rose-400 font-bold text-[11px] animate-pulse">
+                            In Progress
+                          </span>
+                        ) : (
+                          <span className="text-[#77736B] dark:text-[#8E8E93] font-mono text-[11px]">
+                            Pending
+                          </span>
+                        )}
                       </td>
                       <td className="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
-                        {/* Live Scoring Button (For active live matches) */}
-                        {isLive && (
-                          <button
-                            onClick={() => openLiveScoring(m)}
-                            className="bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-semibold px-3 py-1.5 rounded-lg uppercase inline-flex items-center gap-1.5 shadow-xs transition-all hover:scale-105 animate-pulse cursor-pointer"
-                            title="Log piece captures in real-time"
-                          >
-                            <Zap className="w-3 h-3 fill-current" />
-                            <span>Live Scoring</span>
-                          </button>
-                        )}
-
                         {/* Start Match Button (10:00 Clock) */}
                         {isScheduled && !m.isBye && (
                           <button
@@ -874,13 +740,14 @@ export default function ChessAdminMatchesPage() {
                           </button>
                         )}
 
-                        {/* Final Result Button */}
+                        {/* Declare Winner Button (Click to declare winner directly) */}
                         {!m.isBye && (
                           <button
                             onClick={() => openResultModal(m)}
-                            className="border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1] dark:bg-[#1D1D1B] hover:bg-[#E4DED5] dark:hover:bg-[#262624] text-[#171715] dark:text-[#FAF8F3] text-[10px] font-semibold px-2.5 py-1.5 rounded-lg uppercase shadow-xs transition-colors cursor-pointer"
+                            className="bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg uppercase shadow-xs transition-colors cursor-pointer inline-flex items-center gap-1"
                           >
-                            {isCompleted ? 'Edit Result' : 'Finalize Result'}
+                            <Crown className="w-3 h-3 fill-current" />
+                            <span>{isCompleted ? 'Edit Winner' : 'Declare Winner'}</span>
                           </button>
                         )}
 
@@ -902,218 +769,6 @@ export default function ChessAdminMatchesPage() {
             </tbody>
           </table>
         </div>
-        )}
-
-        {/* LIVE IN-GAME PIECE CAPTURES CONTROLLER MODAL */}
-        {liveScoringMatch && (
-          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-            <div className="bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl p-5 sm:p-8 max-w-2xl w-full shadow-2xl space-y-6 text-[#171715] dark:text-[#FAF8F3] max-h-[90vh] overflow-y-auto">
-              
-              {/* Modal Header with Live Badge & Timer */}
-              <div className="flex items-center justify-between border-b border-[#D5CFC5]/70 dark:border-[#262624] pb-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="bg-rose-600 text-white text-[10px] font-mono font-bold uppercase px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
-                      LIVE MATCH SCORER
-                    </span>
-                    {savingLiveScore && (
-                      <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93] animate-pulse">
-                        Syncing...
-                      </span>
-                    )}
-                  </div>
-                  <h3 className="text-xl font-bold font-serif text-[#171715] dark:text-[#FAF8F3]">
-                    {liveScoringMatch.matchId} • {liveScoringMatch.roundName || `Round ${liveScoringMatch.round}`}
-                  </h3>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setLiveScoringMatch(null)}
-                    className="w-8 h-8 rounded-xl flex items-center justify-center bg-[#EFEAE1] dark:bg-[#1E1E1C] hover:bg-[#E4DED5] text-[#77736B] dark:text-[#8E8E93] transition-colors cursor-pointer"
-                    aria-label="Close"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Material Scoreboard Summary */}
-              <div className="grid grid-cols-2 gap-4 bg-[#EFEAE1]/60 dark:bg-[#1C1C1A] p-4 rounded-2xl border border-[#D5CFC5]/60 dark:border-[#2E2E2B] text-center">
-                <div>
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-[#77736B] dark:text-[#8E8E93] block">
-                    White: {liveScoringMatch.player1?.fullName}
-                  </span>
-                  <div className="text-3xl font-serif font-black text-[#171715] dark:text-[#FAF8F3] mt-1">
-                    {calcMaterial(liveP1Captured)} pts
-                  </div>
-                </div>
-                <div className="border-l border-[#D5CFC5]/60 dark:border-[#2E2E2B]">
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-[#77736B] dark:text-[#8E8E93] block">
-                    Black: {liveScoringMatch.player2?.fullName}
-                  </span>
-                  <div className="text-3xl font-serif font-black text-[#171715] dark:text-[#FAF8F3] mt-1">
-                    {calcMaterial(liveP2Captured)} pts
-                  </div>
-                </div>
-              </div>
-
-              {/* Turn-Based 10:00 Dual Chess Clock */}
-              <div className="space-y-1.5">
-                <DualChessClock
-                  match={liveScoringMatch}
-                  initialMinutes={liveScoringMatch.durationMinutes || 10}
-                  player1Name={liveScoringMatch.player1?.fullName || 'White'}
-                  player2Name={liveScoringMatch.player2?.fullName || 'Black'}
-                  variant="compact"
-                  onTimeExpired={(flaggedColor) => {
-                    toast.error(`Time expired! Flag fell on ${flaggedColor.toUpperCase()}!`);
-                  }}
-                />
-              </div>
-
-              {/* Two Column In-Game Piece Controls */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
-                {/* Player 1 (White) Controls */}
-                <div className="bg-[#FAF8F3] dark:bg-[#191917] border border-[#D5CFC5] dark:border-[#262624] p-4 rounded-2xl space-y-3">
-                  <div className="flex items-center justify-between border-b border-[#D5CFC5]/60 dark:border-[#262624] pb-2">
-                    <span className="font-serif font-bold text-sm text-[#171715] dark:text-[#FAF8F3] flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full border border-[#171715] bg-white inline-block" />
-                      <span>{liveScoringMatch.player1?.fullName} (White)</span>
-                    </span>
-                    <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93]">
-                      Pieces Captured
-                    </span>
-                  </div>
-
-                  <div className="space-y-2">
-                    {PIECE_CONFIG.map(({ key, label, symbol, val, max }) => {
-                      const count = liveP1Captured[key] || 0;
-                      const isMaxReached = count >= max;
-                      const isMinReached = count <= 0;
-                      return (
-                        <div key={key} className="flex items-center justify-between p-2 rounded-xl bg-[#F5F2EB] dark:bg-[#131312] border border-[#D5CFC5]/50 dark:border-[#262624]">
-                          <div className="flex items-center gap-2">
-                            <span className="text-base select-none">{symbol}</span>
-                            <div>
-                              <span className="font-semibold text-xs capitalize block text-[#171715] dark:text-[#FAF8F3]">{label}</span>
-                              <span className="text-[9px] font-mono text-[#77736B] dark:text-[#8E8E93]">
-                                {key === 'kings' ? '0 pts (Checkmate)' : `+${val} pt${val > 1 ? 's' : ''}`} • Max {max}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              onClick={() => handleAdjustLiveCapture(1, key, -1)}
-                              disabled={isMinReached}
-                              className="w-7 h-7 rounded-lg bg-[#EFEAE1] dark:bg-[#222220] hover:bg-[#E4DED5] flex items-center justify-center text-xs font-bold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-                            >
-                              <Minus className="w-3.5 h-3.5" />
-                            </button>
-                            <span className="w-11 text-center font-mono font-bold text-xs text-[#171715] dark:text-[#FAF8F3]">
-                              {count}/{max}
-                            </span>
-                            <button
-                              onClick={() => handleAdjustLiveCapture(1, key, 1)}
-                              disabled={isMaxReached}
-                              className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${
-                                isMaxReached
-                                  ? 'opacity-25 cursor-not-allowed bg-neutral-300 dark:bg-neutral-800 text-neutral-500'
-                                  : 'bg-[#22221F] dark:bg-[#FAF8F3] text-white dark:text-[#0D0D0D] hover:bg-black cursor-pointer'
-                              }`}
-                            >
-                              <Plus className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Player 2 (Black) Controls */}
-                <div className="bg-[#FAF8F3] dark:bg-[#191917] border border-[#D5CFC5] dark:border-[#262624] p-4 rounded-2xl space-y-3">
-                  <div className="flex items-center justify-between border-b border-[#D5CFC5]/60 dark:border-[#262624] pb-2">
-                    <span className="font-serif font-bold text-sm text-[#171715] dark:text-[#FAF8F3] flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#171715] dark:bg-white inline-block" />
-                      <span>{liveScoringMatch.player2?.fullName} (Black)</span>
-                    </span>
-                    <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93]">
-                      Pieces Captured
-                    </span>
-                  </div>
-
-                  <div className="space-y-2">
-                    {PIECE_CONFIG.map(({ key, label, symbol, val, max }) => {
-                      const count = liveP2Captured[key] || 0;
-                      const isMaxReached = count >= max;
-                      const isMinReached = count <= 0;
-                      return (
-                        <div key={key} className="flex items-center justify-between p-2 rounded-xl bg-[#F5F2EB] dark:bg-[#131312] border border-[#D5CFC5]/50 dark:border-[#262624]">
-                          <div className="flex items-center gap-2">
-                            <span className="text-base select-none">{symbol}</span>
-                            <div>
-                              <span className="font-semibold text-xs capitalize block text-[#171715] dark:text-[#FAF8F3]">{label}</span>
-                              <span className="text-[9px] font-mono text-[#77736B] dark:text-[#8E8E93]">
-                                {key === 'kings' ? '0 pts (Checkmate)' : `+${val} pt${val > 1 ? 's' : ''}`} • Max {max}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              onClick={() => handleAdjustLiveCapture(2, key, -1)}
-                              disabled={isMinReached}
-                              className="w-7 h-7 rounded-lg bg-[#EFEAE1] dark:bg-[#222220] hover:bg-[#E4DED5] flex items-center justify-center text-xs font-bold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-                            >
-                              <Minus className="w-3.5 h-3.5" />
-                            </button>
-                            <span className="w-11 text-center font-mono font-bold text-xs text-[#171715] dark:text-[#FAF8F3]">
-                              {count}/{max}
-                            </span>
-                            <button
-                              onClick={() => handleAdjustLiveCapture(2, key, 1)}
-                              disabled={isMaxReached}
-                              className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${
-                                isMaxReached
-                                  ? 'opacity-25 cursor-not-allowed bg-neutral-300 dark:bg-neutral-800 text-neutral-500'
-                                  : 'bg-[#22221F] dark:bg-[#FAF8F3] text-white dark:text-[#0D0D0D] hover:bg-black cursor-pointer'
-                              }`}
-                            >
-                              <Plus className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-              </div>
-
-              {/* Bottom Actions: Auto-Save Status & Declare Final Outcome */}
-              <div className="border-t border-[#D5CFC5]/70 dark:border-[#262624] pt-4 flex flex-col sm:flex-row justify-between items-center gap-3">
-                <div className="text-[11px] font-mono text-[#77736B] dark:text-[#8E8E93]">
-                  ⚡ Live score broadcasts to spectator watch pages automatically.
-                </div>
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                  <button
-                    onClick={() => {
-                      const m = liveScoringMatch;
-                      setLiveScoringMatch(null);
-                      openResultModal(m);
-                    }}
-                    className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-5 py-2.5 rounded-xl uppercase tracking-wider shadow-sm transition-all cursor-pointer"
-                  >
-                    Finish Match & Submit Result
-                  </button>
-                </div>
-              </div>
-
-            </div>
-          </div>
         )}
 
         {/* CREATE MANUAL MATCH MODAL WITH CUSTOM ROUND NAME / GRAND FINAL */}
@@ -1292,18 +947,21 @@ export default function ChessAdminMatchesPage() {
           </div>
         )}
 
-        {/* Enter Final Result Modal */}
+        {/* Click-to-Declare Winner Modal (Direct, No Points / Piece Counts) */}
         {resultModalMatch && (
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all">
-            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#2B2B28] rounded-2xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 text-[#171715] dark:text-[#FAF8F3] antialiased">
+            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#2B2B28] rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 text-[#171715] dark:text-[#FAF8F3] antialiased">
               <div className="border-b border-[#D5CFC5] dark:border-[#262624] pb-3 flex justify-between items-center">
                 <div>
-                  <span className="text-[11px] font-sans font-bold text-[#77736B] dark:text-[#A8A49C] uppercase tracking-[0.14em] block">
-                    FINAL SCORING & DECISION
+                  <span className="text-[11px] font-mono font-bold text-[#77736B] dark:text-[#A8A49C] uppercase tracking-[0.14em] block">
+                    OFFICIAL MATCH DECISION
                   </span>
-                  <h3 className="text-xl font-bold font-sans text-[#171715] dark:text-[#FAF8F3] mt-0.5 tracking-tight">
-                    Match Result — {resultModalMatch.matchId} ({resultModalMatch.roundName || `Round ${resultModalMatch.round}`})
+                  <h3 className="text-xl font-bold font-serif text-[#171715] dark:text-[#FAF8F3] mt-0.5 tracking-tight">
+                    Declare Winner — {resultModalMatch.matchId}
                   </h3>
+                  <span className="text-xs text-[#77736B] dark:text-[#8E8E93]">
+                    {resultModalMatch.roundName || `Round ${resultModalMatch.round}`}
+                  </span>
                 </div>
                 <button
                   type="button"
@@ -1315,182 +973,117 @@ export default function ChessAdminMatchesPage() {
                 </button>
               </div>
 
-              <form onSubmit={handleSubmitResult} className="space-y-4">
-                {/* Captured counts player 1 */}
-                <div className="bg-[#F5F2EB] dark:bg-[#1D1D1B] p-3.5 rounded-xl border border-[#D5CFC5] dark:border-[#262624]">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold font-sans text-xs text-[#171715] dark:text-[#FAF8F3] flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full border border-[#171715] bg-white inline-block" />
-                      <span>{resultModalMatch.player1?.fullName} (White) Captured Pieces:</span>
-                    </span>
-                    <span className="text-[11px] font-sans font-bold text-amber-800 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/40 px-2 py-0.5 rounded-md border border-amber-300 dark:border-amber-800/60">
-                      {calcMaterial(p1Captured)} pts
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
-                    {PIECE_CONFIG.map(({ key, label, symbol, max }) => {
-                      const count = p1Captured[key] || 0;
-                      return (
-                        <div key={key} className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5]/70 dark:border-[#262624] rounded-xl p-2 flex flex-col items-center">
-                          <span className="text-base select-none">{symbol}</span>
-                          <span className="text-[10px] font-bold block text-[#171715] dark:text-[#FAF8F3]">
-                            {label}
-                          </span>
-                          <span className="text-[9px] font-sans text-[#77736B] dark:text-[#8E8E93] mb-1">
-                            Max {max}
-                          </span>
-                          <div className="flex items-center gap-1 w-full justify-center">
-                            <button
-                              type="button"
-                              onClick={() => setP1Captured(prev => ({ ...prev, [key]: Math.max(0, (prev[key] || 0) - 1) }))}
-                              disabled={count <= 0}
-                              className="w-5 h-5 rounded bg-[#EFEAE1] dark:bg-[#222220] hover:bg-[#E4DED5] flex items-center justify-center font-bold text-xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-                            >
-                              -
-                            </button>
-                            <input
-                              type="number"
-                              min={0}
-                              max={max}
-                              value={count}
-                              onChange={(e) => {
-                                const raw = Number(e.target.value) || 0;
-                                setP1Captured(prev => ({ ...prev, [key]: Math.max(0, Math.min(max, raw)) }));
-                              }}
-                              className="w-8 bg-transparent text-center font-bold text-xs text-[#171715] dark:text-[#FAF8F3] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setP1Captured(prev => ({ ...prev, [key]: Math.min(max, (prev[key] || 0) + 1) }))}
-                              disabled={count >= max}
-                              className="w-5 h-5 rounded bg-[#22221F] dark:bg-[#FAF8F3] text-white dark:text-[#0D0D0D] hover:bg-black flex items-center justify-center font-bold text-xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
+              <div className="space-y-3">
+                <p className="text-xs font-sans text-[#77736B] dark:text-[#8E8E93]">
+                  Click the contestant who won the match. The winner will be saved and automatically advanced to the next knockout round:
+                </p>
 
-                {/* Captured counts player 2 */}
-                <div className="bg-[#F5F2EB] dark:bg-[#1D1D1B] p-3.5 rounded-xl border border-[#D5CFC5] dark:border-[#262624]">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold font-sans text-xs text-[#171715] dark:text-[#FAF8F3] flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#171715] dark:bg-white inline-block" />
-                      <span>{resultModalMatch.player2?.fullName} (Black) Captured Pieces:</span>
-                    </span>
-                    <span className="text-[11px] font-sans font-bold text-amber-800 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/40 px-2 py-0.5 rounded-md border border-amber-300 dark:border-amber-800/60">
-                      {calcMaterial(p2Captured)} pts
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
-                    {PIECE_CONFIG.map(({ key, label, symbol, max }) => {
-                      const count = p2Captured[key] || 0;
-                      return (
-                        <div key={key} className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5]/70 dark:border-[#262624] rounded-xl p-2 flex flex-col items-center">
-                          <span className="text-base select-none">{symbol}</span>
-                          <span className="text-[10px] font-bold block text-[#171715] dark:text-[#FAF8F3]">
-                            {label}
-                          </span>
-                          <span className="text-[9px] font-sans text-[#77736B] dark:text-[#8E8E93] mb-1">
-                            Max {max}
-                          </span>
-                          <div className="flex items-center gap-1 w-full justify-center">
-                            <button
-                              type="button"
-                              onClick={() => setP2Captured(prev => ({ ...prev, [key]: Math.max(0, (prev[key] || 0) - 1) }))}
-                              disabled={count <= 0}
-                              className="w-5 h-5 rounded bg-[#EFEAE1] dark:bg-[#222220] hover:bg-[#E4DED5] flex items-center justify-center font-bold text-xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-                            >
-                              -
-                            </button>
-                            <input
-                              type="number"
-                              min={0}
-                              max={max}
-                              value={count}
-                              onChange={(e) => {
-                                const raw = Number(e.target.value) || 0;
-                                setP2Captured(prev => ({ ...prev, [key]: Math.max(0, Math.min(max, raw)) }));
-                              }}
-                              className="w-8 bg-transparent text-center font-bold text-xs text-[#171715] dark:text-[#FAF8F3] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setP2Captured(prev => ({ ...prev, [key]: Math.min(max, (prev[key] || 0) + 1) }))}
-                              disabled={count >= max}
-                              className="w-5 h-5 rounded bg-[#22221F] dark:bg-[#FAF8F3] text-white dark:text-[#0D0D0D] hover:bg-black flex items-center justify-center font-bold text-xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block font-semibold text-xs text-[#171715] dark:text-[#FAF8F3] mb-1.5">
-                      Declare Winner
-                    </label>
-                    <div className="relative">
-                      <select
-                        value={winnerChoice}
-                        onChange={(e) => setWinnerChoice(e.target.value)}
-                        className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#2A2A28] focus:border-[#171715] dark:focus:border-[#FAF8F3] focus:ring-1 focus:ring-[#171715]/15 rounded-xl py-2.5 pl-3.5 pr-10 font-medium text-sm text-[#171715] dark:text-[#FAF8F3] appearance-none focus:outline-none cursor-pointer transition-all"
-                      >
-                        <option value="none">Auto-Calculate from Material Score</option>
-                        <option value="player1">Player 1 ({resultModalMatch.player1?.fullName})</option>
-                        <option value="player2">Player 2 ({resultModalMatch.player2?.fullName})</option>
-                        <option value="draw">Draw</option>
-                      </select>
-                      <ChevronDown className="w-4 h-4 text-[#77736B] dark:text-[#8E8E93] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                {/* Player 1 Card (White) */}
+                <button
+                  type="button"
+                  onClick={() => handleDeclareWinner(resultModalMatch, 'player1')}
+                  disabled={submitLoading}
+                  className={`w-full p-4 rounded-2xl border-2 transition-all flex items-center justify-between text-left group cursor-pointer shadow-xs ${
+                    resultModalMatch.winner === 'player1'
+                      ? 'border-emerald-500 bg-emerald-50/60 dark:bg-emerald-950/30'
+                      : 'border-[#D5CFC5] dark:border-[#2A2A28] bg-white dark:bg-[#1A1A18] hover:border-amber-500 hover:bg-amber-500/10'
+                  }`}
+                >
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-12 h-12 rounded-xl bg-white border-2 border-[#171715] flex items-center justify-center font-bold text-2xl text-[#171715] shadow-2xs">
+                      ♔
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-[#77736B] dark:text-[#8E8E93] block">
+                        White Pieces
+                      </span>
+                      <h4 className="font-serif font-bold text-base sm:text-lg text-[#171715] dark:text-[#FAF8F3] group-hover:text-amber-700 dark:group-hover:text-amber-400">
+                        {resultModalMatch.player1?.fullName || 'Player 1 (White)'}
+                      </h4>
+                      <span className="text-xs text-[#77736B] dark:text-[#8E8E93]">
+                        {resultModalMatch.player1?.department || 'Participant'}
+                      </span>
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block font-semibold text-xs text-[#171715] dark:text-[#FAF8F3] mb-1.5">
-                      Result Type
-                    </label>
-                    <div className="relative">
-                      <select
-                        value={resultTypeChoice}
-                        onChange={(e) => setResultTypeChoice(e.target.value)}
-                        className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#2A2A28] focus:border-[#171715] dark:focus:border-[#FAF8F3] focus:ring-1 focus:ring-[#171715]/15 rounded-xl py-2.5 pl-3.5 pr-10 font-medium text-sm text-[#171715] dark:text-[#FAF8F3] appearance-none focus:outline-none cursor-pointer transition-all"
-                      >
-                        <option value="checkmate">Checkmate</option>
-                        <option value="time_out">Time Out (10:00 Expired)</option>
-                        <option value="resignation">Resignation</option>
-                        <option value="points">Points Leader</option>
-                        <option value="draw_agreed">Draw Agreed</option>
-                      </select>
-                      <ChevronDown className="w-4 h-4 text-[#77736B] dark:text-[#8E8E93] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <div className="text-right">
+                    {resultModalMatch.winner === 'player1' ? (
+                      <span className="px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-mono font-bold inline-flex items-center gap-1 shadow-2xs">
+                        ✓ WINNER
+                      </span>
+                    ) : (
+                      <span className="px-3.5 py-2 rounded-xl bg-[#171715] dark:bg-[#FAF8F3] text-white dark:text-[#0D0D0D] text-xs font-mono font-bold uppercase tracking-wider group-hover:bg-amber-600 group-hover:text-white transition-all shadow-xs">
+                        {submitLoading ? 'Saving...' : 'Declare Winner 👑'}
+                      </span>
+                    )}
+                  </div>
+                </button>
+
+                {/* Player 2 Card (Black) */}
+                <button
+                  type="button"
+                  onClick={() => handleDeclareWinner(resultModalMatch, 'player2')}
+                  disabled={submitLoading}
+                  className={`w-full p-4 rounded-2xl border-2 transition-all flex items-center justify-between text-left group cursor-pointer shadow-xs ${
+                    resultModalMatch.winner === 'player2'
+                      ? 'border-emerald-500 bg-emerald-50/60 dark:bg-emerald-950/30'
+                      : 'border-[#D5CFC5] dark:border-[#2A2A28] bg-white dark:bg-[#1A1A18] hover:border-amber-500 hover:bg-amber-500/10'
+                  }`}
+                >
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-12 h-12 rounded-xl bg-[#171715] border-2 border-[#D5CFC5] flex items-center justify-center font-bold text-2xl text-white shadow-2xs">
+                      ♚
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-[#77736B] dark:text-[#8E8E93] block">
+                        Black Pieces
+                      </span>
+                      <h4 className="font-serif font-bold text-base sm:text-lg text-[#171715] dark:text-[#FAF8F3] group-hover:text-amber-700 dark:group-hover:text-amber-400">
+                        {resultModalMatch.player2?.fullName || 'Player 2 (Black)'}
+                      </h4>
+                      <span className="text-xs text-[#77736B] dark:text-[#8E8E93]">
+                        {resultModalMatch.player2?.department || 'Participant'}
+                      </span>
                     </div>
                   </div>
-                </div>
 
-                <div className="pt-3 border-t border-[#D5CFC5] dark:border-[#262624] flex items-center justify-end gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => setResultModalMatch(null)}
-                    className="px-5 py-2.5 border border-[#D5CFC5] dark:border-[#2A2A28] bg-transparent hover:bg-[#EFEAE1] dark:hover:bg-[#1E1E1C] text-[#171715] dark:text-[#FAF8F3] rounded-xl font-semibold text-xs tracking-wider uppercase transition-colors cursor-pointer"
-                  >
-                    Cancel
-                  </button>
+                  <div className="text-right">
+                    {resultModalMatch.winner === 'player2' ? (
+                      <span className="px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-mono font-bold inline-flex items-center gap-1 shadow-2xs">
+                        ✓ WINNER
+                      </span>
+                    ) : (
+                      <span className="px-3.5 py-2 rounded-xl bg-[#171715] dark:bg-[#FAF8F3] text-white dark:text-[#0D0D0D] text-xs font-mono font-bold uppercase tracking-wider group-hover:bg-amber-600 group-hover:text-white transition-all shadow-xs">
+                        {submitLoading ? 'Saving...' : 'Declare Winner 👑'}
+                      </span>
+                    )}
+                  </div>
+                </button>
 
-                  <button
-                    type="submit"
-                    disabled={submitLoading}
-                    className="px-6 py-2.5 bg-[#171715] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-white dark:text-[#0D0D0D] rounded-xl font-bold text-xs tracking-wider uppercase transition-all shadow-xs cursor-pointer disabled:opacity-50"
-                  >
-                    {submitLoading ? 'Saving...' : 'Submit Result'}
-                  </button>
-                </div>
-              </form>
+                {/* Draw Option */}
+                <button
+                  type="button"
+                  onClick={() => handleDeclareWinner(resultModalMatch, 'draw')}
+                  disabled={submitLoading}
+                  className={`w-full py-3 px-4 rounded-xl border border-dashed text-center font-mono text-xs font-bold transition-all cursor-pointer ${
+                    resultModalMatch.winner === 'draw'
+                      ? 'border-amber-500 bg-amber-50/50 text-amber-800'
+                      : 'border-[#D5CFC5] dark:border-[#383733] hover:border-[#171715] dark:hover:border-white text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715] dark:hover:text-[#FAF8F3]'
+                  }`}
+                >
+                  🤝 Declare Match as Official Draw
+                </button>
+              </div>
+
+              <div className="pt-2 border-t border-[#D5CFC5] dark:border-[#262624] flex items-center justify-end">
+                <button
+                  type="button"
+                  onClick={() => setResultModalMatch(null)}
+                  className="px-5 py-2 border border-[#D5CFC5] dark:border-[#2A2A28] bg-transparent hover:bg-[#EFEAE1] dark:hover:bg-[#1E1E1C] text-[#171715] dark:text-[#FAF8F3] rounded-xl font-semibold text-xs tracking-wider uppercase transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         )}

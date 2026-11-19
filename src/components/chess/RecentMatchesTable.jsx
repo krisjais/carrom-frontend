@@ -38,8 +38,7 @@ export function RecentMatchesTable({ matches = [], loading = false }) {
               <th className="py-3 px-4 font-semibold">Player 1</th>
               <th className="py-3 px-4 font-semibold">Player 2</th>
               <th className="py-3 px-3 text-center font-semibold">Status</th>
-              <th className="py-3 px-3 text-center font-semibold">Outcome</th>
-              <th className="py-3 px-4 text-right font-semibold">Material Score</th>
+              <th className="py-3 px-4 text-right font-semibold">Winner / Outcome</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#D5CFC5]/50 dark:divide-[#262624]">
@@ -105,11 +104,8 @@ export function RecentMatchesTable({ matches = [], loading = false }) {
                         </span>
                       )}
                     </td>
-                    <td className="py-4 px-3 text-center font-medium text-[#171715] dark:text-[#FAF8F3]">
+                    <td className="py-4 px-4 text-right font-serif font-bold text-xs text-amber-700 dark:text-amber-400">
                       {winnerText}
-                    </td>
-                    <td className="py-4 px-4 text-right font-mono font-bold text-sm text-[#171715] dark:text-[#FAF8F3]">
-                      {scoreStr}
                     </td>
                   </tr>
                 );
@@ -147,8 +143,10 @@ export function RecentMatchesTable({ matches = [], loading = false }) {
                   <div className="font-serif font-bold text-[#171715] dark:text-[#FAF8F3] text-sm">
                     {p1} <span className="text-xs text-[#77736B] font-sans font-normal">vs</span> {p2}
                   </div>
-                  <div className="font-mono font-bold text-sm text-[#171715] dark:text-[#FAF8F3]">
-                    {m.player1MaterialScore || 0} - {m.player2MaterialScore || 0}
+                  <div className="font-mono font-bold text-xs text-amber-700 dark:text-amber-400">
+                    {m.status === 'completed'
+                      ? (m.winnerPlayer?.fullName ? `👑 ${m.winnerPlayer.fullName.split(' ')[0]}` : m.winner === 'draw' ? 'Draw' : 'Completed')
+                      : (m.status === 'live' ? 'Live' : 'Pending')}
                   </div>
                 </div>
               </Link>

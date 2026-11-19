@@ -66,7 +66,6 @@ export default function ChessPlayerDashboardPage() {
   const [flagFall, setFlagFall] = useState(null); // 'white' | 'black'
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showFaceToFaceClock, setShowFaceToFaceClock] = useState(false);
-  const [lastTurnState, setLastTurnState] = useState(null);
 
   const clockIntervalRef = useRef(null);
   const channelRef = useRef(null);
@@ -334,87 +333,6 @@ export default function ChessPlayerDashboardPage() {
     return () => clearInterval(clockIntervalRef.current);
   }, [isClockRunning, activeTurn, flagFall, soundEnabled, movesCount, whiteSeconds, blackSeconds, dashboardData?.currentMatch, broadcastAndSync]);
 
-  // 4. Switch Clock Turn (When player completes their pawn / piece move)
-  const handlePassTurn = () => {
-    if (flagFall) return;
-
-    if (!isClockRunning) {
-      // First tap starts clock with White's opening turn
-      const turn = activeTurn || 'white';
-      setIsClockRunning(true);
-      setActiveTurn(turn);
-      if (soundEnabled) playClockTone('click');
-
-      broadcastAndSync({
-        activeTurn: turn,
-        isClockRunning: true,
-        movesCount,
-        whiteSeconds,
-        blackSeconds
-      });
-      return;
-    }
-
-    // Subsequent taps pass turn to opponent (save current state for undo)
-    setLastTurnState({
-      activeTurn,
-      whiteSeconds,
-      blackSeconds,
-      movesCount
-    });
-
-    const nextTurn = activeTurn === 'white' ? 'black' : 'white';
-    const nextMoves = movesCount + 1;
-
-    setActiveTurn(nextTurn);
-    setIsClockRunning(true);
-    setMovesCount(nextMoves);
-
-    if (soundEnabled) playClockTone('click');
-
-    broadcastAndSync({
-      activeTurn: nextTurn,
-      isClockRunning: true,
-      movesCount: nextMoves,
-      whiteSeconds,
-      blackSeconds
-    });
-  };
-
-  // 5. Undo Mistaken Turn Switch (Player accidentally tapped button)
-  const handleUndoTurn = () => {
-    if (flagFall) return;
-
-    let targetTurn = activeTurn === 'white' ? 'black' : 'white';
-    let targetWhite = whiteSeconds;
-    let targetBlack = blackSeconds;
-    let targetMoves = Math.max(0, movesCount - 1);
-
-    if (lastTurnState) {
-      targetTurn = lastTurnState.activeTurn;
-      targetWhite = lastTurnState.whiteSeconds;
-      targetBlack = lastTurnState.blackSeconds;
-      targetMoves = Math.max(0, lastTurnState.movesCount);
-      setLastTurnState(null);
-    }
-
-    setActiveTurn(targetTurn);
-    setWhiteSeconds(targetWhite);
-    setBlackSeconds(targetBlack);
-    setMovesCount(targetMoves);
-
-    if (soundEnabled) playClockTone('click');
-
-    broadcastAndSync({
-      activeTurn: targetTurn,
-      whiteSeconds: targetWhite,
-      blackSeconds: targetBlack,
-      movesCount: targetMoves,
-      isClockRunning
-    });
-
-    toast.info(`Turn undone. Reverted back to ${targetTurn.toUpperCase()}'s move.`);
-  };
 
   const handlePauseClock = () => {
     setIsClockRunning(false);
@@ -679,8 +597,8 @@ export default function ChessPlayerDashboardPage() {
                   <h4 className="font-serif font-bold text-sm text-[#171715] dark:text-[#FAF8F3] truncate mt-0.5">
                     {player?.fullName}
                   </h4>
-                  <span className="text-lg font-serif font-black text-amber-600 dark:text-amber-400 block mt-1">
-                    {isPlayerWhite ? currentMatch.player1MaterialScore || 0 : currentMatch.player2MaterialScore || 0} pts
+                  <span className="text-xs font-mono font-bold uppercase text-amber-700 dark:text-amber-400 block mt-1">
+                    {isPlayerWhite ? '♔ Opening Move' : '♚ Defending'}
                   </span>
                 </div>
 
@@ -697,8 +615,8 @@ export default function ChessPlayerDashboardPage() {
                   <h4 className="font-serif font-bold text-sm text-[#171715] dark:text-[#FAF8F3] truncate mt-0.5">
                     {opponentName}
                   </h4>
-                  <span className="text-lg font-serif font-black text-amber-600 dark:text-amber-400 block mt-1">
-                    {isPlayerWhite ? currentMatch.player2MaterialScore || 0 : currentMatch.player1MaterialScore || 0} pts
+                  <span className="text-xs font-mono font-bold uppercase text-amber-700 dark:text-amber-400 block mt-1">
+                    {isPlayerWhite ? '♚ Defending' : '♔ Opening Move'}
                   </span>
                 </div>
               </div>
@@ -717,61 +635,53 @@ export default function ChessPlayerDashboardPage() {
                   </div>
                   <p className="font-sans font-medium text-xs sm:text-sm">
                     {isWinnerMe
-                      ? `Congratulations! You won by ${currentMatch.resultType?.replace('_', ' ') || 'points'}!`
+                      ? `Congratulations! You won the match!`
                       : isWinnerOpponent
-                      ? `${opponentName} won by ${currentMatch.resultType?.replace('_', ' ') || 'points'}.`
+                      ? `${opponentName} won the match.`
                       : 'Match concluded with an official draw.'}
                   </p>
                   <div className="font-mono text-[11px] font-bold opacity-80 pt-1">
-                    Official Final Material Score: {isPlayerWhite ? currentMatch.player1MaterialScore || 0 : currentMatch.player2MaterialScore || 0} pts (You) - {isPlayerWhite ? currentMatch.player2MaterialScore || 0 : currentMatch.player1MaterialScore || 0} pts (Opponent)
+                    Official Result: {currentMatch.winnerPlayer?.fullName ? `Winner: ${currentMatch.winnerPlayer.fullName}` : (currentMatch.winner === 'draw' ? 'Draw' : 'Decided by Official Arbiter')}
                   </div>
                 </div>
               )}
 
               {/* --------------------------------------------------------- */}
-              {/* MOBILE 10-MINUTE RAPID CHESS CLOCK WITH TAP-TO-PASS TURN  */}
+              {/* RAPID 10-MINUTE CHESS MATCH ARENA CLOCK & STATUS          */}
               {/* --------------------------------------------------------- */}
               <div className="bg-[#FAF8F3] dark:bg-[#181816] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl p-4 sm:p-6 space-y-4 shadow-sm select-none">
                 
                 {/* Clock Header */}
                 <div className="flex items-center justify-between border-b border-[#D5CFC5]/60 dark:border-[#262624] pb-3 text-xs font-mono">
                   <div className="flex items-center gap-2">
-                    <Smartphone className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                    <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                     <span className="font-bold uppercase tracking-wider text-[#171715] dark:text-[#FAF8F3]">
-                      Phone Board Clock
+                      Rapid Match Clock
                     </span>
-                    <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93]">(10:00 Each)</span>
+                    <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93]">({currentMatch.durationMinutes || 10}:00 Rapid)</span>
                   </div>
 
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => setSoundEnabled(!soundEnabled)}
-                      className="p-1.5 rounded-lg text-[#77736B] hover:text-[#171715]"
-                      title={soundEnabled ? 'Mute' : 'Unmute'}
-                    >
-                      {soundEnabled ? <Volume2 className="w-3.5 h-3.5 text-emerald-600" /> : <VolumeX className="w-3.5 h-3.5" />}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleResetClock}
-                      className="p-1.5 rounded-lg text-[#77736B] hover:text-rose-600"
-                      title="Reset 10:00"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider ${
+                    isLive
+                      ? 'bg-rose-100 dark:bg-rose-950/40 text-rose-800 dark:text-rose-400 border border-rose-300 dark:border-rose-900/60 inline-flex items-center gap-1.5'
+                      : isCompleted
+                      ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400'
+                      : 'bg-[#EFEAE1] dark:bg-[#20201E] text-[#77736B] dark:text-[#8E8E93]'
+                  }`}>
+                    {isLive && <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />}
+                    {currentMatch.status}
+                  </span>
                 </div>
 
                 {/* Flag Fall Announcement */}
                 {flagFall && (
-                  <div className="bg-rose-500/20 border-2 border-rose-500 rounded-2xl p-3 text-center animate-bounce">
+                  <div className="bg-rose-500/20 border-2 border-rose-500 rounded-2xl p-3 text-center">
                     <span className="text-xs font-mono font-bold uppercase text-rose-600 dark:text-rose-400 flex items-center justify-center gap-1">
                       <Flag className="w-4 h-4" />
                       TIME OUT! Flag fell on {flagFall.toUpperCase()}!
                     </span>
                     <h4 className="font-serif font-black text-base text-[#171715] dark:text-[#FAF8F3] mt-0.5">
-                      {flagFall === pieceColor ? 'You ran out of time.' : 'You win on time!'}
+                      {flagFall === pieceColor ? 'You ran out of time.' : 'Opponent ran out of time!'}
                     </h4>
                   </div>
                 )}
@@ -781,152 +691,85 @@ export default function ChessPlayerDashboardPage() {
                   
                   {/* YOUR CLOCK */}
                   <div className={`p-4 rounded-2xl border-2 text-center transition-all ${
-                    isMyTurn
-                      ? 'bg-amber-100 dark:bg-amber-950/60 border-amber-500 ring-2 ring-amber-500/30 shadow-md scale-[1.02]'
-                      : 'bg-[#EFEAE1]/50 dark:bg-[#1D1D1B] border-[#D5CFC5] dark:border-[#282826] opacity-90'
+                    isLive
+                      ? 'bg-amber-100/70 dark:bg-amber-950/40 border-amber-500/80 shadow-xs'
+                      : 'bg-[#EFEAE1]/50 dark:bg-[#1D1D1B] border-[#D5CFC5] dark:border-[#282826]'
                   }`}>
                     <span className="text-[10px] font-mono uppercase font-bold text-[#77736B] dark:text-[#8E8E93] block">
-                      Your Clock ({isPlayerWhite ? 'White' : 'Black'})
+                      Your Time ({isPlayerWhite ? 'White' : 'Black'})
                     </span>
-                    <span className={`text-3xl sm:text-4xl font-mono font-black tracking-tight block py-1 ${
-                      isMyTurn ? 'text-amber-700 dark:text-amber-400 animate-pulse' : 'text-[#171715] dark:text-[#FAF8F3]'
-                    }`}>
+                    <span className="text-3xl sm:text-4xl font-mono font-black tracking-tight block py-1 text-[#171715] dark:text-[#FAF8F3]">
                       {formatClockTime(isPlayerWhite ? whiteSeconds : blackSeconds)}
                     </span>
-                    {isMyTurn && (
-                      <span className="inline-block text-[9px] font-mono font-bold uppercase text-amber-700 dark:text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded-full">
-                        Your Turn Counting
-                      </span>
-                    )}
+                    <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93] block">
+                      {isPlayerWhite ? 'Opening Pieces' : 'Defending Pieces'}
+                    </span>
                   </div>
 
                   {/* OPPONENT CLOCK */}
                   <div className={`p-4 rounded-2xl border-2 text-center transition-all ${
-                    !isMyTurn && isClockRunning
-                      ? 'bg-amber-100 dark:bg-amber-950/60 border-amber-500 ring-2 ring-amber-500/30 shadow-md scale-[1.02]'
-                      : 'bg-[#EFEAE1]/50 dark:bg-[#1D1D1B] border-[#D5CFC5] dark:border-[#282826] opacity-90'
+                    isLive
+                      ? 'bg-amber-100/70 dark:bg-amber-950/40 border-amber-500/80 shadow-xs'
+                      : 'bg-[#EFEAE1]/50 dark:bg-[#1D1D1B] border-[#D5CFC5] dark:border-[#282826]'
                   }`}>
                     <span className="text-[10px] font-mono uppercase font-bold text-[#77736B] dark:text-[#8E8E93] block truncate">
                       Opponent ({isPlayerWhite ? 'Black' : 'White'})
                     </span>
-                    <span className={`text-3xl sm:text-4xl font-mono font-black tracking-tight block py-1 ${
-                      !isMyTurn && isClockRunning ? 'text-amber-700 dark:text-amber-400 animate-pulse' : 'text-[#171715] dark:text-[#FAF8F3]'
-                    }`}>
+                    <span className="text-3xl sm:text-4xl font-mono font-black tracking-tight block py-1 text-[#171715] dark:text-[#FAF8F3]">
                       {formatClockTime(isPlayerWhite ? blackSeconds : whiteSeconds)}
                     </span>
-                    {!isMyTurn && isClockRunning && (
-                      <span className="inline-block text-[9px] font-mono font-bold uppercase text-amber-700 dark:text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded-full">
-                        Opponent Counting
-                      </span>
-                    )}
+                    <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93] block truncate">
+                      {opponentName}
+                    </span>
                   </div>
 
                 </div>
 
-                {/* GIANT MOBILE TAP BUTTON (TOUCH-FRIENDLY FOR PHONES) */}
+                {/* MATCH STATUS / ARBITER NOTIFICATION BANNER */}
                 <div className="pt-1">
                   {isCompleted ? (
                     <div className="w-full py-4 px-4 rounded-2xl bg-[#EFEAE1] dark:bg-[#1C1C1A] border border-[#D5CFC5] dark:border-[#282826] text-center space-y-1">
                       <span className="font-mono font-bold text-xs uppercase tracking-wider text-emerald-700 dark:text-emerald-400 block">
-                        ✓ Match Completed & Recorded in Standings
+                        ✓ Match Completed & Outcome Decided
                       </span>
                       <span className="text-[11px] text-[#77736B] dark:text-[#8E8E93] font-sans">
-                        Scores and outcomes are finalized for this fixture.
+                        Winner: {currentMatch.winnerPlayer?.fullName || (currentMatch.winner === 'player1' ? currentMatch.player1?.fullName : currentMatch.winner === 'player2' ? currentMatch.player2?.fullName : currentMatch.winner === 'draw' ? 'Draw' : 'Decided by Arbiter')}
                       </span>
                     </div>
+                  ) : isLive ? (
+                    <div className="w-full py-4 px-4 rounded-2xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/30 text-center space-y-1">
+                      <div className="flex items-center justify-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <span>Match Live On Board</span>
+                      </div>
+                      <p className="text-[11px] text-[#77736B] dark:text-[#8E8E93] font-sans max-w-sm mx-auto">
+                        Play your moves over the board. The tournament arbiter will directly declare the winning player when the game finishes.
+                      </p>
+                    </div>
                   ) : (
-                    <button
-                      type="button"
-                      onClick={handlePassTurn}
-                      className={`w-full py-5 sm:py-6 px-4 rounded-2xl font-mono font-black text-sm sm:text-base uppercase tracking-wider flex flex-col items-center justify-center gap-1 shadow-lg transition-transform active:scale-95 cursor-pointer ${
-                        isMyTurn
-                          ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white ring-4 ring-amber-400/30 animate-pulse'
-                          : isClockRunning
-                          ? 'bg-[#171715] dark:bg-[#FAF8F3] text-white dark:text-[#0D0D0D]'
-                          : 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                      }`}
-                    >
-                      <span className="text-lg">
-                        {isMyTurn ? 'TAP WHEN YOU MOVE PAWN / PIECE ⇋' : isClockRunning ? 'TAP TO SWITCH TURN ⇋' : 'START 10:00 CLOCK (WHITE MOVES)'}
+                    <div className="w-full py-4 px-4 rounded-2xl bg-[#EFEAE1]/60 dark:bg-[#1C1C1A] border border-[#D5CFC5]/80 dark:border-[#282826] text-center space-y-1">
+                      <span className="font-mono font-bold text-xs uppercase tracking-wider text-[#77736B] dark:text-[#8E8E93] block">
+                        Fixture Scheduled
                       </span>
-                      <span className="text-[10px] font-normal tracking-widest opacity-80 font-sans">
-                        {isMyTurn
-                          ? 'Pauses your time and starts opponent clock immediately'
-                          : isClockRunning
-                          ? 'Opponent turn active • Tap anytime to claim move'
-                          : 'Tap here once opening move is made on the board'}
+                      <span className="text-[11px] text-[#77736B] dark:text-[#8E8E93] font-sans">
+                        Report to Board 1 when called by the arbiter.
                       </span>
-                    </button>
+                    </div>
                   )}
                 </div>
 
-                {/* Accidental Tap Helper Banner */}
-                {!isCompleted && (movesCount > 0 || lastTurnState) && (
-                  <div className="flex items-center justify-between text-[11px] font-mono px-3 py-1.5 rounded-xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/30">
-                    <span className="text-[#77736B] dark:text-[#8E8E93] text-[10px]">
-                      Accidentally switched turn?
-                    </span>
-                    <button
-                      type="button"
-                      onClick={handleUndoTurn}
-                      className="text-amber-800 dark:text-amber-300 hover:text-amber-950 dark:hover:text-amber-100 inline-flex items-center gap-1 font-bold cursor-pointer text-[11px] uppercase tracking-wider transition-transform active:scale-95"
-                    >
-                      <RotateCcw className="w-3 h-3" />
-                      <span>Undo Turn Switch ↩</span>
-                    </button>
-                  </div>
-                )}
-
-                {/* Clock Controls Strip */}
+                {/* Clock Footer Strip */}
                 <div className="flex items-center justify-between text-xs font-mono pt-2 border-t border-[#D5CFC5]/50 dark:border-[#262624]">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[#77736B] dark:text-[#8E8E93]">Total Moves:</span>
-                    <span className="font-bold text-[#171715] dark:text-[#FAF8F3] bg-[#EFEAE1] dark:bg-[#20201E] px-2 py-0.5 rounded">
-                      {movesCount}
-                    </span>
+                  <span className="text-[#77736B] dark:text-[#8E8E93]">
+                    Knockout Single Elimination
+                  </span>
 
-                    {/* Quick Undo Button */}
-                    {!isCompleted && (movesCount > 0 || lastTurnState) && (
-                      <button
-                        type="button"
-                        onClick={handleUndoTurn}
-                        className="px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-[10px] font-bold uppercase inline-flex items-center gap-1 cursor-pointer transition-all active:scale-95 shadow-xs"
-                        title="Undo accidental turn switch"
-                      >
-                        <RotateCcw className="w-3 h-3" />
-                        <span>Undo ↩</span>
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    {isClockRunning ? (
-                      <button
-                        type="button"
-                        onClick={handlePauseClock}
-                        className="px-3 py-1 rounded-lg bg-[#EFEAE1] dark:bg-[#20201E] text-[10px] font-bold uppercase inline-flex items-center gap-1"
-                      >
-                        <Pause className="w-3 h-3" />
-                        <span>Pause</span>
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={handleStartResumeClock}
-                        className="px-3 py-1 rounded-lg bg-[#171715] dark:bg-[#FAF8F3] text-white dark:text-[#0D0D0D] text-[10px] font-bold uppercase inline-flex items-center gap-1"
-                      >
-                        <Play className="w-3 h-3 fill-current" />
-                        <span>Resume</span>
-                      </button>
-                    )}
-
-                    <Link
-                      href={`/chess/matches/${currentMatch._id || currentMatch.matchId}`}
-                      className="text-amber-700 dark:text-amber-400 hover:underline text-[10px] font-bold uppercase tracking-wider pl-1"
-                    >
-                      Dossier →
-                    </Link>
-                  </div>
+                  <Link
+                    href={`/chess/matches/${currentMatch._id || currentMatch.matchId}`}
+                    className="text-amber-700 dark:text-amber-400 hover:underline text-[10px] font-bold uppercase tracking-wider pl-1"
+                  >
+                    Match Dossier →
+                  </Link>
                 </div>
 
               </div>
@@ -991,9 +834,11 @@ export default function ChessPlayerDashboardPage() {
                     </div>
 
                     <div className="flex items-center gap-3 font-mono">
-                      <span className="text-sm font-bold text-[#171715] dark:text-[#FAF8F3]">
-                        {myScore} - {oppScore}
-                      </span>
+                      {m.status === 'completed' ? (
+                        <span className="text-xs font-bold text-amber-700 dark:text-amber-400">
+                          {m.winnerPlayer?.fullName ? `👑 ${m.winnerPlayer.fullName.split(' ')[0]}` : m.winner === 'draw' ? '🤝 Draw' : 'Completed'}
+                        </span>
+                      ) : null}
                       <span className={`text-[9px] uppercase font-bold px-2 py-0.5 rounded-full ${
                         m.status === 'live'
                           ? 'bg-rose-100 text-rose-700'

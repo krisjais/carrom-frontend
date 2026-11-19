@@ -247,8 +247,6 @@ function ChessMatchNode({
     (match.winner === 'player2' ||
       (match.winnerPlayer && match.player2 && (match.winnerPlayer._id === match.player2._id || match.winnerPlayer === match.player2._id)));
 
-  const p1Material = match.player1MaterialScore || 0;
-  const p2Material = match.player2MaterialScore || 0;
 
   return (
     <div
@@ -323,11 +321,6 @@ function ChessMatchNode({
         </div>
 
         <div className="flex items-center gap-2 shrink-0 font-mono">
-          {!isBye && (
-            <span className="text-[11px] font-bold text-[#77736B] dark:text-[#8E8E93]">
-              {p1Material} pts
-            </span>
-          )}
           {isP1Winner && (
             <span className="text-[10px] font-mono font-bold text-amber-600 dark:text-amber-400 flex items-center gap-0.5">
               <Crown className="w-3.5 h-3.5 text-amber-500 fill-current" />
@@ -366,11 +359,6 @@ function ChessMatchNode({
         </div>
 
         <div className="flex items-center gap-2 shrink-0 font-mono">
-          {!isBye && (
-            <span className="text-[11px] font-bold text-[#77736B] dark:text-[#8E8E93]">
-              {p2Material} pts
-            </span>
-          )}
           {isP2Winner && !isBye && (
             <span className="text-[10px] font-mono font-bold text-amber-600 dark:text-amber-400 flex items-center gap-0.5">
               <Crown className="w-3.5 h-3.5 text-amber-500 fill-current" />
@@ -396,10 +384,10 @@ function ChessMatchNode({
       {/* FOOTER ACTIONS & CLOCK CONTROLS */}
       <div className="mt-3 pt-2.5 border-t border-[#D5CFC5]/70 dark:border-[#262624] flex items-center justify-between text-[10px] font-mono">
         
-        {/* Left: Clock Badge or Time Taken */}
+        {/* Left: Clock Badge */}
         <div className="flex items-center gap-1.5 text-[#77736B] dark:text-[#8E8E93]">
           <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-          <span>{match.durationMinutes || 10}m Dual Clock</span>
+          <span>{match.durationMinutes || 10}m Rapid</span>
         </div>
 
         {/* Right: Actions */}
@@ -417,15 +405,15 @@ function ChessMatchNode({
             </button>
           )}
 
-          {/* Live Match -> Live Scoring / Dual Clock */}
-          {isLive && (
+          {/* Live Match -> Declare Winner */}
+          {isAdmin && isLive && (
             <button
               type="button"
-              onClick={() => onOpenLiveScoring && onOpenLiveScoring(match)}
-              className="bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-1 rounded-lg uppercase font-bold inline-flex items-center gap-1 shadow-2xs animate-pulse cursor-pointer"
+              onClick={() => onOpenResultModal && onOpenResultModal(match)}
+              className="bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1 rounded-lg uppercase font-bold inline-flex items-center gap-1 shadow-2xs cursor-pointer"
             >
-              <Zap className="w-2.5 h-2.5 fill-current" />
-              <span>Live Scorer</span>
+              <Crown className="w-2.5 h-2.5 fill-current" />
+              <span>Declare Winner</span>
             </button>
           )}
 
@@ -436,7 +424,7 @@ function ChessMatchNode({
               onClick={() => onOpenResultModal && onOpenResultModal(match)}
               className="border border-[#D5CFC5] dark:border-[#2E2E2B] bg-[#EFEAE1] dark:bg-[#20201E] hover:bg-[#E4DED5] text-[#171715] dark:text-[#FAF8F3] px-2 py-1 rounded-lg uppercase font-bold cursor-pointer"
             >
-              Result
+              Edit Winner
             </button>
           )}
 
