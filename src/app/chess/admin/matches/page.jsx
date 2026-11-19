@@ -125,7 +125,23 @@ export default function ChessAdminMatchesPage() {
       ]);
 
       if (matchesRes.status === 'fulfilled' && matchesRes.value?.success) {
-        setMatches(matchesRes.value.data || []);
+        const freshMatches = matchesRes.value.data || [];
+        setMatches(freshMatches);
+
+        // Keep live scoring modal synced in real-time with player move taps & clock
+        setLiveScoringMatch((prev) => {
+          if (!prev) return null;
+          const updated = freshMatches.find(m => m._id === prev._id || m.matchId === prev.matchId);
+          if (!updated) return prev;
+          return {
+            ...prev,
+            ...updated,
+            player1Captured: updated.player1Captured || prev.player1Captured,
+            player2Captured: updated.player2Captured || prev.player2Captured,
+            player1MaterialScore: updated.player1MaterialScore ?? prev.player1MaterialScore,
+            player2MaterialScore: updated.player2MaterialScore ?? prev.player2MaterialScore
+          };
+        });
       }
       if (playersRes.status === 'fulfilled' && playersRes.value?.success) {
         setPlayers(playersRes.value.data || []);
@@ -139,12 +155,55 @@ export default function ChessAdminMatchesPage() {
 
   useEffect(() => {
     loadData();
-    // Background polling every 4 seconds to keep live scores synced
+    // Fast polling every 2.5 seconds to keep live scores and clock turns synced
     const interval = setInterval(() => {
       loadData(true);
-    }, 4000);
+    }, 2500);
     return () => clearInterval(interval);
   }, [router]);
+
+  // Real-time tab-to-tab and instant broadcast listener
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.BroadcastChannel) return;
+    const channel = new BroadcastChannel('chess_tournament_clock');
+    channel.onmessage = (event) => {
+      const data = event.data;
+      if (!data) return;
+
+      // Instantly update active modal if it corresponds to this match
+      setLiveScoringMatch((prev) => {
+        if (!prev) return null;
+        if (data.matchId && data.matchId !== prev._id && data.matchId !== prev.matchId) return prev;
+        return {
+          ...prev,
+          activeTurn: data.activeTurn || prev.activeTurn,
+          whiteTimeRemaining: typeof data.whiteSeconds === 'number' ? data.whiteSeconds : (typeof data.p1Time === 'number' ? data.p1Time : prev.whiteTimeRemaining),
+          blackTimeRemaining: typeof data.blackSeconds === 'number' ? data.blackSeconds : (typeof data.p2Time === 'number' ? data.p2Time : prev.blackTimeRemaining),
+          movesCount: typeof data.movesCount === 'number' ? data.movesCount : prev.movesCount,
+          isClockRunning: typeof data.isClockRunning === 'boolean' ? data.isClockRunning : (typeof data.isRunning === 'boolean' ? data.isRunning : prev.isClockRunning),
+          lastClockUpdate: new Date()
+        };
+      });
+
+      // Update match row in matches table
+      setMatches((prev) =>
+        prev.map((m) => {
+          if (data.matchId && data.matchId !== m._id && data.matchId !== m.matchId) return m;
+          return {
+            ...m,
+            activeTurn: data.activeTurn || m.activeTurn,
+            whiteTimeRemaining: typeof data.whiteSeconds === 'number' ? data.whiteSeconds : (typeof data.p1Time === 'number' ? data.p1Time : m.whiteTimeRemaining),
+            blackTimeRemaining: typeof data.blackSeconds === 'number' ? data.blackSeconds : (typeof data.p2Time === 'number' ? data.p2Time : m.blackTimeRemaining),
+            movesCount: typeof data.movesCount === 'number' ? data.movesCount : m.movesCount,
+            isClockRunning: typeof data.isClockRunning === 'boolean' ? data.isClockRunning : (typeof data.isRunning === 'boolean' ? data.isRunning : m.isClockRunning),
+            lastClockUpdate: new Date()
+          };
+        })
+      );
+    };
+
+    return () => channel.close();
+  }, []);
 
   // Bulk Selection Handlers
   const handleToggleSelectAll = () => {
@@ -869,10 +928,7 @@ export default function ChessAdminMatchesPage() {
                   </h3>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <div className="bg-[#EFEAE1] dark:bg-[#1E1E1C] px-3 py-1.5 rounded-2xl border border-[#D5CFC5] dark:border-[#2E2E2B]">
-                    <MatchTimer match={liveScoringMatch} durationMinutes={liveScoringMatch.durationMinutes || 10} />
-                  </div>
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setLiveScoringMatch(null)}

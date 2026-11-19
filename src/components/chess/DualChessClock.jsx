@@ -437,7 +437,7 @@ export function DualChessClock({
               <button
                 type="button"
                 onClick={handlePause}
-                className="px-2.5 py-1 rounded-lg bg-[#EFEAE1] dark:bg-[#20201E] hover:bg-[#E4DED5] text-[10px] font-mono font-bold uppercase inline-flex items-center gap-1 text-[#171715] dark:text-[#FAF8F3]"
+                className="px-2.5 py-1 rounded-lg bg-[#EFEAE1] dark:bg-[#20201E] hover:bg-[#E4DED5] text-[10px] font-mono font-bold uppercase inline-flex items-center gap-1 text-[#171715] dark:text-[#FAF8F3] cursor-pointer"
               >
                 <Pause className="w-3 h-3" />
                 <span>Pause</span>
@@ -446,7 +446,7 @@ export function DualChessClock({
               <button
                 type="button"
                 onClick={handleStartResume}
-                className="px-2.5 py-1 rounded-lg bg-[#171715] dark:bg-[#FAF8F3] hover:bg-black text-[10px] font-mono font-bold uppercase inline-flex items-center gap-1 text-[#FAF8F3] dark:text-[#0D0D0D]"
+                className="px-2.5 py-1 rounded-lg bg-[#171715] dark:bg-[#FAF8F3] hover:bg-black text-[10px] font-mono font-bold uppercase inline-flex items-center gap-1 text-[#FAF8F3] dark:text-[#0D0D0D] cursor-pointer"
               >
                 <Play className="w-3 h-3 fill-current" />
                 <span>Start</span>
@@ -455,30 +455,32 @@ export function DualChessClock({
             <button
               type="button"
               onClick={handleReset}
-              className="p-1 rounded-lg text-[#77736B] hover:text-[#171715] dark:hover:text-[#FAF8F3]"
+              className="p-1 rounded-lg text-[#77736B] hover:text-[#171715] dark:hover:text-[#FAF8F3] cursor-pointer"
               title="Reset 10:00 clocks"
             >
               <RotateCcw className="w-3 h-3" />
             </button>
-            {(movesCount > 0 || lastTurnState) && (
-              <button
-                type="button"
-                onClick={handleUndoTurn}
-                className="px-2 py-0.5 rounded-lg bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-[9px] font-mono font-bold uppercase inline-flex items-center gap-1 cursor-pointer transition-transform active:scale-95"
-                title="Undo accidental turn switch"
-              >
-                <span>Undo ↩</span>
-              </button>
-            )}
           </div>
 
-          <button
-            type="button"
-            onClick={() => handleSwitchTurn()}
-            className="px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-mono font-bold text-[10px] uppercase shadow-xs transition-transform active:scale-95"
-          >
-            Tap Switch ⇋
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleUndoTurn}
+              disabled={movesCount === 0 && !lastTurnState}
+              className="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-900 dark:text-amber-200 border border-amber-500/40 text-[10px] font-mono font-bold uppercase inline-flex items-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95 shadow-2xs"
+              title="Undo accidental turn switch"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>Undo ↩</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSwitchTurn()}
+              className="px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-mono font-bold text-[10px] uppercase shadow-xs transition-transform active:scale-95 cursor-pointer"
+            >
+              Tap Switch ⇋
+            </button>
+          </div>
         </div>
       </div>
     );
