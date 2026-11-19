@@ -77,52 +77,58 @@ export default function FixturesPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {matches.map((m) => (
-            <div key={m._id} className="editorial-card p-6 space-y-4 rounded-2xl bg-white dark:bg-[#15191C] border border-[#E8E1D5] dark:border-[#2B3034] shadow-xs">
-              <div className="flex items-center justify-between pb-3 border-b border-[#E8E1D5] dark:border-[#2B3034] text-[11px] font-mono">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-[#3E342B] dark:text-[#F5F1E8]">M#{m.matchNumber}</span>
-                  <CategoryBadge category={m.category} />
-                </div>
-                <StatusBadge status={m.status} queuePosition={m.queuePosition} />
-              </div>
+          {matches.filter(Boolean).map((m) => {
+            const winnerId = (m.winnerTeam?._id || m.winnerTeam)?.toString();
+            const isT1Win = Boolean(winnerId && winnerId === (m.team1?._id || m.team1)?.toString());
+            const isT2Win = Boolean(winnerId && winnerId === (m.team2?._id || m.team2)?.toString());
 
-              <div className="space-y-2 text-xs">
-                <div className="p-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] flex items-center justify-between">
-                  <div className="flex items-center gap-2 truncate pr-2">
-                    <CarromCoin type={m.team1 ? "black" : "white"} size="xs" />
-                    <span className="truncate font-semibold">{m.team1 ? m.team1.name : 'Waiting for Round...'}</span>
+            return (
+              <div key={m._id} className="editorial-card p-6 space-y-4 rounded-2xl bg-white dark:bg-[#15191C] border border-[#E8E1D5] dark:border-[#2B3034] shadow-xs">
+                <div className="flex items-center justify-between pb-3 border-b border-[#E8E1D5] dark:border-[#2B3034] text-[11px] font-mono">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-bold text-[#3E342B] dark:text-[#F5F1E8]">M#{m.matchNumber}</span>
+                    <CategoryBadge category={m.category} />
                   </div>
-                  {m.winnerTeam && (m.winnerTeam._id === m.team1?._id || m.winnerTeam === m.team1?._id) && (
-                    <span className="text-[10px] text-[#E74C3C] dark:text-[#D4A94C] font-mono font-bold flex items-center gap-1 shrink-0">
-                      <Crown className="w-3 h-3 text-[#E74C3C] dark:text-[#D4A94C]" />
-                      <span>WIN</span>
-                    </span>
-                  )}
+                  <StatusBadge status={m.status} queuePosition={m.queuePosition} />
                 </div>
 
-                <div className="text-center font-mono font-bold text-[#7E7060] dark:text-[#817B72] text-[10px]">VS</div>
-
-                <div className="p-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] flex items-center justify-between">
-                  <div className="flex items-center gap-2 truncate pr-2">
-                    <CarromCoin type={m.isBye ? "white" : m.team2 ? "black" : "white"} size="xs" />
-                    <span className="truncate font-semibold">{m.isBye ? 'BYE (Automatic Advance)' : m.team2 ? m.team2.name : 'Waiting for Round...'}</span>
+                <div className="space-y-2 text-xs">
+                  <div className="p-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] flex items-center justify-between">
+                    <div className="flex items-center gap-2 truncate pr-2">
+                      <CarromCoin type={m.team1 ? "black" : "white"} size="xs" />
+                      <span className="truncate font-semibold">{m.team1 ? m.team1.name : 'Waiting for Round...'}</span>
+                    </div>
+                    {isT1Win && (
+                      <span className="text-[10px] text-[#E74C3C] dark:text-[#D4A94C] font-mono font-bold flex items-center gap-1 shrink-0">
+                        <Crown className="w-3 h-3 text-[#E74C3C] dark:text-[#D4A94C]" />
+                        <span>WIN</span>
+                      </span>
+                    )}
                   </div>
-                  {m.winnerTeam && (m.winnerTeam._id === m.team2?._id || m.winnerTeam === m.team2?._id) && (
-                    <span className="text-[10px] text-[#E74C3C] dark:text-[#D4A94C] font-mono font-bold flex items-center gap-1 shrink-0">
-                      <Crown className="w-3 h-3 text-[#E74C3C] dark:text-[#D4A94C]" />
-                      <span>WIN</span>
-                    </span>
-                  )}
+
+                  <div className="text-center font-mono font-bold text-[#7E7060] dark:text-[#817B72] text-[10px]">VS</div>
+
+                  <div className="p-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] flex items-center justify-between">
+                    <div className="flex items-center gap-2 truncate pr-2">
+                      <CarromCoin type={m.isBye ? "white" : m.team2 ? "black" : "white"} size="xs" />
+                      <span className="truncate font-semibold">{m.isBye ? 'BYE (Automatic Advance)' : m.team2 ? m.team2.name : 'Waiting for Round...'}</span>
+                    </div>
+                    {isT2Win && (
+                      <span className="text-[10px] text-[#E74C3C] dark:text-[#D4A94C] font-mono font-bold flex items-center gap-1 shrink-0">
+                        <Crown className="w-3 h-3 text-[#E74C3C] dark:text-[#D4A94C]" />
+                        <span>WIN</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-[#E8E1D5] dark:border-[#2B3034] flex items-center justify-between text-[11px] text-[#7E7060] dark:text-[#817B72] font-mono">
+                  <span>{m.roundName}</span>
+                  <span className="text-[#3E342B] dark:text-[#F5F1E8] font-bold">Main Carrom Board</span>
                 </div>
               </div>
-
-              <div className="pt-3 border-t border-[#E8E1D5] dark:border-[#2B3034] flex items-center justify-between text-[11px] text-[#7E7060] dark:text-[#817B72] font-mono">
-                <span>{m.roundName}</span>
-                <span className="text-[#3E342B] dark:text-[#F5F1E8] font-bold">Main Carrom Board</span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

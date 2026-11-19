@@ -471,8 +471,8 @@ export default function AdminDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#DCD6C8]/80 dark:divide-[#2E2B25]">
-                {readyQueue.map((m, idx) => (
-                  <tr key={m._id} className="hover:bg-white/60 dark:hover:bg-[#24221E]/60 transition-colors">
+                {readyQueue.filter(Boolean).map((m, idx) => (
+                  <tr key={m?._id || idx} className="hover:bg-white/60 dark:hover:bg-[#24221E]/60 transition-colors">
                     <td className="py-4 font-mono font-bold text-[#171614] dark:text-[#F7F4EC]">
                       #{m.queuePosition || idx + 1}
                     </td>
@@ -528,26 +528,31 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {completedMatches.map((m) => (
-              <div
-                key={m._id}
-                className="p-4 rounded-2xl bg-white dark:bg-[#24221E] border border-[#DCD6C8] dark:border-[#38342C] space-y-2.5"
-              >
-                <div className="flex items-center justify-between text-[11px] pb-2 border-b border-[#DCD6C8]/80 dark:border-[#38342C] font-mono">
-                  <CategoryBadge category={m.category} />
-                  <span className="text-[#857B6C]">M#{m.matchNumber}</span>
-                </div>
+            {completedMatches.filter(Boolean).map((m, mIdx) => {
+              const wId = (m?.winnerTeam?._id || m?.winnerTeam)?.toString();
+              const isT1 = Boolean(wId && wId === (m?.team1?._id || m?.team1)?.toString());
+              const isT2 = Boolean(wId && wId === (m?.team2?._id || m?.team2)?.toString());
 
-                <div className="text-xs font-serif font-bold text-[#171614] dark:text-[#F7F4EC] space-y-1">
-                  <div className={m.winnerTeam?._id === m.team1?._id ? 'text-[#D93829] dark:text-[#C2A268]' : ''}>
-                    {m.team1?.name}
+              return (
+                <div
+                  key={m?._id || mIdx}
+                  className="p-4 rounded-2xl bg-white dark:bg-[#24221E] border border-[#DCD6C8] dark:border-[#38342C] space-y-2.5"
+                >
+                  <div className="flex items-center justify-between text-[11px] pb-2 border-b border-[#DCD6C8]/80 dark:border-[#38342C] font-mono">
+                    <CategoryBadge category={m?.category} />
+                    <span className="text-[#857B6C]">M#{m?.matchNumber}</span>
                   </div>
-                  <div className={m.winnerTeam?._id === m.team2?._id ? 'text-[#D93829] dark:text-[#C2A268]' : ''}>
-                    {m.team2?.name}
-                  </div>
-                </div>
 
-                <div className="pt-2 border-t border-[#DCD6C8]/80 dark:border-[#38342C] flex items-center justify-between text-[11px] text-emerald-700 dark:text-emerald-400 font-bold font-mono">
+                  <div className="text-xs font-serif font-bold text-[#171614] dark:text-[#F7F4EC] space-y-1">
+                    <div className={isT1 ? 'text-[#D93829] dark:text-[#C2A268]' : ''}>
+                      {m?.team1?.name || 'Team 1'}
+                    </div>
+                    <div className={isT2 ? 'text-[#D93829] dark:text-[#C2A268]' : ''}>
+                      {m?.team2?.name || 'Team 2'}
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-[#DCD6C8]/80 dark:border-[#38342C] flex items-center justify-between text-[11px] text-emerald-700 dark:text-emerald-400 font-bold font-mono">
                   <span>Winner: {m.winnerTeam?.name || 'Confirmed'}</span>
                   <Link href={`/admin/matches/${m._id}/score`} className="text-[#171614] dark:text-[#F7F4EC] hover:underline">
                     Scorecard →

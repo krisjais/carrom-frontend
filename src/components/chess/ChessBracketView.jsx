@@ -165,9 +165,9 @@ export function ChessBracketView({
 
                 {/* Match Cards List */}
                 <div className="flex flex-col justify-around flex-grow gap-8 relative">
-                  {stage.matches.map((match) => (
+                  {stage.matches?.filter(Boolean).map((match) => (
                     <ChessMatchNode
-                      key={match._id || match.matchId}
+                      key={match?._id || match?.matchId}
                       match={match}
                       isFinal={isFinalStage}
                       isAdmin={isAdmin}
@@ -235,17 +235,21 @@ function ChessMatchNode({
     ? p2Raw
     : 'TBD (Round Winner)';
 
+  const winnerPlayerId = (match?.winnerPlayer?._id || match?.winnerPlayer)?.toString();
+  const p1Id = (match?.player1?._id || match?.player1 || match?.byePlayer?._id || match?.byePlayer)?.toString();
+  const p2Id = (match?.player2?._id || match?.player2)?.toString();
+
   const isP1Winner =
     isCompleted &&
     (isBye ||
-      match.winner === 'player1' ||
-      (match.winnerPlayer && match.player1 && (match.winnerPlayer._id === match.player1._id || match.winnerPlayer === match.player1._id)));
+      match?.winner === 'player1' ||
+      Boolean(winnerPlayerId && p1Id && winnerPlayerId === p1Id));
 
   const isP2Winner =
     isCompleted &&
     !isBye &&
-    (match.winner === 'player2' ||
-      (match.winnerPlayer && match.player2 && (match.winnerPlayer._id === match.player2._id || match.winnerPlayer === match.player2._id)));
+    (match?.winner === 'player2' ||
+      Boolean(winnerPlayerId && p2Id && winnerPlayerId === p2Id));
 
 
   return (

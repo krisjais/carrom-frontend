@@ -5,13 +5,13 @@ import Link from 'next/link';
 import { ArrowRight, Trophy } from 'lucide-react';
 
 export function TopPlayersCard({ standings = [] }) {
-  const top3 = standings.slice(0, 3).map((p, idx) => ({
-    id: p._id,
+  const top3 = (standings || []).filter(Boolean).slice(0, 3).map((p, idx) => ({
+    id: p?._id || p?.playerId || idx,
     rank: idx + 1,
-    name: p.fullName,
-    dept: p.department,
-    pts: `${p.tournamentPoints || 0} pts`,
-    captured: p.materialPoints || 0
+    name: p?.fullName || 'Competitor',
+    dept: p?.department || 'Participant',
+    pts: `${p?.tournamentPoints || 0} pts`,
+    captured: p?.materialPoints || 0
   }));
 
   return (

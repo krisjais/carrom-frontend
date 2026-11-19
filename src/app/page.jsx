@@ -298,9 +298,9 @@ export default function HomePage() {
                   <span>Sequential Match Order</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {upcomingQueue.map((qMatch, qIdx) => (
+                  {upcomingQueue.filter(Boolean).map((qMatch, qIdx) => (
                     <div
-                      key={qMatch._id}
+                      key={qMatch?._id || qIdx}
                       className="p-3.5 rounded-xl bg-[#F7F4EC] dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B26] flex items-center justify-between text-xs font-mono"
                     >
                       <div className="min-w-0 pr-2">
@@ -383,9 +383,9 @@ export default function HomePage() {
                   <span>Sequential Match Order</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
-                  {upcomingQueue.map((qMatch, qIdx) => (
+                  {upcomingQueue.filter(Boolean).map((qMatch, qIdx) => (
                     <div
-                      key={qMatch._id}
+                      key={qMatch?._id || qIdx}
                       className="p-3 sm:p-3.5 rounded-xl bg-[#F7F4EC] dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B26] flex items-center justify-between text-xs font-mono"
                     >
                       <div className="min-w-0 pr-2">

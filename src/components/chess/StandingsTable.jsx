@@ -182,13 +182,13 @@ export function StandingsTable({ standings = [], loading = false }) {
                 </td>
               </tr>
             ) : (
-              filteredStandings.map((player, idx) => {
-                const rank = player.rank || idx + 1;
+              (filteredStandings || []).filter(Boolean).map((player, idx) => {
+                const rank = player?.rank || idx + 1;
                 const isRank1 = rank === 1;
 
                 return (
                   <tr
-                    key={player._id}
+                    key={player?._id || idx}
                     className={`transition-colors hover:bg-[#EFEAE1]/50 dark:hover:bg-[#1B1B19] ${
                       isRank1 ? 'bg-[#EFEAE1]/30 dark:bg-[#1B1B19]/50' : ''
                     }`}
@@ -198,34 +198,34 @@ export function StandingsTable({ standings = [], loading = false }) {
                     </td>
                     <td className="py-4 px-6">
                       <Link
-                        href={`/chess/player/${player._id}`}
+                        href={`/chess/player/${player?._id || ''}`}
                         className="font-bold text-[#171715] dark:text-[#FAF8F3] hover:underline font-serif text-sm block"
                       >
-                        {player.fullName}
+                        {player?.fullName || 'Competitor'}
                       </Link>
-                      <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93]">{player.playerId}</span>
+                      <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93]">{player?.playerId || ''}</span>
                     </td>
                     <td className="py-4 px-6 text-[#4E4C47] dark:text-[#9E9B93] font-sans">
-                      {player.department}
+                      {player?.department || '—'}
                     </td>
                     <td className="py-4 px-4 text-center font-mono font-semibold text-[#171715] dark:text-[#FAF8F3]">
-                      {player.matchesPlayed || 0}
+                      {player?.matchesPlayed || 0}
                     </td>
                     <td className="py-4 px-4 text-center font-mono font-bold text-emerald-700 dark:text-emerald-400">
-                      {player.wins || 0}
+                      {player?.wins || 0}
                     </td>
                     <td className="py-4 px-4 text-center font-mono text-[#77736B] dark:text-[#8E8E93]">
-                      {player.draws || 0}
+                      {player?.draws || 0}
                     </td>
                     <td className="py-4 px-4 text-center font-mono text-rose-700 dark:text-rose-400">
-                      {player.losses || 0}
+                      {player?.losses || 0}
                     </td>
                     <td className="py-4 px-4 text-center font-mono font-bold text-[#171715] dark:text-[#FAF8F3]">
-                      +{player.materialPoints || 0}
+                      +{player?.materialPoints || 0}
                     </td>
                     <td className="py-4 px-6 text-center">
                       <span className="inline-block bg-[#171715] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] font-mono font-bold text-xs px-3.5 py-1 rounded-xl shadow-xs">
-                        {player.tournamentPoints || 0} pts
+                        {player?.tournamentPoints || 0} pts
                       </span>
                     </td>
                   </tr>
@@ -247,11 +247,11 @@ export function StandingsTable({ standings = [], loading = false }) {
             No player standings found.
           </div>
         ) : (
-          filteredStandings.map((player, idx) => {
-            const rank = player.rank || idx + 1;
+          (filteredStandings || []).filter(Boolean).map((player, idx) => {
+            const rank = player?.rank || idx + 1;
             return (
               <div
-                key={player._id}
+                key={player?._id || idx}
                 className="bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] p-4 rounded-2xl space-y-3 shadow-xs"
               >
                 <div className="flex items-center justify-between">
@@ -259,18 +259,18 @@ export function StandingsTable({ standings = [], loading = false }) {
                     {getRankBadge(rank)}
                     <div>
                       <Link
-                        href={`/chess/player/${player._id}`}
+                        href={`/chess/player/${player?._id || ''}`}
                         className="font-bold text-[#171715] dark:text-[#FAF8F3] font-serif text-sm block"
                       >
-                        {player.fullName}
+                        {player?.fullName || 'Competitor'}
                       </Link>
                       <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93] font-mono">
-                        {player.department} • {player.playerId}
+                        {player?.department || '—'} • {player?.playerId || ''}
                       </span>
                     </div>
                   </div>
                   <span className="bg-[#171715] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] font-mono font-bold text-xs px-2.5 py-1 rounded-lg">
-                    {player.tournamentPoints || 0} pts
+                    {player?.tournamentPoints || 0} pts
                   </span>
                 </div>
 

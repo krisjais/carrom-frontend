@@ -88,9 +88,10 @@ export default function ResultsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {matches.map((m) => {
-            const isT1Win = m.winnerTeam && (m.winnerTeam._id === m.team1?._id || m.winnerTeam === m.team1?._id);
-            const isT2Win = m.winnerTeam && (m.winnerTeam._id === m.team2?._id || m.winnerTeam === m.team2?._id);
+          {matches.filter(Boolean).map((m) => {
+            const winnerId = (m.winnerTeam?._id || m.winnerTeam)?.toString();
+            const isT1Win = Boolean(winnerId && winnerId === (m.team1?._id || m.team1)?.toString());
+            const isT2Win = Boolean(winnerId && winnerId === (m.team2?._id || m.team2)?.toString());
 
             return (
               <div

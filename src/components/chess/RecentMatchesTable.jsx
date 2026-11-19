@@ -126,18 +126,18 @@ export function RecentMatchesTable({ matches = [], loading = false }) {
             No match records available yet.
           </div>
         ) : (
-          matches.slice(0, 5).map((m) => {
-            const p1 = m.player1?.fullName || (m.isBye ? (m.byePlayer?.fullName || 'Player') : 'TBD');
-            const p2 = m.player2?.fullName || (m.isBye ? 'BYE' : 'TBD');
+          (matches || []).filter(Boolean).slice(0, 5).map((m) => {
+            const p1 = m?.player1?.fullName || (m?.isBye ? (m?.byePlayer?.fullName || 'Player') : 'TBD');
+            const p2 = m?.player2?.fullName || (m?.isBye ? 'BYE' : 'TBD');
             return (
               <Link
-                key={m._id || m.matchId}
-                href={`/chess/matches/${m._id || m.matchId}`}
+                key={m?._id || m?.matchId}
+                href={`/chess/matches/${m?._id || m?.matchId}`}
                 className="block bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-4 space-y-2.5 shadow-xs"
               >
                 <div className="flex justify-between items-center text-[10px] font-mono text-[#77736B]">
-                  <span>{m.matchId} • {m.roundName || `Round ${m.round}`}</span>
-                  <span className="uppercase">{m.status}</span>
+                  <span>{m?.matchId || 'Match'} • {m?.roundName || `Round ${m?.round}`}</span>
+                  <span className="uppercase">{m?.status || 'Scheduled'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <div className="font-serif font-bold text-[#171715] dark:text-[#FAF8F3] text-sm">
