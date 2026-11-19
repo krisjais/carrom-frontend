@@ -162,17 +162,18 @@ export default function ChessAdminMatchesPage() {
 
     // Current round finished -> advancing pool
     const advancingIds = new Set();
-    currentRoundMatches.forEach(m => {
-      const p1Id = (m.player1?._id || m.player1 || m.byePlayer?._id || m.byePlayer)?.toString();
-      const p2Id = (m.player2?._id || m.player2)?.toString();
-      if (m.isBye) {
+    currentRoundMatches.filter(Boolean).forEach(m => {
+      const p1Id = (m?.player1?._id || m?.player1 || m?.byePlayer?._id || m?.byePlayer)?.toString();
+      const p2Id = (m?.player2?._id || m?.player2)?.toString();
+      if (m?.isBye) {
         if (p1Id) advancingIds.add(p1Id);
-      } else if (m.winner === 'player1') {
+      } else if (m?.winner === 'player1') {
         if (p1Id) advancingIds.add(p1Id);
-      } else if (m.winner === 'player2') {
+      } else if (m?.winner === 'player2') {
         if (p2Id) advancingIds.add(p2Id);
-      } else if (m.winnerPlayer) {
-        advancingIds.add((m.winnerPlayer._id || m.winnerPlayer).toString());
+      } else if (m?.winnerPlayer) {
+        const wId = (m.winnerPlayer?._id || m.winnerPlayer)?.toString();
+        if (wId) advancingIds.add(wId);
       }
     });
 
@@ -261,7 +262,7 @@ export default function ChessAdminMatchesPage() {
     if (selectedMatchIds.length === matches.length) {
       setSelectedMatchIds([]);
     } else {
-      setSelectedMatchIds(matches.map((m) => m._id));
+      setSelectedMatchIds(matches.filter(Boolean).map((m) => m?._id || m?.matchId).filter(Boolean));
     }
   };
 
@@ -851,15 +852,15 @@ export default function ChessAdminMatchesPage() {
                   </td>
                 </tr>
               ) : (
-                matches.map((m) => {
-                  const p1 = m.player1?.fullName || (m.isBye ? (m.byePlayer?.fullName || 'Player') : 'TBD');
-                  const p2 = m.player2?.fullName || (m.isBye ? 'BYE' : 'TBD');
-                  const isLive = m.status === 'live';
-                  const isScheduled = m.status === 'scheduled';
-                  const isCompleted = m.status === 'completed';
-                  const isStartingThis = startingMatchId === m._id;
-                  const isDeletingThis = deletingMatchId === m._id;
-                  const isSelected = selectedMatchIds.includes(m._id);
+                matches.filter(Boolean).map((m) => {
+                  const p1 = m?.player1?.fullName || (m?.isBye ? (m?.byePlayer?.fullName || 'Player') : 'TBD');
+                  const p2 = m?.player2?.fullName || (m?.isBye ? 'BYE' : 'TBD');
+                  const isLive = m?.status === 'live';
+                  const isScheduled = m?.status === 'scheduled';
+                  const isCompleted = m?.status === 'completed';
+                  const isStartingThis = startingMatchId === m?._id;
+                  const isDeletingThis = deletingMatchId === m?._id;
+                  const isSelected = selectedMatchIds.includes(m?._id);
 
                   // Stylized Round / Stage badge
                   const stageTitle = m.roundName || `Round ${m.round}`;

@@ -180,26 +180,26 @@ export default function LivePage() {
       </div>
 
       {/* MULTI-COURT ARENA SELECTION BAR */}
-      {boards.length > 1 && (
+      {boards?.length > 1 && (
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs font-mono">
             <span className="font-bold text-[#7E7060] dark:text-[#817B72] uppercase tracking-wider">
               Championship Courts ({boards.length} Boards)
             </span>
             <span className="text-[#E74C3C] font-semibold text-[11px]">
-              {boards.filter((b) => b.status === 'live').length} Court(s) Live Now
+              {boards.filter((b) => b?.status === 'live').length} Court(s) Live Now
             </span>
           </div>
 
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-            {boards.map((b) => {
-              const isSelected = selectedBoardNumber === b.boardNumber;
-              const isCourtLive = b.status === 'live' && b.currentMatch;
+            {boards.filter(Boolean).map((b) => {
+              const isSelected = selectedBoardNumber === b?.boardNumber;
+              const isCourtLive = b?.status === 'live' && b?.currentMatch;
 
               return (
                 <button
-                  key={b._id || b.boardNumber}
-                  onClick={() => setSelectedBoardNumber(b.boardNumber)}
+                  key={b?._id || b?.boardNumber}
+                  onClick={() => setSelectedBoardNumber(b?.boardNumber)}
                   className={`px-3.5 py-2 rounded-xl border text-xs font-mono font-bold flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
                     isSelected
                       ? 'bg-[#3E342B] dark:bg-[#D4A94C] text-white dark:text-[#15191C] border-[#3E342B] dark:border-[#D4A94C] shadow-sm'
@@ -211,8 +211,8 @@ export default function LivePage() {
                   ) : (
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                   )}
-                  <span>Court #{b.boardNumber}</span>
-                  <span className="opacity-75 font-normal truncate max-w-[120px]">({b.name})</span>
+                  <span>Court #{b?.boardNumber}</span>
+                  <span className="opacity-75 font-normal truncate max-w-[120px]">({b?.name})</span>
                   {isCourtLive && (
                     <span className="px-1.5 py-0.5 rounded text-[9px] bg-[#E74C3C] text-white uppercase font-black">
                       LIVE

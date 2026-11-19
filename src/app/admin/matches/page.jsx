@@ -456,14 +456,14 @@ export default function AdminMatchesPage() {
 
         {/* Dynamic Boards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {boards.map((b) => {
-            const isLive = b.status === 'live' && b.currentMatch;
-            const currentM = b.currentMatch;
-            const isMaintenance = b.status === 'maintenance';
+          {boards?.filter(Boolean).map((b) => {
+            const isLive = b?.status === 'live' && b?.currentMatch;
+            const currentM = b?.currentMatch;
+            const isMaintenance = b?.status === 'maintenance';
 
             return (
               <div
-                key={b._id || b.boardNumber}
+                key={b?._id || b?.boardNumber}
                 className={`p-4 rounded-xl border transition-all flex flex-col justify-between space-y-3 ${
                   isLive
                     ? 'bg-[#FAF9F6] dark:bg-[#181C1F] border-[#E74C3C] ring-2 ring-[#E74C3C]/20 shadow-sm'
@@ -562,7 +562,7 @@ export default function AdminMatchesPage() {
                   {isLive && currentM ? (
                     <>
                       <Link
-                        href={`/admin/matches/${currentM._id}/score`}
+                        href={`/admin/matches/${currentM?._id}/score`}
                         className="flex-1 py-1.5 px-3 rounded-lg btn-primary text-[11px] font-bold shadow-xs flex items-center justify-center gap-1.5 uppercase tracking-wider cursor-pointer"
                         title="Open live score desk for this board"
                       >
@@ -571,8 +571,8 @@ export default function AdminMatchesPage() {
                       </Link>
 
                       <button
-                        onClick={() => handleStopLive(currentM._id)}
-                        disabled={stoppingMatchId === currentM._id}
+                        onClick={() => handleStopLive(currentM?._id)}
+                        disabled={stoppingMatchId === currentM?._id}
                         className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-[#15191C] hover:bg-[#FDEDEC] dark:hover:bg-[#E74C3C]/15 text-[#E74C3C] border border-[#E74C3C]/30 text-[11px] font-mono font-bold cursor-pointer transition-colors shadow-2xs"
                         title="Stop match and vacate this board"
                       >
@@ -583,9 +583,9 @@ export default function AdminMatchesPage() {
                     <>
                       <button
                         onClick={() => {
-                          const readyMatch = matches.find((m) => m.status === 'scheduled' && !m.isBye && m.team1 && m.team2);
+                          const readyMatch = matches.find((m) => m?.status === 'scheduled' && !m?.isBye && m?.team1 && m?.team2);
                           if (readyMatch) {
-                            handleStartMatchOnBoard(readyMatch._id, b.boardNumber, b.name);
+                            handleStartMatchOnBoard(readyMatch?._id, b?.boardNumber || 1, b?.name || 'Board');
                           } else {
                             toast.error('No ready matches waiting in queue.');
                           }
@@ -596,7 +596,7 @@ export default function AdminMatchesPage() {
                         <span>Launch Next Match</span>
                       </button>
 
-                      {boards.length > 1 && (
+                      {boards?.length > 1 && (
                         <button
                           onClick={() => handleDeleteBoard(b)}
                           className="p-1.5 rounded-lg text-[#7E7060] hover:text-[#E74C3C] hover:bg-[#FDEDEC] dark:hover:bg-[#E74C3C]/10 transition-colors cursor-pointer"
@@ -797,12 +797,11 @@ export default function AdminMatchesPage() {
                       const isCompleted = m.status === 'completed';
                       const isReady = m.status === 'scheduled';
 
-                      const isT1Win =
-                        m.winnerTeam &&
-                        (m.winnerTeam._id === m.team1?._id || m.winnerTeam === m.team1?._id);
-                      const isT2Win =
-                        m.winnerTeam &&
-                        (m.winnerTeam._id === m.team2?._id || m.winnerTeam === m.team2?._id);
+                      const winnerId = (m.winnerTeam?._id || m.winnerTeam)?.toString();
+                      const t1Id = (m.team1?._id || m.team1)?.toString();
+                      const t2Id = (m.team2?._id || m.team2)?.toString();
+                      const isT1Win = Boolean(winnerId && winnerId === t1Id);
+                      const isT2Win = Boolean(winnerId && winnerId === t2Id);
 
                       return (
                         <div
@@ -926,11 +925,12 @@ export default function AdminMatchesPage() {
                               <div className="flex items-center gap-2">
                                 <button
                                   onClick={() => {
-                                    const availableBoards = boards.filter((b) => b.status === 'available');
+                                    const availableBoards = boards?.filter((b) => b?.status === 'available') || [];
                                     if (availableBoards.length === 0) {
                                       toast.error('All carrom boards are currently occupied! Add another board or wait for a match to conclude.');
                                     } else if (availableBoards.length === 1) {
-                                      handleStartMatchOnBoard(m._id, availableBoards[0].boardNumber, availableBoards[0].name);
+                                      const tb = availableBoards[0];
+                                      handleStartMatchOnBoard(m._id, tb?.boardNumber || 1, tb?.name || 'Board');
                                     } else {
                                       setBoardSelectMatch(m);
                                     }
@@ -1370,13 +1370,13 @@ export default function AdminMatchesPage() {
             </label>
 
             <div className="space-y-2 max-h-72 overflow-y-auto">
-              {boards.map((b) => {
-                const isAvailable = b.status === 'available';
-                const isLive = b.status === 'live';
+              {boardSelectMatch && boards?.filter(Boolean).map((b) => {
+                const isAvailable = b?.status === 'available';
+                const isLive = b?.status === 'live';
 
                 return (
                   <div
-                    key={b._id || b.boardNumber}
+                    key={b?._id || b?.boardNumber}
                     className={`p-3.5 rounded-xl border flex items-center justify-between transition-all ${
                       isAvailable
                         ? 'bg-white dark:bg-[#15191C] border-[#D5C4A1] dark:border-[#2B3034] hover:border-[#E74C3C]'
@@ -1386,23 +1386,23 @@ export default function AdminMatchesPage() {
                     <div className="space-y-0.5">
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8]">
-                          Court #{b.boardNumber}
+                          Court #{b?.boardNumber}
                         </span>
                         <span className="font-serif font-bold text-xs text-[#3E342B] dark:text-[#F5F1E8]">
-                          {b.name}
+                          {b?.name}
                         </span>
                       </div>
                       <p className="text-[10px] font-mono text-[#7E7060] dark:text-[#817B72]">
                         {isLive
-                          ? `Occupied by Match #${b.currentMatch?.matchNumber || 'Live'}`
+                          ? `Occupied by Match #${b?.currentMatch?.matchNumber || 'Live'}`
                           : 'Ready & Available'}
                       </p>
                     </div>
 
                     {isAvailable ? (
                       <button
-                        onClick={() => handleStartMatchOnBoard(boardSelectMatch._id, b.boardNumber, b.name)}
-                        disabled={startingMatchId === boardSelectMatch._id}
+                        onClick={() => handleStartMatchOnBoard(boardSelectMatch?._id, b?.boardNumber, b?.name)}
+                        disabled={startingMatchId === boardSelectMatch?._id}
                         className="px-3.5 py-2 rounded-xl btn-primary text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-xs"
                       >
                         <Play className="w-3 h-3 fill-current" />
