@@ -322,6 +322,73 @@ export default function ChessAdminMatchesPage() {
     }
   };
 
+  // Pause / Resume Live Match Clock
+  const handlePauseResumeMatch = async (match) => {
+    if (!match) return;
+    const mId = match._id || match.matchId;
+    const willPause = match.isClockRunning !== false; // default true if live
+    const nextRunning = !willPause;
+
+    // Calculate current remaining seconds accounting for elapsed time if running
+    let wSec = typeof match.whiteTimeRemaining === 'number' ? match.whiteTimeRemaining : 600;
+    let bSec = typeof match.blackTimeRemaining === 'number' ? match.blackTimeRemaining : 600;
+    const turn = match.activeTurn && match.activeTurn !== 'none' ? match.activeTurn : 'white';
+
+    if (willPause && match.lastClockUpdate) {
+      const elapsed = Math.max(0, Math.floor((Date.now() - new Date(match.lastClockUpdate).getTime()) / 1000));
+      if (turn === 'white') wSec = Math.max(0, wSec - elapsed);
+      else if (turn === 'black') bSec = Math.max(0, bSec - elapsed);
+    }
+
+    // Optimistic local state update
+    setMatches((prev) =>
+      prev.map((m) =>
+        m._id === mId || m.matchId === mId
+          ? {
+              ...m,
+              isClockRunning: nextRunning,
+              whiteTimeRemaining: wSec,
+              blackTimeRemaining: bSec,
+              activeTurn: turn,
+              lastClockUpdate: new Date()
+            }
+          : m
+      )
+    );
+
+    // Instant zero-latency Broadcast to player dashboards & audience
+    try {
+      if (typeof window !== 'undefined' && window.BroadcastChannel) {
+        const bc = new BroadcastChannel('chess_tournament_clock');
+        bc.postMessage({
+          matchId: mId,
+          isClockRunning: nextRunning,
+          isRunning: nextRunning,
+          activeTurn: turn,
+          whiteSeconds: wSec,
+          blackSeconds: bSec,
+          timestamp: Date.now()
+        });
+        bc.close();
+      }
+    } catch {}
+
+    // Persist to server
+    try {
+      await chessApi.syncMatchClock(mId, {
+        isClockRunning: nextRunning,
+        whiteTimeRemaining: wSec,
+        blackTimeRemaining: bSec,
+        activeTurn: turn,
+        status: 'live'
+      });
+      toast.success(nextRunning ? 'Match clock resumed ▶️' : 'Match clock paused ⏸️');
+      await loadData(true);
+    } catch (err) {
+      toast.error('Failed to sync pause state with server.');
+    }
+  };
+
   // Individual Match Delete
   const handleDeleteMatch = async (id, matchIdLabel) => {
     const isConfirmed = await confirm({
@@ -603,6 +670,7 @@ export default function ChessAdminMatchesPage() {
             matches={matches}
             isAdmin={true}
             onStartMatch={handleStartMatch}
+            onPauseResumeMatch={handlePauseResumeMatch}
             onOpenResultModal={openResultModal}
             onDeleteMatch={handleDeleteMatch}
             startingMatchId={startingMatchId}
@@ -765,6 +833,31 @@ export default function ChessAdminMatchesPage() {
                               <Play className="w-3 h-3 fill-current" />
                             )}
                             <span>Start (10m)</span>
+                          </button>
+                        )}
+
+                        {/* Pause / Resume Button for Live Matches */}
+                        {isLive && (
+                          <button
+                            onClick={() => handlePauseResumeMatch(m)}
+                            className={`text-[10px] font-bold px-3 py-1.5 rounded-lg uppercase shadow-xs transition-colors cursor-pointer inline-flex items-center gap-1 ${
+                              m.isClockRunning !== false
+                                ? 'bg-neutral-800 dark:bg-neutral-200 text-white dark:text-neutral-900 hover:bg-black'
+                                : 'bg-emerald-600 hover:bg-emerald-700 text-white animate-pulse'
+                            }`}
+                            title={m.isClockRunning !== false ? 'Pause match timer' : 'Resume match timer'}
+                          >
+                            {m.isClockRunning !== false ? (
+                              <>
+                                <Pause className="w-3 h-3 fill-current" />
+                                <span>Pause</span>
+                              </>
+                            ) : (
+                              <>
+                                <Play className="w-3 h-3 fill-current" />
+                                <span>Resume</span>
+                              </>
+                            )}
                           </button>
                         )}
 

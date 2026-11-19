@@ -763,8 +763,18 @@ export default function ChessPlayerDashboardPage() {
                     </div>
                   ) : isLive ? (
                     <div className="space-y-3">
-                      {/* Tap-to-Move Button: Only shown when it is YOUR turn to move */}
-                      {isMyTurn ? (
+                      {/* Clock Control / Paused State / Tap-to-Move */}
+                      {!isClockRunning ? (
+                        <div className="w-full py-4 px-4 rounded-2xl bg-amber-500/10 dark:bg-amber-500/15 border-2 border-amber-500/40 text-center space-y-1">
+                          <div className="flex items-center justify-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
+                            <Pause className="w-4 h-4 fill-current text-amber-600" />
+                            <span>Match Paused by Arbiter</span>
+                          </div>
+                          <p className="text-[11px] text-[#77736B] dark:text-[#8E8E93] font-sans">
+                            Clocks are temporarily held by tournament director. Waiting for arbiter to resume.
+                          </p>
+                        </div>
+                      ) : isMyTurn ? (
                         <button
                           type="button"
                           onClick={handlePassTurn}

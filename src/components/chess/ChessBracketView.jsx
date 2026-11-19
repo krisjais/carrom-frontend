@@ -4,7 +4,7 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { 
   Trophy, ExternalLink, ZoomIn, ZoomOut, RotateCcw, Crown, Shield, 
-  Play, Clock, Trash2, Zap, ArrowRight, UserCheck, Sparkles 
+  Play, Pause, Clock, Trash2, Zap, ArrowRight, UserCheck, Sparkles 
 } from 'lucide-react';
 
 /**
@@ -53,6 +53,7 @@ export function ChessBracketView({
   matches = [],
   isAdmin = false,
   onStartMatch,
+  onPauseResumeMatch,
   onOpenResultModal,
   onDeleteMatch,
   startingMatchId = null,
@@ -171,6 +172,7 @@ export function ChessBracketView({
                       isFinal={isFinalStage}
                       isAdmin={isAdmin}
                       onStartMatch={onStartMatch}
+                      onPauseResumeMatch={onPauseResumeMatch}
                       onOpenResultModal={onOpenResultModal}
                       onDeleteMatch={onDeleteMatch}
                       isStarting={startingMatchId === match._id}
@@ -203,6 +205,7 @@ function ChessMatchNode({
   isFinal,
   isAdmin,
   onStartMatch,
+  onPauseResumeMatch,
   onOpenResultModal,
   onDeleteMatch,
   isStarting,
@@ -413,16 +416,41 @@ function ChessMatchNode({
             </>
           )}
 
-          {/* Live Match -> Declare Winner */}
+          {/* Live Match -> Pause/Resume Clock & Declare Winner */}
           {isAdmin && isLive && (
-            <button
-              type="button"
-              onClick={() => onOpenResultModal && onOpenResultModal(match)}
-              className="bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1 rounded-lg uppercase font-bold inline-flex items-center gap-1 shadow-2xs cursor-pointer"
-            >
-              <Crown className="w-2.5 h-2.5 fill-current" />
-              <span>Declare Winner</span>
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => onPauseResumeMatch && onPauseResumeMatch(match)}
+                className={`px-2 py-1 rounded-lg uppercase font-bold inline-flex items-center gap-1 shadow-2xs transition-all cursor-pointer ${
+                  match.isClockRunning !== false
+                    ? 'bg-neutral-800 dark:bg-neutral-200 text-white dark:text-neutral-900 hover:bg-black'
+                    : 'bg-emerald-600 hover:bg-emerald-700 text-white animate-pulse'
+                }`}
+                title={match.isClockRunning !== false ? 'Pause match timer' : 'Resume match timer'}
+              >
+                {match.isClockRunning !== false ? (
+                  <>
+                    <Pause className="w-2.5 h-2.5 fill-current" />
+                    <span>Pause</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-2.5 h-2.5 fill-current" />
+                    <span>Resume</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onOpenResultModal && onOpenResultModal(match)}
+                className="bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1 rounded-lg uppercase font-bold inline-flex items-center gap-1 shadow-2xs cursor-pointer"
+              >
+                <Crown className="w-2.5 h-2.5 fill-current" />
+                <span>Declare Winner</span>
+              </button>
+            </>
           )}
 
           {/* Edit Result for Completed */}
