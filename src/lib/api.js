@@ -145,9 +145,13 @@ export const api = {
   },
 
   getMe: async () => {
-    const res = await fetchWithRetry(`${API_BASE}/auth/me`, {
-      headers: getHeaders(true)
-    });
+    const res = await fetchWithRetry(
+      `${API_BASE}/auth/me`,
+      {
+        headers: getHeaders(true)
+      },
+      1 // Fast 1-attempt check so it never blocks the UI on startup
+    );
     return handleResponse(res);
   },
 
@@ -303,6 +307,15 @@ export const api = {
     return handleResponse(res);
   },
 
+  updateTeam: async (id, teamData) => {
+    const res = await fetchWithRetry(`${API_BASE}/teams/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(true),
+      body: JSON.stringify(teamData)
+    });
+    return handleResponse(res);
+  },
+
   deleteTeam: async (id) => {
     const res = await fetchWithRetry(`${API_BASE}/teams/${id}`, {
       method: 'DELETE',
@@ -445,6 +458,15 @@ export const api = {
       method: 'PUT',
       headers: getHeaders(true),
       body: JSON.stringify(scheduleData)
+    });
+    return handleResponse(res);
+  },
+
+  substituteMatchPartner: async (id, data) => {
+    const res = await fetchWithRetry(`${API_BASE}/matches/${id}/substitute`, {
+      method: 'PUT',
+      headers: getHeaders(true),
+      body: JSON.stringify(data)
     });
     return handleResponse(res);
   },

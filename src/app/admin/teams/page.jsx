@@ -15,11 +15,13 @@ import {
   GitFork,
   RefreshCw,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Edit3
 } from 'lucide-react';
 import { CategoryBadge } from '@/components/ui/Badge';
 import { useToast, useConfirm } from '@/context/ToastContext';
 import { CategoryCoinPair } from '@/components/ui/CarromElements';
+import { EditTeamModal } from '@/components/admin/EditTeamModal';
 
 export default function AdminTeamsPage() {
   const router = useRouter();
@@ -32,6 +34,7 @@ export default function AdminTeamsPage() {
   const [clearing, setClearing] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [scheduling, setScheduling] = useState(false);
+  const [editingTeam, setEditingTeam] = useState(null);
 
   const fetchTeams = async () => {
     setLoading(true);
@@ -365,13 +368,22 @@ export default function AdminTeamsPage() {
                       </span>
                     </td>
                     <td className="py-3.5 text-right">
-                      <button
-                        onClick={() => handleDeleteTeam(t._id, t.name)}
-                        className="p-1.5 rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
-                        title="Delete Team"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => setEditingTeam(t)}
+                          className="p-1.5 rounded-lg text-[#7E7060] dark:text-[#B8B1A5] hover:text-[#E74C3C] hover:bg-[#F4EFE6] dark:hover:bg-[#181C1F] transition-colors cursor-pointer"
+                          title="Edit Team Name / Swap Partner"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteTeam(t._id, t.name)}
+                          className="p-1.5 rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
+                          title="Delete Team"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -380,6 +392,14 @@ export default function AdminTeamsPage() {
           </div>
         )}
       </div>
+
+      {/* Edit Team / Swap Partner Modal */}
+      <EditTeamModal
+        isOpen={Boolean(editingTeam)}
+        team={editingTeam}
+        onClose={() => setEditingTeam(null)}
+        onSuccess={() => fetchTeams()}
+      />
     </div>
   );
 }

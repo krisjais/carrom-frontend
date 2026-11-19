@@ -24,13 +24,15 @@ import {
   Play,
   Timer,
   Square,
-  Save
+  Save,
+  Users
 } from 'lucide-react';
 import { StatusBadge, MainBoardBadge, CategoryBadge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { useToast, useConfirm } from '@/context/ToastContext';
 import { CategoryCoinPair } from '@/components/ui/CarromElements';
 import { CarromMatchTimer, formatMatchDurationTaken } from '@/components/common/CarromMatchTimer';
+import { SubstitutePartnerModal } from '@/components/admin/SubstitutePartnerModal';
 
 export default function AdminMatchesPage() {
   const router = useRouter();
@@ -40,6 +42,7 @@ export default function AdminMatchesPage() {
   const [teams, setTeams] = useState([]);
   const [arenaState, setArenaState] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [substituteMatch, setSubstituteMatch] = useState(null);
 
   // Category Level Hierarchy: 'singles' | 'doubles' | 'mixed'
   const [mainTab, setMainTab] = useState('singles');
@@ -641,6 +644,14 @@ export default function AdminMatchesPage() {
                                   <span>{isBoardOccupied ? 'Queued' : 'Start Match'}</span>
                                 </button>
                                 <button
+                                  onClick={() => setSubstituteMatch(m)}
+                                  className="px-2.5 py-2 rounded-xl bg-white dark:bg-[#181C1F] hover:bg-[#FAF9F6] dark:hover:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] text-[11px] text-[#3E342B] dark:text-[#F5F1E8] font-mono font-bold cursor-pointer shadow-xs flex items-center gap-1"
+                                  title="Substitute partner or update match names"
+                                >
+                                  <Users className="w-3 h-3 text-[#E74C3C]" />
+                                  <span>Partner</span>
+                                </button>
+                                <button
                                   onClick={() => handleOpenEditTime(m)}
                                   className="px-3 py-2 rounded-xl bg-white dark:bg-[#181C1F] hover:bg-[#FAF9F6] dark:hover:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] text-[11px] text-[#3E342B] dark:text-[#F5F1E8] font-mono font-bold cursor-pointer shadow-xs flex items-center gap-1"
                                   title="Set how much time this match will take"
@@ -942,6 +953,14 @@ export default function AdminMatchesPage() {
           </div>
         </form>
       </Modal>
+
+      {/* Substitute Partner Modal */}
+      <SubstitutePartnerModal
+        isOpen={Boolean(substituteMatch)}
+        match={substituteMatch}
+        onClose={() => setSubstituteMatch(null)}
+        onSuccess={() => fetchMatchesAndTeams()}
+      />
     </div>
   );
 }

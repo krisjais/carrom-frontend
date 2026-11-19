@@ -254,6 +254,7 @@ function AdminDrawsContent() {
           category={selectedCat}
           isLocked={bracketData?.isLocked}
           isPublished={bracketData?.isPublished}
+          onMatchUpdated={fetchCategoryData}
         />
       )}
 

@@ -3,14 +3,34 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { Trophy, ExternalLink, ZoomIn, ZoomOut, RotateCcw, Crown, Shield, Play, Clock } from 'lucide-react';
+import { Trophy, ExternalLink, ZoomIn, ZoomOut, RotateCcw, Crown, Shield, Play, Clock, Edit3, Users } from 'lucide-react';
 import { StatusBadge, MainBoardBadge } from '@/components/ui/Badge';
 import { CarromCoin } from '@/components/ui/CarromElements';
 import { CarromMatchTimer, formatMatchDurationTaken } from '@/components/common/CarromMatchTimer';
+import { SubstitutePartnerModal } from '@/components/admin/SubstitutePartnerModal';
 
-export const BracketView = ({ rounds, category, isLocked, isPublished }) => {
+export const BracketView = ({ rounds, category, isLocked, isPublished, onMatchUpdated }) => {
   const { isAdmin } = useAuth();
   const [zoom, setZoom] = useState(1);
+  const [substituteModal, setSubstituteModal] = useState({
+    isOpen: false,
+    match: null,
+    slot: 'team1'
+  });
+
+  const handleOpenSubstitute = (match, slot = 'team1') => {
+    setSubstituteModal({
+      isOpen: true,
+      match,
+      slot
+    });
+  };
+
+  const handleSubstituteSuccess = (updatedMatch) => {
+    if (onMatchUpdated) {
+      onMatchUpdated(updatedMatch);
+    }
+  };
 
   if (!rounds || rounds.length === 0) {
     return (
@@ -114,6 +134,7 @@ export const BracketView = ({ rounds, category, isLocked, isPublished }) => {
                       match={match}
                       isFinal={isFinal}
                       isAdmin={isAdmin}
+                      onSubstitute={handleOpenSubstitute}
                     />
                   ))}
                 </div>
@@ -122,11 +143,22 @@ export const BracketView = ({ rounds, category, isLocked, isPublished }) => {
           })}
         </div>
       </div>
+
+      {/* Substitute Partner / Update Match Name Modal */}
+      {isAdmin && (
+        <SubstitutePartnerModal
+          isOpen={substituteModal.isOpen}
+          onClose={() => setSubstituteModal({ isOpen: false, match: null, slot: 'team1' })}
+          match={substituteModal.match}
+          initialSlot={substituteModal.slot}
+          onSuccess={handleSubstituteSuccess}
+        />
+      )}
     </div>
   );
 };
 
-const MatchNode = ({ match, isFinal, isAdmin }) => {
+const MatchNode = ({ match, isFinal, isAdmin, onSubstitute }) => {
   const isLive = match.status === 'live';
   const isCompleted = match.status === 'completed';
   const isScheduled = match.status === 'scheduled';
@@ -167,7 +199,7 @@ const MatchNode = ({ match, isFinal, isAdmin }) => {
 
       {/* Team 1 Slot */}
       <div
-        className={`flex items-center justify-between p-2 rounded-lg mb-1.5 transition-all text-xs ${
+        className={`group flex items-center justify-between p-2 rounded-lg mb-1.5 transition-all text-xs ${
           isTeam1Winner
             ? 'bg-[#FAF9F6] dark:bg-[#1B2024] text-[#3E342B] dark:text-[#F5F1E8] font-bold border border-[#D5C4A1] dark:border-[rgba(212,169,76,0.3)]'
             : match.team1
@@ -181,17 +213,32 @@ const MatchNode = ({ match, isFinal, isAdmin }) => {
             {match.team1 ? match.team1.name : 'TBD (Round Winner)'}
           </span>
         </div>
-        {isTeam1Winner && (
-          <span className="text-[10px] font-mono font-bold text-[#E74C3C] dark:text-[#D4A94C] flex items-center gap-1 shrink-0">
-            <Crown className="w-3 h-3 text-[#E74C3C] dark:text-[#D4A94C]" />
-            <span>WIN</span>
-          </span>
-        )}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {isAdmin && match.team1 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSubstitute && onSubstitute(match, 'team1');
+              }}
+              title="Substitute partner / update player name"
+              className="p-1 rounded-md text-[#7E7060] dark:text-[#B8B1A5] hover:text-[#E74C3C] hover:bg-white dark:hover:bg-[#202529] transition-colors cursor-pointer opacity-70 group-hover:opacity-100"
+            >
+              <Edit3 className="w-3 h-3" />
+            </button>
+          )}
+          {isTeam1Winner && (
+            <span className="text-[10px] font-mono font-bold text-[#E74C3C] dark:text-[#D4A94C] flex items-center gap-1 shrink-0">
+              <Crown className="w-3 h-3 text-[#E74C3C] dark:text-[#D4A94C]" />
+              <span>WIN</span>
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Team 2 Slot */}
       <div
-        className={`flex items-center justify-between p-2 rounded-lg transition-all text-xs ${
+        className={`group flex items-center justify-between p-2 rounded-lg transition-all text-xs ${
           isBye
             ? 'bg-[#FAF9F6] dark:bg-[#181C1F] text-[#7E7060] dark:text-[#817B72] italic border border-[#D5C4A1] dark:border-[#2B3034]'
             : isTeam2Winner
@@ -207,12 +254,27 @@ const MatchNode = ({ match, isFinal, isAdmin }) => {
             {isBye ? 'BYE (Automatic Advance)' : match.team2 ? match.team2.name : 'TBD (Round Winner)'}
           </span>
         </div>
-        {isTeam2Winner && !isBye && (
-          <span className="text-[10px] font-mono font-bold text-[#E74C3C] dark:text-[#D4A94C] flex items-center gap-1 shrink-0">
-            <Crown className="w-3 h-3 text-[#E74C3C] dark:text-[#D4A94C]" />
-            <span>WIN</span>
-          </span>
-        )}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {isAdmin && match.team2 && !isBye && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSubstitute && onSubstitute(match, 'team2');
+              }}
+              title="Substitute partner / update player name"
+              className="p-1 rounded-md text-[#7E7060] dark:text-[#B8B1A5] hover:text-[#E74C3C] hover:bg-white dark:hover:bg-[#202529] transition-colors cursor-pointer opacity-70 group-hover:opacity-100"
+            >
+              <Edit3 className="w-3 h-3" />
+            </button>
+          )}
+          {isTeam2Winner && !isBye && (
+            <span className="text-[10px] font-mono font-bold text-[#E74C3C] dark:text-[#D4A94C] flex items-center gap-1 shrink-0">
+              <Crown className="w-3 h-3 text-[#E74C3C] dark:text-[#D4A94C]" />
+              <span>WIN</span>
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Completed Match Time Taken & Details */}
@@ -222,15 +284,28 @@ const MatchNode = ({ match, isFinal, isAdmin }) => {
             <Clock className="w-3 h-3 text-[#E74C3C]" />
             <span>{formatMatchDurationTaken(match)}</span>
           </span>
-          {isAdmin && (
-            <Link
-              href={`/admin/matches/${match._id}/score`}
-              className="text-[#E74C3C] dark:text-[#D4A94C] hover:underline flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider"
-            >
-              <span>Scorecard</span>
-              <ExternalLink className="w-3 h-3" />
-            </Link>
-          )}
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={() => onSubstitute && onSubstitute(match, 'team1')}
+                title="Substitute partner or update match name"
+                className="text-[#7E7060] dark:text-[#B8B1A5] hover:text-[#E74C3C] flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+              >
+                <Users className="w-3 h-3" />
+                <span>Substitute</span>
+              </button>
+            )}
+            {isAdmin && (
+              <Link
+                href={`/admin/matches/${match._id}/score`}
+                className="text-[#E74C3C] dark:text-[#D4A94C] hover:underline flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider"
+              >
+                <span>Scorecard</span>
+                <ExternalLink className="w-3 h-3" />
+              </Link>
+            )}
+          </div>
         </div>
       )}
 
@@ -238,29 +313,52 @@ const MatchNode = ({ match, isFinal, isAdmin }) => {
       {isLive && (
         <div className="mt-2.5 pt-2 border-t border-[#E8E1D5] dark:border-[#2B3034] flex items-center justify-between">
           <CarromMatchTimer match={match} variant="compact" />
-          {isAdmin && (
-            <Link
-              href={`/admin/matches/${match._id}/score`}
-              className="text-[#E74C3C] font-mono text-[10px] font-bold uppercase hover:underline flex items-center gap-0.5"
-            >
-              <span>Score</span>
-              <ExternalLink className="w-3 h-3" />
-            </Link>
-          )}
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={() => onSubstitute && onSubstitute(match, 'team1')}
+                title="Substitute partner or update match name"
+                className="text-[#7E7060] dark:text-[#B8B1A5] hover:text-[#E74C3C] flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+              >
+                <Users className="w-3 h-3" />
+                <span>Substitute</span>
+              </button>
+            )}
+            {isAdmin && (
+              <Link
+                href={`/admin/matches/${match._id}/score`}
+                className="text-[#E74C3C] font-mono text-[10px] font-bold uppercase hover:underline flex items-center gap-0.5"
+              >
+                <span>Score</span>
+                <ExternalLink className="w-3 h-3" />
+              </Link>
+            )}
+          </div>
         </div>
       )}
 
       {/* Admin Referee Action for Scheduled/Pending Match */}
-      {isAdmin && !isBye && match.team1 && match.team2 && !isLive && !isCompleted && (
+      {isAdmin && !isBye && (match.team1 || match.team2) && !isLive && !isCompleted && (
         <div className="mt-2.5 pt-2 border-t border-[#E8E1D5] dark:border-[#2B3034] flex items-center justify-between text-[10px] font-mono">
-          <span className="text-[#7E7060] dark:text-[#817B72]">⏱️ {match.roundDurationMinutes || match.durationMinutes || 20}m</span>
-          <Link
-            href={`/admin/matches/${match._id}/score`}
-            className="flex items-center gap-1 font-bold text-[#E74C3C] dark:text-[#D4A94C] hover:underline transition-colors uppercase tracking-wider"
+          <button
+            type="button"
+            onClick={() => onSubstitute && onSubstitute(match, 'team1')}
+            className="flex items-center gap-1 text-[#7E7060] dark:text-[#B8B1A5] hover:text-[#E74C3C] dark:hover:text-[#E74C3C] font-bold transition-colors uppercase tracking-wider cursor-pointer"
+            title="Change partner or player name in this match fixture"
           >
-            <span>Score Match</span>
-            <ExternalLink className="w-3 h-3" />
-          </Link>
+            <Users className="w-3 h-3 text-[#E74C3C]" />
+            <span>Change Partner</span>
+          </button>
+          {match.team1 && match.team2 && (
+            <Link
+              href={`/admin/matches/${match._id}/score`}
+              className="flex items-center gap-1 font-bold text-[#E74C3C] dark:text-[#D4A94C] hover:underline transition-colors uppercase tracking-wider"
+            >
+              <span>Score Match</span>
+              <ExternalLink className="w-3 h-3" />
+            </Link>
+          )}
         </div>
       )}
     </div>
