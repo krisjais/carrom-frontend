@@ -95,6 +95,34 @@ export default function ChessPlayerDashboardPage() {
         if (res.data.player) {
           setPlayer(res.data.player);
         }
+
+        // Synchronize live clock & match state directly from backend
+        const m = res.data.currentMatch;
+        if (m) {
+          let wSec = typeof m.whiteTimeRemaining === 'number' ? m.whiteTimeRemaining : 600;
+          let bSec = typeof m.blackTimeRemaining === 'number' ? m.blackTimeRemaining : 600;
+          const running = m.isClockRunning ?? (m.status === 'live');
+          const turn = m.activeTurn && m.activeTurn !== 'none' ? m.activeTurn : 'white';
+
+          if (running && m.lastClockUpdate) {
+            const elapsed = Math.max(0, Math.floor((Date.now() - new Date(m.lastClockUpdate).getTime()) / 1000));
+            if (turn === 'white') {
+              wSec = Math.max(0, wSec - elapsed);
+            } else if (turn === 'black') {
+              bSec = Math.max(0, bSec - elapsed);
+            }
+          }
+
+          setWhiteSeconds(wSec);
+          setBlackSeconds(bSec);
+          setActiveTurn(turn);
+          setIsClockRunning(running && wSec > 0 && bSec > 0);
+          setMovesCount(m.movesCount || 0);
+
+          if (wSec <= 0) setFlagFall('white');
+          else if (bSec <= 0) setFlagFall('black');
+          else setFlagFall(null);
+        }
       }
     } catch (err) {
       console.error('Error fetching player dashboard:', err);
@@ -107,13 +135,84 @@ export default function ChessPlayerDashboardPage() {
   useEffect(() => {
     if (player) {
       loadDashboard(false);
-      // Poll every 4 seconds to catch match starts and opponent moves
+      // Poll every 3 seconds to catch match starts, piece scores and clock updates
       const interval = setInterval(() => {
         loadDashboard(true);
-      }, 4000);
+      }, 3000);
       return () => clearInterval(interval);
     }
   }, [player, loadDashboard]);
+
+  // Instant Multi-Tab Clock Synchronization via BroadcastChannel
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.BroadcastChannel) return;
+
+    const channel = new BroadcastChannel('chess_tournament_clock');
+    channel.onmessage = (event) => {
+      const data = event.data;
+      if (!data) return;
+
+      const currentMatchId = dashboardData?.currentMatch?._id || dashboardData?.currentMatch?.matchId;
+      if (data.matchId && currentMatchId && data.matchId !== currentMatchId) return;
+
+      if (typeof data.whiteSeconds === 'number') setWhiteSeconds(data.whiteSeconds);
+      else if (typeof data.p1Time === 'number') setWhiteSeconds(data.p1Time);
+
+      if (typeof data.blackSeconds === 'number') setBlackSeconds(data.blackSeconds);
+      else if (typeof data.p2Time === 'number') setBlackSeconds(data.p2Time);
+
+      if (data.activeTurn) setActiveTurn(data.activeTurn);
+
+      if (typeof data.isClockRunning === 'boolean') setIsClockRunning(data.isClockRunning);
+      else if (typeof data.isRunning === 'boolean') setIsClockRunning(data.isRunning);
+
+      if (typeof data.movesCount === 'number') setMovesCount(data.movesCount);
+      if (data.flagFall !== undefined) setFlagFall(data.flagFall);
+    };
+
+    return () => {
+      channel.close();
+    };
+  }, [dashboardData?.currentMatch?._id, dashboardData?.currentMatch?.matchId]);
+
+  // Helper to broadcast clock changes and sync to server
+  const broadcastAndSync = useCallback((updates) => {
+    const match = dashboardData?.currentMatch;
+    const mId = match?._id || match?.matchId;
+
+    const payload = {
+      matchId: mId,
+      whiteSeconds: updates.whiteSeconds !== undefined ? updates.whiteSeconds : whiteSeconds,
+      blackSeconds: updates.blackSeconds !== undefined ? updates.blackSeconds : blackSeconds,
+      p1Time: updates.whiteSeconds !== undefined ? updates.whiteSeconds : whiteSeconds,
+      p2Time: updates.blackSeconds !== undefined ? updates.blackSeconds : blackSeconds,
+      activeTurn: updates.activeTurn !== undefined ? updates.activeTurn : activeTurn,
+      isClockRunning: updates.isClockRunning !== undefined ? updates.isClockRunning : isClockRunning,
+      isRunning: updates.isClockRunning !== undefined ? updates.isClockRunning : isClockRunning,
+      movesCount: updates.movesCount !== undefined ? updates.movesCount : movesCount,
+      flagFall: updates.flagFall !== undefined ? updates.flagFall : flagFall,
+      timestamp: Date.now()
+    };
+
+    try {
+      const bc = new BroadcastChannel('chess_tournament_clock');
+      bc.postMessage(payload);
+      bc.close();
+    } catch {
+      // BroadcastChannel unavailable
+    }
+
+    if (mId) {
+      chessApi.syncMatchClock(mId, {
+        activeTurn: payload.activeTurn,
+        whiteTimeRemaining: payload.whiteSeconds,
+        blackTimeRemaining: payload.blackSeconds,
+        movesCount: payload.movesCount,
+        isClockRunning: payload.isClockRunning,
+        status: payload.isClockRunning ? 'live' : undefined
+      }).catch(() => {});
+    }
+  }, [dashboardData?.currentMatch, whiteSeconds, blackSeconds, activeTurn, isClockRunning, movesCount, flagFall]);
 
   // 3. Countdown Loop for Phone Clock
   useEffect(() => {
@@ -130,6 +229,7 @@ export default function ChessPlayerDashboardPage() {
             setIsClockRunning(false);
             setFlagFall('white');
             if (soundEnabled) playClockTone('flag');
+            broadcastAndSync({ whiteSeconds: 0, isClockRunning: false, flagFall: 'white' });
             return 0;
           }
           return prev - 1;
@@ -141,6 +241,7 @@ export default function ChessPlayerDashboardPage() {
             setIsClockRunning(false);
             setFlagFall('black');
             if (soundEnabled) playClockTone('flag');
+            broadcastAndSync({ blackSeconds: 0, isClockRunning: false, flagFall: 'black' });
             return 0;
           }
           return prev - 1;
@@ -149,43 +250,69 @@ export default function ChessPlayerDashboardPage() {
     }, 1000);
 
     return () => clearInterval(clockIntervalRef.current);
-  }, [isClockRunning, activeTurn, flagFall, soundEnabled]);
+  }, [isClockRunning, activeTurn, flagFall, soundEnabled, broadcastAndSync]);
 
   // 4. Switch Clock Turn (When player completes their pawn / piece move)
   const handlePassTurn = () => {
     if (flagFall) return;
 
     if (!isClockRunning) {
+      // First tap starts clock with White's opening turn
+      const turn = activeTurn || 'white';
       setIsClockRunning(true);
+      setActiveTurn(turn);
+      if (soundEnabled) playClockTone('click');
+
+      broadcastAndSync({
+        activeTurn: turn,
+        isClockRunning: true,
+        movesCount,
+        whiteSeconds,
+        blackSeconds
+      });
+      return;
     }
 
+    // Subsequent taps pass turn to opponent
     const nextTurn = activeTurn === 'white' ? 'black' : 'white';
+    const nextMoves = movesCount + 1;
+
     setActiveTurn(nextTurn);
-    setMovesCount((m) => m + 1);
+    setIsClockRunning(true);
+    setMovesCount(nextMoves);
 
     if (soundEnabled) playClockTone('click');
 
-    // Sync to server if current match exists
-    const match = dashboardData?.currentMatch;
-    if (match?._id) {
-      chessApi.syncMatchClock(match._id, {
-        activeTurn: nextTurn,
-        whiteTimeRemaining: whiteSeconds,
-        blackTimeRemaining: blackSeconds,
-        movesCount: movesCount + 1,
-        status: 'live'
-      }).catch(() => {});
-    }
+    broadcastAndSync({
+      activeTurn: nextTurn,
+      isClockRunning: true,
+      movesCount: nextMoves,
+      whiteSeconds,
+      blackSeconds
+    });
   };
 
   const handlePauseClock = () => {
     setIsClockRunning(false);
+    broadcastAndSync({
+      isClockRunning: false,
+      whiteSeconds,
+      blackSeconds
+    });
   };
 
   const handleStartResumeClock = () => {
     if (flagFall) return;
+    const turn = activeTurn || 'white';
+    setActiveTurn(turn);
     setIsClockRunning(true);
     if (soundEnabled) playClockTone('click');
+    broadcastAndSync({
+      activeTurn: turn,
+      isClockRunning: true,
+      whiteSeconds,
+      blackSeconds
+    });
   };
 
   const handleResetClock = () => {
@@ -195,6 +322,14 @@ export default function ChessPlayerDashboardPage() {
     setBlackSeconds(600);
     setMovesCount(0);
     setFlagFall(null);
+    broadcastAndSync({
+      isClockRunning: false,
+      activeTurn: 'white',
+      whiteSeconds: 600,
+      blackSeconds: 600,
+      movesCount: 0,
+      flagFall: null
+    });
   };
 
   const handleLogout = () => {
@@ -227,6 +362,10 @@ export default function ChessPlayerDashboardPage() {
   const isScheduled = currentMatch?.status === 'scheduled';
   const isCompleted = currentMatch?.status === 'completed';
   const isBye = currentMatch?.isBye || currentMatch?.resultType === 'bye';
+
+  const isWinnerMe = currentMatch?.winner === (isPlayerWhite ? 'player1' : 'player2');
+  const isWinnerOpponent = currentMatch?.winner === (isPlayerWhite ? 'player2' : 'player1');
+  const isDraw = currentMatch?.winner === 'draw';
 
   const isMyTurn = isClockRunning && activeTurn === pieceColor;
 
@@ -440,6 +579,31 @@ export default function ChessPlayerDashboardPage() {
                 </div>
               </div>
 
+              {/* COMPLETED MATCH FINAL RESULT BANNER */}
+              {isCompleted && (
+                <div className={`p-4 sm:p-5 rounded-2xl border-2 text-center space-y-1.5 shadow-md ${
+                  isWinnerMe
+                    ? 'bg-emerald-500/15 border-emerald-500/60 text-emerald-950 dark:text-emerald-200'
+                    : isWinnerOpponent
+                    ? 'bg-rose-500/15 border-rose-500/60 text-rose-950 dark:text-rose-200'
+                    : 'bg-amber-500/15 border-amber-500/60 text-amber-950 dark:text-amber-200'
+                }`}>
+                  <div className="text-xl sm:text-2xl font-serif font-black">
+                    {isWinnerMe ? '👑 MATCH VICTORY!' : isWinnerOpponent ? '⚔️ MATCH CONCLUDED' : '🤝 DRAW'}
+                  </div>
+                  <p className="font-sans font-medium text-xs sm:text-sm">
+                    {isWinnerMe
+                      ? `Congratulations! You won by ${currentMatch.resultType?.replace('_', ' ') || 'points'}!`
+                      : isWinnerOpponent
+                      ? `${opponentName} won by ${currentMatch.resultType?.replace('_', ' ') || 'points'}.`
+                      : 'Match concluded with an official draw.'}
+                  </p>
+                  <div className="font-mono text-[11px] font-bold opacity-80 pt-1">
+                    Official Final Material Score: {isPlayerWhite ? currentMatch.player1MaterialScore || 0 : currentMatch.player2MaterialScore || 0} pts (You) - {isPlayerWhite ? currentMatch.player2MaterialScore || 0 : currentMatch.player1MaterialScore || 0} pts (Opponent)
+                  </div>
+                </div>
+              )}
+
               {/* --------------------------------------------------------- */}
               {/* MOBILE 10-MINUTE RAPID CHESS CLOCK WITH TAP-TO-PASS TURN  */}
               {/* --------------------------------------------------------- */}
@@ -537,28 +701,39 @@ export default function ChessPlayerDashboardPage() {
 
                 {/* GIANT MOBILE TAP BUTTON (TOUCH-FRIENDLY FOR PHONES) */}
                 <div className="pt-1">
-                  <button
-                    type="button"
-                    onClick={handlePassTurn}
-                    className={`w-full py-5 sm:py-6 px-4 rounded-2xl font-mono font-black text-sm sm:text-base uppercase tracking-wider flex flex-col items-center justify-center gap-1 shadow-lg transition-transform active:scale-95 cursor-pointer ${
-                      isMyTurn
-                        ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white ring-4 ring-amber-400/30 animate-pulse'
-                        : isClockRunning
-                        ? 'bg-[#171715] dark:bg-[#FAF8F3] text-white dark:text-[#0D0D0D]'
-                        : 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                    }`}
-                  >
-                    <span className="text-lg">
-                      {isMyTurn ? 'TAP WHEN YOU MOVE PAWN / PIECE ⇋' : isClockRunning ? 'TAP TO SWITCH TURN ⇋' : 'START 10:00 CLOCK (WHITE MOVES)'}
-                    </span>
-                    <span className="text-[10px] font-normal tracking-widest opacity-80 font-sans">
-                      {isMyTurn
-                        ? 'Pauses your time and starts opponent clock immediately'
-                        : isClockRunning
-                        ? 'Opponent turn active • Tap anytime to claim move'
-                        : 'Tap here once opening move is made on the board'}
-                    </span>
-                  </button>
+                  {isCompleted ? (
+                    <div className="w-full py-4 px-4 rounded-2xl bg-[#EFEAE1] dark:bg-[#1C1C1A] border border-[#D5CFC5] dark:border-[#282826] text-center space-y-1">
+                      <span className="font-mono font-bold text-xs uppercase tracking-wider text-emerald-700 dark:text-emerald-400 block">
+                        ✓ Match Completed & Recorded in Standings
+                      </span>
+                      <span className="text-[11px] text-[#77736B] dark:text-[#8E8E93] font-sans">
+                        Scores and outcomes are finalized for this fixture.
+                      </span>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handlePassTurn}
+                      className={`w-full py-5 sm:py-6 px-4 rounded-2xl font-mono font-black text-sm sm:text-base uppercase tracking-wider flex flex-col items-center justify-center gap-1 shadow-lg transition-transform active:scale-95 cursor-pointer ${
+                        isMyTurn
+                          ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white ring-4 ring-amber-400/30 animate-pulse'
+                          : isClockRunning
+                          ? 'bg-[#171715] dark:bg-[#FAF8F3] text-white dark:text-[#0D0D0D]'
+                          : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                      }`}
+                    >
+                      <span className="text-lg">
+                        {isMyTurn ? 'TAP WHEN YOU MOVE PAWN / PIECE ⇋' : isClockRunning ? 'TAP TO SWITCH TURN ⇋' : 'START 10:00 CLOCK (WHITE MOVES)'}
+                      </span>
+                      <span className="text-[10px] font-normal tracking-widest opacity-80 font-sans">
+                        {isMyTurn
+                          ? 'Pauses your time and starts opponent clock immediately'
+                          : isClockRunning
+                          ? 'Opponent turn active • Tap anytime to claim move'
+                          : 'Tap here once opening move is made on the board'}
+                      </span>
+                    </button>
+                  )}
                 </div>
 
                 {/* Clock Controls Strip */}

@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Pause, RotateCcw, Volume2, VolumeX, Maximize2, Minimize2, AlertTriangle, Flag, Sparkles } from 'lucide-react';
+import { Play, Pause, RotateCcw, Volume2, VolumeX, Maximize2, Minimize2, Flag, Sparkles } from 'lucide-react';
+import { chessApi } from '@/lib/chessApi';
 
 /**
  * Native Web Audio synthesizer for turn-switch clicks and flag fall alarm
@@ -50,6 +51,7 @@ function playAudioTone(type = 'click') {
 }
 
 export function DualChessClock({
+  match = null,
   initialMinutes = 10,
   player1Name = 'White Player',
   player2Name = 'Black Player',
@@ -57,18 +59,128 @@ export function DualChessClock({
   onTurnChange,
   variant = 'standard' // 'standard' | 'compact' | 'modal'
 }) {
-  const initialSeconds = initialMinutes * 60;
+  const matchId = match?._id || match?.matchId || null;
+  const initialSeconds = (match?.durationMinutes || initialMinutes) * 60;
 
-  const [p1Time, setP1Time] = useState(initialSeconds);
-  const [p2Time, setP2Time] = useState(initialSeconds);
-  const [activeTurn, setActiveTurn] = useState(null); // 'white' | 'black' | null
-  const [isRunning, setIsRunning] = useState(false);
-  const [movesCount, setMovesCount] = useState(0);
-  const [flagFall, setFlagFall] = useState(null); // 'white' | 'black' | null
+  // Resolve initial state from match if available
+  const getInitialWhite = () => {
+    if (typeof match?.whiteTimeRemaining === 'number') return match.whiteTimeRemaining;
+    return initialSeconds;
+  };
+  const getInitialBlack = () => {
+    if (typeof match?.blackTimeRemaining === 'number') return match.blackTimeRemaining;
+    return initialSeconds;
+  };
+  const getInitialTurn = () => {
+    if (match?.activeTurn && match.activeTurn !== 'none') return match.activeTurn;
+    return 'white';
+  };
+  const getInitialRunning = () => {
+    if (typeof match?.isClockRunning === 'boolean') return match.isClockRunning;
+    return match?.status === 'live';
+  };
+
+  const [p1Time, setP1Time] = useState(getInitialWhite);
+  const [p2Time, setP2Time] = useState(getInitialBlack);
+  const [activeTurn, setActiveTurn] = useState(getInitialTurn);
+  const [isRunning, setIsRunning] = useState(getInitialRunning);
+  const [movesCount, setMovesCount] = useState(match?.movesCount || 0);
+  const [flagFall, setFlagFall] = useState(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
 
   const timerRef = useRef(null);
+  const channelRef = useRef(null);
+
+  // Sync state from server prop `match` whenever it updates
+  useEffect(() => {
+    if (!match) return;
+
+    let wSec = typeof match.whiteTimeRemaining === 'number' ? match.whiteTimeRemaining : initialSeconds;
+    let bSec = typeof match.blackTimeRemaining === 'number' ? match.blackTimeRemaining : initialSeconds;
+    const running = match.isClockRunning ?? (match.status === 'live');
+    const turn = match.activeTurn && match.activeTurn !== 'none' ? match.activeTurn : 'white';
+
+    // Account for elapsed time if clock is running on server
+    if (running && match.lastClockUpdate) {
+      const elapsed = Math.max(0, Math.floor((Date.now() - new Date(match.lastClockUpdate).getTime()) / 1000));
+      if (turn === 'white') {
+        wSec = Math.max(0, wSec - elapsed);
+      } else if (turn === 'black') {
+        bSec = Math.max(0, bSec - elapsed);
+      }
+    }
+
+    setP1Time(wSec);
+    setP2Time(bSec);
+    setActiveTurn(turn);
+    setIsRunning(running && wSec > 0 && bSec > 0);
+    setMovesCount(match.movesCount || 0);
+
+    if (wSec <= 0) setFlagFall('white');
+    else if (bSec <= 0) setFlagFall('black');
+    else setFlagFall(null);
+  }, [match?._id, match?.matchId, match?.whiteTimeRemaining, match?.blackTimeRemaining, match?.activeTurn, match?.isClockRunning, match?.movesCount, match?.lastClockUpdate, initialSeconds]);
+
+  // BroadcastChannel for instant multi-tab synchronization
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.BroadcastChannel) return;
+
+    const channel = new BroadcastChannel('chess_tournament_clock');
+    channelRef.current = channel;
+
+    channel.onmessage = (event) => {
+      const data = event.data;
+      if (!data) return;
+      if (matchId && data.matchId && data.matchId !== matchId) return;
+
+      if (typeof data.p1Time === 'number') setP1Time(data.p1Time);
+      if (typeof data.p2Time === 'number') setP2Time(data.p2Time);
+      if (data.activeTurn) setActiveTurn(data.activeTurn);
+      if (typeof data.isRunning === 'boolean') setIsRunning(data.isRunning);
+      if (typeof data.movesCount === 'number') setMovesCount(data.movesCount);
+      if (data.flagFall !== undefined) setFlagFall(data.flagFall);
+    };
+
+    return () => {
+      channel.close();
+    };
+  }, [matchId]);
+
+  // Helper to broadcast clock state to all tabs and sync to backend
+  const broadcastAndSync = useCallback((updates) => {
+    const payload = {
+      matchId,
+      p1Time: updates.p1Time !== undefined ? updates.p1Time : p1Time,
+      p2Time: updates.p2Time !== undefined ? updates.p2Time : p2Time,
+      activeTurn: updates.activeTurn !== undefined ? updates.activeTurn : activeTurn,
+      isRunning: updates.isRunning !== undefined ? updates.isRunning : isRunning,
+      movesCount: updates.movesCount !== undefined ? updates.movesCount : movesCount,
+      flagFall: updates.flagFall !== undefined ? updates.flagFall : flagFall,
+      timestamp: Date.now()
+    };
+
+    if (channelRef.current) {
+      try {
+        channelRef.current.postMessage(payload);
+      } catch {
+        // Channel closed or unavailable
+      }
+    }
+
+    if (matchId) {
+      chessApi.syncMatchClock(matchId, {
+        activeTurn: payload.activeTurn,
+        whiteTimeRemaining: payload.p1Time,
+        blackTimeRemaining: payload.p2Time,
+        movesCount: payload.movesCount,
+        isClockRunning: payload.isRunning,
+        status: payload.isRunning ? 'live' : undefined
+      }).catch((err) => {
+        console.error('Failed to sync clock to server:', err);
+      });
+    }
+  }, [matchId, p1Time, p2Time, activeTurn, isRunning, movesCount, flagFall]);
 
   // Countdown loop
   useEffect(() => {
@@ -86,6 +198,7 @@ export function DualChessClock({
             setFlagFall('white');
             if (soundEnabled) playAudioTone('flag');
             if (onTimeExpired) onTimeExpired('white');
+            broadcastAndSync({ p1Time: 0, isRunning: false, flagFall: 'white' });
             return 0;
           }
           if (prev === 31 || prev === 11) {
@@ -101,6 +214,7 @@ export function DualChessClock({
             setFlagFall('black');
             if (soundEnabled) playAudioTone('flag');
             if (onTimeExpired) onTimeExpired('black');
+            broadcastAndSync({ p2Time: 0, isRunning: false, flagFall: 'black' });
             return 0;
           }
           if (prev === 31 || prev === 11) {
@@ -112,25 +226,25 @@ export function DualChessClock({
     }, 1000);
 
     return () => clearInterval(timerRef.current);
-  }, [isRunning, activeTurn, flagFall, soundEnabled, onTimeExpired]);
+  }, [isRunning, activeTurn, flagFall, soundEnabled, onTimeExpired, broadcastAndSync]);
 
   // Start / Resume Game
   const handleStartResume = () => {
     if (flagFall) return;
-    if (!activeTurn) {
-      // White moves first by standard chess convention
-      setActiveTurn('white');
-    }
+    const turn = activeTurn || 'white';
+    setActiveTurn(turn);
     setIsRunning(true);
     if (soundEnabled) playAudioTone('click');
+    broadcastAndSync({ activeTurn: turn, isRunning: true });
   };
 
   // Pause
   const handlePause = () => {
     setIsRunning(false);
+    broadcastAndSync({ isRunning: false });
   };
 
-  // Switch turn (When White moves -> switch to Black. When Black moves -> switch to White)
+  // Switch turn
   const handleSwitchTurn = useCallback((forcedTurn = null) => {
     if (flagFall) return;
 
@@ -139,42 +253,53 @@ export function DualChessClock({
       nextTurn = forcedTurn;
     } else {
       if (!isRunning) {
-        // If not started yet, first click starts White
         nextTurn = activeTurn === 'black' ? 'white' : 'black';
-        setIsRunning(true);
       } else {
         nextTurn = activeTurn === 'white' ? 'black' : 'white';
       }
     }
 
+    const nextMoves = activeTurn === 'black' ? movesCount + 1 : movesCount;
     setActiveTurn(nextTurn);
     setIsRunning(true);
+    setMovesCount(nextMoves);
+
     if (soundEnabled) playAudioTone('click');
 
-    // Increment move count on Black's completed move
-    if (activeTurn === 'black') {
-      setMovesCount((m) => m + 1);
-    }
+    broadcastAndSync({
+      activeTurn: nextTurn,
+      isRunning: true,
+      movesCount: nextMoves,
+      p1Time,
+      p2Time
+    });
 
     if (onTurnChange) {
       onTurnChange(nextTurn);
     }
-  }, [flagFall, isRunning, activeTurn, soundEnabled, onTurnChange]);
+  }, [flagFall, isRunning, activeTurn, movesCount, soundEnabled, p1Time, p2Time, onTurnChange, broadcastAndSync]);
 
   // Reset clock
   const handleReset = () => {
     setIsRunning(false);
-    setActiveTurn(null);
+    setActiveTurn('white');
     setFlagFall(null);
     setP1Time(initialSeconds);
     setP2Time(initialSeconds);
     setMovesCount(0);
+    broadcastAndSync({
+      isRunning: false,
+      activeTurn: 'white',
+      flagFall: null,
+      p1Time: initialSeconds,
+      p2Time: initialSeconds,
+      movesCount: 0
+    });
   };
 
   // Keyboard shortcut (Spacebar = switch turn, P = pause)
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Don't trigger if user is typing into an input/textarea
       const tag = e.target?.tagName?.toLowerCase();
       if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
 

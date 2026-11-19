@@ -907,6 +907,7 @@ export default function ChessAdminMatchesPage() {
               {/* Turn-Based 10:00 Dual Chess Clock */}
               <div className="space-y-1.5">
                 <DualChessClock
+                  match={liveScoringMatch}
                   initialMinutes={liveScoringMatch.durationMinutes || 10}
                   player1Name={liveScoringMatch.player1?.fullName || 'White'}
                   player2Name={liveScoringMatch.player2?.fullName || 'Black'}

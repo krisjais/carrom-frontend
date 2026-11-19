@@ -358,6 +358,7 @@ export default function ChessMatchDetailPage() {
             {/* Interactive Turn-Based Dual Chess Clock (10:00 Rapid Control) */}
             {!match.isBye && (
               <DualChessClock
+                match={match}
                 initialMinutes={match.durationMinutes || 10}
                 player1Name={`${player1.fullName} (White)`}
                 player2Name={`${player2.fullName} (Black)`}
