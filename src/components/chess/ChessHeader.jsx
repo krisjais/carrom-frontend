@@ -39,21 +39,21 @@ export function ChessHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-50 pt-3 pb-3 px-4 sm:px-6 md:px-8 select-none transition-all">
-      <div className="max-w-7xl mx-auto flex items-center justify-between bg-[#FAF8F3]/90 dark:bg-[#151514]/90 backdrop-blur-md border border-[#D5CFC5] dark:border-[#262624] px-4 sm:px-6 py-2.5 rounded-full shadow-xs transition-all duration-300">
+    <header className="sticky top-0 z-50 pt-2.5 pb-2.5 px-3 sm:px-6 md:px-8 select-none transition-all">
+      <div className="max-w-7xl mx-auto flex items-center justify-between bg-[#FAF8F3]/95 dark:bg-[#151514]/95 backdrop-blur-md border border-[#D5CFC5] dark:border-[#262624] px-3 sm:px-6 py-2 rounded-full shadow-xs transition-all duration-300">
         
         {/* LEFT: Branding */}
-        <Link href="/chess" className="flex items-center gap-2.5 group shrink-0">
-          <div className="w-8 h-8 rounded-full bg-[#22221F] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] flex items-center justify-center font-bold text-base shadow-xs group-hover:scale-105 transition-transform duration-200">
-            <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+        <Link href="/chess" className="flex items-center gap-2 group shrink-0">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#22221F] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] flex items-center justify-center font-bold text-sm sm:text-base shadow-xs group-hover:scale-105 transition-transform duration-200">
+            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" viewBox="0 0 24 24">
               <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
             </svg>
           </div>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-sm font-bold tracking-tight text-[#171715] dark:text-[#FAF8F3] font-serif">
+            <span className="text-xs sm:text-sm font-bold tracking-tight text-[#171715] dark:text-[#FAF8F3] font-serif">
               CHESS
             </span>
-            <span className="hidden xl:inline text-[9px] uppercase tracking-widest text-[#77736B] dark:text-[#A8A49C] font-mono font-medium">
+            <span className="hidden sm:inline text-[9px] uppercase tracking-widest text-[#77736B] dark:text-[#A8A49C] font-mono font-medium">
               2026
             </span>
           </div>
@@ -79,14 +79,14 @@ export function ChessHeader() {
           })}
         </nav>
 
-        {/* RIGHT: Theme Toggle, Register CTA */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        {/* RIGHT: Theme Toggle, User Portal, Hamburger */}
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
           
-          {/* Small Compact Theme Toggle Button */}
+          {/* Theme Toggle Button */}
           <button
             type="button"
             onClick={toggleTheme}
-            className="w-8 h-8 flex items-center justify-center rounded-full border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1] dark:bg-[#1D1D1B] text-[#171715] dark:text-[#FAF8F3] hover:bg-[#E4DED5] dark:hover:bg-[#262624] transition-all focus:outline-none shadow-xs hover:scale-105 active:scale-95"
+            className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-full border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1] dark:bg-[#1D1D1B] text-[#171715] dark:text-[#FAF8F3] hover:bg-[#E4DED5] dark:hover:bg-[#262624] transition-all focus:outline-none shadow-xs shrink-0 cursor-pointer"
             title={mounted && theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             aria-label="Toggle Light or Dark Theme"
           >
@@ -97,37 +97,41 @@ export function ChessHeader() {
             )}
           </button>
 
-          {/* Competitor Login or Portal Button */}
+          {/* If Authenticated Competitor */}
           {playerAuth.isAuthenticated ? (
             <Link
               href="/chess/player/dashboard"
-              className="inline-flex items-center gap-1.5 border border-amber-600/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 font-semibold px-3 py-1.5 rounded-full text-xs uppercase tracking-wider transition-colors shrink-0"
+              className="inline-flex items-center gap-1 sm:gap-1.5 border border-amber-600/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 font-semibold px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs uppercase tracking-wider transition-colors shrink-0"
+              title="Open My Match Clocks"
             >
-              <Clock className="w-3.5 h-3.5 text-amber-600" />
-              <span>My Clock</span>
+              <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+              <span className="hidden xs:inline">My Clock</span>
             </Link>
           ) : (
-            <Link
-              href="/chess/login"
-              className="hidden sm:inline-flex items-center gap-1 border border-[#D5CFC5] dark:border-[#262624] bg-[#FAF8F3] dark:bg-[#1D1D1B] hover:bg-[#EFEAE1] dark:hover:bg-[#262624] text-[#171715] dark:text-[#FAF8F3] font-semibold px-3.5 py-2 rounded-full text-xs uppercase tracking-wider transition-colors shrink-0"
-            >
-              <span>Login</span>
-            </Link>
-          )}
+            <>
+              {/* Login (Tablet & Desktop) */}
+              <Link
+                href="/chess/login"
+                className="hidden sm:inline-flex items-center gap-1 border border-[#D5CFC5] dark:border-[#262624] bg-[#FAF8F3] dark:bg-[#1D1D1B] hover:bg-[#EFEAE1] dark:hover:bg-[#262624] text-[#171715] dark:text-[#FAF8F3] font-semibold px-3 py-1.5 rounded-full text-xs uppercase tracking-wider transition-colors shrink-0"
+              >
+                <span>Login</span>
+              </Link>
 
-          {/* Register Button */}
-          <Link
-            href="/chess/register"
-            className="inline-flex items-center gap-1.5 bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-[#000000] dark:hover:bg-[#FFFFFF] text-[#FAF8F3] dark:text-[#0D0D0D] font-semibold px-4 py-2 rounded-full text-xs uppercase tracking-wider transition-all duration-200 shadow-xs hover:shadow hover:-translate-y-0.5 active:translate-y-0 shrink-0"
-          >
-            <span>Register</span>
-            <ArrowRight className="w-3 h-3" />
-          </Link>
+              {/* Register Button */}
+              <Link
+                href="/chess/register"
+                className="inline-flex items-center gap-1 bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-[#000000] dark:hover:bg-[#FFFFFF] text-[#FAF8F3] dark:text-[#0D0D0D] font-semibold px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs uppercase tracking-wider transition-all duration-200 shadow-xs shrink-0"
+              >
+                <span>Register</span>
+                <ArrowRight className="w-3 h-3 hidden xs:inline" />
+              </Link>
+            </>
+          )}
 
           {/* Mobile Menu Hamburger */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-1.5 rounded-full border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1] dark:bg-[#1D1D1B] text-[#171715] dark:text-[#FAF8F3] hover:bg-[#E4DED5] dark:hover:bg-[#262624] transition-colors focus:outline-none"
+            className="lg:hidden p-1.5 sm:p-2 rounded-full border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1] dark:bg-[#1D1D1B] text-[#171715] dark:text-[#FAF8F3] hover:bg-[#E4DED5] dark:hover:bg-[#262624] transition-colors focus:outline-none shrink-0 cursor-pointer"
             aria-label="Toggle navigation menu"
           >
             {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
@@ -160,14 +164,23 @@ export function ChessHeader() {
           </div>
 
           <div className="pt-3 border-t border-[#D5CFC5] dark:border-[#262624] flex items-center justify-between">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-[#77736B] dark:text-[#8E8E93]">
-              Appearance
-            </span>
+            {playerAuth.isAuthenticated ? (
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-xs font-mono font-bold text-[#171715] dark:text-[#FAF8F3]">
+                  {playerAuth.player?.fullName || playerAuth.player?.playerId}
+                </span>
+              </div>
+            ) : (
+              <span className="text-[10px] font-mono uppercase tracking-widest text-[#77736B] dark:text-[#8E8E93]">
+                Appearance
+              </span>
+            )}
 
             <button
               type="button"
               onClick={toggleTheme}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1] dark:bg-[#1D1D1B] text-[#171715] dark:text-[#FAF8F3] text-xs font-semibold"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1] dark:bg-[#1D1D1B] text-[#171715] dark:text-[#FAF8F3] text-xs font-semibold cursor-pointer"
             >
               {mounted && theme === 'dark' ? (
                 <>
