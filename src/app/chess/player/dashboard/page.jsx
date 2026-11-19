@@ -334,45 +334,6 @@ export default function ChessPlayerDashboardPage() {
   }, [isClockRunning, activeTurn, flagFall, soundEnabled, movesCount, whiteSeconds, blackSeconds, dashboardData?.currentMatch, broadcastAndSync]);
 
 
-  const handlePauseClock = () => {
-    setIsClockRunning(false);
-    broadcastAndSync({
-      isClockRunning: false,
-      whiteSeconds,
-      blackSeconds
-    });
-  };
-
-  const handleStartResumeClock = () => {
-    if (flagFall) return;
-    const turn = activeTurn || 'white';
-    setActiveTurn(turn);
-    setIsClockRunning(true);
-    if (soundEnabled) playClockTone('click');
-    broadcastAndSync({
-      activeTurn: turn,
-      isClockRunning: true,
-      whiteSeconds,
-      blackSeconds
-    });
-  };
-
-  const handleResetClock = () => {
-    setIsClockRunning(false);
-    setActiveTurn('white');
-    setWhiteSeconds(600);
-    setBlackSeconds(600);
-    setMovesCount(0);
-    setFlagFall(null);
-    broadcastAndSync({
-      isClockRunning: false,
-      activeTurn: 'white',
-      whiteSeconds: 600,
-      blackSeconds: 600,
-      movesCount: 0,
-      flagFall: null
-    });
-  };
 
   const handleLogout = () => {
     chessApi.logoutPlayer();
@@ -740,10 +701,10 @@ export default function ChessPlayerDashboardPage() {
                     <div className="w-full py-4 px-4 rounded-2xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/30 text-center space-y-1">
                       <div className="flex items-center justify-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
                         <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <span>Match Live On Board</span>
+                        <span>Match Live On Board • {activeTurn === 'white' ? "White's Opening Turn" : "Black's Turn"}</span>
                       </div>
                       <p className="text-[11px] text-[#77736B] dark:text-[#8E8E93] font-sans max-w-sm mx-auto">
-                        Play your moves over the board. The tournament arbiter will directly declare the winning player when the game finishes.
+                        Match started by arbiter. Clock started from White. Play your moves over the board.
                       </p>
                     </div>
                   ) : (
@@ -752,7 +713,7 @@ export default function ChessPlayerDashboardPage() {
                         Fixture Scheduled
                       </span>
                       <span className="text-[11px] text-[#77736B] dark:text-[#8E8E93] font-sans">
-                        Report to Board 1 when called by the arbiter.
+                        Report to board. Match will be officially started by the tournament arbiter, starting from White's opening turn.
                       </span>
                     </div>
                   )}

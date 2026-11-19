@@ -57,7 +57,8 @@ export function DualChessClock({
   player2Name = 'Black Player',
   onTimeExpired,
   onTurnChange,
-  variant = 'standard' // 'standard' | 'compact' | 'modal'
+  variant = 'standard', // 'standard' | 'compact' | 'modal'
+  readOnly = false
 }) {
   const matchId = match?._id || match?.matchId || null;
   const initialSeconds = (match?.durationMinutes || initialMinutes) * 60;
@@ -358,6 +359,7 @@ export function DualChessClock({
 
   // Keyboard shortcut (Spacebar = switch turn, P = pause)
   useEffect(() => {
+    if (readOnly) return;
     const handleKeyDown = (e) => {
       const tag = e.target?.tagName?.toLowerCase();
       if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
@@ -371,7 +373,7 @@ export function DualChessClock({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isRunning]);
+  }, [isRunning, readOnly]);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -651,38 +653,45 @@ export function DualChessClock({
           </span>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center gap-2">
-          {isRunning ? (
-            <button
-              type="button"
-              onClick={handlePause}
-              className="bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider inline-flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
-            >
-              <Pause className="w-3.5 h-3.5 fill-current" />
-              <span>Pause Clock</span>
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleStartResume}
-              className="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider inline-flex items-center gap-1.5 shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer"
-            >
-              <Play className="w-3.5 h-3.5 fill-current" />
-              <span>{activeTurn ? 'Resume Clock' : 'Start 10:00 (White Moves)'}</span>
-            </button>
-          )}
+        {/* Action Buttons or Read-Only Status */}
+        {readOnly ? (
+          <div className="flex items-center gap-2 font-mono text-xs text-[#77736B] dark:text-[#8E8E93]">
+            <span className={`w-2 h-2 rounded-full ${isRunning ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+            <span>{isRunning ? 'Official Clock Active' : 'Official Clock Paused'}</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            {isRunning ? (
+              <button
+                type="button"
+                onClick={handlePause}
+                className="bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider inline-flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              >
+                <Pause className="w-3.5 h-3.5 fill-current" />
+                <span>Pause Clock</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleStartResume}
+                className="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider inline-flex items-center gap-1.5 shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer"
+              >
+                <Play className="w-3.5 h-3.5 fill-current" />
+                <span>{activeTurn ? 'Resume Clock' : 'Start 10:00 (White Moves)'}</span>
+              </button>
+            )}
 
-          {/* Reset */}
-          <button
-            type="button"
-            onClick={handleReset}
-            className="p-2 rounded-xl border border-[#D5CFC5] dark:border-[#282826] bg-[#FAF8F3] dark:bg-[#20201E] hover:bg-rose-50 dark:hover:bg-rose-950/40 text-[#77736B] hover:text-rose-600 transition-colors cursor-pointer"
-            title="Reset to 10:00"
-          >
-            <RotateCcw className="w-4 h-4" />
-          </button>
-        </div>
+            {/* Reset */}
+            <button
+              type="button"
+              onClick={handleReset}
+              className="p-2 rounded-xl border border-[#D5CFC5] dark:border-[#282826] bg-[#FAF8F3] dark:bg-[#20201E] hover:bg-rose-50 dark:hover:bg-rose-950/40 text-[#77736B] hover:text-rose-600 transition-colors cursor-pointer"
+              title="Reset to 10:00"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
       </div>
 

@@ -22,7 +22,6 @@ export default function ChessMatchDetailPage() {
   const toast = useToast();
   const [matchData, setMatchData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [startingMatch, setStartingMatch] = useState(false);
 
   // Live Turn-Based Clocks for Spectator View
   const [whiteSeconds, setWhiteSeconds] = useState(600);
@@ -155,32 +154,6 @@ export default function ChessMatchDetailPage() {
     return () => clearInterval(timer);
   }, [isClockRunning, activeTurn, flagFall, matchData?.match?.status]);
 
-  const handleStartLiveMatch = async () => {
-    if (!matchData?.match?._id && !matchData?.match?.matchId) return;
-    setStartingMatch(true);
-    try {
-      const matchId = matchData.match._id || matchData.match.matchId;
-      const res = await chessApi.startMatch(matchId);
-      if (res.success) {
-        setMatchData((prev) => ({
-          ...prev,
-          match: {
-            ...prev.match,
-            status: 'live',
-            actualStartTime: new Date(),
-            durationMinutes: 10
-          }
-        }));
-        toast.success('Live match started successfully!');
-      } else {
-        toast.error(res.message || 'Failed to start match.');
-      }
-    } catch (err) {
-      toast.error(err.message || 'Error starting match.');
-    } finally {
-      setStartingMatch(false);
-    }
-  };
 
   const match = matchData?.match;
   const p1Raw = match?.player1;
@@ -294,22 +267,6 @@ export default function ChessMatchDetailPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {match.status === 'scheduled' && !match.isBye && (
-                    <button
-                      onClick={handleStartLiveMatch}
-                      disabled={startingMatch}
-                      className="bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-semibold font-mono uppercase px-3.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                      title="Start 10:00 live timer"
-                    >
-                      {startingMatch ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Play className="w-3 h-3 fill-current" />
-                      )}
-                      <span>Start Live Match (10:00)</span>
-                    </button>
-                  )}
-
                   <span className={`px-3 py-1 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider ${
                     isLive
                       ? 'bg-rose-100 dark:bg-rose-950/40 text-rose-800 dark:text-rose-400 border border-rose-300 dark:border-rose-900/60 inline-flex items-center gap-1.5'

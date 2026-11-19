@@ -267,7 +267,7 @@ export default function ChessAdminMatchesPage() {
     }
   };
 
-  // Start live match (10-minute clock starts)
+  // Start live match (10-minute clock starts from White's first turn)
   const handleStartMatch = async (id) => {
     setStartingMatchId(id);
     try {
@@ -277,11 +277,40 @@ export default function ChessAdminMatchesPage() {
         setMatches((prev) =>
           prev.map((m) =>
             m._id === id || m.matchId === id
-              ? { ...m, status: 'live', actualStartTime: new Date(), durationMinutes: 10 }
+              ? {
+                  ...m,
+                  status: 'live',
+                  actualStartTime: new Date(),
+                  durationMinutes: 10,
+                  activeTurn: 'white',
+                  isClockRunning: true,
+                  whiteTimeRemaining: 600,
+                  blackTimeRemaining: 600,
+                  movesCount: 0,
+                  lastClockUpdate: new Date()
+                }
               : m
           )
         );
-        toast.success('Live match started successfully!');
+
+        // Broadcast to all devices and player tabs instantly
+        try {
+          if (typeof window !== 'undefined' && window.BroadcastChannel) {
+            const bc = new BroadcastChannel('chess_tournament_clock');
+            bc.postMessage({
+              matchId: id,
+              activeTurn: 'white',
+              isClockRunning: true,
+              whiteSeconds: 600,
+              blackSeconds: 600,
+              movesCount: 0,
+              timestamp: Date.now()
+            });
+            bc.close();
+          }
+        } catch {}
+
+        toast.success('Match started! Clock active with White opening turn.');
         await loadData(true);
       } else {
         toast.error(res.message || 'Failed to start match.');
