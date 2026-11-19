@@ -553,13 +553,14 @@ export default function AdminDashboardPage() {
                   </div>
 
                   <div className="pt-2 border-t border-[#DCD6C8]/80 dark:border-[#38342C] flex items-center justify-between text-[11px] text-emerald-700 dark:text-emerald-400 font-bold font-mono">
-                  <span>Winner: {m.winnerTeam?.name || 'Confirmed'}</span>
-                  <Link href={`/admin/matches/${m._id}/score`} className="text-[#171614] dark:text-[#F7F4EC] hover:underline">
-                    Scorecard →
-                  </Link>
+                    <span>Winner: {m?.winnerTeam?.name || 'Confirmed'}</span>
+                    <Link href={`/admin/matches/${m?._id}/score`} className="text-[#171614] dark:text-[#F7F4EC] hover:underline">
+                      Scorecard →
+                    </Link>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
