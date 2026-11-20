@@ -59,6 +59,8 @@ export default function AdminMatchesPage() {
     adminInCharge: ''
   });
   const [boardSelectMatch, setBoardSelectMatch] = useState(null);
+  const [launchOnCourt, setLaunchOnCourt] = useState(null);
+  const [courtModalCategory, setCourtModalCategory] = useState('all');
 
   // Category Level Hierarchy: 'singles' | 'doubles' | 'mixed'
   const [mainTab, setMainTab] = useState('singles');
@@ -140,21 +142,35 @@ export default function AdminMatchesPage() {
     handleStartMatchOnBoard(matchId, targetBoard?.boardNumber || 1, targetBoard?.name || 'Carrom Board 1');
   };
 
-  const handleStartMatchOnBoard = async (matchId, boardNumber = 1, boardName = '') => {
+  const handleStartMatchOnBoard = async (matchId, boardNumber = 1, boardName = '', forceStart = false) => {
     setStartingMatchId(matchId);
     try {
       const res = await api.startMatch(matchId, {
         carromBoardNumber: boardNumber,
         boardName: boardName || `Carrom Board ${boardNumber}`,
-        roundDurationMinutes: scheduleSettings.roundDurationMinutes || 20
+        roundDurationMinutes: scheduleSettings.roundDurationMinutes || 20,
+        forceStart
       });
       if (res.success) {
         setBoardSelectMatch(null);
+        setLaunchOnCourt(null);
         toast.success(res.message || `Match launched on Board #${boardNumber}!`);
         router.push(`/admin/matches/${matchId}/score`);
       }
     } catch (err) {
-      toast.error(err.message || 'Failed to start match.');
+      if (!forceStart && (err.data?.isPlayerConflict || err.message?.includes('cannot participate in two concurrent matches') || err.message?.includes('currently playing live'))) {
+        const forceIt = await confirm({
+          title: 'Contestant Conflict Overlap',
+          message: `${err.message}\n\nDo you want to override and FORCE LAUNCH this match on Board #${boardNumber} anyway as Tournament Admin?`,
+          confirmText: 'Force Launch Anyway',
+          cancelText: 'Cancel'
+        });
+        if (forceIt) {
+          return handleStartMatchOnBoard(matchId, boardNumber, boardName, true);
+        }
+      } else {
+        toast.error(err.message || 'Failed to start match.');
+      }
       fetchMatchesAndTeams();
     } finally {
       setStartingMatchId(null);
@@ -583,17 +599,13 @@ export default function AdminMatchesPage() {
                     <>
                       <button
                         onClick={() => {
-                          const readyMatch = matches.find((m) => m?.status === 'scheduled' && !m?.isBye && m?.team1 && m?.team2);
-                          if (readyMatch) {
-                            handleStartMatchOnBoard(readyMatch?._id, b?.boardNumber || 1, b?.name || 'Board');
-                          } else {
-                            toast.error('No ready matches waiting in queue.');
-                          }
+                          setLaunchOnCourt(b);
+                          setCourtModalCategory(b?.assignedCategory || 'all');
                         }}
                         className="flex-1 py-1.5 px-3 rounded-lg bg-white dark:bg-[#15191C] hover:bg-[#FAF9F6] dark:hover:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-[11px] font-bold text-[#3E342B] dark:text-[#F5F1E8] flex items-center justify-center gap-1 uppercase tracking-wider cursor-pointer shadow-2xs"
                       >
                         <Play className="w-3 h-3 fill-current text-[#E74C3C]" />
-                        <span>Launch Next Match</span>
+                        <span>Launch Match</span>
                       </button>
 
                       {boards?.length > 1 && (
@@ -1423,6 +1435,161 @@ export default function AdminMatchesPage() {
             <button
               type="button"
               onClick={() => setBoardSelectMatch(null)}
+              className="px-4 py-2 rounded-xl text-xs text-[#7E7060] dark:text-[#817B72] hover:text-[#3E342B] dark:hover:text-[#F5F1E8] cursor-pointer font-mono"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* MODAL 5: Choose Match to Launch on Court */}
+      <Modal
+        isOpen={Boolean(launchOnCourt)}
+        onClose={() => setLaunchOnCourt(null)}
+        title={`Launch Match on Court #${launchOnCourt?.boardNumber} (${launchOnCourt?.name})`}
+        maxWidth="max-w-2xl"
+      >
+        <div className="space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-[#E8E1D5] dark:border-[#2B3034] text-xs">
+            <span className="font-mono text-[#7E7060] dark:text-[#817B72]">
+              Select which match to launch on this court:
+            </span>
+            {launchOnCourt?.assignedCategory && launchOnCourt?.assignedCategory !== 'all' && (
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400 font-bold border border-amber-300 dark:border-amber-800/60">
+                Focus: {CATEGORIES.find((c) => c.id === launchOnCourt.assignedCategory)?.name || launchOnCourt.assignedCategory}
+              </span>
+            )}
+          </div>
+
+          {/* Category Quick Filter */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+            <button
+              type="button"
+              onClick={() => setCourtModalCategory('all')}
+              className={`px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
+                courtModalCategory === 'all'
+                  ? 'bg-[#3E342B] text-white dark:bg-[#D4A94C] dark:text-[#15191C]'
+                  : 'bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8]'
+              }`}
+            >
+              All Categories
+            </button>
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setCourtModalCategory(cat.id)}
+                className={`px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all whitespace-nowrap cursor-pointer ${
+                  courtModalCategory === cat.id
+                    ? 'bg-[#3E342B] text-white dark:bg-[#D4A94C] dark:text-[#15191C]'
+                    : 'bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8]'
+                }`}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
+
+          {/* Scheduled Matches Selection List */}
+          <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+            {(() => {
+              const liveMatches = matches.filter((m) => m?.status === 'live');
+              const livePlayerIds = new Set();
+              liveMatches.forEach((m) => {
+                const ids = [
+                  m?.team1?.player1?._id || m?.team1?.player1,
+                  m?.team1?.player2?._id || m?.team1?.player2,
+                  m?.team2?.player1?._id || m?.team2?.player1,
+                  m?.team2?.player2?._id || m?.team2?.player2
+                ].filter(Boolean).map((id) => id.toString());
+                ids.forEach((id) => livePlayerIds.add(id));
+              });
+
+              const filtered = matches.filter((m) => {
+                if (m?.status !== 'scheduled' || m?.isBye || !m?.team1 || !m?.team2) return false;
+                if (courtModalCategory !== 'all' && m.category !== courtModalCategory) return false;
+                return true;
+              });
+
+              if (filtered.length === 0) {
+                return (
+                  <div className="py-8 text-center text-xs text-[#7E7060] dark:text-[#817B72] border border-dashed border-[#D5C4A1] dark:border-[#2B3034] rounded-xl font-mono">
+                    No scheduled matches waiting in this category.
+                  </div>
+                );
+              }
+
+              return filtered.map((m) => {
+                const matchPlayerIds = [
+                  m?.team1?.player1?._id || m?.team1?.player1,
+                  m?.team1?.player2?._id || m?.team1?.player2,
+                  m?.team2?.player1?._id || m?.team2?.player1,
+                  m?.team2?.player2?._id || m?.team2?.player2
+                ].filter(Boolean).map((id) => id.toString());
+
+                const hasConflict = matchPlayerIds.some((id) => livePlayerIds.has(id));
+                const conflictingLiveMatch = hasConflict ? liveMatches.find((lm) => {
+                  const lmIds = [
+                    lm?.team1?.player1?._id || lm?.team1?.player1,
+                    lm?.team1?.player2?._id || lm?.team1?.player2,
+                    lm?.team2?.player1?._id || lm?.team2?.player1,
+                    lm?.team2?.player2?._id || lm?.team2?.player2
+                  ].filter(Boolean).map((id) => id.toString());
+                  return matchPlayerIds.some((id) => lmIds.includes(id));
+                }) : null;
+
+                return (
+                  <div
+                    key={m._id}
+                    className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 transition-all ${
+                      hasConflict
+                        ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-300 dark:border-amber-800/40'
+                        : 'bg-white dark:bg-[#15191C] border-[#D5C4A1] dark:border-[#2B3034] hover:border-[#E74C3C]'
+                    }`}
+                  >
+                    <div className="space-y-1 min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap text-[11px] font-mono">
+                        <span className="font-bold text-[#E74C3C]">M#{m.matchNumber}</span>
+                        <span>•</span>
+                        <span className="font-semibold">{m.roundName}</span>
+                        <CategoryBadge category={m.category} />
+                      </div>
+                      <div className="font-serif font-bold text-xs sm:text-sm text-[#3E342B] dark:text-[#F5F1E8] truncate">
+                        {m.team1?.name} vs {m.team2?.name}
+                      </div>
+                      {hasConflict && (
+                        <div className="text-[10px] font-mono text-amber-700 dark:text-amber-400 font-semibold flex items-center gap-1">
+                          <span>⚠️ Contestant playing on Board #{conflictingLiveMatch?.carromBoardNumber || 1} (M#{conflictingLiveMatch?.matchNumber})</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="shrink-0 flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleStartMatchOnBoard(m._id, launchOnCourt?.boardNumber || 1, launchOnCourt?.name || 'Board', hasConflict)}
+                        disabled={startingMatchId === m._id}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-xs transition-all ${
+                          hasConflict
+                            ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                            : 'btn-primary'
+                        }`}
+                      >
+                        <Play className="w-3 h-3 fill-current" />
+                        <span>{hasConflict ? 'Force Launch' : 'Launch'}</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </div>
+
+          <div className="flex items-center justify-end pt-3 border-t border-[#E8E1D5] dark:border-[#2B3034]">
+            <button
+              type="button"
+              onClick={() => setLaunchOnCourt(null)}
               className="px-4 py-2 rounded-xl text-xs text-[#7E7060] dark:text-[#817B72] hover:text-[#3E342B] dark:hover:text-[#F5F1E8] cursor-pointer font-mono"
             >
               Cancel
