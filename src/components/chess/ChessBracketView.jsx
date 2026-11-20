@@ -4,7 +4,7 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { 
   Trophy, ExternalLink, ZoomIn, ZoomOut, RotateCcw, Crown, Shield, 
-  Play, Pause, Clock, Trash2, Zap, ArrowRight, UserCheck, Sparkles, ArrowRightLeft 
+  Play, Pause, Clock, Trash2, Zap, ArrowRight, UserCheck, Sparkles, ArrowRightLeft, Loader2 
 } from 'lucide-react';
 
 /**
@@ -311,21 +311,39 @@ function ChessMatchNode({
           )}
         </div>
 
-        {/* Status Pill */}
-        <span
-          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase ${
-            isLive
-              ? 'bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-400 border border-rose-300'
-              : isBye
-              ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-300'
-              : isCompleted
-              ? 'bg-[#EFEAE1] dark:bg-[#20201E] text-[#171715] dark:text-[#FAF8F3] border border-[#D5CFC5]'
-              : 'bg-[#EFEAE1]/60 dark:bg-[#1B1B19] text-[#77736B] dark:text-[#8E8E93] border border-[#D5CFC5]/70'
-          }`}
-        >
-          {isLive && <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1 animate-ping" />}
-          {isBye ? 'BYE ADVANCE' : match.status}
-        </span>
+        {/* Status Pill & Delete Button */}
+        <div className="flex items-center gap-1.5">
+          <span
+            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase ${
+              isLive
+                ? 'bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-400 border border-rose-300'
+                : isBye
+                ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-300'
+                : isCompleted
+                ? 'bg-[#EFEAE1] dark:bg-[#20201E] text-[#171715] dark:text-[#FAF8F3] border border-[#D5CFC5]'
+                : 'bg-[#EFEAE1]/60 dark:bg-[#1B1B19] text-[#77736B] dark:text-[#8E8E93] border border-[#D5CFC5]/70'
+            }`}
+          >
+            {isLive && <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1 animate-ping" />}
+            {isBye ? 'BYE ADVANCE' : match.status}
+          </span>
+
+          {/* Direct Delete Match Button */}
+          {onDeleteMatch && !isBye && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeleteMatch(match._id || match.matchId, match.matchId);
+              }}
+              disabled={isDeleting}
+              className="w-5 h-5 rounded-md flex items-center justify-center text-neutral-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors cursor-pointer"
+              title={`Delete match ${match.matchId}`}
+            >
+              {isDeleting ? <Loader2 className="w-2.5 h-2.5 animate-spin text-rose-600" /> : <Trash2 className="w-3 h-3" />}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* PLAYER 1 SLOT (WHITE) */}

@@ -1097,48 +1097,93 @@ export default function ChessAdminMatchesPage() {
       <main className="flex-1 p-3.5 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-4 sm:space-y-6">
         
         {/* Header Bar */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] p-5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-xs">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono font-semibold text-[#77736B] dark:text-[#A8A49C] uppercase tracking-widest block">
-                CUSTOM ROUND STAGES • BULK DELETE & CONTROLS
-              </span>
-              <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-700 dark:text-amber-400 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border border-amber-500/30">
-                <Clock className="w-3 h-3" />
-                10:00 Clocks
-              </span>
+        <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] p-5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-xs space-y-4">
+          {/* Top Row: Title & Badges + Quick Action Controls */}
+          <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[10px] font-mono font-semibold text-[#77736B] dark:text-[#A8A49C] uppercase tracking-widest block">
+                  CHESS ARBITER & TOURNAMENT DESK
+                </span>
+                <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-700 dark:text-amber-400 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border border-amber-500/30">
+                  <Clock className="w-3 h-3" />
+                  10:00 Rapid
+                </span>
+                <span className="text-[10px] font-mono font-bold text-[#77736B] dark:text-[#8E8E93]">
+                  • {matches.length} Total Match{matches.length !== 1 ? 'es' : ''}
+                </span>
+              </div>
+              <h1 className="text-xl sm:text-2xl font-bold font-serif text-[#171715] dark:text-[#FAF8F3] tracking-tight mt-1">
+                Match & Round Management
+              </h1>
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold font-serif text-[#171715] dark:text-[#FAF8F3] tracking-tight mt-1">
-              Match & Round Management
-            </h1>
+
+            {/* Primary Action Buttons: New Match, Reschedule, Delete Round / Reset */}
+            <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto">
+              {/* New Custom Match Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setManualRoundName(`Round ${selectedRound}`);
+                  setShowCreateModal(true);
+                }}
+                className="bg-[#EFEAE1] dark:bg-[#1E1E1C] hover:bg-[#E4DED5] dark:hover:bg-[#282826] border border-[#D5CFC5] dark:border-[#2E2E2B] text-[#171715] dark:text-[#FAF8F3] font-semibold px-3.5 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer active:scale-95"
+              >
+                <Plus className="w-4 h-4" />
+                <span>New Custom Match</span>
+              </button>
+
+              {/* Reschedule Match Button */}
+              <button
+                type="button"
+                onClick={() => openRescheduleModal()}
+                className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 dark:border-amber-500/40 font-semibold px-3.5 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                title="Reschedule match date/time, board number, or restart round"
+              >
+                <CalendarClock className="w-4 h-4" />
+                <span>Reschedule Match</span>
+              </button>
+
+              {/* Delete Round Button (Available when matches exist) */}
+              {matches.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleDeleteRound}
+                  disabled={deletingRound}
+                  className="bg-rose-50 dark:bg-rose-950/20 hover:bg-rose-100 dark:hover:bg-rose-950/50 border border-rose-300 dark:border-rose-900/60 text-rose-700 dark:text-rose-400 font-semibold px-3.5 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                  title={`Delete all matches in ${selectedRoundName || `Round ${selectedRound}`}`}
+                >
+                  {deletingRound ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                  <span>Delete Round</span>
+                </button>
+              )}
+
+              {/* Delete All Rounds Button */}
+              {matches.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleDeleteAllRounds}
+                  disabled={deletingAllRounds}
+                  className="bg-neutral-100 dark:bg-neutral-900 hover:bg-rose-100 dark:hover:bg-rose-950/40 border border-neutral-300 dark:border-neutral-800 text-neutral-600 hover:text-rose-700 dark:text-neutral-400 dark:hover:text-rose-400 font-semibold px-3 py-2.5 rounded-xl text-xs shadow-xs flex items-center justify-center gap-1 transition-all cursor-pointer active:scale-95"
+                  title="Reset & Delete ALL matches in tournament"
+                >
+                  {deletingAllRounds ? <Loader2 className="w-4 h-4 animate-spin text-rose-600" /> : <RotateCcw className="w-4 h-4" />}
+                  <span className="hidden sm:inline text-[11px] font-mono">Reset All</span>
+                </button>
+              )}
+            </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 w-full lg:w-auto">
-            {/* Create Custom Pairing Button */}
-            <button
-              onClick={() => {
-                setManualRoundName(`Round ${selectedRound}`);
-                setShowCreateModal(true);
-              }}
-              className="bg-[#EFEAE1] dark:bg-[#1E1E1C] hover:bg-[#E4DED5] dark:hover:bg-[#282826] border border-[#D5CFC5] dark:border-[#2E2E2B] text-[#171715] dark:text-[#FAF8F3] font-semibold px-3.5 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer active:scale-95"
-            >
-              <Plus className="w-4 h-4" />
-              <span>New Custom Match</span>
-            </button>
+          {/* Bottom Row / Toolbar: Stage Pairing Generator Box */}
+          <div className="pt-3 border-t border-[#D5CFC5]/60 dark:border-[#262624] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-xs text-[#77736B] dark:text-[#A8A49C] font-mono">
+              <span className="font-bold uppercase tracking-wider text-[#171715] dark:text-[#FAF8F3]">
+                Pairing Stage:
+              </span>
+              <span>Name any round (e.g. Final, Semi-Final, Round 1) and generate pairings.</span>
+            </div>
 
-            {/* Reschedule Match Button */}
-            <button
-              onClick={() => openRescheduleModal()}
-              className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 dark:border-amber-500/40 font-semibold px-3.5 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95"
-              title="Reschedule match date/time, board number, or restart match/round"
-            >
-              <CalendarClock className="w-4 h-4" />
-              <span>Reschedule Match</span>
-            </button>
-
-            {/* Round Generation Controls (Admin creates and names rounds like Round 1, Semi-Final, Final, Grand Finals) */}
-            <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="flex items-center gap-2 w-full md:w-auto">
               <input
                 type="text"
                 value={selectedRoundName}
@@ -1158,15 +1203,16 @@ export default function ChessAdminMatchesPage() {
                     setSelectedRound(4);
                   }
                 }}
-                placeholder="Stage name (e.g. Final, Grand Finals, Round 1)"
-                className="flex-1 sm:w-60 bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-3 py-2 text-xs font-semibold text-[#171715] dark:text-[#FAF8F3] focus:outline-none shadow-xs transition-colors"
+                placeholder="Stage name (e.g. Final, Round 1)"
+                className="flex-1 md:w-56 bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-3.5 py-2 text-xs font-semibold text-[#171715] dark:text-[#FAF8F3] focus:outline-none shadow-xs transition-colors"
                 title="Type any round name: Final, Grand Finals, Round 1, Semi-Final..."
               />
 
               <button
+                type="button"
                 onClick={handleGeneratePairings}
                 disabled={generating}
-                className="bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] font-semibold px-3.5 sm:px-4 py-2 rounded-xl text-xs uppercase tracking-wider shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0 active:scale-95"
+                className="bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] font-semibold px-4 py-2 rounded-xl text-xs uppercase tracking-wider shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0 active:scale-95"
                 title={`Generate pairings for ${selectedRoundName || 'selected round'}`}
               >
                 {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Swords className="w-4 h-4" />}
@@ -2566,6 +2612,26 @@ export default function ChessAdminMatchesPage() {
                   <CalendarClock className="w-4 h-4" />
                   <span>Reschedule</span>
                 </button>
+
+                {/* Delete Match Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const m = matchModalMatch;
+                    setMatchModalMatch(null);
+                    handleDeleteMatch(m._id || m.matchId, m.matchId);
+                  }}
+                  disabled={deletingMatchId === (matchModalMatch._id || matchModalMatch.matchId)}
+                  className="py-2.5 px-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-950/60 border border-rose-300 dark:border-rose-900 text-rose-700 dark:text-rose-400 font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-xs cursor-pointer transition-all"
+                  title="Permanently delete this match pairing"
+                >
+                  {deletingMatchId === (matchModalMatch._id || matchModalMatch.matchId) ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
+                  <span>Delete Match</span>
+                </button>
               </div>
 
               {/* Quick Time Extension & Duration Presets */}
@@ -2611,14 +2677,29 @@ export default function ChessAdminMatchesPage() {
 
             {/* Modal Footer */}
             <div className="pt-3 border-t border-[#D5CFC5] dark:border-[#262624] flex flex-wrap items-center justify-between gap-3">
-              <a
-                href={`/chess/matches/${matchModalMatch._id || matchModalMatch.matchId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs font-mono font-semibold text-amber-700 dark:text-amber-400 hover:underline flex items-center gap-1"
-              >
-                <span>Open Full Match View ↗</span>
-              </a>
+              <div className="flex items-center gap-3">
+                <a
+                  href={`/chess/matches/${matchModalMatch._id || matchModalMatch.matchId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-mono font-semibold text-amber-700 dark:text-amber-400 hover:underline flex items-center gap-1"
+                >
+                  <span>Open Full Match View ↗</span>
+                </a>
+                <span className="text-neutral-300 dark:text-neutral-700">•</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const m = matchModalMatch;
+                    setMatchModalMatch(null);
+                    handleDeleteMatch(m._id || m.matchId, m.matchId);
+                  }}
+                  className="text-xs font-mono font-semibold text-rose-600 dark:text-rose-400 hover:text-rose-700 hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete Match</span>
+                </button>
+              </div>
 
               <div className="flex items-center gap-2">
                 {!matchModalMatch.isBye && (
