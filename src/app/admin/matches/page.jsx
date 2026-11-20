@@ -29,7 +29,8 @@ import {
   Plus,
   Trash2,
   Radio,
-  LayoutGrid
+  LayoutGrid,
+  RotateCcw
 } from 'lucide-react';
 import { StatusBadge, MainBoardBadge, CategoryBadge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
@@ -69,6 +70,9 @@ export default function AdminMatchesPage() {
 
   // Scheduler Settings Modal
   const [schedulerModalOpen, setSchedulerModalOpen] = useState(false);
+  const [rescheduleCategory, setRescheduleCategory] = useState('all');
+  const [restartMatches, setRestartMatches] = useState(true);
+  const [distributeCourts, setDistributeCourts] = useState(true);
   const [scheduleSettings, setScheduleSettings] = useState({
     startTime: new Date().toISOString().slice(0, 16),
     matchDurationMinutes: 20,
@@ -258,12 +262,16 @@ export default function AdminMatchesPage() {
     try {
       const res = await api.generateSchedule({
         ...scheduleSettings,
-        roundDurationMinutes: scheduleSettings.roundDurationMinutes || scheduleSettings.matchDurationMinutes
+        roundDurationMinutes: scheduleSettings.roundDurationMinutes || scheduleSettings.matchDurationMinutes || 20,
+        category: rescheduleCategory,
+        restartMatches,
+        distributeCourts
       });
       if (res.success) {
-        toast.success('Sequential schedule generated successfully for Main Carrom Board!');
+        toast.success(res.message || 'Sequential schedule updated successfully!');
         setSchedulerModalOpen(false);
         fetchMatchesAndTeams();
+        fetchBoards();
       }
     } catch (err) {
       toast.error(err.message || 'Failed to generate schedule.');
@@ -1056,17 +1064,102 @@ export default function AdminMatchesPage() {
         </div>
       )}
 
-      {/* MODAL 1: Default Tournament Match Duration */}
+      {/* MODAL 1: Reschedule & Restart Arena Matches */}
       <Modal
         isOpen={schedulerModalOpen}
         onClose={() => setSchedulerModalOpen(false)}
-        title="Default Match Duration & Schedule Generator"
+        title="Reschedule & Restart Arena Matches"
+        maxWidth="max-w-2xl"
       >
         <form onSubmit={handleGenerateSchedule} className="space-y-4">
-          <div className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-xs space-y-1.5 text-[#7E7060] dark:text-[#B8B1A5] font-mono">
-            <p className="font-bold text-[#3E342B] dark:text-[#F5F1E8]">Single-Arena Match Timing:</p>
-            <p>Set how long each match will take. This sets the countdown clock duration for all matches on the Main Carrom Board.</p>
+          <div className="p-3.5 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-xs space-y-1 text-[#7E7060] dark:text-[#B8B1A5] font-mono">
+            <p className="font-bold text-[#3E342B] dark:text-[#F5F1E8]">Sequential Arena Match Scheduler:</p>
+            <p>Re-calculates sequential match times, distributes games across active courts, and optionally restarts matches back to 0-0.</p>
           </div>
+
+          {/* Category Filter Selector */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] uppercase font-mono flex items-center justify-between">
+              <span>Which category do you want to reschedule?</span>
+              <span className="text-[10px] text-amber-700 dark:text-amber-400 font-bold">
+                {rescheduleCategory === 'all' ? 'All 5 Categories' : CATEGORIES.find(c => c.id === rescheduleCategory)?.name}
+              </span>
+            </label>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => setRescheduleCategory('all')}
+                className={`py-2 px-3 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                  rescheduleCategory === 'all'
+                    ? 'bg-[#3E342B] dark:bg-[#D4A94C] text-white dark:text-[#15191C] shadow-xs'
+                    : 'bg-white dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8]'
+                }`}
+              >
+                <span>All Categories</span>
+              </button>
+
+              {CATEGORIES.map((cat) => {
+                const isSelected = rescheduleCategory === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setRescheduleCategory(cat.id)}
+                    className={`py-2 px-3 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 truncate ${
+                      isSelected
+                        ? 'bg-[#3E342B] dark:bg-[#D4A94C] text-white dark:text-[#15191C] shadow-xs'
+                        : 'bg-white dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8]'
+                    }`}
+                  >
+                    <span className="truncate">{cat.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Restart Matches Toggle */}
+          <div className="p-3.5 rounded-xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-300 dark:border-amber-800/40 space-y-2">
+            <label className="flex items-start gap-2.5 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={restartMatches}
+                onChange={(e) => setRestartMatches(e.target.checked)}
+                className="mt-0.5 w-4 h-4 rounded text-amber-600 focus:ring-amber-500 cursor-pointer"
+              />
+              <div className="space-y-0.5">
+                <span className="text-xs font-bold font-mono text-[#3E342B] dark:text-[#F5F1E8] block">
+                  Restart Matches to 0-0 (Reset Scores & Timers)
+                </span>
+                <p className="text-[11px] font-mono text-[#7E7060] dark:text-[#B8B1A5]">
+                  When checked, completed and live matches in the selected category will be reset to 0-0, their timer and boards cleared, and returned to the scheduled queue for a fresh start.
+                </p>
+              </div>
+            </label>
+          </div>
+
+          {/* Multi-Court Distribution Option */}
+          {boards.length > 1 && (
+            <div className="p-3.5 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034]">
+              <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={distributeCourts}
+                  onChange={(e) => setDistributeCourts(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded text-amber-600 focus:ring-amber-500 cursor-pointer"
+                />
+                <div className="space-y-0.5">
+                  <span className="text-xs font-bold font-mono text-[#3E342B] dark:text-[#F5F1E8] block">
+                    Distribute Across All Available Courts ({boards.length} Boards)
+                  </span>
+                  <p className="text-[11px] font-mono text-[#7E7060] dark:text-[#B8B1A5]">
+                    Distribute scheduled matches between Court #01 and Court #02 based on assigned category or parallel round-robin.
+                  </p>
+                </div>
+              </label>
+            </div>
+          )}
 
           {/* Round Duration with Quick Select Presets */}
           <div className="space-y-2">
@@ -1140,6 +1233,27 @@ export default function AdminMatchesPage() {
             />
           </div>
 
+          {/* Affected Matches Count Summary */}
+          {(() => {
+            const affectedMatches = matches.filter((m) => {
+              if (m?.isBye || !m?.team1 || !m?.team2) return false;
+              if (rescheduleCategory !== 'all' && m.category !== rescheduleCategory) return false;
+              return true;
+            });
+            const liveCount = affectedMatches.filter((m) => m.status === 'live').length;
+            const completedCount = affectedMatches.filter((m) => m.status === 'completed').length;
+            const scheduledCount = affectedMatches.filter((m) => m.status === 'scheduled').length;
+
+            return (
+              <div className="p-3 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] flex items-center justify-between text-xs font-mono">
+                <span className="text-[#7E7060] dark:text-[#817B72]">Affected Matches:</span>
+                <span className="font-bold text-[#3E342B] dark:text-[#F5F1E8]">
+                  {affectedMatches.length} matches ({scheduledCount} scheduled, {liveCount} live, {completedCount} completed)
+                </span>
+              </div>
+            );
+          })()}
+
           <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E8E1D5] dark:border-[#2B3034]">
             <button
               type="button"
@@ -1153,8 +1267,8 @@ export default function AdminMatchesPage() {
               disabled={generatingSchedule}
               className="btn-primary text-xs font-bold px-6 py-2.5 shadow-xs transition-all cursor-pointer uppercase tracking-wider flex items-center gap-1.5"
             >
-              <Save className="w-3.5 h-3.5" />
-              <span>{generatingSchedule ? 'Saving...' : 'Apply Default Duration'}</span>
+              <RotateCcw className={`w-3.5 h-3.5 ${generatingSchedule ? 'animate-spin' : ''}`} />
+              <span>{generatingSchedule ? 'Rescheduling...' : restartMatches ? 'Reschedule & Restart Matches' : 'Reschedule Matches'}</span>
             </button>
           </div>
         </form>
@@ -1520,7 +1634,10 @@ export default function AdminMatchesPage() {
                 );
               }
 
-              return filtered.map((m) => {
+              const readyMatchesList = [];
+              const conflictMatchesList = [];
+
+              filtered.forEach((m) => {
                 const matchPlayerIds = [
                   m?.team1?.player1?._id || m?.team1?.player1,
                   m?.team1?.player2?._id || m?.team1?.player2,
@@ -1539,50 +1656,106 @@ export default function AdminMatchesPage() {
                   return matchPlayerIds.some((id) => lmIds.includes(id));
                 }) : null;
 
-                return (
-                  <div
-                    key={m._id}
-                    className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 transition-all ${
-                      hasConflict
-                        ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-300 dark:border-amber-800/40'
-                        : 'bg-white dark:bg-[#15191C] border-[#D5C4A1] dark:border-[#2B3034] hover:border-[#E74C3C]'
-                    }`}
-                  >
-                    <div className="space-y-1 min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap text-[11px] font-mono">
-                        <span className="font-bold text-[#E74C3C]">M#{m.matchNumber}</span>
-                        <span>•</span>
-                        <span className="font-semibold">{m.roundName}</span>
-                        <CategoryBadge category={m.category} />
-                      </div>
-                      <div className="font-serif font-bold text-xs sm:text-sm text-[#3E342B] dark:text-[#F5F1E8] truncate">
-                        {m.team1?.name} vs {m.team2?.name}
-                      </div>
-                      {hasConflict && (
-                        <div className="text-[10px] font-mono text-amber-700 dark:text-amber-400 font-semibold flex items-center gap-1">
-                          <span>⚠️ Contestant playing on Board #{conflictingLiveMatch?.carromBoardNumber || 1} (M#{conflictingLiveMatch?.matchNumber})</span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="shrink-0 flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleStartMatchOnBoard(m._id, launchOnCourt?.boardNumber || 1, launchOnCourt?.name || 'Board', hasConflict)}
-                        disabled={startingMatchId === m._id}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-xs transition-all ${
-                          hasConflict
-                            ? 'bg-amber-600 hover:bg-amber-700 text-white'
-                            : 'btn-primary'
-                        }`}
-                      >
-                        <Play className="w-3 h-3 fill-current" />
-                        <span>{hasConflict ? 'Force Launch' : 'Launch'}</span>
-                      </button>
-                    </div>
-                  </div>
-                );
+                if (hasConflict) {
+                  conflictMatchesList.push({ match: m, conflictingLiveMatch });
+                } else {
+                  readyMatchesList.push({ match: m });
+                }
               });
+
+              return (
+                <div className="space-y-4">
+                  {/* Ready to Launch Matches (Conflict-Free) */}
+                  {readyMatchesList.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400 px-1">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <span>AVAILABLE TO LAUNCH ON COURT #{launchOnCourt?.boardNumber} ({readyMatchesList.length})</span>
+                      </div>
+
+                      {readyMatchesList.map(({ match: m }) => (
+                        <div
+                          key={m._id}
+                          className="p-3.5 rounded-xl border border-emerald-300 dark:border-emerald-800/40 bg-emerald-50/20 dark:bg-emerald-950/10 hover:border-emerald-500 flex items-center justify-between gap-3 transition-all"
+                        >
+                          <div className="space-y-1 min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap text-[11px] font-mono">
+                              <span className="font-bold text-[#E74C3C]">M#{m.matchNumber}</span>
+                              <span>•</span>
+                              <span className="font-semibold">{m.roundName}</span>
+                              <CategoryBadge category={m.category} />
+                              <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold bg-emerald-100 dark:bg-emerald-950/60 px-1.5 py-0.2 rounded">
+                                Ready to Play
+                              </span>
+                            </div>
+                            <div className="font-serif font-bold text-xs sm:text-sm text-[#3E342B] dark:text-[#F5F1E8] truncate">
+                              {m.team1?.name} vs {m.team2?.name}
+                            </div>
+                            <div className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                              <span>✓ Contestants are available and free to play now</span>
+                            </div>
+                          </div>
+
+                          <div className="shrink-0 flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleStartMatchOnBoard(m._id, launchOnCourt?.boardNumber || 1, launchOnCourt?.name || 'Board', false)}
+                              disabled={startingMatchId === m._id}
+                              className="btn-primary px-3.5 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-xs transition-all"
+                            >
+                              <Play className="w-3 h-3 fill-current" />
+                              <span>Launch Match</span>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Overlapping Conflict Matches (Player currently in active match) */}
+                  {conflictMatchesList.length > 0 && (
+                    <div className="space-y-2 pt-2 border-t border-[#E8E1D5] dark:border-[#2B3034]">
+                      <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-amber-700 dark:text-amber-400 px-1">
+                        <span>⚠️ CONTESTANT PLAYING ON ANOTHER COURT ({conflictMatchesList.length})</span>
+                      </div>
+
+                      {conflictMatchesList.map(({ match: m, conflictingLiveMatch }) => (
+                        <div
+                          key={m._id}
+                          className="p-3.5 rounded-xl border border-amber-300 dark:border-amber-800/40 bg-amber-50/40 dark:bg-amber-950/20 flex items-center justify-between gap-3 transition-all"
+                        >
+                          <div className="space-y-1 min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap text-[11px] font-mono">
+                              <span className="font-bold text-[#E74C3C]">M#{m.matchNumber}</span>
+                              <span>•</span>
+                              <span className="font-semibold">{m.roundName}</span>
+                              <CategoryBadge category={m.category} />
+                            </div>
+                            <div className="font-serif font-bold text-xs sm:text-sm text-[#3E342B] dark:text-[#F5F1E8] truncate">
+                              {m.team1?.name} vs {m.team2?.name}
+                            </div>
+                            <div className="text-[10px] font-mono text-amber-800 dark:text-amber-300 font-semibold flex items-center gap-1">
+                              <span>⚠️ Contestant is currently live on Court #{conflictingLiveMatch?.carromBoardNumber || 1} (Match #{conflictingLiveMatch?.matchNumber}). Wait for court to finish or Force Launch.</span>
+                            </div>
+                          </div>
+
+                          <div className="shrink-0 flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleStartMatchOnBoard(m._id, launchOnCourt?.boardNumber || 1, launchOnCourt?.name || 'Board', true)}
+                              disabled={startingMatchId === m._id}
+                              className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-xs transition-all"
+                            >
+                              <Play className="w-3 h-3 fill-current" />
+                              <span>Force Launch</span>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
             })()}
           </div>
 

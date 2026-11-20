@@ -16,12 +16,15 @@ import {
   RefreshCw,
   Sparkles,
   ArrowRight,
-  Edit3
+  Edit3,
+  Clock,
+  RotateCcw
 } from 'lucide-react';
 import { CategoryBadge } from '@/components/ui/Badge';
 import { useToast, useConfirm } from '@/context/ToastContext';
 import { CategoryCoinPair } from '@/components/ui/CarromElements';
 import { EditTeamModal } from '@/components/admin/EditTeamModal';
+import { Modal } from '@/components/ui/Modal';
 
 export default function AdminTeamsPage() {
   const router = useRouter();
@@ -35,6 +38,12 @@ export default function AdminTeamsPage() {
   const [syncing, setSyncing] = useState(false);
   const [scheduling, setScheduling] = useState(false);
   const [editingTeam, setEditingTeam] = useState(null);
+
+  // Reschedule & Restart Modal State
+  const [rescheduleModalOpen, setRescheduleModalOpen] = useState(false);
+  const [rescheduleCat, setRescheduleCat] = useState('all');
+  const [restartMatches, setRestartMatches] = useState(true);
+  const [matchDuration, setMatchDuration] = useState(20);
 
   const fetchTeams = async () => {
     setLoading(true);
@@ -67,20 +76,25 @@ export default function AdminTeamsPage() {
     }
   };
 
-  const handleRescheduleMatches = async () => {
-    const isConfirmed = await confirm({
-      title: 'Reschedule Arena Matches?',
-      message: 'This will re-calculate the sequential queue times on the Main Carrom Board for all scheduled matches.',
-      confirmText: 'Reschedule Matches',
-      type: 'primary'
-    });
-    if (!isConfirmed) return;
+  const handleOpenRescheduleModal = () => {
+    setRescheduleCat(selectedCat || 'all');
+    setRescheduleModalOpen(true);
+  };
 
+  const handleConfirmReschedule = async (e) => {
+    e.preventDefault();
     setScheduling(true);
     try {
-      const res = await api.generateSchedule({});
+      const res = await api.generateSchedule({
+        category: rescheduleCat,
+        restartMatches,
+        roundDurationMinutes: matchDuration,
+        matchDurationMinutes: matchDuration
+      });
       if (res.success) {
-        toast.success('Sequential schedule generated successfully for Main Carrom Board!');
+        toast.success(res.message || 'Sequential schedule updated successfully!');
+        setRescheduleModalOpen(false);
+        fetchTeams();
       }
     } catch (err) {
       toast.error(err.message || 'Failed to generate schedule.');
@@ -196,10 +210,10 @@ export default function AdminTeamsPage() {
           </Link>
 
           <button
-            onClick={handleRescheduleMatches}
+            onClick={handleOpenRescheduleModal}
             disabled={scheduling}
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl btn-primary text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50 uppercase tracking-wider"
-            title="Generate and reschedule sequential match queue on Main Carrom Board"
+            title="Reschedule and restart match queue for selected or all categories"
           >
             <Calendar className={`w-3.5 h-3.5 ${scheduling ? 'animate-spin' : ''}`} />
             <span>{scheduling ? 'Scheduling...' : 'Reschedule Matches'}</span>
@@ -400,6 +414,134 @@ export default function AdminTeamsPage() {
         onClose={() => setEditingTeam(null)}
         onSuccess={() => fetchTeams()}
       />
+
+      {/* Reschedule & Restart Arena Matches Modal */}
+      <Modal
+        isOpen={rescheduleModalOpen}
+        onClose={() => setRescheduleModalOpen(false)}
+        title="Reschedule & Restart Arena Matches"
+        maxWidth="max-w-xl"
+      >
+        <form onSubmit={handleConfirmReschedule} className="space-y-4">
+          <div className="p-3.5 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-xs space-y-1 text-[#7E7060] dark:text-[#B8B1A5] font-mono">
+            <p className="font-bold text-[#3E342B] dark:text-[#F5F1E8]">Sequential Arena Match Scheduler:</p>
+            <p>Select which category to reschedule and whether to restart live/completed matches from 0-0.</p>
+          </div>
+
+          {/* Category Quick Select */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] uppercase font-mono flex items-center justify-between">
+              <span>Which category to reschedule?</span>
+              <span className="text-[10px] text-amber-700 dark:text-amber-400 font-bold">
+                {rescheduleCat === 'all' ? 'All 5 Categories' : CATEGORIES.find(c => c.id === rescheduleCat)?.name}
+              </span>
+            </label>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => setRescheduleCat('all')}
+                className={`py-2 px-3 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                  rescheduleCat === 'all'
+                    ? 'bg-[#3E342B] dark:bg-[#D4A94C] text-white dark:text-[#15191C] shadow-xs'
+                    : 'bg-white dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8]'
+                }`}
+              >
+                <span>All Categories</span>
+              </button>
+
+              {CATEGORIES.map((cat) => {
+                const isSelected = rescheduleCat === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setRescheduleCat(cat.id)}
+                    className={`py-2 px-3 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 truncate ${
+                      isSelected
+                        ? 'bg-[#3E342B] dark:bg-[#D4A94C] text-white dark:text-[#15191C] shadow-xs'
+                        : 'bg-white dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8]'
+                    }`}
+                  >
+                    <span className="truncate">{cat.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Restart Matches Toggle */}
+          <div className="p-3.5 rounded-xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-300 dark:border-amber-800/40 space-y-1">
+            <label className="flex items-start gap-2.5 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={restartMatches}
+                onChange={(e) => setRestartMatches(e.target.checked)}
+                className="mt-0.5 w-4 h-4 rounded text-amber-600 focus:ring-amber-500 cursor-pointer"
+              />
+              <div className="space-y-0.5">
+                <span className="text-xs font-bold font-mono text-[#3E342B] dark:text-[#F5F1E8] block">
+                  Restart Matches to 0-0 (Reset Scores & Timers)
+                </span>
+                <p className="text-[11px] font-mono text-[#7E7060] dark:text-[#B8B1A5]">
+                  When checked, completed and live matches in the selected category will be reset to 0-0, their timer and boards cleared, and returned to the scheduled queue for a fresh start.
+                </p>
+              </div>
+            </label>
+          </div>
+
+          {/* Round Duration */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] uppercase font-mono flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-[#E74C3C]" />
+                <span>Match Duration:</span>
+              </label>
+              <span className="text-xs font-mono font-bold text-[#E74C3C] dark:text-[#D4A94C] bg-[#FDEDEC] dark:bg-[#E74C3C]/10 px-2 py-0.5 rounded-md">
+                {matchDuration} Min / Match
+              </span>
+            </div>
+
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+              {[10, 15, 20, 25, 30, 45].map((mins) => {
+                const isSelected = matchDuration === mins;
+                return (
+                  <button
+                    key={mins}
+                    type="button"
+                    onClick={() => setMatchDuration(mins)}
+                    className={`py-1.5 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer flex flex-col items-center justify-center ${
+                      isSelected
+                        ? 'bg-[#3E342B] dark:bg-[#D4A94C] text-white dark:text-[#15191C] shadow-xs'
+                        : 'bg-white dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8]'
+                    }`}
+                  >
+                    <span>{mins}m</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E8E1D5] dark:border-[#2B3034]">
+            <button
+              type="button"
+              onClick={() => setRescheduleModalOpen(false)}
+              className="px-4 py-2 rounded-xl text-xs text-[#7E7060] dark:text-[#817B72] hover:text-[#3E342B] dark:hover:text-[#F5F1E8] cursor-pointer font-mono"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={scheduling}
+              className="btn-primary text-xs font-bold px-6 py-2.5 shadow-xs transition-all cursor-pointer uppercase tracking-wider flex items-center gap-1.5"
+            >
+              <RotateCcw className={`w-3.5 h-3.5 ${scheduling ? 'animate-spin' : ''}`} />
+              <span>{scheduling ? 'Rescheduling...' : restartMatches ? 'Reschedule & Restart Matches' : 'Reschedule Matches'}</span>
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }
