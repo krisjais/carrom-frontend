@@ -278,8 +278,7 @@ function ChessMatchNode({
 
   return (
     <div
-      onClick={() => onOpenMatchModal && onOpenMatchModal(match)}
-      className={`rounded-2xl border p-4 transition-all duration-200 shadow-xs relative cursor-pointer group hover:shadow-md hover:border-amber-500/70 dark:hover:border-amber-500/70 ${
+      className={`rounded-2xl border p-4 transition-all duration-200 shadow-xs relative group hover:shadow-md hover:border-amber-500/70 dark:hover:border-amber-500/70 ${
         isLive
           ? 'bg-[#FAF8F3] dark:bg-[#181816] border-rose-500 ring-2 ring-rose-500/30 shadow-lg'
           : isBye
@@ -294,9 +293,17 @@ function ChessMatchNode({
       {/* Node Meta: Match # & Status */}
       <div className="flex items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-[#D5CFC5]/70 dark:border-[#262624] text-[10px] font-mono">
         <div className="flex items-center gap-1.5">
-          <span className="font-bold text-[#171715] dark:text-[#FAF8F3] text-[11px]">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenMatchModal && onOpenMatchModal(match);
+            }}
+            className="font-bold text-[#171715] dark:text-[#FAF8F3] text-[11px] hover:text-amber-700 dark:hover:text-amber-400 hover:underline cursor-pointer flex items-center gap-1"
+            title="Open Match Dossier & Arbiter Desk"
+          >
             {match.matchId}
-          </span>
+          </button>
           {isFinal && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/50 text-amber-900 dark:text-amber-300 font-bold uppercase text-[9px] border border-amber-300 dark:border-amber-800">
               <Trophy className="w-3 h-3" />

@@ -122,6 +122,34 @@ export default function ChessAdminMatchesPage() {
   const [rescheduleDuration, setRescheduleDuration] = useState(10);
   const [rescheduling, setRescheduling] = useState(false);
 
+  // Lock body scroll and enable Escape key to close whenever ANY modal is open
+  const isAnyModalOpen = Boolean(
+    matchModalMatch || showRescheduleModal || showCreateModal || resultModalMatch || timeModalOpen
+  );
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    if (isAnyModalOpen) {
+      document.body.style.overflow = 'hidden';
+      const handleKeyDown = (e) => {
+        if (e.key === 'Escape') {
+          setMatchModalMatch(null);
+          setShowRescheduleModal(false);
+          setShowCreateModal(false);
+          setResultModalMatch(null);
+          setTimeModalOpen(false);
+        }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.body.style.overflow = '';
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    } else {
+      document.body.style.overflow = '';
+    }
+  }, [isAnyModalOpen]);
+
   async function loadData(silent = false) {
     if (!chessApi.isAdminAuthenticated()) {
       router.push('/chess/admin/login');
@@ -1652,8 +1680,14 @@ export default function ChessAdminMatchesPage() {
 
         {/* CREATE MANUAL MATCH MODAL WITH CUSTOM ROUND NAME / GRAND FINAL */}
         {showCreateModal && (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all">
-            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#2B2B28] rounded-2xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 text-[#171715] dark:text-[#FAF8F3] antialiased">
+          <div 
+            onClick={() => setShowCreateModal(false)}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all cursor-pointer"
+          >
+            <div 
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#2B2B28] rounded-2xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 text-[#171715] dark:text-[#FAF8F3] antialiased cursor-default"
+            >
               <div className="border-b border-[#D5CFC5] dark:border-[#262624] pb-3 flex justify-between items-center">
                 <div>
                   <span className="text-[11px] font-sans font-bold text-[#77736B] dark:text-[#A8A49C] uppercase tracking-[0.14em] block">
@@ -1825,8 +1859,14 @@ export default function ChessAdminMatchesPage() {
 
         {/* RESCHEDULE & RESTART MATCH MODAL */}
         {showRescheduleModal && (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all">
-            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#2B2B28] rounded-2xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 text-[#171715] dark:text-[#FAF8F3] antialiased max-h-[90vh] overflow-y-auto">
+          <div 
+            onClick={() => setShowRescheduleModal(false)}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all cursor-pointer"
+          >
+            <div 
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#2B2B28] rounded-2xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 text-[#171715] dark:text-[#FAF8F3] antialiased max-h-[90vh] overflow-y-auto cursor-default"
+            >
               <div className="border-b border-[#D5CFC5] dark:border-[#262624] pb-3 flex justify-between items-center">
                 <div>
                   <span className="text-[11px] font-sans font-bold text-[#77736B] dark:text-[#A8A49C] uppercase tracking-[0.14em] block">
@@ -2100,8 +2140,14 @@ export default function ChessAdminMatchesPage() {
 
         {/* Click-to-Declare Winner Modal (Direct, No Points / Piece Counts) */}
         {resultModalMatch && (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all">
-            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#2B2B28] rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 text-[#171715] dark:text-[#FAF8F3] antialiased">
+          <div 
+            onClick={() => setResultModalMatch(null)}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all cursor-pointer"
+          >
+            <div 
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#2B2B28] rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 text-[#171715] dark:text-[#FAF8F3] antialiased cursor-default"
+            >
               <div className="border-b border-[#D5CFC5] dark:border-[#262624] pb-3 flex justify-between items-center">
                 <div>
                   <span className="text-[11px] font-mono font-bold text-[#77736B] dark:text-[#A8A49C] uppercase tracking-[0.14em] block">
@@ -2241,8 +2287,14 @@ export default function ChessAdminMatchesPage() {
 
       {/* ADJUST MATCH TIME / DURATION MODAL (Like Carrom) */}
       {timeModalOpen && selectedMatchForTime && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 transition-all">
-          <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#2B2B28] rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 text-[#171715] dark:text-[#FAF8F3]">
+        <div 
+          onClick={() => setTimeModalOpen(false)}
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 transition-all cursor-pointer"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#2B2B28] rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 text-[#171715] dark:text-[#FAF8F3] cursor-default"
+          >
             <div className="flex items-center justify-between border-b border-[#D5CFC5] dark:border-[#262624] pb-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center">
@@ -2403,8 +2455,14 @@ export default function ChessAdminMatchesPage() {
 
       {/* MATCH DETAIL & ARBITER CONTROL MODAL */}
       {matchModalMatch && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-6 shadow-2xl relative max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-150">
+        <div 
+          onClick={() => setMatchModalMatch(null)}
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 cursor-pointer"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-6 shadow-2xl relative max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-150 cursor-default"
+          >
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-4 border-b border-[#D5CFC5] dark:border-[#262624]">
               <div className="flex items-center gap-3">
