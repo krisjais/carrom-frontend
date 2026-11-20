@@ -62,6 +62,13 @@ const getDynamicRoundPlan = (activePlayersCount, currentRoundNumber = 1) => {
   };
 };
 
+function formatClockTime(seconds) {
+  if (typeof seconds !== 'number' || isNaN(seconds) || seconds < 0) return '00:00';
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
 export default function ChessAdminMatchesPage() {
   const router = useRouter();
   const toast = useToast();
@@ -76,9 +83,13 @@ export default function ChessAdminMatchesPage() {
   const [deletingAllRounds, setDeletingAllRounds] = useState(false);
   const [startingMatchId, setStartingMatchId] = useState(null);
   const [deletingMatchId, setDeletingMatchId] = useState(null);
+  const [restartingMatchId, setRestartingMatchId] = useState(null);
 
   // View Mode: 'bracket' (like Carrom) or 'table'
   const [viewMode, setViewMode] = useState('bracket');
+
+  // Match Details & Arbiter Modal
+  const [matchModalMatch, setMatchModalMatch] = useState(null);
 
   // Bulk Selection & Deletion
   const [selectedMatchIds, setSelectedMatchIds] = useState([]);
@@ -121,7 +132,13 @@ export default function ChessAdminMatchesPage() {
         // Keep active result modal synced with fresh data
         setResultModalMatch((prev) => {
           if (!prev) return null;
-          return freshMatches.find(m => m._id === prev._id || m.matchId === prev.matchId) || prev;
+          return freshMatches.find(m => (m?._id === prev?._id || m?.matchId === prev?.matchId)) || prev;
+        });
+
+        // Keep match detail modal synced with fresh data
+        setMatchModalMatch((prev) => {
+          if (!prev) return null;
+          return freshMatches.find(m => (m?._id === prev?._id || m?.matchId === prev?.matchId)) || prev;
         });
       }
       if (playersRes.status === 'fulfilled' && playersRes.value?.success) {
@@ -228,7 +245,7 @@ export default function ChessAdminMatchesPage() {
     const handleEventData = (data) => {
       if (!data) return;
 
-      // Instantly update active modal if it corresponds to this match
+      // Instantly update active result modal if it corresponds to this match
       setResultModalMatch((prev) => {
         if (!prev) return null;
         if (data.matchId && data.matchId !== (prev._id || prev.matchId)) return prev;
@@ -240,6 +257,22 @@ export default function ChessAdminMatchesPage() {
           movesCount: typeof data.movesCount === 'number' ? data.movesCount : prev.movesCount,
           isClockRunning: typeof data.isClockRunning === 'boolean' ? data.isClockRunning : (typeof data.isRunning === 'boolean' ? data.isRunning : prev.isClockRunning),
           lastClockUpdate: new Date()
+        };
+      });
+
+      // Instantly update active match modal if it corresponds to this match
+      setMatchModalMatch((prev) => {
+        if (!prev) return null;
+        if (data.matchId && data.matchId !== (prev._id || prev.matchId)) return prev;
+        return {
+          ...prev,
+          activeTurn: data.activeTurn || prev.activeTurn,
+          whiteTimeRemaining: typeof data.whiteSeconds === 'number' ? data.whiteSeconds : (typeof data.p1Time === 'number' ? data.p1Time : prev.whiteTimeRemaining),
+          blackTimeRemaining: typeof data.blackSeconds === 'number' ? data.blackSeconds : (typeof data.p2Time === 'number' ? data.p2Time : prev.blackTimeRemaining),
+          movesCount: typeof data.movesCount === 'number' ? data.movesCount : prev.movesCount,
+          isClockRunning: typeof data.isClockRunning === 'boolean' ? data.isClockRunning : (typeof data.isRunning === 'boolean' ? data.isRunning : prev.isClockRunning),
+          lastClockUpdate: new Date(),
+          ...(data.match || {})
         };
       });
 
@@ -769,6 +802,92 @@ export default function ChessAdminMatchesPage() {
     }
   };
 
+  // Dedicated Restart Match Action
+  const handleRestartMatch = async (match) => {
+    if (!match) return;
+    const mId = match._id || match.matchId;
+    const p1Name = match.player1?.fullName || 'Player 1';
+    const p2Name = match.player2?.fullName || 'Player 2';
+
+    const confirmed = await confirm({
+      title: 'Restart Chess Match?',
+      message: `Are you sure you want to RESTART Match ${match.matchId} (${p1Name} vs ${p2Name})?\n\nThis will reset both player timers to initial ${(match.durationMinutes || 10)}:00, reset moves to 0, reset active turn to White, and clear any declared winner. Both player phones and spectator screens will reset instantly.`,
+      confirmText: 'Restart Match',
+      cancelText: 'Cancel',
+      type: 'danger'
+    });
+
+    if (!confirmed) return;
+
+    setRestartingMatchId(mId);
+    try {
+      const initialSec = (match.durationMinutes || 10) * 60;
+      const resetObj = {
+        status: 'scheduled',
+        winner: null,
+        winnerPlayer: null,
+        resultType: null,
+        activeTurn: 'white',
+        isClockRunning: false,
+        whiteTimeRemaining: initialSec,
+        blackTimeRemaining: initialSec,
+        movesCount: 0
+      };
+
+      setMatches((prev) =>
+        (prev || []).filter(Boolean).map((m) =>
+          ((m?._id && m._id === mId) || (m?.matchId && m.matchId === mId)) ? { ...m, ...resetObj } : m
+        )
+      );
+
+      setMatchModalMatch((prev) =>
+        prev && ((prev?._id && prev._id === mId) || (prev?.matchId && prev.matchId === mId))
+          ? { ...prev, ...resetObj }
+          : prev
+      );
+
+      if (typeof window !== 'undefined' && window.BroadcastChannel) {
+        try {
+          const bc = new BroadcastChannel('chess_tournament_clock');
+          bc.postMessage({
+            matchId: mId,
+            action: 'restart',
+            activeTurn: 'white',
+            whiteSeconds: initialSec,
+            blackSeconds: initialSec,
+            isClockRunning: false,
+            movesCount: 0
+          });
+          bc.close();
+        } catch {}
+      }
+
+      const socket = getSocket();
+      if (socket && socket.connected) {
+        socket.emit('chess:turn_switch', {
+          matchId: mId,
+          activeTurn: 'white',
+          whiteSeconds: initialSec,
+          blackSeconds: initialSec,
+          isClockRunning: false,
+          movesCount: 0
+        });
+      }
+
+      const res = await chessApi.restartMatch(mId);
+      if (res.success) {
+        toast.success(`Match ${match.matchId} restarted successfully!`);
+        await loadData(true);
+      } else {
+        toast.error(res.message || 'Failed to restart match.');
+      }
+    } catch (err) {
+      toast.error(err.message || 'Error restarting match.');
+    } finally {
+      setRestartingMatchId(null);
+    }
+  };
+
   // Individual Match Delete
   const handleDeleteMatch = async (id, matchIdLabel) => {
     const isConfirmed = await confirm({
@@ -784,7 +903,7 @@ export default function ChessAdminMatchesPage() {
     try {
       const res = await chessApi.deleteMatch(id);
       if (res.success) {
-        setMatches((prev) => prev.filter((m) => m._id !== id));
+        setMatches((prev) => prev.filter((m) => m && m._id !== id && m.matchId !== id));
         setSelectedMatchIds((prev) => prev.filter((item) => item !== id));
         toast.success(`Match ${matchIdLabel} deleted.`);
       } else {
@@ -1060,6 +1179,8 @@ export default function ChessAdminMatchesPage() {
             onSwitchTurnMatch={handleAdminSwitchTurn}
             onQuickAddTime={handleQuickAddTime}
             onOpenTimeModal={handleOpenTimeModal}
+            onOpenMatchModal={(m) => setMatchModalMatch(m)}
+            onRestartMatch={handleRestartMatch}
             onOpenResultModal={openResultModal}
             onDeleteMatch={handleDeleteMatch}
             startingMatchId={startingMatchId}
@@ -1329,6 +1450,32 @@ export default function ChessAdminMatchesPage() {
                             <span>{isCompleted ? 'Edit Winner' : 'Declare Winner'}</span>
                           </button>
                         )}
+
+                        {/* Dedicated Restart Button on Live/Completed rows */}
+                        {(isLive || isCompleted) && !m.isBye && (
+                          <button
+                            onClick={() => handleRestartMatch(m)}
+                            disabled={restartingMatchId === (m?._id || m?.matchId)}
+                            className="bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-950/60 text-rose-700 dark:text-rose-400 border border-rose-300 dark:border-rose-900 text-[10px] font-bold px-2.5 py-1.5 rounded-lg uppercase shadow-xs transition-colors cursor-pointer inline-flex items-center gap-1"
+                            title={`Restart match ${m.matchId} (reset clocks & score)`}
+                          >
+                            {restartingMatchId === (m?._id || m?.matchId) ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <RotateCcw className="w-3 h-3" />
+                            )}
+                            <span>Restart</span>
+                          </button>
+                        )}
+
+                        {/* Open Match Modal */}
+                        <button
+                          onClick={() => setMatchModalMatch(m)}
+                          className="bg-[#EFEAE1] dark:bg-[#1E1E1C] hover:bg-[#D5CFC5]/50 dark:hover:bg-[#2A2A28] text-[#171715] dark:text-[#FAF8F3] border border-[#D5CFC5] dark:border-[#2E2E2B] text-[10px] font-bold px-2.5 py-1.5 rounded-lg uppercase shadow-xs transition-colors cursor-pointer inline-flex items-center gap-1"
+                          title="Open Match Control & Arbiter Modal"
+                        >
+                          <span>Open ↗</span>
+                        </button>
 
                         {/* Dedicated Delete Button on EVERY match row */}
                         <button
@@ -1822,6 +1969,282 @@ export default function ChessAdminMatchesPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MATCH DETAIL & ARBITER CONTROL MODAL */}
+      {matchModalMatch && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-6 shadow-2xl relative max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-[#D5CFC5] dark:border-[#262624]">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-400 flex items-center justify-center font-bold">
+                  <Swords className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 font-mono text-xs">
+                    <span className="font-bold text-[#171715] dark:text-[#FAF8F3] tracking-wider">
+                      {matchModalMatch.matchId}
+                    </span>
+                    <span>•</span>
+                    <span className="text-[#77736B] dark:text-[#8E8E93]">
+                      {matchModalMatch.roundName || `Round ${matchModalMatch.round}`}
+                    </span>
+                  </div>
+                  <h3 className="font-serif font-bold text-lg text-[#171715] dark:text-[#FAF8F3] leading-tight">
+                    Match Dossier & Arbiter Desk
+                  </h3>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider ${
+                  matchModalMatch.status === 'live'
+                    ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-300 dark:border-rose-900/60 inline-flex items-center gap-1.5'
+                    : matchModalMatch.status === 'completed'
+                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-300'
+                    : 'bg-[#EFEAE1] dark:bg-[#1E1E1C] text-neutral-600 dark:text-neutral-300 border border-[#D5CFC5] dark:border-neutral-700'
+                }`}>
+                  {matchModalMatch.status === 'live' && <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />}
+                  {matchModalMatch.status}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setMatchModalMatch(null)}
+                  className="p-1.5 rounded-full hover:bg-[#EFEAE1] dark:hover:bg-[#20201E] text-[#77736B] dark:text-[#8E8E93] cursor-pointer"
+                  title="Close modal"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Competitor Arena Cards & Live Clocks */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* White Competitor */}
+              <div className={`p-4 rounded-2xl border transition-all ${
+                matchModalMatch.status === 'live' && matchModalMatch.activeTurn === 'white'
+                  ? 'bg-amber-50/80 dark:bg-amber-950/20 border-amber-400 dark:border-amber-600 ring-2 ring-amber-400/30'
+                  : 'bg-white dark:bg-[#1A1A18] border-[#D5CFC5] dark:border-[#2A2A28]'
+              }`}>
+                <div className="flex items-center justify-between text-[11px] font-mono pb-2 mb-2 border-b border-[#D5CFC5]/50 dark:border-[#262624]">
+                  <span className="font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 flex items-center gap-1.5">
+                    <span>♔</span> White Pieces
+                  </span>
+                  {matchModalMatch.status === 'live' && matchModalMatch.activeTurn === 'white' && (
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-bold text-[10px] animate-pulse">
+                      Active Turn
+                    </span>
+                  )}
+                </div>
+                <div className="font-serif font-bold text-base text-[#171715] dark:text-[#FAF8F3] truncate">
+                  {matchModalMatch.player1?.fullName || matchModalMatch.byePlayer?.fullName || 'Player 1 (White)'}
+                </div>
+                <div className="text-xs text-[#77736B] dark:text-[#8E8E93] truncate">
+                  {matchModalMatch.player1?.department || 'Department TBD'}
+                </div>
+
+                {/* White Clock Box */}
+                <div className="mt-3 p-3 rounded-xl bg-[#FAF8F3] dark:bg-[#121210] border border-[#D5CFC5] dark:border-[#2A2A28] text-center">
+                  <span className="text-[10px] font-mono uppercase text-[#77736B] block">Time Remaining</span>
+                  <span className="text-2xl sm:text-3xl font-mono font-bold tracking-tight text-[#171715] dark:text-[#FAF8F3]">
+                    {formatClockTime(matchModalMatch.whiteTimeRemaining ?? ((matchModalMatch.durationMinutes || 10) * 60))}
+                  </span>
+                </div>
+              </div>
+
+              {/* Black Competitor */}
+              <div className={`p-4 rounded-2xl border transition-all ${
+                matchModalMatch.status === 'live' && matchModalMatch.activeTurn === 'black'
+                  ? 'bg-amber-50/80 dark:bg-amber-950/20 border-amber-400 dark:border-amber-600 ring-2 ring-amber-400/30'
+                  : 'bg-white dark:bg-[#1A1A18] border-[#D5CFC5] dark:border-[#2A2A28]'
+              }`}>
+                <div className="flex items-center justify-between text-[11px] font-mono pb-2 mb-2 border-b border-[#D5CFC5]/50 dark:border-[#262624]">
+                  <span className="font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 flex items-center gap-1.5">
+                    <span>♚</span> Black Pieces
+                  </span>
+                  {matchModalMatch.status === 'live' && matchModalMatch.activeTurn === 'black' && (
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-bold text-[10px] animate-pulse">
+                      Active Turn
+                    </span>
+                  )}
+                </div>
+                <div className="font-serif font-bold text-base text-[#171715] dark:text-[#FAF8F3] truncate">
+                  {matchModalMatch.player2?.fullName || (matchModalMatch.isBye ? 'BYE' : 'Player 2 (Black)')}
+                </div>
+                <div className="text-xs text-[#77736B] dark:text-[#8E8E93] truncate">
+                  {matchModalMatch.player2?.department || (matchModalMatch.isBye ? 'Automatic Advance' : 'Department TBD')}
+                </div>
+
+                {/* Black Clock Box */}
+                <div className="mt-3 p-3 rounded-xl bg-[#FAF8F3] dark:bg-[#121210] border border-[#D5CFC5] dark:border-[#2A2A28] text-center">
+                  <span className="text-[10px] font-mono uppercase text-[#77736B] block">Time Remaining</span>
+                  <span className="text-2xl sm:text-3xl font-mono font-bold tracking-tight text-[#171715] dark:text-[#FAF8F3]">
+                    {formatClockTime(matchModalMatch.blackTimeRemaining ?? ((matchModalMatch.durationMinutes || 10) * 60))}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Arbiter Actions */}
+            <div className="space-y-3 pt-2 border-t border-[#D5CFC5] dark:border-[#262624]">
+              <div className="text-[11px] font-mono uppercase font-bold text-[#77736B] dark:text-[#8E8E93]">
+                Game Control & Arbiter Actions
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                {/* Start / Pause / Resume */}
+                {matchModalMatch.status === 'scheduled' && !matchModalMatch.isBye ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleStartMatch(matchModalMatch._id || matchModalMatch.matchId);
+                    }}
+                    disabled={startingMatchId === (matchModalMatch._id || matchModalMatch.matchId)}
+                    className="py-2.5 px-3 rounded-xl bg-neutral-900 hover:bg-black text-white dark:bg-white dark:text-neutral-900 font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+                  >
+                    <Play className="w-4 h-4 fill-current text-emerald-400" />
+                    <span>Start Match</span>
+                  </button>
+                ) : matchModalMatch.status === 'live' ? (
+                  <button
+                    type="button"
+                    onClick={() => handlePauseResumeMatch(matchModalMatch)}
+                    className={`py-2.5 px-3 rounded-xl font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-sm cursor-pointer transition-all ${
+                      matchModalMatch.isClockRunning !== false
+                        ? 'bg-neutral-800 text-white hover:bg-black'
+                        : 'bg-emerald-600 text-white hover:bg-emerald-700 animate-pulse'
+                    }`}
+                  >
+                    {matchModalMatch.isClockRunning !== false ? (
+                      <>
+                        <Pause className="w-4 h-4 fill-current" />
+                        <span>Pause Timer</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-4 h-4 fill-current" />
+                        <span>Resume Timer</span>
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <div className="py-2.5 px-3 rounded-xl bg-neutral-100 dark:bg-neutral-900 text-neutral-500 font-mono text-xs text-center font-bold">
+                    Match Completed
+                  </div>
+                )}
+
+                {/* Switch Turn Button */}
+                {matchModalMatch.status === 'live' ? (
+                  <button
+                    type="button"
+                    onClick={() => handleAdminSwitchTurn(matchModalMatch)}
+                    className="py-2.5 px-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-sm cursor-pointer transition-all"
+                  >
+                    <ArrowRightLeft className="w-4 h-4" />
+                    <span>Switch ({matchModalMatch.activeTurn === 'black' ? 'White' : 'Black'})</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    disabled
+                    className="py-2.5 px-3 rounded-xl bg-neutral-100 dark:bg-neutral-900 text-neutral-400 font-mono text-xs font-semibold cursor-not-allowed text-center"
+                  >
+                    Turn Inactive
+                  </button>
+                )}
+
+                {/* Dedicated Restart Button */}
+                <button
+                  type="button"
+                  onClick={() => handleRestartMatch(matchModalMatch)}
+                  disabled={restartingMatchId === (matchModalMatch._id || matchModalMatch.matchId)}
+                  className="py-2.5 px-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-950/60 border border-rose-300 dark:border-rose-900 text-rose-700 dark:text-rose-400 font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-xs cursor-pointer transition-all"
+                >
+                  {restartingMatchId === (matchModalMatch._id || matchModalMatch.matchId) ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <RotateCcw className="w-4 h-4" />
+                  )}
+                  <span>Restart Match</span>
+                </button>
+              </div>
+
+              {/* Quick Time Extension & Duration Presets */}
+              <div className="pt-2 flex flex-wrap items-center justify-between gap-2 bg-[#EFEAE1]/60 dark:bg-[#1A1A18] p-3 rounded-2xl border border-[#D5CFC5]/70 dark:border-[#262624]">
+                <div className="flex items-center gap-1.5 text-xs font-mono text-[#77736B] dark:text-[#8E8E93]">
+                  <Clock className="w-4 h-4 text-amber-600" />
+                  <span className="font-semibold">Quick Time Add:</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleQuickAddTime(matchModalMatch, 1)}
+                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#252522] border border-[#D5CFC5] dark:border-[#333] font-mono text-xs font-bold hover:border-amber-600 transition-colors cursor-pointer"
+                  >
+                    +1 Min
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickAddTime(matchModalMatch, 2)}
+                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#252522] border border-[#D5CFC5] dark:border-[#333] font-mono text-xs font-bold hover:border-amber-600 transition-colors cursor-pointer"
+                  >
+                    +2 Min
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickAddTime(matchModalMatch, 5)}
+                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#252522] border border-[#D5CFC5] dark:border-[#333] font-mono text-xs font-bold hover:border-amber-600 transition-colors cursor-pointer"
+                  >
+                    +5 Min
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleOpenTimeModal(matchModalMatch);
+                    }}
+                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#252522] border border-[#D5CFC5] dark:border-[#333] font-mono text-xs font-semibold text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white transition-colors cursor-pointer flex items-center gap-1"
+                  >
+                    <span>Custom</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="pt-3 border-t border-[#D5CFC5] dark:border-[#262624] flex flex-wrap items-center justify-between gap-3">
+              <a
+                href={`/chess/matches/${matchModalMatch._id || matchModalMatch.matchId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-mono font-semibold text-amber-700 dark:text-amber-400 hover:underline flex items-center gap-1"
+              >
+                <span>Open Full Match View ↗</span>
+              </a>
+
+              <div className="flex items-center gap-2">
+                {!matchModalMatch.isBye && (
+                  <button
+                    type="button"
+                    onClick={() => openResultModal(matchModalMatch)}
+                    className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl text-xs font-bold font-mono uppercase tracking-wider flex items-center gap-1.5 shadow-sm cursor-pointer"
+                  >
+                    <Crown className="w-3.5 h-3.5" />
+                    <span>{matchModalMatch.status === 'completed' ? 'Edit Winner' : 'Declare Winner'}</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setMatchModalMatch(null)}
+                  className="px-4 py-2 rounded-xl border border-[#D5CFC5] dark:border-[#262624] text-xs font-mono text-[#77736B] hover:text-[#171715] dark:hover:text-[#FAF8F3] cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -49,6 +49,16 @@ function groupMatchesIntoStages(matches = []) {
   return sortedRounds;
 }
 
+/**
+ * Format remaining seconds to mm:ss format
+ */
+function formatClockTime(seconds = 600) {
+  const s = Math.max(0, Math.floor(seconds));
+  const m = Math.floor(s / 60);
+  const rem = s % 60;
+  return `${String(m).padStart(2, '0')}:${String(rem).padStart(2, '0')}`;
+}
+
 export function ChessBracketView({
   matches = [],
   isAdmin = false,
@@ -57,6 +67,8 @@ export function ChessBracketView({
   onSwitchTurnMatch,
   onQuickAddTime,
   onOpenTimeModal,
+  onOpenMatchModal,
+  onRestartMatch,
   onOpenResultModal,
   onDeleteMatch,
   startingMatchId = null,
@@ -179,6 +191,8 @@ export function ChessBracketView({
                       onSwitchTurnMatch={onSwitchTurnMatch}
                       onQuickAddTime={onQuickAddTime}
                       onOpenTimeModal={onOpenTimeModal}
+                      onOpenMatchModal={onOpenMatchModal}
+                      onRestartMatch={onRestartMatch}
                       onOpenResultModal={onOpenResultModal}
                       onDeleteMatch={onDeleteMatch}
                       isStarting={startingMatchId === (match?._id || match?.matchId)}
@@ -215,6 +229,8 @@ function ChessMatchNode({
   onSwitchTurnMatch,
   onQuickAddTime,
   onOpenTimeModal,
+  onOpenMatchModal,
+  onRestartMatch,
   onOpenResultModal,
   onDeleteMatch,
   isStarting,
@@ -260,10 +276,10 @@ function ChessMatchNode({
     (match?.winner === 'player2' ||
       Boolean(winnerPlayerId && p2Id && winnerPlayerId === p2Id));
 
-
   return (
     <div
-      className={`rounded-2xl border p-4 transition-all duration-200 shadow-xs relative ${
+      onClick={() => onOpenMatchModal && onOpenMatchModal(match)}
+      className={`rounded-2xl border p-4 transition-all duration-200 shadow-xs relative cursor-pointer group hover:shadow-md hover:border-amber-500/70 dark:hover:border-amber-500/70 ${
         isLive
           ? 'bg-[#FAF8F3] dark:bg-[#181816] border-rose-500 ring-2 ring-rose-500/30 shadow-lg'
           : isBye
@@ -275,7 +291,6 @@ function ChessMatchNode({
           : 'bg-[#FAF8F3] dark:bg-[#151514] border-[#D5CFC5] dark:border-[#262624]'
       }`}
     >
-      
       {/* Node Meta: Match # & Status */}
       <div className="flex items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-[#D5CFC5]/70 dark:border-[#262624] text-[10px] font-mono">
         <div className="flex items-center gap-1.5">
@@ -315,7 +330,7 @@ function ChessMatchNode({
 
       {/* PLAYER 1 SLOT (WHITE) */}
       <div
-        className={`flex items-center justify-between p-2 rounded-xl mb-1.5 transition-all text-xs ${
+        className={`flex items-center justify-between p-2.5 rounded-xl mb-1.5 transition-all text-xs ${
           isP1Winner
             ? 'bg-amber-50 dark:bg-amber-950/40 text-[#171715] dark:text-[#FAF8F3] font-bold border border-amber-300 dark:border-amber-700/60'
             : match.player1 || match.byePlayer
@@ -328,12 +343,23 @@ function ChessMatchNode({
           <span className="w-5 h-5 rounded-md bg-white border border-[#D5CFC5] text-black flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
             ♔
           </span>
-          <span className="truncate font-serif">
+          <span className="truncate font-serif font-bold text-xs sm:text-sm">
             {p1Name}
           </span>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0 font-mono">
+        <div className="flex items-center gap-1.5 shrink-0 font-mono">
+          {isLive && (
+            <span
+              className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded-md ${
+                match.activeTurn === 'white'
+                  ? 'bg-amber-500 text-white ring-2 ring-amber-500/30 animate-pulse'
+                  : 'bg-[#EFEAE1] dark:bg-[#20201E] text-[#77736B] dark:text-[#8E8E93]'
+              }`}
+            >
+              {formatClockTime(match.whiteTimeRemaining)}
+            </span>
+          )}
           {isP1Winner && (
             <span className="text-[10px] font-mono font-bold text-amber-600 dark:text-amber-400 flex items-center gap-0.5">
               <Crown className="w-3.5 h-3.5 text-amber-500 fill-current" />
@@ -345,7 +371,7 @@ function ChessMatchNode({
 
       {/* PLAYER 2 SLOT (BLACK OR BYE) */}
       <div
-        className={`flex items-center justify-between p-2 rounded-xl transition-all text-xs ${
+        className={`flex items-center justify-between p-2.5 rounded-xl transition-all text-xs ${
           isBye
             ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-900 dark:text-emerald-300 border border-emerald-300/80 dark:border-emerald-800 font-medium'
             : isP2Winner
@@ -366,12 +392,23 @@ function ChessMatchNode({
               ♚
             </span>
           )}
-          <span className="truncate font-serif">
+          <span className="truncate font-serif font-bold text-xs sm:text-sm">
             {p2Name}
           </span>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0 font-mono">
+        <div className="flex items-center gap-1.5 shrink-0 font-mono">
+          {isLive && !isBye && (
+            <span
+              className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded-md ${
+                match.activeTurn === 'black'
+                  ? 'bg-amber-500 text-white ring-2 ring-amber-500/30 animate-pulse'
+                  : 'bg-[#EFEAE1] dark:bg-[#20201E] text-[#77736B] dark:text-[#8E8E93]'
+              }`}
+            >
+              {formatClockTime(match.blackTimeRemaining)}
+            </span>
+          )}
           {isP2Winner && !isBye && (
             <span className="text-[10px] font-mono font-bold text-amber-600 dark:text-amber-400 flex items-center gap-0.5">
               <Crown className="w-3.5 h-3.5 text-amber-500 fill-current" />
@@ -394,166 +431,165 @@ function ChessMatchNode({
         </div>
       )}
 
-      {/* FOOTER ACTIONS & CLOCK CONTROLS */}
-      <div className="mt-3 pt-2.5 border-t border-[#D5CFC5]/70 dark:border-[#262624] flex items-center justify-between text-[10px] font-mono">
-        
-        {/* Left: Clock Badge */}
-        <div className="flex items-center gap-1.5 text-[#77736B] dark:text-[#8E8E93]">
-          <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-          <span>{match.durationMinutes || 10}m Rapid</span>
-        </div>
+      {/* FOOTER ACTIONS & CLOCK CONTROLS (Clean, 2-tier, never overflowing!) */}
+      <div className="mt-3 pt-2.5 border-t border-[#D5CFC5]/70 dark:border-[#262624] space-y-2 text-[10px] font-mono">
+        {/* Row 1: Status & Click to Open Match Modal */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            {isLive ? (
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 dark:text-amber-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
+                <span>{match.activeTurn === 'black' ? "Black's Turn" : "White's Turn"}</span>
+                <span className="opacity-60 font-normal">• {match.movesCount || 0} moves</span>
+              </span>
+            ) : isCompleted ? (
+              <span className="text-emerald-700 dark:text-emerald-400 font-bold text-[10px]">
+                Completed
+              </span>
+            ) : isBye ? (
+              <span className="text-emerald-700 dark:text-emerald-400 font-bold text-[10px]">
+                Auto Advanced
+              </span>
+            ) : (
+              <span className="text-[#77736B] dark:text-[#8E8E93] text-[10px] flex items-center gap-1">
+                <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                <span>{match.durationMinutes || 10}m Rapid</span>
+              </span>
+            )}
+          </div>
 
-        {/* Right: Actions */}
-        <div className="flex items-center gap-1.5">
-          {/* Scheduled Match -> Start (10m) */}
-          {isAdmin && isScheduled && !isBye && (
-            <>
-              <button
-                type="button"
-                onClick={() => onStartMatch && onStartMatch(match._id)}
-                disabled={isStarting}
-                className="bg-[#171715] dark:bg-[#FAF8F3] text-white dark:text-[#0D0D0D] hover:bg-black px-2.5 py-1 rounded-lg uppercase font-bold inline-flex items-center gap-1 shadow-2xs transition-transform active:scale-95 cursor-pointer"
-              >
-                <Play className="w-2.5 h-2.5 fill-current" />
-                <span>Start</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => onOpenResultModal && onOpenResultModal(match)}
-                className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded-lg uppercase font-bold inline-flex items-center gap-1 shadow-2xs cursor-pointer"
-                title="Declare Winner directly"
-              >
-                <Crown className="w-2.5 h-2.5 fill-current" />
-                <span>Winner</span>
-              </button>
-            </>
-          )}
-
-          {/* Live Match -> Pause/Resume, Switch Turn, Add Time & Declare Winner */}
-          {isAdmin && isLive && (
-            <>
-              <button
-                type="button"
-                onClick={() => onPauseResumeMatch && onPauseResumeMatch(match)}
-                className={`px-2 py-1 rounded-lg uppercase font-bold inline-flex items-center gap-1 shadow-2xs transition-all cursor-pointer ${
-                  match.isClockRunning !== false
-                    ? 'bg-neutral-800 dark:bg-neutral-200 text-white dark:text-neutral-900 hover:bg-black'
-                    : 'bg-emerald-600 hover:bg-emerald-700 text-white animate-pulse'
-                }`}
-                title={match.isClockRunning !== false ? 'Pause match timer' : 'Resume match timer'}
-              >
-                {match.isClockRunning !== false ? (
-                  <>
-                    <Pause className="w-2.5 h-2.5 fill-current" />
-                    <span>Pause</span>
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-2.5 h-2.5 fill-current" />
-                    <span>Resume</span>
-                  </>
-                )}
-              </button>
-
-              {/* Admin Tap Turn Switch */}
-              <button
-                type="button"
-                onClick={() => onSwitchTurnMatch && onSwitchTurnMatch(match)}
-                className="bg-amber-600 hover:bg-amber-700 text-white px-2 py-1 rounded-lg uppercase font-bold inline-flex items-center gap-1 shadow-2xs cursor-pointer"
-                title={`Admin tap to switch turn to ${match.activeTurn === 'black' ? 'White' : 'Black'}`}
-              >
-                <ArrowRightLeft className="w-2.5 h-2.5" />
-                <span>Switch ({match.activeTurn === 'black' ? 'W' : 'B'})</span>
-              </button>
-
-              {/* Quick +1m / +2m / +5m and Duration Adjust */}
-              <div className="inline-flex items-center rounded-lg border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1]/70 dark:bg-[#1D1D1B] p-0.5 gap-0.5">
-                <button
-                  type="button"
-                  onClick={() => onQuickAddTime && onQuickAddTime(match, 1)}
-                  className="px-1 py-0.5 rounded text-[9px] font-mono font-bold hover:bg-white dark:hover:bg-[#282826] cursor-pointer"
-                  title="Add 1 minute"
-                >
-                  +1m
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onQuickAddTime && onQuickAddTime(match, 2)}
-                  className="px-1 py-0.5 rounded text-[9px] font-mono font-bold hover:bg-white dark:hover:bg-[#282826] cursor-pointer"
-                  title="Add 2 minutes"
-                >
-                  +2m
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onOpenTimeModal && onOpenTimeModal(match)}
-                  className="px-1 py-0.5 rounded text-[9px] font-mono font-bold hover:bg-white dark:hover:bg-[#282826] cursor-pointer"
-                  title="Set match time / duration"
-                >
-                  <Clock className="w-2.5 h-2.5" />
-                </button>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => onOpenResultModal && onOpenResultModal(match)}
-                className="bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1 rounded-lg uppercase font-bold inline-flex items-center gap-1 shadow-2xs cursor-pointer"
-              >
-                <Crown className="w-2.5 h-2.5 fill-current" />
-                <span>Declare Winner</span>
-              </button>
-            </>
-          )}
-
-          {/* Scheduled match duration adjust button */}
-          {isAdmin && isScheduled && !isBye && (
-            <button
-              type="button"
-              onClick={() => onOpenTimeModal && onOpenTimeModal(match)}
-              className="border border-[#D5CFC5] dark:border-[#262624] px-1.5 py-1 rounded-lg text-[9px] font-mono text-[#77736B] hover:text-[#171715] dark:hover:text-[#FAF8F3] inline-flex items-center gap-0.5 cursor-pointer"
-              title="Set match time duration"
-            >
-              <Clock className="w-2.5 h-2.5" />
-              <span>{match.durationMinutes || 10}m</span>
-            </button>
-          )}
-
-          {/* Edit Result for Completed */}
-          {isAdmin && isCompleted && !isBye && (
-            <button
-              type="button"
-              onClick={() => onOpenResultModal && onOpenResultModal(match)}
-              className="border border-[#D5CFC5] dark:border-[#2E2E2B] bg-[#EFEAE1] dark:bg-[#20201E] hover:bg-[#E4DED5] text-[#171715] dark:text-[#FAF8F3] px-2 py-1 rounded-lg uppercase font-bold cursor-pointer"
-            >
-              Edit Winner
-            </button>
-          )}
-
-          {/* Delete match if Admin */}
-          {isAdmin && (
-            <button
-              type="button"
-              onClick={() => onDeleteMatch && onDeleteMatch(match._id, match.matchId)}
-              disabled={isDeleting}
-              className="p-1 rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
-              title={`Delete fixture ${match.matchId}`}
-            >
-              <Trash2 className="w-3 h-3" />
-            </button>
-          )}
-
-          {/* View Details Link */}
-          <Link
-            href={`/chess/matches/${match._id || match.matchId}`}
-            className="text-amber-700 dark:text-amber-400 hover:underline flex items-center gap-0.5 font-bold uppercase tracking-wider pl-1"
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenMatchModal && onOpenMatchModal(match);
+            }}
+            className="text-[10px] font-mono font-bold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/60 transition-colors cursor-pointer shadow-2xs"
+            title="Open match detail & controls modal"
           >
-            <span>View</span>
-            <ExternalLink className="w-3 h-3" />
-          </Link>
+            <span>Open Match</span>
+            <ExternalLink className="w-2.5 h-2.5" />
+          </button>
         </div>
 
-      </div>
+        {/* Row 2: Quick Arbiter Actions */}
+        {isAdmin && !isBye && (
+          <div className="flex items-center justify-between gap-1.5 pt-0.5">
+            {isLive ? (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onPauseResumeMatch && onPauseResumeMatch(match);
+                  }}
+                  className={`flex-1 py-1 rounded-lg uppercase font-bold text-[10px] inline-flex items-center justify-center gap-1 shadow-2xs transition-all cursor-pointer ${
+                    match.isClockRunning !== false
+                      ? 'bg-neutral-800 dark:bg-neutral-200 text-white dark:text-neutral-900 hover:bg-black'
+                      : 'bg-emerald-600 hover:bg-emerald-700 text-white animate-pulse'
+                  }`}
+                  title={match.isClockRunning !== false ? 'Pause timer' : 'Resume timer'}
+                >
+                  {match.isClockRunning !== false ? <Pause className="w-2.5 h-2.5 fill-current" /> : <Play className="w-2.5 h-2.5 fill-current" />}
+                  <span>{match.isClockRunning !== false ? 'Pause' : 'Resume'}</span>
+                </button>
 
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSwitchTurnMatch && onSwitchTurnMatch(match);
+                  }}
+                  className="flex-1 py-1 rounded-lg uppercase font-bold text-[10px] bg-amber-600 hover:bg-amber-700 text-white inline-flex items-center justify-center gap-1 shadow-2xs cursor-pointer"
+                  title={`Pass turn to ${match.activeTurn === 'black' ? 'White' : 'Black'}`}
+                >
+                  <ArrowRightLeft className="w-2.5 h-2.5" />
+                  <span>Switch ({match.activeTurn === 'black' ? 'W' : 'B'})</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRestartMatch && onRestartMatch(match);
+                  }}
+                  className="px-2 py-1 rounded-lg uppercase font-bold text-[10px] border border-rose-300 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 hover:bg-rose-100 transition-colors inline-flex items-center gap-1 cursor-pointer"
+                  title="Restart match from beginning"
+                >
+                  <RotateCcw className="w-2.5 h-2.5" />
+                  <span>Restart</span>
+                </button>
+              </>
+            ) : isScheduled ? (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onStartMatch && onStartMatch(match?._id || match?.matchId);
+                  }}
+                  disabled={isStarting}
+                  className="flex-1 bg-[#171715] dark:bg-[#FAF8F3] text-white dark:text-[#0D0D0D] hover:bg-black py-1 rounded-lg uppercase font-bold inline-flex items-center justify-center gap-1 shadow-2xs transition-transform active:scale-95 cursor-pointer text-[10px]"
+                >
+                  <Play className="w-2.5 h-2.5 fill-current" />
+                  <span>Start (10m)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenResultModal && onOpenResultModal(match);
+                  }}
+                  className="bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1 rounded-lg uppercase font-bold inline-flex items-center gap-1 shadow-2xs cursor-pointer text-[10px]"
+                >
+                  <Crown className="w-2.5 h-2.5 fill-current" />
+                  <span>Winner</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRestartMatch && onRestartMatch(match);
+                  }}
+                  className="px-2 py-1 rounded-lg uppercase font-bold text-[10px] border border-[#D5CFC5] dark:border-[#262624] text-[#77736B] hover:text-[#171715] dark:hover:text-[#FAF8F3] inline-flex items-center gap-1 cursor-pointer"
+                  title="Reset clocks"
+                >
+                  <RotateCcw className="w-2.5 h-2.5" />
+                  <span>Reset</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenResultModal && onOpenResultModal(match);
+                  }}
+                  className="flex-1 border border-[#D5CFC5] dark:border-[#2E2E2B] bg-[#EFEAE1] dark:bg-[#20201E] hover:bg-[#E4DED5] text-[#171715] dark:text-[#FAF8F3] py-1 rounded-lg uppercase font-bold text-[10px] text-center cursor-pointer"
+                >
+                  Edit Winner
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRestartMatch && onRestartMatch(match);
+                  }}
+                  className="px-2.5 py-1 rounded-lg uppercase font-bold text-[10px] border border-rose-300 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 hover:bg-rose-100 transition-colors inline-flex items-center gap-1 cursor-pointer"
+                  title="Restart match from beginning"
+                >
+                  <RotateCcw className="w-2.5 h-2.5" />
+                  <span>Restart Match</span>
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -1180,7 +1180,8 @@ export default function ChessPlayerDashboardPage() {
             </div>
           ) : (
             <div className="space-y-2">
-              {matchHistory.map((m) => {
+              {(matchHistory || []).filter(Boolean).map((m) => {
+                if (!m) return null;
                 const isP1 = (m.player1?._id || m.player1) === (player?._id || player?.playerId);
                 const oppName = isP1
                   ? m.player2?.fullName || (m.isBye ? 'BYE (Automatic Advance)' : 'Opponent')

@@ -1072,21 +1072,23 @@ export default function AdminRegistrationsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E8E1D5] dark:divide-[#2B3034]">
-                {registrations.map((reg, index) => {
-                  const p = reg.participantId;
-                  if (!p) return null;
+                {(registrations || []).filter(Boolean).map((reg, index) => {
+                  const p = reg?.participantId;
+                  if (!p || !reg?._id) return null;
 
-                  const doublesVal = reg.doublesValidation;
-                  const mixedVal = reg.mixedDoublesValidation;
+                  const doublesVal = reg?.doublesValidation;
+                  const mixedVal = reg?.mixedDoublesValidation;
 
                   const canPairDoubles = doublesVal?.canPair;
                   const canPairMixed = mixedVal?.canPair;
 
+                  const regId = reg._id;
+
                   return (
                     <tr
-                      key={reg._id}
+                      key={regId}
                       className={`transition-colors ${
-                        selectedIds.includes(reg._id)
+                        selectedIds.includes(regId)
                           ? 'bg-[#FAF9F6] dark:bg-[#181C1F] hover:bg-[#FAF9F6] dark:hover:bg-[#181C1F]'
                           : 'hover:bg-[#FAF9F6]/60 dark:hover:bg-[#181C1F]/60'
                       }`}
@@ -1094,8 +1096,8 @@ export default function AdminRegistrationsPage() {
                       <td className="py-4 text-center align-top">
                         <input
                           type="checkbox"
-                          checked={selectedIds.includes(reg._id)}
-                          onChange={() => handleToggleSelect(reg._id)}
+                          checked={selectedIds.includes(regId)}
+                          onChange={() => handleToggleSelect(regId)}
                           className="w-4 h-4 rounded border-[#D5C4A1] dark:border-[#2B3034] text-[#E74C3C] focus:ring-0 cursor-pointer accent-[#E74C3C]"
                           aria-label={`Select ${p.fullName}`}
                         />
@@ -1171,7 +1173,7 @@ export default function AdminRegistrationsPage() {
                           <div className="flex items-center gap-1.5">
                             {reg.status !== 'approved' && (
                               <button
-                                onClick={() => handleUpdateStatus(reg._id, 'approved')}
+                                onClick={() => handleUpdateStatus(regId, 'approved')}
                                 disabled={actionLoading}
                                 className="px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800/40 text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1"
                                 title="Approve & Lock Registration"
@@ -1183,7 +1185,7 @@ export default function AdminRegistrationsPage() {
 
                             {reg.status !== 'rejected' && (
                               <button
-                                onClick={() => handleUpdateStatus(reg._id, 'rejected')}
+                                onClick={() => handleUpdateStatus(regId, 'rejected')}
                                 disabled={actionLoading}
                                 className="p-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-200 dark:border-rose-800/40 transition-colors cursor-pointer"
                                 title="Reject Registration"

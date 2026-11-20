@@ -460,6 +460,14 @@ export const chessApi = {
     });
   },
 
+  restartMatch: async (id) => {
+    return await safeFetch(`/admin/matches/${id}/restart`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ action: 'restart' })
+    });
+  },
+
   deleteMatch: async (id) => {
     return await safeFetch(`/admin/matches/${id}`, {
       method: 'DELETE',

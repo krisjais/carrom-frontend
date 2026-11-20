@@ -109,20 +109,20 @@ export const BracketView = ({ rounds, category, isLocked, isPublished, onMatchUp
           className="flex items-stretch gap-12 sm:gap-16 min-w-max transition-transform origin-top-left relative"
           style={{ transform: `scale(${zoom})` }}
         >
-          {rounds.map((round, rIdx) => {
-            const isFinal = rIdx === rounds.length - 1;
+          {(rounds || []).filter(Boolean).map((round, rIdx) => {
+            const isFinal = rIdx === (rounds?.length || 1) - 1;
             return (
-              <div key={round.roundNumber} className="flex flex-col w-72 shrink-0 relative">
+              <div key={round?.roundNumber || rIdx} className="flex flex-col w-72 shrink-0 relative">
                 {/* Round Header */}
                 <div className="text-center pb-3 mb-6 border-b border-[#E8E1D5] dark:border-[#2B3034]">
                   <span className="text-[10px] font-mono text-[#E74C3C] uppercase tracking-widest font-bold block">
-                    STAGE {round.roundNumber} OF {rounds.length}
+                    STAGE {round?.roundNumber || rIdx + 1} OF {rounds?.length || 1}
                   </span>
                   <h4 className="text-lg font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] tracking-tight">
-                    {round.roundName}
+                    {round?.roundName || `Round ${rIdx + 1}`}
                   </h4>
                   <span className="text-[11px] text-[#7E7060] dark:text-[#B8B1A5] font-mono">
-                    {round.matches.length} {round.matches.length === 1 ? 'Championship Final' : 'Matches'}
+                    {round?.matches?.length || 0} {round?.matches?.length === 1 ? 'Championship Final' : 'Matches'}
                   </span>
                 </div>
 
@@ -165,9 +165,9 @@ const MatchNode = ({ match, isFinal, isAdmin, onSubstitute }) => {
   const isScheduled = match.status === 'scheduled';
   const isBye = match.isBye || match.status === 'bye';
 
-  const winnerId = (match.winnerTeam?._id || match.winnerTeam)?.toString();
-  const t1Id = (match.team1?._id || match.team1)?.toString();
-  const t2Id = (match.team2?._id || match.team2)?.toString();
+  const winnerId = (match?.winnerTeam?._id || match?.winnerTeam)?.toString();
+  const t1Id = (match?.team1?._id || match?.team1)?.toString();
+  const t2Id = (match?.team2?._id || match?.team2)?.toString();
 
   const isTeam1Winner = Boolean(winnerId && t1Id && winnerId === t1Id);
   const isTeam2Winner = Boolean(winnerId && t2Id && winnerId === t2Id);
@@ -301,7 +301,7 @@ const MatchNode = ({ match, isFinal, isAdmin, onSubstitute }) => {
             )}
             {isAdmin && (
               <Link
-                href={`/admin/matches/${match._id}/score`}
+                href={`/admin/matches/${match?._id || match?.matchId}/score`}
                 className="text-[#E74C3C] dark:text-[#D4A94C] hover:underline flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider"
               >
                 <span>Scorecard</span>
@@ -330,7 +330,7 @@ const MatchNode = ({ match, isFinal, isAdmin, onSubstitute }) => {
             )}
             {isAdmin && (
               <Link
-                href={`/admin/matches/${match._id}/score`}
+                href={`/admin/matches/${match?._id || match?.matchId}/score`}
                 className="text-[#E74C3C] font-mono text-[10px] font-bold uppercase hover:underline flex items-center gap-0.5"
               >
                 <span>Score</span>
@@ -342,7 +342,7 @@ const MatchNode = ({ match, isFinal, isAdmin, onSubstitute }) => {
       )}
 
       {/* Admin Referee Action for Scheduled/Pending Match */}
-      {isAdmin && !isBye && (match.team1 || match.team2) && !isLive && !isCompleted && (
+      {isAdmin && !isBye && (match?.team1 || match?.team2) && !isLive && !isCompleted && (
         <div className="mt-2.5 pt-2 border-t border-[#E8E1D5] dark:border-[#2B3034] flex items-center justify-between text-[10px] font-mono">
           <button
             type="button"
@@ -353,9 +353,9 @@ const MatchNode = ({ match, isFinal, isAdmin, onSubstitute }) => {
             <Users className="w-3 h-3 text-[#E74C3C]" />
             <span>Change Partner</span>
           </button>
-          {match.team1 && match.team2 && (
+          {match?.team1 && match?.team2 && (
             <Link
-              href={`/admin/matches/${match._id}/score`}
+              href={`/admin/matches/${match?._id || match?.matchId}/score`}
               className="flex items-center gap-1 font-bold text-[#E74C3C] dark:text-[#D4A94C] hover:underline transition-colors uppercase tracking-wider"
             >
               <span>Score Match</span>

@@ -210,8 +210,8 @@ export default function ChessAdminPlayersPage() {
           message: `Password for ${selectedPlayerForPassword.fullName} updated to '${newPasswordInput.trim()}'.`
         });
         setPlayers((prev) =>
-          prev.map((p) =>
-            (p._id === pId || p.playerId === pId)
+          (prev || []).filter(Boolean).map((p) =>
+            p && ((p._id && p._id === pId) || (p.playerId && p.playerId === pId))
               ? { ...p, plainPassword: newPasswordInput.trim(), password: newPasswordInput.trim() }
               : p
           )
