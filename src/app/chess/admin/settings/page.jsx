@@ -118,11 +118,21 @@ export default function ChessAdminSettingsPage() {
 
         {/* Settings Form */}
         {loading ? (
-          <div className="text-center py-16 text-[#77736B] dark:text-[#8E8E93] bg-[#FAF8F3] dark:bg-[#151514] rounded-2xl border border-[#D5CFC5] dark:border-[#262624]">
-            Loading tournament configuration...
+          <div className="bg-[#FAF8F3]/60 dark:bg-[#151514]/60 border border-[#D5CFC5]/60 dark:border-[#262624]/60 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xs max-w-3xl animate-pulse">
+            <div className="h-4 bg-[#E8E1D5] dark:bg-[#262624] rounded-md w-1/3" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="h-10 bg-[#E8E1D5] dark:bg-[#262624] rounded-xl" />
+              <div className="h-10 bg-[#E8E1D5] dark:bg-[#262624] rounded-xl" />
+            </div>
+            <div className="h-4 bg-[#E8E1D5] dark:bg-[#262624] rounded-md w-1/4 mt-4" />
+            <div className="grid grid-cols-3 gap-3">
+              <div className="h-10 bg-[#E8E1D5] dark:bg-[#262624] rounded-xl" />
+              <div className="h-10 bg-[#E8E1D5] dark:bg-[#262624] rounded-xl" />
+              <div className="h-10 bg-[#E8E1D5] dark:bg-[#262624] rounded-xl" />
+            </div>
           </div>
         ) : (
-          <form onSubmit={handleSave} className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-6 sm:p-8 space-y-6 shadow-xs max-w-3xl">
+          <form onSubmit={handleSave} className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-6 sm:p-8 space-y-6 shadow-xs max-w-3xl chess-content-fade-in">
             
             {/* General Settings */}
             <div className="space-y-4">

@@ -71,13 +71,25 @@ export default function ChessAdminDashboardPage() {
 
         {/* Stats Grid: 2 columns on phone, 4 on desktop */}
         {loading ? (
-          <div className="text-center py-16 text-[#77736B] dark:text-[#8E8E93] bg-[#FAF8F3] dark:bg-[#151514] rounded-2xl border border-[#D5CFC5] dark:border-[#262624]">
-            Loading dashboard metrics...
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 animate-pulse">
+            {[1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="bg-[#FAF8F3]/60 dark:bg-[#151514]/60 border border-[#D5CFC5]/60 dark:border-[#262624]/60 rounded-2xl p-4 sm:p-5 h-28 flex flex-col justify-between"
+              >
+                <div className="flex justify-between items-center">
+                  <div className="w-16 h-3 bg-[#E8E1D5] dark:bg-[#262624] rounded-md" />
+                  <div className="w-4 h-4 bg-[#E8E1D5] dark:bg-[#262624] rounded-full" />
+                </div>
+                <div className="w-14 h-7 bg-[#E8E1D5] dark:bg-[#262624] rounded-lg" />
+                <div className="w-20 h-2.5 bg-[#E8E1D5] dark:bg-[#262624] rounded-md" />
+              </div>
+            ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 chess-content-fade-in">
             
-            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-4 sm:p-5 shadow-xs space-y-1.5 flex flex-col justify-between">
+            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-4 sm:p-5 shadow-xs space-y-1.5 flex flex-col justify-between hover:border-[#D5CFC5]/80 transition-all duration-200">
               <div className="flex items-center justify-between text-[#77736B] dark:text-[#8E8E93]">
                 <span className="text-[10px] sm:text-[11px] font-mono font-semibold uppercase tracking-wider truncate">Registrations</span>
                 <Users className="w-4 h-4 text-[#171715] dark:text-[#FAF8F3] shrink-0" />
@@ -90,7 +102,7 @@ export default function ChessAdminDashboardPage() {
               </span>
             </div>
 
-            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-4 sm:p-5 shadow-xs space-y-1.5 flex flex-col justify-between">
+            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-4 sm:p-5 shadow-xs space-y-1.5 flex flex-col justify-between hover:border-[#D5CFC5]/80 transition-all duration-200">
               <div className="flex items-center justify-between text-[#77736B] dark:text-[#8E8E93]">
                 <span className="text-[10px] sm:text-[11px] font-mono font-semibold uppercase tracking-wider truncate">Matches</span>
                 <Swords className="w-4 h-4 text-[#171715] dark:text-[#FAF8F3] shrink-0" />
@@ -103,7 +115,7 @@ export default function ChessAdminDashboardPage() {
               </span>
             </div>
 
-            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-4 sm:p-5 shadow-xs space-y-1.5 flex flex-col justify-between">
+            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-4 sm:p-5 shadow-xs space-y-1.5 flex flex-col justify-between hover:border-[#D5CFC5]/80 transition-all duration-200">
               <div className="flex items-center justify-between text-rose-600 dark:text-rose-400">
                 <span className="text-[10px] sm:text-[11px] font-mono font-semibold uppercase tracking-wider truncate">Live Games</span>
                 <Clock className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
@@ -116,7 +128,7 @@ export default function ChessAdminDashboardPage() {
               </span>
             </div>
 
-            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-4 sm:p-5 shadow-xs space-y-1.5 flex flex-col justify-between">
+            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-4 sm:p-5 shadow-xs space-y-1.5 flex flex-col justify-between hover:border-[#D5CFC5]/80 transition-all duration-200">
               <div className="flex items-center justify-between text-[#77736B] dark:text-[#8E8E93]">
                 <span className="text-[10px] sm:text-[11px] font-mono font-semibold uppercase tracking-wider truncate">Stage</span>
                 <Trophy className="w-4 h-4 text-amber-500 shrink-0" />

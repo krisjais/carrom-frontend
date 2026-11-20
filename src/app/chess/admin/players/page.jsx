@@ -419,7 +419,7 @@ export default function ChessAdminPlayersPage() {
                 <th className="py-3.5 px-4 text-right font-semibold">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#D5CFC5]/50 dark:divide-[#262624]">
+            <tbody className="divide-y divide-[#D5CFC5]/50 dark:divide-[#262624] chess-content-fade-in">
               {loading ? (
                 <tr>
                   <td colSpan={8} className="py-12 text-center text-[#77736B] dark:text-[#8E8E93]">

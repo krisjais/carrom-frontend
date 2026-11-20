@@ -24,6 +24,7 @@ export function AdminSidebar() {
   const router = useRouter();
   const { theme, toggleTheme, mounted } = useChessTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const navItems = [
     { label: 'Dashboard', href: '/chess/admin', icon: LayoutDashboard },
@@ -46,9 +47,10 @@ export function AdminSidebar() {
     };
   }, [mobileOpen]);
 
-  // Close drawer whenever pathname changes
+  // Close drawer and reset section-changing loading bar whenever pathname updates
   useEffect(() => {
     setMobileOpen(false);
+    setIsNavigating(false);
   }, [pathname]);
 
   const handleLogout = () => {
@@ -65,6 +67,13 @@ export function AdminSidebar() {
 
   return (
     <>
+      {/* SECTION CHANGING TOP GLOWING PROGRESS BAR */}
+      {isNavigating && (
+        <div className="fixed top-0 left-0 right-0 z-[100] h-[3px] bg-amber-500/20 overflow-hidden pointer-events-none">
+          <div className="h-full w-full bg-gradient-to-r from-amber-500 via-rose-500 to-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.8)] origin-left chess-nav-progress" />
+        </div>
+      )}
+
       {/* 1. MOBILE TOP APP BAR (Visible on screens < lg) */}
       <header className="lg:hidden w-full sticky top-0 z-40 bg-[#FAF8F3]/95 dark:bg-[#151514]/95 backdrop-blur-md border-b border-[#D5CFC5] dark:border-[#262624] px-4 py-3 flex items-center justify-between shadow-xs transition-colors">
         <div className="flex items-center gap-3">
@@ -74,10 +83,16 @@ export function AdminSidebar() {
             className="w-9 h-9 rounded-xl border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1] dark:bg-[#1E1E1C] text-[#171715] dark:text-[#FAF8F3] hover:bg-[#E4DED5] active:scale-90 transition-all flex items-center justify-center shadow-xs cursor-pointer"
             aria-label="Open Admin Navigation Menu"
           >
-            <Menu className="w-5 h-5 transition-transform duration-200" />
+            <Menu className={`w-5 h-5 transition-transform duration-300 ${mobileOpen ? 'rotate-90 scale-90' : 'rotate-0'}`} />
           </button>
 
-          <Link href="/chess/admin" className="flex items-center gap-2.5 group">
+          <Link
+            href="/chess/admin"
+            onClick={() => {
+              if (pathname !== '/chess/admin') setIsNavigating(true);
+            }}
+            className="flex items-center gap-2.5 group"
+          >
             <div className="w-8 h-8 rounded-lg bg-[#22221F] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] flex items-center justify-center font-bold text-sm shadow-2xs group-hover:scale-105 transition-transform">
               <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                 <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
@@ -88,7 +103,7 @@ export function AdminSidebar() {
                 <span className="font-serif font-bold text-xs sm:text-sm text-[#171715] dark:text-[#FAF8F3] tracking-tight">
                   CHESS ADMIN
                 </span>
-                <span className="text-[9px] font-mono px-1.5 py-0.2 rounded-md bg-[#EFEAE1] dark:bg-[#1E1E1C] border border-[#D5CFC5]/70 dark:border-[#2E2E2B] text-amber-700 dark:text-amber-400 font-bold uppercase">
+                <span className="text-[9px] font-mono px-1.5 py-0.2 rounded-md bg-[#EFEAE1] dark:bg-[#1E1E1C] border border-[#D5CFC5]/70 dark:border-[#2E2E2B] text-amber-700 dark:text-amber-400 font-bold uppercase transition-all duration-200">
                   {activeItem.label}
                 </span>
               </div>
@@ -114,7 +129,7 @@ export function AdminSidebar() {
         </div>
       </header>
 
-      {/* 2. MOBILE SLIDE-IN NAVIGATION DRAWER (Hardware-accelerated silky smooth 300ms curve) */}
+      {/* 2. MOBILE SLIDE-IN NAVIGATION DRAWER (Hardware-accelerated silky smooth 320ms curve + Staggered Cascade) */}
       <div
         className={`fixed inset-0 z-50 lg:hidden transition-all duration-300 ease-in-out ${
           mobileOpen ? 'visible pointer-events-auto' : 'invisible pointer-events-none'
@@ -140,11 +155,22 @@ export function AdminSidebar() {
           }}
         >
           <div className="space-y-6">
-            {/* Drawer Brand Header with Close 'X' */}
-            <div className="flex items-center justify-between border-b border-[#D5CFC5] dark:border-[#262624] pb-4">
+            {/* Drawer Brand Header with Close 'X' (Smooth Slide-Down Entrance) */}
+            <div
+              className="flex items-center justify-between border-b border-[#D5CFC5] dark:border-[#262624] pb-4"
+              style={{
+                transition: 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms cubic-bezier(0.16, 1, 0.3, 1)',
+                transitionDelay: mobileOpen ? '40ms' : '0ms',
+                transform: mobileOpen ? 'translateY(0)' : 'translateY(-12px)',
+                opacity: mobileOpen ? 1 : 0,
+              }}
+            >
               <Link
                 href="/chess/admin"
-                onClick={() => setMobileOpen(false)}
+                onClick={() => {
+                  if (pathname !== '/chess/admin') setIsNavigating(true);
+                  setMobileOpen(false);
+                }}
                 className="flex items-center gap-3"
               >
                 <div className="w-9 h-9 rounded-xl bg-[#22221F] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] flex items-center justify-center font-bold text-lg shadow-xs">
@@ -172,35 +198,65 @@ export function AdminSidebar() {
               </button>
             </div>
 
-            {/* Navigation Module Links */}
+            {/* Navigation Module Links (Staggered Cascade Glide Animation) */}
             <nav className="space-y-1.5">
-              <span className="text-[9px] font-mono font-semibold uppercase tracking-widest text-[#77736B] dark:text-[#8E8E93] px-3.5 mb-2 block">
+              <span
+                className="text-[9px] font-mono font-semibold uppercase tracking-widest text-[#77736B] dark:text-[#8E8E93] px-3.5 mb-2 block"
+                style={{
+                  transition: 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms cubic-bezier(0.16, 1, 0.3, 1)',
+                  transitionDelay: mobileOpen ? '70ms' : '0ms',
+                  transform: mobileOpen ? 'translateX(0)' : 'translateX(-16px)',
+                  opacity: mobileOpen ? 1 : 0,
+                }}
+              >
                 MANAGEMENT MODULES
               </span>
-              {navItems.map((item) => {
+              {navItems.map((item, index) => {
                 const Icon = item.icon;
                 const active = isActive(item.href);
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
-                    onClick={() => setMobileOpen(false)}
-                    className={`flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs uppercase tracking-wider font-semibold transition-all active:scale-[0.98] ${
+                    onClick={() => {
+                      if (pathname !== item.href) setIsNavigating(true);
+                      setMobileOpen(false);
+                    }}
+                    style={{
+                      transition: 'transform 340ms cubic-bezier(0.16, 1, 0.3, 1), opacity 340ms cubic-bezier(0.16, 1, 0.3, 1)',
+                      transitionDelay: mobileOpen ? `${90 + index * 38}ms` : '0ms',
+                      transform: mobileOpen ? 'translateX(0)' : 'translateX(-22px)',
+                      opacity: mobileOpen ? 1 : 0,
+                    }}
+                    className={`relative group flex items-center justify-between px-3.5 py-3 rounded-xl text-xs uppercase tracking-wider font-semibold transition-all duration-200 active:scale-[0.97] ${
                       active
-                        ? 'bg-[#22221F] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] shadow-xs'
+                        ? 'bg-[#22221F] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] shadow-sm'
                         : 'text-[#4E4C47] dark:text-[#8E8E93] hover:bg-[#EFEAE1] dark:hover:bg-[#1D1D1B] hover:text-[#171715] dark:hover:text-[#FAF8F3]'
                     }`}
                   >
-                    <Icon className={`w-4 h-4 ${active ? 'text-inherit' : 'text-[#77736B] dark:text-[#8E8E93]'}`} />
-                    <span>{item.label}</span>
+                    <div className="flex items-center gap-3">
+                      <Icon className={`w-4 h-4 transition-transform duration-200 group-hover:scale-110 ${active ? 'text-inherit' : 'text-[#77736B] dark:text-[#8E8E93]'}`} />
+                      <span>{item.label}</span>
+                    </div>
+                    {active && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0 shadow-[0_0_6px_rgba(245,158,11,0.8)]" />
+                    )}
                   </Link>
                 );
               })}
             </nav>
           </div>
 
-          {/* Drawer Footer Actions */}
-          <div className="pt-4 border-t border-[#D5CFC5] dark:border-[#262624] space-y-2">
+          {/* Drawer Footer Actions (Smooth Slide-Up Entrance) */}
+          <div
+            className="pt-4 border-t border-[#D5CFC5] dark:border-[#262624] space-y-2"
+            style={{
+              transition: 'transform 320ms cubic-bezier(0.16, 1, 0.3, 1), opacity 320ms cubic-bezier(0.16, 1, 0.3, 1)',
+              transitionDelay: mobileOpen ? `${100 + navItems.length * 38 + 30}ms` : '0ms',
+              transform: mobileOpen ? 'translateY(0)' : 'translateY(16px)',
+              opacity: mobileOpen ? 1 : 0,
+            }}
+          >
             <Link
               href="/chess"
               onClick={() => setMobileOpen(false)}
@@ -230,7 +286,13 @@ export function AdminSidebar() {
         <div className="space-y-6">
           {/* Admin Brand Header */}
           <div className="flex items-center justify-between border-b border-[#D5CFC5] dark:border-[#262624] pb-4">
-            <Link href="/chess/admin" className="flex items-center gap-3 group">
+            <Link
+              href="/chess/admin"
+              onClick={() => {
+                if (pathname !== '/chess/admin') setIsNavigating(true);
+              }}
+              className="flex items-center gap-3 group"
+            >
               <div className="w-9 h-9 rounded-xl bg-[#22221F] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] flex items-center justify-center font-bold text-lg shadow-xs group-hover:scale-105 transition-transform">
                 <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
                   <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
@@ -274,14 +336,22 @@ export function AdminSidebar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs uppercase tracking-wider font-semibold transition-all ${
+                  onClick={() => {
+                    if (pathname !== item.href) setIsNavigating(true);
+                  }}
+                  className={`relative group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs uppercase tracking-wider font-semibold transition-all duration-200 active:scale-[0.98] ${
                     active
                       ? 'bg-[#22221F] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] shadow-xs'
                       : 'text-[#4E4C47] dark:text-[#8E8E93] hover:bg-[#EFEAE1] dark:hover:bg-[#1D1D1B] hover:text-[#171715] dark:hover:text-[#FAF8F3]'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${active ? 'text-inherit' : 'text-[#77736B] dark:text-[#8E8E93]'}`} />
-                  <span>{item.label}</span>
+                  <div className="flex items-center gap-3">
+                    <Icon className={`w-4 h-4 transition-transform duration-200 group-hover:scale-110 ${active ? 'text-inherit' : 'text-[#77736B] dark:text-[#8E8E93]'}`} />
+                    <span>{item.label}</span>
+                  </div>
+                  {active && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400 animate-pulse shrink-0 shadow-[0_0_6px_rgba(245,158,11,0.8)]" />
+                  )}
                 </Link>
               );
             })}
@@ -301,7 +371,7 @@ export function AdminSidebar() {
           <button
             type="button"
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 border border-rose-200 dark:border-rose-900/40 transition-all uppercase tracking-wider shadow-xs cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 border border-rose-200 dark:border-rose-900/40 transition-all uppercase tracking-wider shadow-xs cursor-pointer active:scale-95"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>Log Out</span>

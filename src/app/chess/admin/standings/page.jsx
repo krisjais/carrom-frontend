@@ -81,8 +81,10 @@ export default function ChessAdminStandingsPage() {
           </div>
         </div>
 
-        {/* Standings Table */}
-        <StandingsTable standings={standings} loading={loading} />
+        {/* Standings Table with Smooth Fade Entrance */}
+        <div className="chess-content-fade-in">
+          <StandingsTable standings={standings} loading={loading} />
+        </div>
 
       </main>
     </div>
