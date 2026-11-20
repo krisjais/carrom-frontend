@@ -338,10 +338,10 @@ export default function AdminTeamsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E8E1D5] dark:divide-[#2B3034]">
-                {teams.map((t, idx) => (
-                  <tr key={t._id} className="hover:bg-[#F4EFE6] dark:hover:bg-[#181C1F] transition-colors">
+                {(teams || []).filter(Boolean).map((t, idx) => (
+                  <tr key={t?._id || idx} className="hover:bg-[#F4EFE6] dark:hover:bg-[#181C1F] transition-colors">
                     <td className="py-3.5 text-[#7E7060] dark:text-[#817B72] font-bold">{idx + 1}</td>
-                    <td className="py-3.5 font-bold text-[#3E342B] dark:text-[#F5F1E8] text-sm">{t.name}</td>
+                    <td className="py-3.5 font-bold text-[#3E342B] dark:text-[#F5F1E8] text-sm">{t?.name}</td>
                     <td className="py-3.5">
                       <div className="space-y-0.5">
                         <span className="text-[#3E342B] dark:text-[#F5F1E8] font-bold">{t.player1?.fullName}</span>

@@ -117,14 +117,14 @@ export default function ChessAdminPlayersPage() {
 
   // Bulk selection logic
   const allFilteredSelected =
-    filtered.length > 0 && filtered.every((p) => selectedIds.includes(p._id));
+    filtered.length > 0 && filtered.every((p) => p && selectedIds.includes(p._id));
 
   const handleToggleSelectAll = () => {
     if (allFilteredSelected) {
-      const filteredIds = new Set(filtered.map((p) => p._id));
+      const filteredIds = new Set(filtered.filter(Boolean).map((p) => p?._id).filter(Boolean));
       setSelectedIds((prev) => prev.filter((id) => !filteredIds.has(id)));
     } else {
-      const newIds = new Set([...selectedIds, ...filtered.map((p) => p._id)]);
+      const newIds = new Set([...selectedIds, ...filtered.filter(Boolean).map((p) => p?._id).filter(Boolean)]);
       setSelectedIds(Array.from(newIds));
     }
   };
@@ -393,12 +393,13 @@ export default function ChessAdminPlayersPage() {
                   </td>
                 </tr>
               ) : (
-                filtered.map((p) => {
-                  const isSelected = selectedIds.includes(p._id);
+                (filtered || []).filter(Boolean).map((p, pIdx) => {
+                  const pId = p?._id || p?.playerId || pIdx;
+                  const isSelected = selectedIds.includes(pId);
 
                   return (
                     <tr
-                      key={p._id}
+                      key={pId}
                       className={`transition-colors hover:bg-[#EFEAE1]/50 dark:hover:bg-[#1D1D1B]/50 ${
                         isSelected ? 'bg-[#EFEAE1]/40 dark:bg-[#1D1D1B]/60' : ''
                       }`}
@@ -407,7 +408,7 @@ export default function ChessAdminPlayersPage() {
                         <input
                           type="checkbox"
                           checked={isSelected}
-                          onChange={() => handleToggleSelect(p._id)}
+                          onChange={() => handleToggleSelect(pId)}
                           className="rounded border-[#D5CFC5] accent-[#171715] dark:accent-[#FAF8F3] cursor-pointer"
                         />
                       </td>

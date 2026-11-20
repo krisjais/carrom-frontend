@@ -83,7 +83,7 @@ export default function FixturesPage() {
             const isT2Win = Boolean(winnerId && winnerId === (m.team2?._id || m.team2)?.toString());
 
             return (
-              <div key={m._id} className="editorial-card p-6 space-y-4 rounded-2xl bg-white dark:bg-[#15191C] border border-[#E8E1D5] dark:border-[#2B3034] shadow-xs">
+              <div key={m?._id || m?.matchId} className="editorial-card p-6 space-y-4 rounded-2xl bg-white dark:bg-[#15191C] border border-[#E8E1D5] dark:border-[#2B3034] shadow-xs">
                 <div className="flex items-center justify-between pb-3 border-b border-[#E8E1D5] dark:border-[#2B3034] text-[11px] font-mono">
                   <div className="flex items-center gap-1.5">
                     <span className="font-bold text-[#3E342B] dark:text-[#F5F1E8]">M#{m.matchNumber}</span>

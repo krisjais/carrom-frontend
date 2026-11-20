@@ -95,7 +95,7 @@ export default function ResultsPage() {
 
             return (
               <div
-                key={m._id}
+                key={m?._id || m?.matchId}
                 className="rounded-3xl p-6 space-y-5 bg-[#F7F4EC] dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B25] shadow-xs hover:border-[#171614] dark:hover:border-[#C2A268] transition-colors"
               >
                 {/* Match Header */}

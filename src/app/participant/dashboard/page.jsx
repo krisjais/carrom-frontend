@@ -149,9 +149,9 @@ export default function ParticipantDashboardPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {teams.map((t) => (
+            {(teams || []).filter(Boolean).map((t, idx) => (
               <div
-                key={t._id}
+                key={t?._id || idx}
                 className="rounded-2xl p-5 bg-[#F7F4EC] dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B25] shadow-xs flex flex-col justify-between space-y-4 hover:border-[#171614] dark:hover:border-[#C2A268] transition-colors"
               >
                 <div className="space-y-3">
@@ -204,9 +204,9 @@ export default function ParticipantDashboardPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {matches.map((m) => (
+                {(matches || []).filter(Boolean).map((m, mIdx) => (
                   <div
-                    key={m._id}
+                    key={m?._id || m?.matchId || mIdx}
                     className="rounded-2xl p-5 bg-[#F7F4EC] dark:bg-[#1D1C19] border border-[#DCD6C8] dark:border-[#2E2B25] shadow-xs space-y-3"
                   >
                     <div className="flex items-center justify-between text-xs pb-2.5 border-b border-[#DCD6C8]/80 dark:border-[#38342C]">

@@ -365,7 +365,7 @@ export const chessApi = {
 
         // If Auto-Approve is requested, ensure their status is updated to Approved
         if (initialStatus === 'Approved' && importedList.length > 0) {
-          const ids = importedList.map((item) => item._id).filter(Boolean);
+          const ids = importedList.filter(Boolean).map((item) => item?._id).filter(Boolean);
           if (ids.length > 0) {
             try {
               await safeFetch('/admin/players/bulk-status', {

@@ -175,8 +175,8 @@ export function ChessBracketView({
                       onPauseResumeMatch={onPauseResumeMatch}
                       onOpenResultModal={onOpenResultModal}
                       onDeleteMatch={onDeleteMatch}
-                      isStarting={startingMatchId === match._id}
-                      isDeleting={deletingMatchId === match._id}
+                      isStarting={startingMatchId === (match?._id || match?.matchId)}
+                      isDeleting={deletingMatchId === (match?._id || match?.matchId)}
                     />
                   ))}
                 </div>

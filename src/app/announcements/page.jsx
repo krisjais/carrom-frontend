@@ -46,8 +46,8 @@ export default function AnnouncementsPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {announcements.map((ann) => (
-            <div key={ann._id} className="editorial-card p-6 space-y-3 rounded-2xl bg-white dark:bg-[#15191C] border border-[#E8E1D5] dark:border-[#2B3034] shadow-xs">
+          {(announcements || []).filter(Boolean).map((ann, idx) => (
+            <div key={ann?._id || idx} className="editorial-card p-6 space-y-3 rounded-2xl bg-white dark:bg-[#15191C] border border-[#E8E1D5] dark:border-[#2B3034] shadow-xs">
               <div className="flex items-center justify-between text-[11px] font-mono">
                 <div className="flex items-center gap-2">
                   {ann.isPinned && (

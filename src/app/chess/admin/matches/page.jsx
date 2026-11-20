@@ -239,8 +239,9 @@ export default function ChessAdminMatchesPage() {
 
       // Update match row in matches table
       setMatches((prev) =>
-        prev.map((m) => {
-          if (data.matchId && data.matchId !== m._id && data.matchId !== m.matchId) return m;
+        (prev || []).filter(Boolean).map((m) => {
+          if (!m) return m;
+          if (data.matchId && data.matchId !== (m._id || m.matchId)) return m;
           return {
             ...m,
             activeTurn: data.activeTurn || m.activeTurn,
@@ -396,8 +397,8 @@ export default function ChessAdminMatchesPage() {
       if (res.success) {
         // Optimistically update local matches state
         setMatches((prev) =>
-          prev.map((m) =>
-            m._id === id || m.matchId === id
+          (prev || []).filter(Boolean).map((m) =>
+            m && ((m._id && m._id === id) || (m.matchId && m.matchId === id))
               ? {
                   ...m,
                   status: 'live',
@@ -463,8 +464,8 @@ export default function ChessAdminMatchesPage() {
 
     // Optimistic local state update
     setMatches((prev) =>
-      prev.map((m) =>
-        m._id === mId || m.matchId === mId
+      (prev || []).filter(Boolean).map((m) =>
+        m && ((m._id && m._id === mId) || (m.matchId && m.matchId === mId))
           ? {
               ...m,
               isClockRunning: nextRunning,
@@ -1130,9 +1131,9 @@ export default function ChessAdminMatchesPage() {
                       required
                     >
                       <option value="">Select White Player...</option>
-                      {players.map((p) => (
-                        <option key={p._id || p.playerId} value={p._id || p.playerId}>
-                          {p.fullName} ({p.playerId} • {p.department})
+                      {(players || []).filter(Boolean).map((p, pIdx) => (
+                        <option key={p?._id || p?.playerId || pIdx} value={p?._id || p?.playerId}>
+                          {p?.fullName || 'Player'} ({p?.playerId || '-'} • {p?.department || '-'})
                         </option>
                       ))}
                     </select>
@@ -1155,9 +1156,9 @@ export default function ChessAdminMatchesPage() {
                       className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#2A2A28] focus:border-[#171715] dark:focus:border-[#FAF8F3] focus:ring-1 focus:ring-[#171715]/15 rounded-xl py-2.5 pl-3.5 pr-10 font-medium text-sm text-[#171715] dark:text-[#FAF8F3] appearance-none focus:outline-none cursor-pointer transition-all"
                     >
                       <option value="">Select Black Player (or leave empty for Bye)...</option>
-                      {players.map((p) => (
-                        <option key={p._id || p.playerId} value={p._id || p.playerId}>
-                          {p.fullName} ({p.playerId} • {p.department})
+                      {(players || []).filter(Boolean).map((p, pIdx) => (
+                        <option key={p?._id || p?.playerId || pIdx} value={p?._id || p?.playerId}>
+                          {p?.fullName || 'Player'} ({p?.playerId || '-'} • {p?.department || '-'})
                         </option>
                       ))}
                     </select>

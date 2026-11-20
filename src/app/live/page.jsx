@@ -526,11 +526,11 @@ export default function LivePage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {readyQueue.map((match, idx) => {
+            {(readyQueue || []).filter(Boolean).map((match, idx) => {
               const isOnDeck = idx === 0;
               return (
                 <div
-                  key={match._id}
+                  key={match?._id || idx}
                   className={`rounded-2xl p-5 space-y-3.5 transition-all shadow-xs ${
                     isOnDeck
                       ? 'bg-gradient-to-br from-white to-[#FAF7F0] dark:from-[#1D1C19] dark:to-[#24221E] border-2 border-[#D5C4A1] dark:border-[#C2A268]/50 shadow-md ring-1 ring-[#D5C4A1]/30'
@@ -590,9 +590,9 @@ export default function LivePage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {completedMatches.slice(0, 6).map((m) => (
+            {(completedMatches || []).slice(0, 6).filter(Boolean).map((m, mIdx) => (
               <div
-                key={m._id}
+                key={m?._id || mIdx}
                 className="rounded-2xl p-5 space-y-2.5 bg-white dark:bg-[#1D1C19] border border-[#E8E1D5] dark:border-[#2E2B25] shadow-xs hover:shadow-md transition-all"
               >
                 <div className="flex items-center justify-between text-[11px] text-[#7E7060] dark:text-[#A8A194] font-mono pb-2 border-b border-[#E8E1D5] dark:border-[#38342C]">

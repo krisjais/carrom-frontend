@@ -803,21 +803,21 @@ export default function AdminMatchesPage() {
 
                 {rg.matches.length > 0 && (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {rg.matches.map((m) => {
-                      const isWaiting = m.status === 'pending' || (!m.team1 && !m.team2);
-                      const isLive = m.status === 'live';
-                      const isCompleted = m.status === 'completed';
-                      const isReady = m.status === 'scheduled';
+                    {(rg.matches || []).filter(Boolean).map((m, mIdx) => {
+                      const isWaiting = m?.status === 'pending' || (!m?.team1 && !m?.team2);
+                      const isLive = m?.status === 'live';
+                      const isCompleted = m?.status === 'completed';
+                      const isReady = m?.status === 'scheduled';
 
-                      const winnerId = (m.winnerTeam?._id || m.winnerTeam)?.toString();
-                      const t1Id = (m.team1?._id || m.team1)?.toString();
-                      const t2Id = (m.team2?._id || m.team2)?.toString();
+                      const winnerId = (m?.winnerTeam?._id || m?.winnerTeam)?.toString();
+                      const t1Id = (m?.team1?._id || m?.team1)?.toString();
+                      const t2Id = (m?.team2?._id || m?.team2)?.toString();
                       const isT1Win = Boolean(winnerId && winnerId === t1Id);
                       const isT2Win = Boolean(winnerId && winnerId === t2Id);
 
                       return (
                         <div
-                          key={m._id}
+                          key={m?._id || mIdx}
                           className={`editorial-card p-5 space-y-4 rounded-2xl bg-white dark:bg-[#15191C] flex flex-col justify-between transition-all border shadow-xs ${
                             isLive
                               ? 'border-[#E74C3C] ring-1 ring-[#E74C3C]/30'
@@ -1021,11 +1021,11 @@ export default function AdminMatchesPage() {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {rg.byes.map((m) => {
-                        const advancingTeam = m.winnerTeam || m.team1;
+                      {(rg.byes || []).filter(Boolean).map((m, mIdx) => {
+                        const advancingTeam = m?.winnerTeam || m?.team1;
                         return (
                           <div
-                            key={m._id}
+                            key={m?._id || mIdx}
                             className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] space-y-2"
                           >
                             <div className="flex items-center justify-between text-xs">

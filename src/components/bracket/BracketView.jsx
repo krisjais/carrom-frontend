@@ -128,9 +128,9 @@ export const BracketView = ({ rounds, category, isLocked, isPublished, onMatchUp
 
                 {/* Match Cards Container */}
                 <div className="flex flex-col justify-around flex-grow gap-8 relative">
-                  {round.matches.map((match) => (
+                  {(round.matches || []).filter(Boolean).map((match, mIdx) => (
                     <MatchNode
-                      key={match._id}
+                      key={match?._id || match?.matchId || mIdx}
                       match={match}
                       isFinal={isFinal}
                       isAdmin={isAdmin}
@@ -159,15 +159,18 @@ export const BracketView = ({ rounds, category, isLocked, isPublished, onMatchUp
 };
 
 const MatchNode = ({ match, isFinal, isAdmin, onSubstitute }) => {
+  if (!match) return null;
   const isLive = match.status === 'live';
   const isCompleted = match.status === 'completed';
   const isScheduled = match.status === 'scheduled';
   const isBye = match.isBye || match.status === 'bye';
 
-  const isTeam1Winner =
-    match.winnerTeam && match.team1 && (match.winnerTeam._id === match.team1._id || match.winnerTeam === match.team1._id);
-  const isTeam2Winner =
-    match.winnerTeam && match.team2 && (match.winnerTeam._id === match.team2._id || match.winnerTeam === match.team2._id);
+  const winnerId = (match.winnerTeam?._id || match.winnerTeam)?.toString();
+  const t1Id = (match.team1?._id || match.team1)?.toString();
+  const t2Id = (match.team2?._id || match.team2)?.toString();
+
+  const isTeam1Winner = Boolean(winnerId && t1Id && winnerId === t1Id);
+  const isTeam2Winner = Boolean(winnerId && t2Id && winnerId === t2Id);
 
   return (
     <div

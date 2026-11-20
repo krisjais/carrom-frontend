@@ -192,8 +192,8 @@ export default function ChessMatchesPage() {
               </h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {liveMatches.map((m) => (
-                <LiveMatchCard key={m._id || m.matchId} match={m} />
+              {(liveMatches || []).filter(Boolean).map((m, mIdx) => (
+                <LiveMatchCard key={m?._id || m?.matchId || mIdx} match={m} />
               ))}
             </div>
           </div>
@@ -244,29 +244,29 @@ export default function ChessMatchesPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#D5CFC5]/40 dark:divide-[#262624]">
-                    {filteredMatches.map((m) => {
-                      const p1 = m.player1?.fullName || (m.isBye ? (m.byePlayer?.fullName || 'Player') : 'TBD');
-                      const p2 = m.player2?.fullName || (m.isBye ? 'BYE' : 'TBD');
-                      const isCompleted = m.status === 'completed';
-                      const isLive = m.status === 'live';
+                    {(filteredMatches || []).filter(Boolean).map((m, mIdx) => {
+                      const p1 = m?.player1?.fullName || (m?.isBye ? (m?.byePlayer?.fullName || 'Player') : 'TBD');
+                      const p2 = m?.player2?.fullName || (m?.isBye ? 'BYE' : 'TBD');
+                      const isCompleted = m?.status === 'completed';
+                      const isLive = m?.status === 'live';
 
                       let winnerText = '—';
                       if (isCompleted) {
-                        if (m.isBye) winnerText = 'BYE (+3)';
-                        else if (m.winnerPlayer?.fullName) winnerText = `👑 ${m.winnerPlayer.fullName}`;
-                        else if (m.winner === 'player1') winnerText = `👑 ${p1}`;
-                        else if (m.winner === 'player2') winnerText = `👑 ${p2}`;
-                        else if (m.winner === 'draw') winnerText = 'Draw 🤝';
+                        if (m?.isBye) winnerText = 'BYE (+3)';
+                        else if (m?.winnerPlayer?.fullName) winnerText = `👑 ${m.winnerPlayer.fullName}`;
+                        else if (m?.winner === 'player1') winnerText = `👑 ${p1}`;
+                        else if (m?.winner === 'player2') winnerText = `👑 ${p2}`;
+                        else if (m?.winner === 'draw') winnerText = 'Draw 🤝';
                         else winnerText = 'Completed';
                       }
 
                       return (
-                        <tr key={m._id || m.matchId} className="hover:bg-[#EFEAE1]/50 dark:hover:bg-[#1B1B19] transition-colors group">
+                        <tr key={m?._id || m?.matchId || mIdx} className="hover:bg-[#EFEAE1]/50 dark:hover:bg-[#1B1B19] transition-colors group">
                           <td className="py-4 px-4 font-mono font-bold text-[#171715] dark:text-[#FAF8F3]">
-                            {m.matchId}
+                            {m?.matchId}
                           </td>
                           <td className="py-4 px-3 text-center font-mono text-[#77736B] dark:text-[#8E8E93]">
-                            <span className="font-semibold text-xs">{m.roundName || `R${m.round}`}</span>
+                            <span className="font-semibold text-xs">{m?.roundName || `R${m?.round}`}</span>
                           </td>
                           <td className="py-4 px-4 font-serif font-bold text-[#171715] dark:text-[#FAF8F3]">
                             {p1}
@@ -295,7 +295,7 @@ export default function ChessMatchesPage() {
                           </td>
                           <td className="py-4 px-4 text-right">
                             <Link
-                              href={`/chess/matches/${m._id || m.matchId}`}
+                              href={`/chess/matches/${m?._id || m?.matchId}`}
                               className="text-[11px] font-mono uppercase tracking-wider text-[#171715] dark:text-[#FAF8F3] hover:underline underline-offset-4"
                             >
                               Details →
@@ -310,27 +310,27 @@ export default function ChessMatchesPage() {
 
               {/* Mobile Card List */}
               <div className="md:hidden space-y-3">
-                {filteredMatches.map((m) => {
-                  const p1 = m.player1?.fullName || (m.isBye ? (m.byePlayer?.fullName || 'Player') : 'TBD');
-                  const p2 = m.player2?.fullName || (m.isBye ? 'BYE' : 'TBD');
+                {(filteredMatches || []).filter(Boolean).map((m, mIdx) => {
+                  const p1 = m?.player1?.fullName || (m?.isBye ? (m?.byePlayer?.fullName || 'Player') : 'TBD');
+                  const p2 = m?.player2?.fullName || (m?.isBye ? 'BYE' : 'TBD');
                   return (
                     <Link
-                      key={m._id || m.matchId}
-                      href={`/chess/matches/${m._id || m.matchId}`}
+                      key={m?._id || m?.matchId || mIdx}
+                      href={`/chess/matches/${m?._id || m?.matchId}`}
                       className="block bg-[#EFEAE1]/50 dark:bg-[#1B1B19] border border-[#D5CFC5]/70 dark:border-[#282826] rounded-2xl p-4 space-y-2.5 shadow-xs"
                     >
                       <div className="flex justify-between items-center text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93]">
-                        <span>{m.matchId} • {m.roundName || `Round ${m.round}`}</span>
-                        <span className="uppercase font-bold">{m.status}</span>
+                        <span>{m?.matchId} • {m?.roundName || `Round ${m?.round}`}</span>
+                        <span className="uppercase font-bold">{m?.status}</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <div className="font-serif font-bold text-[#171715] dark:text-[#FAF8F3] text-sm">
                           {p1} <span className="text-xs text-[#77736B] font-sans font-normal">vs</span> {p2}
                         </div>
                         <div className="font-mono font-bold text-xs text-amber-700 dark:text-amber-400">
-                          {m.status === 'completed'
-                            ? (m.winnerPlayer?.fullName ? `👑 ${m.winnerPlayer.fullName.split(' ')[0]}` : m.winner === 'draw' ? 'Draw' : 'Completed')
-                            : (m.status === 'live' ? 'Live' : 'Pending')}
+                          {m?.status === 'completed'
+                            ? (m?.winnerPlayer?.fullName ? `👑 ${m?.winnerPlayer.fullName.split(' ')[0]}` : m?.winner === 'draw' ? 'Draw' : 'Completed')
+                            : (m?.status === 'live' ? 'Live' : 'Pending')}
                         </div>
                       </div>
                     </Link>

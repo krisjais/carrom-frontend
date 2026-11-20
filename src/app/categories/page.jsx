@@ -99,8 +99,8 @@ export default function CategoriesPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {teams.map((t, idx) => (
-                <div key={t._id} className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] space-y-2">
+              {(teams || []).filter(Boolean).map((t, idx) => (
+                <div key={t?._id || idx} className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] space-y-2">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-mono text-[#3E342B] dark:text-[#F5F1E8] font-bold">#{idx + 1}</span>
                     <span className="text-[10px] text-emerald-800 dark:text-emerald-300 font-bold bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800/40 font-mono">

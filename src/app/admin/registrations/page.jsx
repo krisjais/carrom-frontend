@@ -601,7 +601,7 @@ export default function AdminRegistrationsPage() {
     if (selectedIds.length === registrations.length && registrations.length > 0) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(registrations.map((r) => r._id));
+      setSelectedIds((registrations || []).filter(Boolean).map((r) => r?._id).filter(Boolean));
     }
   };
 
@@ -1547,17 +1547,25 @@ export default function AdminRegistrationsPage() {
               className="w-full h-11 bg-white dark:bg-[#181C1F] px-4 text-sm text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
             >
               <option value="">-- Choose Partner --</option>
-              {registrations
+              {(registrations || [])
                 .filter(
                   (r) =>
+                    r &&
                     r.status === 'approved' &&
-                    r.participantId?._id !== selectedReg?.participantId?._id
+                    r.participantId &&
+                    (r.participantId?._id || r.participantId) !== (selectedReg?.participantId?._id || selectedReg?.participantId)
                 )
-                .map((r) => (
-                  <option key={r.participantId._id} value={r.participantId._id}>
-                    {r.participantId.fullName} ({r.participantId.gender} - {r.participantId.department})
-                  </option>
-                ))}
+                .map((r, rIdx) => {
+                  const pId = r.participantId?._id || r.participantId || r._id || rIdx;
+                  const pName = r.participantId?.fullName || r.fullName || 'Participant';
+                  const pGender = r.participantId?.gender || r.gender || '-';
+                  const pDept = r.participantId?.department || r.department || '-';
+                  return (
+                    <option key={pId} value={pId}>
+                      {pName} ({pGender} - {pDept})
+                    </option>
+                  );
+                })}
             </select>
           </div>
 
