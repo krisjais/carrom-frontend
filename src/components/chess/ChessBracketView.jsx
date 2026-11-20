@@ -526,7 +526,7 @@ function ChessMatchNode({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onStartMatch && onStartMatch(match?._id || match?.matchId);
+                    onStartMatch && onStartMatch(match._id);
                   }}
                   disabled={isStarting}
                   className="flex-1 bg-[#171715] dark:bg-[#FAF8F3] text-white dark:text-[#0D0D0D] hover:bg-black py-1 rounded-lg uppercase font-bold inline-flex items-center justify-center gap-1 shadow-2xs transition-transform active:scale-95 cursor-pointer text-[10px]"
@@ -590,6 +590,10 @@ function ChessMatchNode({
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
     </div>
   );
 }
