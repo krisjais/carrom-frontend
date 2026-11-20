@@ -161,14 +161,14 @@ export default function ChessPlayerDetailPage() {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {matchHistory.map((m) => {
-                    const p1Name = m.player1?.fullName || 'Player 1';
-                    const p2Name = m.player2?.fullName || 'Player 2';
-                    const isCompleted = m.status === 'Completed';
+                  {(matchHistory || []).filter(Boolean).map((m, mIdx) => {
+                    const p1Name = m?.player1?.fullName || 'Player 1';
+                    const p2Name = m?.player2?.fullName || 'Player 2';
+                    const isCompleted = m?.status === 'Completed';
 
                     return (
                       <div
-                        key={m._id}
+                        key={m?._id || m?.matchId || mIdx}
                         className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-4 bg-[#EFEAE1]/40 dark:bg-[#191918] border border-[#D5CFC5]/60 dark:border-[#262624] rounded-xl hover:border-[#171715] dark:hover:border-[#FAF8F3] transition-colors"
                       >
                         <div className="flex items-center gap-3">

@@ -13,6 +13,7 @@ import { TopPlayersCard } from '@/components/chess/TopPlayersCard';
 import { UpcomingMatchCard } from '@/components/chess/UpcomingMatchCard';
 import { ChessPieceValuesCard } from '@/components/chess/ChessPieceValuesCard';
 import { ChessFooter } from '@/components/chess/ChessFooter';
+import { subscribeToChessLive } from '@/lib/socket';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -54,6 +55,12 @@ export default function ChessHome() {
     }
 
     loadData();
+    const unsubscribe = subscribeToChessLive(() => {
+      loadData();
+    });
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   const displayStats = stats;

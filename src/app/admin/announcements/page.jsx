@@ -179,33 +179,33 @@ export default function AdminAnnouncementsPage() {
           <div className="py-12 text-center text-xs text-[#7E7060] dark:text-[#B8B1A5] font-mono">No notices published yet.</div>
         ) : (
           <div className="space-y-3">
-            {announcements.map((ann) => (
+            {(announcements || []).filter(Boolean).map((ann, annIdx) => (
               <div
-                key={ann._id}
+                key={ann?._id || annIdx}
                 className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] flex items-start justify-between gap-4"
               >
                 <div className="space-y-1.5">
                   <div className="flex items-center gap-2 font-mono">
-                    {ann.isPinned && (
+                    {ann?.isPinned && (
                       <span className="text-[10px] text-[#3E342B] dark:text-[#F5F1E8] font-bold bg-white dark:bg-[#15191C] px-2 py-0.5 rounded-full border border-[#D5C4A1] dark:border-[#2B3034]">
                         PINNED
                       </span>
                     )}
-                    {ann.priority === 'urgent' && (
+                    {ann?.priority === 'urgent' && (
                       <span className="text-[10px] font-bold bg-[#FDEDEC] dark:bg-[#E74C3C]/20 text-[#E74C3C] dark:text-[#E74C3C] px-2 py-0.5 rounded-full uppercase border border-[#E74C3C]/30">
                         Urgent
                       </span>
                     )}
                     <span className="text-[10px] text-[#7E7060] dark:text-[#817B72]">
-                      {new Date(ann.createdAt).toLocaleString()}
+                      {ann?.createdAt ? new Date(ann.createdAt).toLocaleString() : ''}
                     </span>
                   </div>
-                  <h4 className="font-serif font-bold text-base text-[#3E342B] dark:text-[#F5F1E8]">{ann.title}</h4>
-                  <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] whitespace-pre-line leading-relaxed">{ann.content}</p>
+                  <h4 className="font-serif font-bold text-base text-[#3E342B] dark:text-[#F5F1E8]">{ann?.title}</h4>
+                  <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] whitespace-pre-line leading-relaxed">{ann?.content}</p>
                 </div>
 
                 <button
-                  onClick={() => handleDelete(ann._id)}
+                  onClick={() => handleDelete(ann?._id)}
                   className="p-1.5 rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
                   title="Delete Notice"
                 >

@@ -70,13 +70,13 @@ export function RecentMatchesTable({ matches = [], loading = false }) {
                   else winnerText = 'Completed';
                 }
 
-                const scoreStr = `${m.player1MaterialScore || 0} - ${m.player2MaterialScore || 0}`;
+                const scoreStr = `${m?.player1MaterialScore || 0} - ${m?.player2MaterialScore || 0}`;
 
                 return (
-                  <tr key={m._id || m.matchId} className="hover:bg-[#EFEAE1]/50 dark:hover:bg-[#1D1D1B] transition-colors group">
+                  <tr key={m?._id || m?.matchId || idx} className="hover:bg-[#EFEAE1]/50 dark:hover:bg-[#1D1D1B] transition-colors group">
                     <td className="py-4 px-4 font-mono font-bold text-[#171715] dark:text-[#FAF8F3]">
-                      <Link href={`/chess/matches/${m._id || m.matchId}`} className="hover:underline">
-                        {m.matchId}
+                      <Link href={`/chess/matches/${m?._id || m?.matchId || ''}`} className="hover:underline">
+                        {m?.matchId || 'Match'}
                       </Link>
                     </td>
                     <td className="py-4 px-3 text-center font-mono text-[#77736B] dark:text-[#8E8E93]">

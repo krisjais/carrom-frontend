@@ -6,6 +6,7 @@ import { chessApi } from '@/lib/chessApi';
 import { ChessHeader } from '@/components/chess/ChessHeader';
 import { DualChessClock } from '@/components/chess/DualChessClock';
 import { ChessFooter } from '@/components/chess/ChessFooter';
+import { subscribeToMatch } from '@/lib/socket';
 import Link from 'next/link';
 import { ArrowLeft, Clock, ShieldCheck, Trophy, Info, Play, Loader2, Crown, Zap } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
@@ -94,17 +95,13 @@ export default function ChessMatchDetailPage() {
     else setFlagFall(null);
   }, [matchData?.match]);
 
-  // BroadcastChannel for instant 0ms sync with phone clock moves & ticks
+  // Real-time sync via Socket.io & BroadcastChannel for 0ms moves & clocks
   useEffect(() => {
-    if (typeof window === 'undefined' || !window.BroadcastChannel) return;
+    const targetId = params?.id;
+    const currentMId = matchData?.match?._id || matchData?.match?.matchId;
 
-    const channel = new BroadcastChannel('chess_tournament_clock');
-    channel.onmessage = (event) => {
-      const data = event.data;
+    const handleUpdate = (data) => {
       if (!data) return;
-
-      const currentMId = matchData?.match?._id || matchData?.match?.matchId;
-      const targetId = params?.id;
       if (data.matchId && data.matchId !== currentMId && data.matchId !== targetId) return;
 
       const w = typeof data.whiteSeconds === 'number' ? data.whiteSeconds : (typeof data.p1Time === 'number' ? data.p1Time : null);
@@ -117,10 +114,23 @@ export default function ChessMatchDetailPage() {
       if (typeof running === 'boolean') setIsClockRunning(running);
       if (typeof data.movesCount === 'number') setMovesCount(data.movesCount);
       if (data.flagFall !== undefined) setFlagFall(data.flagFall);
+
+      if (data.match) {
+        setMatchData((prev) => prev ? { ...prev, match: data.match } : prev);
+      }
     };
 
+    let channel = null;
+    if (typeof window !== 'undefined' && window.BroadcastChannel) {
+      channel = new BroadcastChannel('chess_tournament_clock');
+      channel.onmessage = (event) => handleUpdate(event.data);
+    }
+
+    const unsubscribeSocket = targetId ? subscribeToMatch(targetId, handleUpdate) : () => {};
+
     return () => {
-      channel.close();
+      if (channel) channel.close();
+      unsubscribeSocket();
     };
   }, [params?.id, matchData?.match?._id, matchData?.match?.matchId]);
 

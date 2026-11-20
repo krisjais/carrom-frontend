@@ -387,22 +387,22 @@ export const SubstitutePartnerModal = ({
                 ) : filteredParticipants.length === 0 ? (
                   <div className="p-4 text-center text-xs text-[#7E7060]">No matching students found</div>
                 ) : (
-                  filteredParticipants.map((p) => (
+                  (filteredParticipants || []).filter(Boolean).map((p, pIdx) => (
                     <button
-                      key={p._id}
+                      key={p?._id || pIdx}
                       type="button"
-                      onClick={() => setSelectedParticipantId(p._id)}
+                      onClick={() => setSelectedParticipantId(p?._id)}
                       className={`w-full text-left px-3 py-2 rounded-lg text-xs flex items-center justify-between transition-colors cursor-pointer ${
-                        selectedParticipantId === p._id
+                        selectedParticipantId === p?._id
                           ? 'bg-[#FDEDEC] dark:bg-[#E74C3C]/15 text-[#E74C3C] font-bold'
                           : 'hover:bg-[#FAF9F6] dark:hover:bg-[#181C1F] text-[#3E342B] dark:text-[#F5F1E8]'
                       }`}
                     >
                       <div className="truncate">
-                        <span>{p.fullName}</span>
-                        {p.department && (
+                        <span>{p?.fullName}</span>
+                        {p?.department && (
                           <span className="text-[10px] text-[#7E7060] dark:text-[#B8B1A5] ml-2">
-                            ({p.department})
+                            ({p?.department})
                           </span>
                         )}
                       </div>

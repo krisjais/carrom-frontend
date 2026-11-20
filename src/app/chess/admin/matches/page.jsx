@@ -7,6 +7,7 @@ import { AdminSidebar } from '@/components/chess/AdminSidebar';
 import { ChessBracketView } from '@/components/chess/ChessBracketView';
 import { Swords, Play, CheckCircle2, XCircle, Trophy, Loader2, Plus, Minus, Trash2, Clock, ShieldCheck, Zap, CheckSquare, Square, ChevronDown, X, LayoutGrid, List, Crown, Sparkles } from 'lucide-react';
 import { useToast, useConfirm } from '@/context/ToastContext';
+import { getSocket, subscribeToChessLive } from '@/lib/socket';
 
 /**
  * Dynamic Round & Stage Calculator
@@ -214,18 +215,17 @@ export default function ChessAdminMatchesPage() {
     return () => clearInterval(interval);
   }, [router]);
 
-  // Real-time tab-to-tab and instant broadcast listener
+  // Real-time tab-to-tab and multi-device listener via Socket.io & BroadcastChannel
   useEffect(() => {
-    if (typeof window === 'undefined' || !window.BroadcastChannel) return;
-    const channel = new BroadcastChannel('chess_tournament_clock');
-    channel.onmessage = (event) => {
-      const data = event.data;
+    let channel = null;
+
+    const handleEventData = (data) => {
       if (!data) return;
 
       // Instantly update active modal if it corresponds to this match
       setResultModalMatch((prev) => {
         if (!prev) return null;
-        if (data.matchId && data.matchId !== prev._id && data.matchId !== prev.matchId) return prev;
+        if (data.matchId && data.matchId !== (prev._id || prev.matchId)) return prev;
         return {
           ...prev,
           activeTurn: data.activeTurn || prev.activeTurn,
@@ -241,7 +241,7 @@ export default function ChessAdminMatchesPage() {
       setMatches((prev) =>
         (prev || []).filter(Boolean).map((m) => {
           if (!m) return m;
-          if (data.matchId && data.matchId !== (m._id || m.matchId)) return m;
+          if (data.matchId && data.matchId !== (m?._id || m?.matchId)) return m;
           return {
             ...m,
             activeTurn: data.activeTurn || m.activeTurn,
@@ -249,13 +249,29 @@ export default function ChessAdminMatchesPage() {
             blackTimeRemaining: typeof data.blackSeconds === 'number' ? data.blackSeconds : (typeof data.p2Time === 'number' ? data.p2Time : m.blackTimeRemaining),
             movesCount: typeof data.movesCount === 'number' ? data.movesCount : m.movesCount,
             isClockRunning: typeof data.isClockRunning === 'boolean' ? data.isClockRunning : (typeof data.isRunning === 'boolean' ? data.isRunning : m.isClockRunning),
-            lastClockUpdate: new Date()
+            lastClockUpdate: new Date(),
+            ...(data.match || {})
           };
         })
       );
     };
 
-    return () => channel.close();
+    if (typeof window !== 'undefined' && window.BroadcastChannel) {
+      channel = new BroadcastChannel('chess_tournament_clock');
+      channel.onmessage = (event) => handleEventData(event.data);
+    }
+
+    const unsubscribeSocket = subscribeToChessLive((data) => {
+      handleEventData(data);
+      if (data?.type === 'match_created' || data?.type === 'match_started' || data?.type === 'result_submitted') {
+        fetchMatches();
+      }
+    });
+
+    return () => {
+      if (channel) channel.close();
+      unsubscribeSocket();
+    };
   }, []);
 
   // Bulk Selection Handlers
@@ -398,7 +414,7 @@ export default function ChessAdminMatchesPage() {
         // Optimistically update local matches state
         setMatches((prev) =>
           (prev || []).filter(Boolean).map((m) =>
-            m && ((m._id && m._id === id) || (m.matchId && m.matchId === id))
+            m && ((m?._id && m?._id === id) || (m?.matchId && m?.matchId === id))
               ? {
                   ...m,
                   status: 'live',
@@ -429,6 +445,18 @@ export default function ChessAdminMatchesPage() {
               timestamp: Date.now()
             });
             bc.close();
+          }
+          const socket = getSocket();
+          if (socket && socket.connected) {
+            socket.emit('chess:turn_switch', {
+              matchId: id,
+              activeTurn: 'white',
+              isClockRunning: true,
+              whiteSeconds: 600,
+              blackSeconds: 600,
+              movesCount: 0,
+              timestamp: Date.now()
+            });
           }
         } catch {}
 
@@ -465,7 +493,7 @@ export default function ChessAdminMatchesPage() {
     // Optimistic local state update
     setMatches((prev) =>
       (prev || []).filter(Boolean).map((m) =>
-        m && ((m._id && m._id === mId) || (m.matchId && m.matchId === mId))
+        m && ((m?._id && m?._id === mId) || (m?.matchId && m?.matchId === mId))
           ? {
               ...m,
               isClockRunning: nextRunning,
@@ -492,6 +520,18 @@ export default function ChessAdminMatchesPage() {
           timestamp: Date.now()
         });
         bc.close();
+      }
+      const socket = getSocket();
+      if (socket && socket.connected) {
+        socket.emit('chess:turn_switch', {
+          matchId: mId,
+          isClockRunning: nextRunning,
+          isRunning: nextRunning,
+          activeTurn: turn,
+          whiteSeconds: wSec,
+          blackSeconds: bSec,
+          timestamp: Date.now()
+        });
       }
     } catch {}
 

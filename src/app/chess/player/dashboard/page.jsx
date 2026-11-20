@@ -7,6 +7,7 @@ import { chessApi } from '@/lib/chessApi';
 import { ChessHeader } from '@/components/chess/ChessHeader';
 import { ChessFooter } from '@/components/chess/ChessFooter';
 import { DualChessClock } from '@/components/chess/DualChessClock';
+import { getSocket, subscribeToMatch } from '@/lib/socket';
 import { 
   User, Swords, Clock, Trophy, Crown, Shield, Sparkles, 
   Play, Pause, RotateCcw, Volume2, VolumeX, LogOut, ArrowRight, 
@@ -92,7 +93,7 @@ export default function ChessPlayerDashboardPage() {
     else setRefreshing(true);
 
     try {
-      const pId = auth.player._id || auth.player.playerId;
+      const pId = auth?.player?._id || auth?.player?.playerId;
       const res = await chessApi.getPlayerDashboard(pId);
       if (res.success && res.data) {
         setDashboardData(res.data);
@@ -147,18 +148,12 @@ export default function ChessPlayerDashboardPage() {
     }
   }, [player, loadDashboard]);
 
-  // Instant Multi-Tab Clock Synchronization via BroadcastChannel
+  // Instant Real-Time Multi-Device Synchronization via Socket.io & BroadcastChannel
   useEffect(() => {
-    if (typeof window === 'undefined' || !window.BroadcastChannel) return;
+    const currentMatchId = dashboardData?.currentMatch?._id || dashboardData?.currentMatch?.matchId;
 
-    const channel = new BroadcastChannel('chess_tournament_clock');
-    channelRef.current = channel;
-
-    channel.onmessage = (event) => {
-      const data = event.data;
+    const handleClockUpdate = (data) => {
       if (!data) return;
-
-      const currentMatchId = dashboardData?.currentMatch?._id || dashboardData?.currentMatch?.matchId;
       if (data.matchId && currentMatchId && data.matchId !== currentMatchId) return;
 
       if (typeof data.whiteSeconds === 'number') setWhiteSeconds(data.whiteSeconds);
@@ -174,15 +169,31 @@ export default function ChessPlayerDashboardPage() {
 
       if (typeof data.movesCount === 'number') setMovesCount(data.movesCount);
       if (data.flagFall !== undefined) setFlagFall(data.flagFall);
+
+      if (data.match) {
+        setDashboardData((prev) => prev ? { ...prev, currentMatch: data.match } : prev);
+      }
     };
 
+    let channel = null;
+    if (typeof window !== 'undefined' && window.BroadcastChannel) {
+      channel = new BroadcastChannel('chess_tournament_clock');
+      channelRef.current = channel;
+      channel.onmessage = (event) => handleClockUpdate(event.data);
+    }
+
+    const unsubscribeSocket = currentMatchId ? subscribeToMatch(currentMatchId, handleClockUpdate) : () => {};
+
     return () => {
-      channel.close();
-      channelRef.current = null;
+      if (channel) {
+        channel.close();
+        channelRef.current = null;
+      }
+      unsubscribeSocket();
     };
   }, [dashboardData?.currentMatch?._id, dashboardData?.currentMatch?.matchId]);
 
-  // Helper to broadcast clock changes and sync to server
+  // Helper to broadcast clock changes and sync to server + Socket.io
   const broadcastAndSync = useCallback((updates) => {
     const match = dashboardData?.currentMatch;
     const mId = match?._id || match?.matchId;
@@ -211,6 +222,15 @@ export default function ChessPlayerDashboardPage() {
       }
     } catch {
       // BroadcastChannel unavailable
+    }
+
+    try {
+      const socket = getSocket();
+      if (socket && socket.connected) {
+        socket.emit('chess:turn_switch', payload);
+      }
+    } catch {
+      // Socket emit fallback
     }
 
     if (mId) {
@@ -267,6 +287,10 @@ export default function ChessPlayerDashboardPage() {
               bc.postMessage(tickPayload);
               bc.close();
             }
+            const socket = getSocket();
+            if (socket && socket.connected && nextW % 2 === 0) {
+              socket.emit('chess:clock_tick', tickPayload);
+            }
           } catch {}
 
           // Periodic background sync every 5 seconds for non-local devices
@@ -313,6 +337,10 @@ export default function ChessPlayerDashboardPage() {
               const bc = new BroadcastChannel('chess_tournament_clock');
               bc.postMessage(tickPayload);
               bc.close();
+            }
+            const socket = getSocket();
+            if (socket && socket.connected && nextW % 2 === 0) {
+              socket.emit('chess:clock_tick', tickPayload);
             }
           } catch {}
 

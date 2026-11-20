@@ -42,13 +42,13 @@ export function ChessLiveSection({ liveMatches = [] }) {
         <div className="lg:col-span-7">
           {hasLive ? (
             <div className="space-y-4">
-              {liveMatches.slice(0, 2).map((match) => {
+              {(liveMatches || []).slice(0, 2).filter(Boolean).map((match, mIdx) => {
                 const p1 = match?.player1 || { fullName: 'Player 1', department: 'Dept' };
                 const p2 = match?.player2 || { fullName: 'Player 2', department: 'Dept' };
 
                 return (
                   <div
-                    key={match._id || match.matchId}
+                    key={match?._id || match?.matchId || mIdx}
                     className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl p-6 sm:p-8 shadow-sm transition-all hover:shadow-md"
                   >
                     {/* Header */}

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Play, Pause, RotateCcw, Volume2, VolumeX, Maximize2, Minimize2, Flag, Sparkles, RotateCw, ChevronUp, ChevronDown, Smartphone } from 'lucide-react';
 import { chessApi } from '@/lib/chessApi';
+import { getSocket, subscribeToMatch } from '@/lib/socket';
 
 /**
  * Native Web Audio synthesizer for turn-switch clicks and flag fall alarm
@@ -139,15 +140,9 @@ export function DualChessClock({
     else setFlagFall(null);
   }, [match?._id, match?.matchId, match?.whiteTimeRemaining, match?.blackTimeRemaining, match?.activeTurn, match?.isClockRunning, match?.movesCount, match?.lastClockUpdate, initialSeconds, isRunning, activeTurn]);
 
-  // BroadcastChannel for instant multi-tab synchronization
+  // Multi-device & multi-tab synchronization via Socket.io & BroadcastChannel
   useEffect(() => {
-    if (typeof window === 'undefined' || !window.BroadcastChannel) return;
-
-    const channel = new BroadcastChannel('chess_tournament_clock');
-    channelRef.current = channel;
-
-    channel.onmessage = (event) => {
-      const data = event.data;
+    const handleUpdate = (data) => {
       if (!data) return;
       if (matchId && data.matchId && data.matchId !== matchId) return;
 
@@ -163,12 +158,22 @@ export function DualChessClock({
       if (data.flagFall !== undefined) setFlagFall(data.flagFall);
     };
 
+    let channel = null;
+    if (typeof window !== 'undefined' && window.BroadcastChannel) {
+      channel = new BroadcastChannel('chess_tournament_clock');
+      channelRef.current = channel;
+      channel.onmessage = (event) => handleUpdate(event.data);
+    }
+
+    const unsubscribeSocket = matchId ? subscribeToMatch(matchId, handleUpdate) : () => {};
+
     return () => {
-      channel.close();
+      if (channel) channel.close();
+      unsubscribeSocket();
     };
   }, [matchId]);
 
-  // Helper to broadcast clock state to all tabs and sync to backend
+  // Helper to broadcast clock state to all tabs and sync to backend + Socket.io
   const broadcastAndSync = useCallback((updates) => {
     const payload = {
       matchId,
@@ -187,6 +192,15 @@ export function DualChessClock({
       } catch {
         // Channel closed or unavailable
       }
+    }
+
+    try {
+      const socket = getSocket();
+      if (socket && socket.connected) {
+        socket.emit('chess:turn_switch', payload);
+      }
+    } catch {
+      // Socket fallback
     }
 
     if (matchId) {

@@ -1556,7 +1556,7 @@ export default function AdminRegistrationsPage() {
                     (r.participantId?._id || r.participantId) !== (selectedReg?.participantId?._id || selectedReg?.participantId)
                 )
                 .map((r, rIdx) => {
-                  const pId = r.participantId?._id || r.participantId || r._id || rIdx;
+                  const pId = r?.participantId?._id || r?.participantId || r?._id || rIdx;
                   const pName = r.participantId?.fullName || r.fullName || 'Participant';
                   const pGender = r.participantId?.gender || r.gender || '-';
                   const pDept = r.participantId?.department || r.department || '-';

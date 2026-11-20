@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { CATEGORIES } from '@/lib/constants';
+import { subscribeToCarromLive } from '@/lib/socket';
 import {
   Activity,
   Calendar,
@@ -128,15 +129,22 @@ export default function AdminMatchesPage() {
 
   useEffect(() => {
     fetchMatchesAndTeams();
+    const unsubscribe = subscribeToCarromLive(() => {
+      fetchMatchesAndTeams();
+      fetchBoards();
+    });
+    return () => {
+      unsubscribe();
+    };
   }, [activeCategory]);
 
   const [stoppingMatchId, setStoppingMatchId] = useState(null);
 
   const handleStartMatch = async (matchId) => {
     // If multiple available boards exist, prompt admin to choose which board
-    const availableBoards = boards.filter((b) => b.status === 'available');
+    const availableBoards = boards.filter((b) => b?.status === 'available');
     if (availableBoards.length > 1) {
-      const matchObj = matches.find((m) => m._id === matchId);
+      const matchObj = matches.find((m) => (m?._id || m?.matchId) === matchId);
       if (matchObj) {
         setBoardSelectMatch(matchObj);
         return;
@@ -917,7 +925,7 @@ export default function AdminMatchesPage() {
                             {isLive ? (
                               <div className="flex items-center gap-2">
                                 <Link
-                                  href={`/admin/matches/${m._id}/score`}
+                                  href={`/admin/matches/${m?._id}/score`}
                                   className="flex-1 py-2.5 rounded-xl btn-primary text-xs font-bold shadow-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer uppercase tracking-wider"
                                 >
                                   <span>Open Scorekeeper Desk</span>
@@ -933,8 +941,8 @@ export default function AdminMatchesPage() {
                                 </button>
                                 <button
                                   type="button"
-                                  onClick={() => handleStopLive(m._id)}
-                                  disabled={stoppingMatchId === m._id}
+                                  onClick={() => handleStopLive(m?._id)}
+                                  disabled={stoppingMatchId === m?._id}
                                   className="px-3 py-2.5 rounded-xl bg-white dark:bg-[#181C1F] hover:bg-[#FDEDEC] dark:hover:bg-[#E74C3C]/15 text-[#E74C3C] border border-[#E74C3C]/30 text-xs font-mono font-bold transition-colors cursor-pointer shadow-xs disabled:opacity-50"
                                   title="Stop live match if started mistakenly"
                                 >
@@ -950,16 +958,16 @@ export default function AdminMatchesPage() {
                                       toast.error('All carrom boards are currently occupied! Add another board or wait for a match to conclude.');
                                     } else if (availableBoards.length === 1) {
                                       const tb = availableBoards[0];
-                                      handleStartMatchOnBoard(m._id, tb?.boardNumber || 1, tb?.name || 'Board');
+                                      handleStartMatchOnBoard(m?._id, tb?.boardNumber || 1, tb?.name || 'Board');
                                     } else {
                                       setBoardSelectMatch(m);
                                     }
                                   }}
-                                  disabled={startingMatchId === m._id}
+                                  disabled={startingMatchId === m?._id}
                                   className="flex-1 py-2 rounded-xl btn-primary text-xs font-bold shadow-xs transition-colors flex items-center justify-center gap-1 cursor-pointer uppercase"
                                 >
                                   <Play className="w-3 h-3 fill-current" />
-                                  <span>{startingMatchId === m._id ? 'Starting...' : 'Start Match'}</span>
+                                  <span>{startingMatchId === m?._id ? 'Starting...' : 'Start Match'}</span>
                                 </button>
                                 <button
                                   onClick={() => setSubstituteMatch(m)}
@@ -978,7 +986,7 @@ export default function AdminMatchesPage() {
                                   <span>Set Time</span>
                                 </button>
                                 <Link
-                                  href={`/admin/matches/${m._id}/score`}
+                                  href={`/admin/matches/${m?._id}/score`}
                                   className="px-3 py-2 rounded-xl bg-white dark:bg-[#181C1F] hover:bg-[#FAF9F6] dark:hover:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] transition-colors shadow-xs flex items-center justify-center"
                                   title="Open scorekeeper desk"
                                 >
@@ -992,7 +1000,7 @@ export default function AdminMatchesPage() {
                                   <span>Result Confirmed ({formatMatchDurationTaken(m)})</span>
                                 </div>
                                 <Link
-                                  href={`/admin/matches/${m._id}/score`}
+                                  href={`/admin/matches/${m?._id}/score`}
                                   className="text-[11px] text-[#E74C3C] dark:text-[#D4A94C] hover:underline font-mono font-bold uppercase"
                                 >
                                   Edit Winner →
@@ -1673,23 +1681,23 @@ export default function AdminMatchesPage() {
                         <span>AVAILABLE TO LAUNCH ON COURT #{launchOnCourt?.boardNumber} ({readyMatchesList.length})</span>
                       </div>
 
-                      {readyMatchesList.map(({ match: m }) => (
+                      {readyMatchesList.map(({ match: m }, mIdx) => (
                         <div
-                          key={m._id}
+                          key={m?._id || m?.matchId || mIdx}
                           className="p-3.5 rounded-xl border border-emerald-300 dark:border-emerald-800/40 bg-emerald-50/20 dark:bg-emerald-950/10 hover:border-emerald-500 flex items-center justify-between gap-3 transition-all"
                         >
                           <div className="space-y-1 min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap text-[11px] font-mono">
-                              <span className="font-bold text-[#E74C3C]">M#{m.matchNumber}</span>
+                              <span className="font-bold text-[#E74C3C]">M#{m?.matchNumber}</span>
                               <span>•</span>
-                              <span className="font-semibold">{m.roundName}</span>
-                              <CategoryBadge category={m.category} />
+                              <span className="font-semibold">{m?.roundName}</span>
+                              <CategoryBadge category={m?.category} />
                               <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold bg-emerald-100 dark:bg-emerald-950/60 px-1.5 py-0.2 rounded">
                                 Ready to Play
                               </span>
                             </div>
                             <div className="font-serif font-bold text-xs sm:text-sm text-[#3E342B] dark:text-[#F5F1E8] truncate">
-                              {m.team1?.name} vs {m.team2?.name}
+                              {m?.team1?.name} vs {m?.team2?.name}
                             </div>
                             <div className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                               <span>✓ Contestants are available and free to play now</span>
@@ -1699,8 +1707,8 @@ export default function AdminMatchesPage() {
                           <div className="shrink-0 flex items-center gap-2">
                             <button
                               type="button"
-                              onClick={() => handleStartMatchOnBoard(m._id, launchOnCourt?.boardNumber || 1, launchOnCourt?.name || 'Board', false)}
-                              disabled={startingMatchId === m._id}
+                              onClick={() => handleStartMatchOnBoard(m?._id, launchOnCourt?.boardNumber || 1, launchOnCourt?.name || 'Board', false)}
+                              disabled={startingMatchId === m?._id}
                               className="btn-primary px-3.5 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-xs transition-all"
                             >
                               <Play className="w-3 h-3 fill-current" />
@@ -1719,20 +1727,20 @@ export default function AdminMatchesPage() {
                         <span>⚠️ CONTESTANT PLAYING ON ANOTHER COURT ({conflictMatchesList.length})</span>
                       </div>
 
-                      {conflictMatchesList.map(({ match: m, conflictingLiveMatch }) => (
+                      {conflictMatchesList.map(({ match: m, conflictingLiveMatch }, cIdx) => (
                         <div
-                          key={m._id}
+                          key={m?._id || m?.matchId || cIdx}
                           className="p-3.5 rounded-xl border border-amber-300 dark:border-amber-800/40 bg-amber-50/40 dark:bg-amber-950/20 flex items-center justify-between gap-3 transition-all"
                         >
                           <div className="space-y-1 min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap text-[11px] font-mono">
-                              <span className="font-bold text-[#E74C3C]">M#{m.matchNumber}</span>
+                              <span className="font-bold text-[#E74C3C]">M#{m?.matchNumber}</span>
                               <span>•</span>
-                              <span className="font-semibold">{m.roundName}</span>
-                              <CategoryBadge category={m.category} />
+                              <span className="font-semibold">{m?.roundName}</span>
+                              <CategoryBadge category={m?.category} />
                             </div>
                             <div className="font-serif font-bold text-xs sm:text-sm text-[#3E342B] dark:text-[#F5F1E8] truncate">
-                              {m.team1?.name} vs {m.team2?.name}
+                              {m?.team1?.name} vs {m?.team2?.name}
                             </div>
                             <div className="text-[10px] font-mono text-amber-800 dark:text-amber-300 font-semibold flex items-center gap-1">
                               <span>⚠️ Contestant is currently live on Court #{conflictingLiveMatch?.carromBoardNumber || 1} (Match #{conflictingLiveMatch?.matchNumber}). Wait for court to finish or Force Launch.</span>
@@ -1742,8 +1750,8 @@ export default function AdminMatchesPage() {
                           <div className="shrink-0 flex items-center gap-2">
                             <button
                               type="button"
-                              onClick={() => handleStartMatchOnBoard(m._id, launchOnCourt?.boardNumber || 1, launchOnCourt?.name || 'Board', true)}
-                              disabled={startingMatchId === m._id}
+                              onClick={() => handleStartMatchOnBoard(m?._id, launchOnCourt?.boardNumber || 1, launchOnCourt?.name || 'Board', true)}
+                              disabled={startingMatchId === m?._id}
                               className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-xs transition-all"
                             >
                               <Play className="w-3 h-3 fill-current" />

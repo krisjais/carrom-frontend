@@ -7,6 +7,7 @@ import { api } from '@/lib/api';
 import { LiveScoreKeeper } from '@/components/scoring/LiveScoreKeeper';
 import { ArrowLeft, RefreshCw, Shield, Trophy } from 'lucide-react';
 import { CategoryBadge, StatusBadge, MainBoardBadge } from '@/components/ui/Badge';
+import { subscribeToMatch } from '@/lib/socket';
 
 export default function MatchScoringDeskPage() {
   const params = useParams();
@@ -32,6 +33,16 @@ export default function MatchScoringDeskPage() {
   useEffect(() => {
     if (matchId) {
       fetchMatch();
+      const unsubscribe = subscribeToMatch(matchId, (data) => {
+        if (data?.match) {
+          setMatch(data.match);
+        } else {
+          fetchMatch();
+        }
+      });
+      return () => {
+        unsubscribe();
+      };
     }
   }, [matchId]);
 

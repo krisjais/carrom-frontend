@@ -25,6 +25,7 @@ import {
 import { StatusBadge, CategoryBadge } from '@/components/ui/Badge';
 import { CarromCoin, CategoryCoinPair, CarromBoardGeometry } from '@/components/ui/CarromElements';
 import { CarromMatchTimer } from '@/components/common/CarromMatchTimer';
+import { subscribeToCarromLive } from '@/lib/socket';
 
 export default function LivePage() {
   const [liveData, setLiveData] = useState(null);
@@ -57,8 +58,14 @@ export default function LivePage() {
 
   useEffect(() => {
     fetchLive();
-    const interval = setInterval(() => fetchLive(false), 4000);
-    return () => clearInterval(interval);
+    const unsubscribe = subscribeToCarromLive(() => {
+      fetchLive(false);
+    });
+    const interval = setInterval(() => fetchLive(false), 6000);
+    return () => {
+      unsubscribe();
+      clearInterval(interval);
+    };
   }, []);
 
   const handleCheer = (teamNum) => {
