@@ -248,8 +248,9 @@ export const chessApi = {
     });
   },
 
-  deleteRound: async (round) => {
-    return await safeFetch(`/admin/rounds/${round}`, {
+  deleteRound: async (round, roundName = '') => {
+    const q = roundName ? `?roundName=${encodeURIComponent(roundName)}` : '';
+    return await safeFetch(`/admin/rounds/${encodeURIComponent(round)}${q}`, {
       method: 'DELETE',
       headers: getHeaders()
     });

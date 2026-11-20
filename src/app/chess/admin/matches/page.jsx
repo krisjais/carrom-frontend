@@ -129,9 +129,13 @@ export default function ChessAdminMatchesPage() {
   const [rescheduleDuration, setRescheduleDuration] = useState(10);
   const [rescheduling, setRescheduling] = useState(false);
 
+  // Round Selector Deletion Modal
+  const [showDeleteRoundModal, setShowDeleteRoundModal] = useState(false);
+  const [roundToDelete, setRoundToDelete] = useState(null);
+
   // Lock body scroll and enable Escape key to close whenever ANY modal is open
   const isAnyModalOpen = Boolean(
-    matchModalMatch || showRescheduleModal || showCreateModal || resultModalMatch || timeModalOpen
+    matchModalMatch || showRescheduleModal || showCreateModal || resultModalMatch || timeModalOpen || showDeleteRoundModal
   );
 
   useEffect(() => {
@@ -145,6 +149,7 @@ export default function ChessAdminMatchesPage() {
           setShowCreateModal(false);
           setResultModalMatch(null);
           setTimeModalOpen(false);
+          setShowDeleteRoundModal(false);
         }
       };
       window.addEventListener('keydown', handleKeyDown);
@@ -524,14 +529,28 @@ export default function ChessAdminMatchesPage() {
     }
   };
 
-  // Delete an entire round of matches
-  const handleDeleteRound = async () => {
-    const roundMatches = matches.filter((m) => m.round === selectedRound);
-    const count = roundMatches.length;
+  // Active stages dynamically computed from matches
+  const activeStages = useMemo(() => {
+    const stageMap = new Map();
+    (matches || []).forEach((m) => {
+      const r = m.round || 1;
+      const name = m.roundName || `Round ${r}`;
+      if (!stageMap.has(r)) {
+        stageMap.set(r, { round: r, name, count: 0 });
+      }
+      stageMap.get(r).count++;
+    });
+    return Array.from(stageMap.values()).sort((a, b) => a.round - b.round);
+  }, [matches]);
+
+  // Delete a specific tournament round / stage
+  const handleDeleteStage = async (roundNumber, roundName, count) => {
+    const stageTitle = roundName || `Round ${roundNumber}`;
+    const matchCount = count !== undefined ? count : (matches.filter((m) => m.round === roundNumber).length);
     const isConfirmed = await confirm({
-      title: `Delete ${selectedRoundName}?`,
-      message: `Are you sure you want to delete ${selectedRoundName}? This will permanently remove all ${count} fixture(s) in this round and re-compute standings.`,
-      confirmText: `Delete ${selectedRoundName}`,
+      title: `Delete ${stageTitle}?`,
+      message: `Are you sure you want to delete ${stageTitle}? This will permanently remove all ${matchCount} match fixture(s) in this round and automatically recalculate tournament standings.`,
+      confirmText: `Delete ${stageTitle}`,
       cancelText: 'Cancel',
       type: 'danger'
     });
@@ -539,9 +558,10 @@ export default function ChessAdminMatchesPage() {
 
     setDeletingRound(true);
     try {
-      const res = await chessApi.deleteRound(selectedRound);
+      const res = await chessApi.deleteRound(roundNumber, roundName);
       if (res.success) {
-        toast.success(res.message || `${selectedRoundName} deleted successfully.`);
+        toast.success(res.message || `${stageTitle} deleted successfully.`);
+        setShowDeleteRoundModal(false);
         await loadData();
       } else {
         toast.error(res.message || 'Failed to delete round.');
@@ -551,6 +571,23 @@ export default function ChessAdminMatchesPage() {
     } finally {
       setDeletingRound(false);
     }
+  };
+
+  // Header "Delete Round" action: opens round selector modal or deletes if single round
+  const handleDeleteRound = async () => {
+    if (activeStages.length === 0) {
+      toast.info('No active tournament rounds exist to delete.');
+      return;
+    }
+    if (activeStages.length === 1) {
+      const single = activeStages[0];
+      await handleDeleteStage(single.round, single.name, single.count);
+      return;
+    }
+    // Multiple rounds: preselect matching round or latest round and open modal
+    const matched = activeStages.find((s) => s.round === selectedRound || s.name.toLowerCase() === selectedRoundName.toLowerCase());
+    setRoundToDelete(matched || activeStages[activeStages.length - 1]);
+    setShowDeleteRoundModal(true);
   };
 
   // Delete all rounds and fixtures
@@ -1176,6 +1213,25 @@ export default function ChessAdminMatchesPage() {
     }
   };
 
+  // Players already assigned in the manually selected round
+  const alreadyAssignedInSelectedRound = useMemo(() => {
+    const roundMatches = (matches || []).filter(
+      (m) =>
+        m.round === manualRound ||
+        (manualRoundName && (m.roundName || '').toLowerCase() === manualRoundName.trim().toLowerCase())
+    );
+    const ids = new Set();
+    const names = new Set();
+    roundMatches.forEach((m) => {
+      [m.player1, m.player2, m.byePlayer].filter(Boolean).forEach((p) => {
+        const idStr = (p._id || p.playerId || p).toString();
+        ids.add(idStr);
+        if (p.fullName) names.add(p.fullName.trim().toLowerCase());
+      });
+    });
+    return { ids, names };
+  }, [matches, manualRound, manualRoundName]);
+
   // Create manual match pairing with custom round name
   const handleCreateManualMatch = async (e) => {
     e.preventDefault();
@@ -1185,6 +1241,21 @@ export default function ChessAdminMatchesPage() {
     }
     if (manualP1 === manualP2) {
       toast.warning('Player 1 and Player 2 cannot be the same contestant.');
+      return;
+    }
+
+    const p1Obj = players.find((p) => (p._id || p.playerId) === manualP1);
+    const p2Obj = manualP2 ? players.find((p) => (p._id || p.playerId) === manualP2) : null;
+    const p1Name = (p1Obj?.fullName || '').trim().toLowerCase();
+    const p2Name = (p2Obj?.fullName || '').trim().toLowerCase();
+
+    if (alreadyAssignedInSelectedRound.ids.has(manualP1) || (p1Name && alreadyAssignedInSelectedRound.names.has(p1Name))) {
+      toast.error(`"${p1Obj?.fullName || 'Player 1'}" is already scheduled in this round! A contestant cannot play multiple matches in the same round.`);
+      return;
+    }
+
+    if (manualP2 && (alreadyAssignedInSelectedRound.ids.has(manualP2) || (p2Name && alreadyAssignedInSelectedRound.names.has(p2Name)))) {
+      toast.error(`"${p2Obj?.fullName || 'Player 2'}" is already scheduled in this round! A contestant cannot play multiple matches in the same round.`);
       return;
     }
 
@@ -1499,6 +1570,7 @@ export default function ChessAdminMatchesPage() {
             onRestartMatch={handleRestartMatch}
             onOpenResultModal={openResultModal}
             onDeleteMatch={handleDeleteMatch}
+            onDeleteRound={handleDeleteStage}
             startingMatchId={startingMatchId}
             deletingMatchId={deletingMatchId}
           />
@@ -1935,11 +2007,20 @@ export default function ChessAdminMatchesPage() {
                       required
                     >
                       <option value="">Select White Player...</option>
-                      {(players || []).filter(Boolean).map((p, pIdx) => (
-                        <option key={p?._id || p?.playerId || pIdx} value={p?._id || p?.playerId}>
-                          {p?.fullName || 'Player'} ({p?.playerId || '-'} • {p?.department || '-'})
-                        </option>
-                      ))}
+                      {(players || []).filter(Boolean).map((p, pIdx) => {
+                        const pIdStr = (p?._id || p?.playerId || '').toString();
+                        const pName = (p?.fullName || '').trim().toLowerCase();
+                        const isAssigned = alreadyAssignedInSelectedRound.ids.has(pIdStr) || (pName && alreadyAssignedInSelectedRound.names.has(pName));
+                        return (
+                          <option 
+                            key={p?._id || p?.playerId || pIdx} 
+                            value={p?._id || p?.playerId}
+                            disabled={isAssigned}
+                          >
+                            {p?.fullName || 'Player'} ({p?.playerId || '-'} • {p?.department || '-'}){isAssigned ? ` [Already in ${manualRoundName || `Round ${manualRound}`}]` : ''}
+                          </option>
+                        );
+                      })}
                     </select>
                     <ChevronDown className="w-4 h-4 text-[#77736B] dark:text-[#8E8E93] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   </div>
@@ -1960,11 +2041,20 @@ export default function ChessAdminMatchesPage() {
                       className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#2A2A28] focus:border-[#171715] dark:focus:border-[#FAF8F3] focus:ring-1 focus:ring-[#171715]/15 rounded-xl py-2.5 pl-3.5 pr-10 font-medium text-sm text-[#171715] dark:text-[#FAF8F3] appearance-none focus:outline-none cursor-pointer transition-all"
                     >
                       <option value="">Select Black Player (or leave empty for Bye)...</option>
-                      {(players || []).filter(Boolean).map((p, pIdx) => (
-                        <option key={p?._id || p?.playerId || pIdx} value={p?._id || p?.playerId}>
-                          {p?.fullName || 'Player'} ({p?.playerId || '-'} • {p?.department || '-'})
-                        </option>
-                      ))}
+                      {(players || []).filter(Boolean).map((p, pIdx) => {
+                        const pIdStr = (p?._id || p?.playerId || '').toString();
+                        const pName = (p?.fullName || '').trim().toLowerCase();
+                        const isAssigned = alreadyAssignedInSelectedRound.ids.has(pIdStr) || (pName && alreadyAssignedInSelectedRound.names.has(pName));
+                        return (
+                          <option 
+                            key={p?._id || p?.playerId || pIdx} 
+                            value={p?._id || p?.playerId}
+                            disabled={isAssigned}
+                          >
+                            {p?.fullName || 'Player'} ({p?.playerId || '-'} • {p?.department || '-'}){isAssigned ? ` [Already in ${manualRoundName || `Round ${manualRound}`}]` : ''}
+                          </option>
+                        );
+                      })}
                     </select>
                     <ChevronDown className="w-4 h-4 text-[#77736B] dark:text-[#8E8E93] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   </div>
@@ -2004,6 +2094,117 @@ export default function ChessAdminMatchesPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>,
+          document.body
+        )}
+
+        {/* ROUND SELECTION DELETION MODAL */}
+        {showDeleteRoundModal && mounted && typeof document !== 'undefined' && createPortal(
+          <div 
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 999999,
+            }}
+            onClick={() => setShowDeleteRoundModal(false)}
+            className="bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto cursor-pointer"
+          >
+            <div 
+              style={{ position: 'relative', zIndex: 1000000 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#2B2B28] rounded-2xl p-6 sm:p-7 max-w-md w-full shadow-2xl space-y-5 text-[#171715] dark:text-[#FAF8F3] antialiased cursor-default my-auto"
+            >
+              <div className="border-b border-[#D5CFC5] dark:border-[#262624] pb-3 flex justify-between items-center">
+                <div>
+                  <span className="text-[11px] font-sans font-bold text-rose-600 dark:text-rose-400 uppercase tracking-[0.14em] block">
+                    STAGE MANAGEMENT
+                  </span>
+                  <h3 className="text-xl font-bold font-sans text-[#171715] dark:text-[#FAF8F3] mt-0.5 tracking-tight flex items-center gap-2">
+                    <Trash2 className="w-5 h-5 text-rose-600" />
+                    <span>Delete Tournament Round</span>
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteRoundModal(false)}
+                  className="w-8 h-8 flex items-center justify-center rounded-xl bg-[#EFEAE1]/70 dark:bg-[#1E1E1C] hover:bg-[#E4DED5] dark:hover:bg-[#282826] text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715] dark:hover:text-[#FAF8F3] transition-colors cursor-pointer"
+                  aria-label="Close"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-xs text-[#77736B] dark:text-[#8E8E93] leading-relaxed">
+                  Select which knockout stage you wish to remove. Deleting a round permanently clears its fixtures and recalculates player points:
+                </p>
+
+                <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                  {activeStages.map((stg) => {
+                    const isSelected = roundToDelete?.round === stg.round;
+                    return (
+                      <div
+                        key={stg.round}
+                        onClick={() => setRoundToDelete(stg)}
+                        className={`p-3.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+                          isSelected
+                            ? 'bg-rose-50/80 dark:bg-rose-950/20 border-rose-400 dark:border-rose-800 text-rose-950 dark:text-rose-200'
+                            : 'bg-[#F5F2EB] dark:bg-[#1D1D1B] border-[#D5CFC5] dark:border-[#2A2A28] text-[#171715] dark:text-[#FAF8F3] hover:border-neutral-400'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="radio"
+                            name="roundToDeleteRadio"
+                            checked={isSelected}
+                            onChange={() => setRoundToDelete(stg)}
+                            className="w-4 h-4 accent-rose-600 cursor-pointer"
+                          />
+                          <div>
+                            <span className="font-bold text-xs block">
+                              {stg.name}
+                            </span>
+                            <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93] font-mono">
+                              Round {stg.round}
+                            </span>
+                          </div>
+                        </div>
+
+                        <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-[#FAF8F3] dark:bg-[#121212] border border-[#D5CFC5] dark:border-[#282826]">
+                          {stg.count} match{stg.count === 1 ? '' : 'es'}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-[#D5CFC5] dark:border-[#262624] flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteRoundModal(false)}
+                  className="px-4 py-2.5 border border-[#D5CFC5] dark:border-[#2A2A28] bg-transparent hover:bg-[#EFEAE1] dark:hover:bg-[#1E1E1C] text-[#171715] dark:text-[#FAF8F3] rounded-xl font-semibold text-xs tracking-wider uppercase transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={!roundToDelete || deletingRound}
+                  onClick={() => {
+                    if (roundToDelete) {
+                      handleDeleteStage(roundToDelete.round, roundToDelete.name, roundToDelete.count);
+                    }
+                  }}
+                  className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs tracking-wider uppercase transition-all shadow-xs flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {deletingRound ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                  <span>Delete {roundToDelete?.name || 'Round'}</span>
+                </button>
+              </div>
             </div>
           </div>,
           document.body

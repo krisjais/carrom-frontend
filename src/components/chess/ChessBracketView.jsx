@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { 
   Trophy, ExternalLink, ZoomIn, ZoomOut, RotateCcw, Crown, Shield, 
-  Play, Pause, Clock, Trash2, Zap, ArrowRight, UserCheck, Sparkles, ArrowRightLeft, Loader2 
+  Play, Pause, Clock, Trash2, Zap, ArrowRight, UserCheck, Sparkles, ArrowRightLeft, Loader2, Move 
 } from 'lucide-react';
 
 /**
@@ -71,12 +71,54 @@ export function ChessBracketView({
   onRestartMatch,
   onOpenResultModal,
   onDeleteMatch,
+  onDeleteRound,
   startingMatchId = null,
   deletingMatchId = null
 }) {
   const [zoom, setZoom] = useState(1);
+  const containerRef = useRef(null);
+  const [isPanning, setIsPanning] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0, scrollLeft: 0, scrollTop: 0 });
 
   const stages = useMemo(() => groupMatchesIntoStages(matches), [matches]);
+
+  // Mouse drag-to-pan implementation
+  const handleMouseDown = (e) => {
+    // Only pan if not clicking interactive elements (buttons, links, inputs)
+    if (e.target.closest('button') || e.target.closest('a') || e.target.closest('input') || e.target.closest('select')) {
+      return;
+    }
+    if (!containerRef.current) return;
+    setIsPanning(true);
+    setDragStart({
+      x: e.pageX - containerRef.current.offsetLeft,
+      y: e.pageY - containerRef.current.offsetTop,
+      scrollLeft: containerRef.current.scrollLeft,
+      scrollTop: containerRef.current.scrollTop
+    });
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isPanning || !containerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - containerRef.current.offsetLeft;
+    const y = e.pageY - containerRef.current.offsetTop;
+    const walkX = (x - dragStart.x) * 1.3;
+    const walkY = (y - dragStart.y) * 1.3;
+    containerRef.current.scrollLeft = dragStart.scrollLeft - walkX;
+    containerRef.current.scrollTop = dragStart.scrollTop - walkY;
+  };
+
+  const handleMouseUpOrLeave = () => {
+    setIsPanning(false);
+  };
+
+  const handleResetView = () => {
+    setZoom(1);
+    if (containerRef.current) {
+      containerRef.current.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
+    }
+  };
 
   if (!matches || matches.length === 0 || stages.length === 0) {
     return (
@@ -97,11 +139,11 @@ export function ChessBracketView({
   const totalStages = stages.length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       
-      {/* Top Controls Bar: Stage Stats & Zoom Controls (Identical UX to Carrom) */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] shadow-xs">
-        <div className="flex items-center gap-3">
+      {/* Top Controls Bar: Stage Stats & Zoom Controls */}
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] shadow-xs">
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
           <span className="text-xs text-[#77736B] dark:text-[#8E8E93] font-mono uppercase font-bold">
             Format:
           </span>
@@ -120,56 +162,88 @@ export function ChessBracketView({
           </span>
         </div>
 
-        {/* Zoom Controls */}
-        <div className="flex items-center gap-1.5 bg-[#EFEAE1]/70 dark:bg-[#1E1E1C] p-1 rounded-xl border border-[#D5CFC5] dark:border-[#2E2E2B]">
-          <button
-            type="button"
-            onClick={() => setZoom(Math.max(0.65, zoom - 0.1))}
-            className="p-1.5 rounded-lg text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715] dark:hover:text-[#FAF8F3] hover:bg-[#FAF8F3] dark:hover:bg-[#151514] transition-colors cursor-pointer"
-            title="Zoom Out"
-          >
-            <ZoomOut className="w-3.5 h-3.5" />
-          </button>
-          <span className="px-2 text-xs font-mono text-[#171715] dark:text-[#FAF8F3] font-bold">
-            {Math.round(zoom * 100)}%
-          </span>
-          <button
-            type="button"
-            onClick={() => setZoom(Math.min(1.4, zoom + 0.1))}
-            className="p-1.5 rounded-lg text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715] dark:hover:text-[#FAF8F3] hover:bg-[#FAF8F3] dark:hover:bg-[#151514] transition-colors cursor-pointer"
-            title="Zoom In"
-          >
-            <ZoomIn className="w-3.5 h-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => setZoom(1)}
-            className="p-1.5 rounded-lg text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715] dark:hover:text-[#FAF8F3] hover:bg-[#FAF8F3] dark:hover:bg-[#151514] transition-colors ml-1 cursor-pointer"
-            title="Reset Zoom"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-          </button>
+        {/* Zoom & Scroll Helpers */}
+        <div className="flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-1 text-[11px] font-mono text-[#77736B] dark:text-[#8E8E93] px-2.5 py-1 rounded-lg bg-[#EFEAE1]/40 dark:bg-[#1E1E1C]/60 border border-[#D5CFC5]/50 dark:border-[#282826]">
+            <Move className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+            <span>Click & Drag to Pan • Scroll in any direction</span>
+          </div>
+
+          <div className="flex items-center gap-1 bg-[#EFEAE1]/70 dark:bg-[#1E1E1C] p-1 rounded-xl border border-[#D5CFC5] dark:border-[#2E2E2B]">
+            <button
+              type="button"
+              onClick={() => setZoom(Math.max(0.5, +(zoom - 0.1).toFixed(2)))}
+              className="p-1.5 rounded-lg text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715] dark:hover:text-[#FAF8F3] hover:bg-[#FAF8F3] dark:hover:bg-[#151514] transition-colors cursor-pointer"
+              title="Zoom Out"
+            >
+              <ZoomOut className="w-3.5 h-3.5" />
+            </button>
+            <span className="px-2 text-xs font-mono text-[#171715] dark:text-[#FAF8F3] font-bold min-w-[42px] text-center">
+              {Math.round(zoom * 100)}%
+            </span>
+            <button
+              type="button"
+              onClick={() => setZoom(Math.min(1.5, +(zoom + 0.1).toFixed(2)))}
+              className="p-1.5 rounded-lg text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715] dark:hover:text-[#FAF8F3] hover:bg-[#FAF8F3] dark:hover:bg-[#151514] transition-colors cursor-pointer"
+              title="Zoom In"
+            >
+              <ZoomIn className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={handleResetView}
+              className="p-1.5 rounded-lg text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715] dark:hover:text-[#FAF8F3] hover:bg-[#FAF8F3] dark:hover:bg-[#151514] transition-colors ml-0.5 cursor-pointer flex items-center gap-1 text-[11px] font-mono"
+              title="Reset Zoom & Pan to Start"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Reset</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Bracket Tree Container with horizontal scroll */}
-      <div className="w-full overflow-x-auto overflow-y-hidden pb-12 pt-6 rounded-3xl bg-[#FAF8F3] dark:bg-[#101010] border border-[#D5CFC5] dark:border-[#262624] p-6 sm:p-8 min-h-[580px] shadow-xs relative transition-colors">
+      {/* Bracket Tree Container with both horizontal and vertical scrolling + panning */}
+      <div 
+        ref={containerRef}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUpOrLeave}
+        onMouseLeave={handleMouseUpOrLeave}
+        className={`w-full overflow-x-auto overflow-y-auto max-h-[82vh] pb-12 pt-6 rounded-3xl bg-[#FAF8F3] dark:bg-[#101010] border border-[#D5CFC5] dark:border-[#262624] p-6 sm:p-8 min-h-[580px] shadow-xs relative transition-colors ${
+          isPanning ? 'cursor-grabbing select-none' : 'cursor-grab'
+        }`}
+        style={{ scrollBehavior: isPanning ? 'auto' : 'smooth' }}
+      >
         <div
           className="flex items-stretch gap-12 sm:gap-16 min-w-max transition-transform origin-top-left relative"
-          style={{ transform: `scale(${zoom})` }}
+          style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}
         >
           {stages.map((stage, sIdx) => {
             const isFinalStage = sIdx === totalStages - 1;
-            const isSemiFinal = sIdx === totalStages - 2;
 
             return (
               <div key={stage.roundNumber} className="flex flex-col w-80 shrink-0 relative">
                 
-                {/* Stage Header (Identical to Carrom's Stage 1 of 2 Semifinals style) */}
-                <div className="text-center pb-3 mb-6 border-b border-[#D5CFC5] dark:border-[#262624]">
-                  <span className="text-[10px] font-mono text-amber-700 dark:text-amber-400 uppercase tracking-widest font-bold block">
-                    STAGE {sIdx + 1} OF {totalStages}
-                  </span>
+                {/* Stage Header with Stage name and Direct Round Delete option for Admins */}
+                <div className="pb-3 mb-6 border-b border-[#D5CFC5] dark:border-[#262624] relative">
+                  <div className="flex items-center justify-between gap-1 mb-1">
+                    <span className="text-[10px] font-mono text-amber-700 dark:text-amber-400 uppercase tracking-widest font-bold">
+                      STAGE {sIdx + 1} OF {totalStages}
+                    </span>
+                    {isAdmin && onDeleteRound && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteRound(stage.roundNumber, stage.roundName, stage.matches.length);
+                        }}
+                        className="p-1 rounded-lg text-[#77736B] dark:text-[#8E8E93] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                        title={`Delete ${stage.roundName} (${stage.matches.length} matches)`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                   <h4 className="text-lg font-serif font-bold text-[#171715] dark:text-[#FAF8F3] tracking-tight">
                     {stage.roundName}
                   </h4>
@@ -179,7 +253,7 @@ export function ChessBracketView({
                 </div>
 
                 {/* Match Cards List */}
-                <div className="flex flex-col justify-around flex-grow gap-8 relative">
+                <div className="flex flex-col justify-around flex-grow gap-8 relative py-2">
                   {stage.matches?.filter(Boolean).map((match) => (
                     <ChessMatchNode
                       key={match?._id || match?.matchId}
