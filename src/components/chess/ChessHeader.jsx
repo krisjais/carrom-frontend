@@ -26,7 +26,7 @@ export function ChessHeader() {
     { label: 'Home', href: '/chess' },
     { label: 'Players', href: '/chess/players' },
     { label: 'Matches', href: '/chess/matches' },
-    { label: 'Standings', href: '/chess/standings' },
+    { label: 'Match History', href: '/chess/standings' },
     ...(playerAuth.isAuthenticated
       ? [{ label: 'My Clock & Match', href: '/chess/player/dashboard' }]
       : [{ label: 'Player Login', href: '/chess/login' }]),

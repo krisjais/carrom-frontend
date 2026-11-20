@@ -9,7 +9,7 @@ import {
   LayoutDashboard,
   Users,
   Swords,
-  Trophy,
+  History,
   Settings,
   LogOut,
   ArrowLeft,
@@ -30,7 +30,7 @@ export function AdminSidebar() {
     { label: 'Dashboard', href: '/chess/admin', icon: LayoutDashboard },
     { label: 'Players', href: '/chess/admin/players', icon: Users },
     { label: 'Matches', href: '/chess/admin/matches', icon: Swords },
-    { label: 'Standings', href: '/chess/admin/standings', icon: Trophy },
+    { label: 'Match History', href: '/chess/admin/standings', icon: History },
     { label: 'Settings', href: '/chess/admin/settings', icon: Settings },
   ];
 
