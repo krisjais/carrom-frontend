@@ -593,7 +593,3 @@ function ChessMatchNode({
     </div>
   );
 }
-
-    </div>
-  );
-}

@@ -263,24 +263,24 @@ export default function ChessAdminPlayersPage() {
     <div className="min-h-screen bg-[#F5F2EB] dark:bg-[#0D0D0D] flex flex-col lg:flex-row font-sans text-[#171715] dark:text-[#FAF8F3] antialiased transition-colors">
       <AdminSidebar />
 
-      <main className="flex-1 p-4 sm:p-8 max-w-7xl mx-auto w-full space-y-6">
+      <main className="flex-1 p-3.5 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-4 sm:space-y-6">
         
-        {/* Header with Import Excel button & Add Player */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] p-6 sm:p-8 rounded-3xl shadow-xs">
+        {/* Header with Import CSV button & Add Player */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] p-5 sm:p-8 rounded-2xl sm:rounded-3xl shadow-xs">
           <div>
             <span className="text-[10px] font-mono font-semibold text-[#77736B] dark:text-[#A8A49C] uppercase tracking-widest block">
               REGISTRATION APPROVALS & ROSTER
             </span>
-            <h1 className="text-2xl sm:text-3xl font-bold font-serif text-[#171715] dark:text-[#FAF8F3] tracking-tight mt-1">
+            <h1 className="text-xl sm:text-3xl font-bold font-serif text-[#171715] dark:text-[#FAF8F3] tracking-tight mt-1">
               Player Management
             </h1>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2.5 w-full sm:w-auto">
             {/* Direct Add Player Button */}
             <button
               onClick={() => setAddPlayerModalOpen(true)}
-              className="inline-flex items-center gap-2 bg-[#171715] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] px-4 py-2.5 rounded-xl font-mono text-xs font-semibold uppercase tracking-wider transition-all shadow-xs cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-[#171715] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] px-3.5 sm:px-4 py-2.5 rounded-xl font-mono text-xs font-semibold uppercase tracking-wider transition-all shadow-xs cursor-pointer active:scale-95"
             >
               <UserPlus className="w-4 h-4" />
               <span>+ Add Player</span>
@@ -289,17 +289,11 @@ export default function ChessAdminPlayersPage() {
             {/* Import CSV Button */}
             <button
               onClick={() => setImportModalOpen(true)}
-              className="inline-flex items-center gap-2 bg-[#EFEAE1] dark:bg-[#1D1D1B] hover:bg-[#E4DED5] dark:hover:bg-[#262624] border border-[#D5CFC5] dark:border-[#262624] text-[#171715] dark:text-[#FAF8F3] px-4 py-2.5 rounded-xl font-mono text-xs font-semibold uppercase tracking-wider transition-all shadow-xs cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-[#EFEAE1] dark:bg-[#1D1D1B] hover:bg-[#E4DED5] dark:hover:bg-[#262624] border border-[#D5CFC5] dark:border-[#262624] text-[#171715] dark:text-[#FAF8F3] px-3.5 sm:px-4 py-2.5 rounded-xl font-mono text-xs font-semibold uppercase tracking-wider transition-all shadow-xs cursor-pointer active:scale-95"
             >
               <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               <span>Import CSV</span>
             </button>
-
-            {/* Total count badge */}
-            <div className="bg-[#EFEAE1] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] px-4 py-2 rounded-xl text-center">
-              <span className="text-[9px] font-mono text-[#77736B] dark:text-[#8E8E93] uppercase block">Total Players</span>
-              <span className="text-base font-bold font-mono text-[#171715] dark:text-[#FAF8F3]">{players.length}</span>
-            </div>
           </div>
         </div>
 

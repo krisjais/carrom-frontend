@@ -997,10 +997,10 @@ export default function ChessAdminMatchesPage() {
     <div className="min-h-screen bg-[#F5F2EB] dark:bg-[#0D0D0D] flex flex-col lg:flex-row font-sans text-[#171715] dark:text-[#FAF8F3] antialiased transition-colors">
       <AdminSidebar />
 
-      <main className="flex-1 p-4 sm:p-8 max-w-7xl mx-auto w-full space-y-6">
+      <main className="flex-1 p-3.5 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-4 sm:space-y-6">
         
         {/* Header Bar */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] p-6 rounded-2xl shadow-xs">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] p-5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-xs">
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-mono font-semibold text-[#77736B] dark:text-[#A8A49C] uppercase tracking-widest block">
@@ -1011,27 +1011,27 @@ export default function ChessAdminMatchesPage() {
                 10:00 Clocks
               </span>
             </div>
-            <h1 className="text-2xl font-bold font-serif text-[#171715] dark:text-[#FAF8F3] tracking-tight mt-1">
+            <h1 className="text-xl sm:text-2xl font-bold font-serif text-[#171715] dark:text-[#FAF8F3] tracking-tight mt-1">
               Match & Round Management
             </h1>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+          <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 w-full lg:w-auto">
             {/* Create Custom Pairing Button */}
             <button
               onClick={() => {
                 setManualRoundName(`Round ${selectedRound}`);
                 setShowCreateModal(true);
               }}
-              className="bg-[#EFEAE1] dark:bg-[#1E1E1C] hover:bg-[#E4DED5] dark:hover:bg-[#282826] border border-[#D5CFC5] dark:border-[#2E2E2B] text-[#171715] dark:text-[#FAF8F3] font-semibold px-3.5 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="bg-[#EFEAE1] dark:bg-[#1E1E1C] hover:bg-[#E4DED5] dark:hover:bg-[#282826] border border-[#D5CFC5] dark:border-[#2E2E2B] text-[#171715] dark:text-[#FAF8F3] font-semibold px-3.5 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer active:scale-95"
             >
               <Plus className="w-4 h-4" />
               <span>New Custom Match</span>
             </button>
 
             {/* Round Generation Controls (Admin creates and names rounds like Round 1, Semi-Final, Final, Grand Finals) */}
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <input
                 type="text"
                 value={selectedRoundName}
@@ -1052,18 +1052,18 @@ export default function ChessAdminMatchesPage() {
                   }
                 }}
                 placeholder="Stage name (e.g. Final, Grand Finals, Round 1)"
-                className="w-56 sm:w-64 bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#171715] dark:text-[#FAF8F3] focus:outline-none shadow-xs transition-colors"
+                className="flex-1 sm:w-60 bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-3 py-2 text-xs font-semibold text-[#171715] dark:text-[#FAF8F3] focus:outline-none shadow-xs transition-colors"
                 title="Type any round name: Final, Grand Finals, Round 1, Semi-Final..."
               />
 
               <button
                 onClick={handleGeneratePairings}
                 disabled={generating}
-                className="bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] font-semibold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-xs flex items-center gap-2 transition-all hover:-translate-y-0.5 cursor-pointer"
+                className="bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] font-semibold px-3.5 sm:px-4 py-2 rounded-xl text-xs uppercase tracking-wider shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0 active:scale-95"
                 title={`Generate pairings for ${selectedRoundName || 'selected round'}`}
               >
                 {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Swords className="w-4 h-4" />}
-                <span>Generate {selectedRoundName || 'Pairings'}</span>
+                <span>Generate</span>
               </button>
             </div>
           </div>

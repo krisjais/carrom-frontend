@@ -36,15 +36,15 @@ export default function ChessAdminDashboardPage() {
     <div className="min-h-screen bg-[#F5F2EB] dark:bg-[#0D0D0D] flex flex-col lg:flex-row font-sans text-[#171715] dark:text-[#FAF8F3] antialiased transition-colors">
       <AdminSidebar />
 
-      <main className="flex-1 p-4 sm:p-8 max-w-7xl mx-auto w-full space-y-6">
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-5 sm:space-y-6">
         
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] p-6 rounded-2xl shadow-xs">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] p-5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-xs">
           <div>
             <span className="text-[10px] font-mono font-semibold text-[#77736B] dark:text-[#A8A49C] uppercase tracking-widest block">
               MANAGEMENT CONTROL CENTER
             </span>
-            <h1 className="text-2xl font-bold font-serif text-[#171715] dark:text-[#FAF8F3] tracking-tight mt-1">
+            <h1 className="text-xl sm:text-2xl font-bold font-serif text-[#171715] dark:text-[#FAF8F3] tracking-tight mt-1">
               Admin Dashboard
             </h1>
             <p className="text-xs text-[#4E4C47] dark:text-[#8E8E93] mt-1">
@@ -52,80 +52,80 @@ export default function ChessAdminDashboardPage() {
             </p>
           </div>
 
-          <div className="flex gap-2.5">
+          <div className="grid grid-cols-2 gap-2.5 w-full sm:w-auto sm:flex sm:items-center">
             <Link
               href="/chess/admin/players"
-              className="bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-[#000000] dark:hover:bg-[#FFFFFF] text-[#FAF8F3] dark:text-[#0D0D0D] font-semibold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-xs transition-all hover:-translate-y-0.5"
+              className="text-center bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-[#000000] dark:hover:bg-[#FFFFFF] text-[#FAF8F3] dark:text-[#0D0D0D] font-semibold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-xs transition-all active:scale-95"
             >
               Manage Players
             </Link>
 
             <Link
               href="/chess/admin/matches"
-              className="border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1] dark:bg-[#1D1D1B] hover:bg-[#E4DED5] dark:hover:bg-[#262624] text-[#171715] dark:text-[#FAF8F3] font-semibold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all"
+              className="text-center border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1] dark:bg-[#1D1D1B] hover:bg-[#E4DED5] dark:hover:bg-[#262624] text-[#171715] dark:text-[#FAF8F3] font-semibold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all active:scale-95"
             >
               Generate Pairings
             </Link>
           </div>
         </div>
 
-        {/* Stats Grid */}
+        {/* Stats Grid: 2 columns on phone, 4 on desktop */}
         {loading ? (
           <div className="text-center py-16 text-[#77736B] dark:text-[#8E8E93] bg-[#FAF8F3] dark:bg-[#151514] rounded-2xl border border-[#D5CFC5] dark:border-[#262624]">
             Loading dashboard metrics...
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             
-            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-5 shadow-xs space-y-2">
+            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-4 sm:p-5 shadow-xs space-y-1.5 flex flex-col justify-between">
               <div className="flex items-center justify-between text-[#77736B] dark:text-[#8E8E93]">
-                <span className="text-[11px] font-mono font-semibold uppercase tracking-wider">Total Registrations</span>
-                <Users className="w-4 h-4 text-[#171715] dark:text-[#FAF8F3]" />
+                <span className="text-[10px] sm:text-[11px] font-mono font-semibold uppercase tracking-wider truncate">Registrations</span>
+                <Users className="w-4 h-4 text-[#171715] dark:text-[#FAF8F3] shrink-0" />
               </div>
-              <div className="text-3xl font-bold font-serif text-[#171715] dark:text-[#FAF8F3]">
+              <div className="text-2xl sm:text-3xl font-bold font-serif text-[#171715] dark:text-[#FAF8F3]">
                 {stats?.totalRegistrations || stats?.totalPlayers || 0}
               </div>
-              <span className="text-[11px] text-[#77736B] dark:text-[#8E8E93] block">
-                Pending Approval: <strong className="text-amber-600 dark:text-amber-400 font-mono">{stats?.pendingRegistrations || stats?.pendingPlayers || 0}</strong>
+              <span className="text-[10px] sm:text-[11px] text-[#77736B] dark:text-[#8E8E93] block truncate">
+                Pending: <strong className="text-amber-600 dark:text-amber-400 font-mono">{stats?.pendingRegistrations || stats?.pendingPlayers || 0}</strong>
               </span>
             </div>
 
-            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-5 shadow-xs space-y-2">
+            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-4 sm:p-5 shadow-xs space-y-1.5 flex flex-col justify-between">
               <div className="flex items-center justify-between text-[#77736B] dark:text-[#8E8E93]">
-                <span className="text-[11px] font-mono font-semibold uppercase tracking-wider">Total Matches</span>
-                <Swords className="w-4 h-4 text-[#171715] dark:text-[#FAF8F3]" />
+                <span className="text-[10px] sm:text-[11px] font-mono font-semibold uppercase tracking-wider truncate">Matches</span>
+                <Swords className="w-4 h-4 text-[#171715] dark:text-[#FAF8F3] shrink-0" />
               </div>
-              <div className="text-3xl font-bold font-serif text-[#171715] dark:text-[#FAF8F3]">
+              <div className="text-2xl sm:text-3xl font-bold font-serif text-[#171715] dark:text-[#FAF8F3]">
                 {stats?.totalMatches || 0}
               </div>
-              <span className="text-[11px] text-[#77736B] dark:text-[#8E8E93] block">
+              <span className="text-[10px] sm:text-[11px] text-[#77736B] dark:text-[#8E8E93] block truncate">
                 Completed: <strong className="text-emerald-600 dark:text-emerald-400 font-mono">{stats?.completedMatches || 0}</strong>
               </span>
             </div>
 
-            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-5 shadow-xs space-y-2">
+            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-4 sm:p-5 shadow-xs space-y-1.5 flex flex-col justify-between">
               <div className="flex items-center justify-between text-rose-600 dark:text-rose-400">
-                <span className="text-[11px] font-mono font-semibold uppercase tracking-wider">Live Games</span>
-                <Clock className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                <span className="text-[10px] sm:text-[11px] font-mono font-semibold uppercase tracking-wider truncate">Live Games</span>
+                <Clock className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
               </div>
-              <div className="text-3xl font-bold font-serif text-rose-600 dark:text-rose-400">
+              <div className="text-2xl sm:text-3xl font-bold font-serif text-rose-600 dark:text-rose-400">
                 {stats?.liveMatches || 0}
               </div>
-              <span className="text-[11px] text-[#77736B] dark:text-[#8E8E93] block">
+              <span className="text-[10px] sm:text-[11px] text-[#77736B] dark:text-[#8E8E93] block truncate">
                 Scheduled: <strong className="text-[#171715] dark:text-[#FAF8F3] font-mono">{stats?.scheduledMatches || 0}</strong>
               </span>
             </div>
 
-            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-5 shadow-xs space-y-2">
+            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-4 sm:p-5 shadow-xs space-y-1.5 flex flex-col justify-between">
               <div className="flex items-center justify-between text-[#77736B] dark:text-[#8E8E93]">
-                <span className="text-[11px] font-mono font-semibold uppercase tracking-wider">Current Round</span>
-                <Trophy className="w-4 h-4 text-amber-500" />
+                <span className="text-[10px] sm:text-[11px] font-mono font-semibold uppercase tracking-wider truncate">Stage</span>
+                <Trophy className="w-4 h-4 text-amber-500 shrink-0" />
               </div>
-              <div className="text-3xl font-bold font-serif text-[#171715] dark:text-[#FAF8F3]">
+              <div className="text-2xl sm:text-3xl font-bold font-serif text-[#171715] dark:text-[#FAF8F3]">
                 Round {stats?.currentRound || 1}
               </div>
-              <span className="text-[11px] text-[#77736B] dark:text-[#8E8E93] block">
-                Registration: <strong className="text-emerald-600 dark:text-emerald-400 font-semibold uppercase">Open</strong>
+              <span className="text-[10px] sm:text-[11px] text-[#77736B] dark:text-[#8E8E93] block truncate">
+                Reg: <strong className="text-emerald-600 dark:text-emerald-400 font-semibold uppercase">Open</strong>
               </span>
             </div>
 
