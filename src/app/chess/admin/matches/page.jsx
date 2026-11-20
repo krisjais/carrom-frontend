@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { chessApi } from '@/lib/chessApi';
 import { AdminSidebar } from '@/components/chess/AdminSidebar';
 import { ChessBracketView } from '@/components/chess/ChessBracketView';
-import { Swords, Play, Pause, CheckCircle2, XCircle, Trophy, Loader2, Plus, Minus, Trash2, Clock, ShieldCheck, Zap, CheckSquare, Square, ChevronDown, X, LayoutGrid, List, Crown, Sparkles, ArrowRightLeft, RotateCcw, Timer, Save } from 'lucide-react';
+import { Swords, Play, Pause, CheckCircle2, XCircle, Trophy, Loader2, Plus, Minus, Trash2, Clock, ShieldCheck, Zap, CheckSquare, Square, ChevronDown, X, LayoutGrid, List, Crown, Sparkles, ArrowRightLeft, RotateCcw, Timer, Save, CalendarClock, Calendar } from 'lucide-react';
 import { useToast, useConfirm } from '@/context/ToastContext';
 import { getSocket, subscribeToChessLive } from '@/lib/socket';
 
@@ -112,6 +112,15 @@ export default function ChessAdminMatchesPage() {
   const [selectedMatchForTime, setSelectedMatchForTime] = useState(null);
   const [customDurationMinutes, setCustomDurationMinutes] = useState(10);
   const [savingTime, setSavingTime] = useState(false);
+
+  // Reschedule & Restart Match Modal (Upper action button & modal)
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [rescheduleTargetId, setRescheduleTargetId] = useState('');
+  const [rescheduleScope, setRescheduleScope] = useState('single'); // 'single' | 'round'
+  const [rescheduleDate, setRescheduleDate] = useState('');
+  const [rescheduleBoard, setRescheduleBoard] = useState('');
+  const [rescheduleDuration, setRescheduleDuration] = useState(10);
+  const [rescheduling, setRescheduling] = useState(false);
 
   async function loadData(silent = false) {
     if (!chessApi.isAdminAuthenticated()) {
@@ -888,6 +897,94 @@ export default function ChessAdminMatchesPage() {
     }
   };
 
+  // Open Reschedule Modal with default or target match
+  const openRescheduleModal = (target = null) => {
+    const candidate = target || matches.find(m => !m.isBye) || matches[0];
+    if (candidate) {
+      setRescheduleTargetId(candidate._id || candidate.matchId);
+      setRescheduleDuration(candidate.durationMinutes || 10);
+      setRescheduleBoard(candidate.boardNumber !== undefined && candidate.boardNumber !== null ? candidate.boardNumber : '');
+      if (candidate.scheduledTime) {
+        try {
+          const d = new Date(candidate.scheduledTime);
+          setRescheduleDate(d.toISOString().slice(0, 16));
+        } catch {
+          setRescheduleDate('');
+        }
+      } else {
+        setRescheduleDate('');
+      }
+    } else {
+      setRescheduleTargetId('');
+      setRescheduleDuration(10);
+      setRescheduleBoard('');
+      setRescheduleDate('');
+    }
+    setRescheduleScope('single');
+    setShowRescheduleModal(true);
+  };
+
+  // Submit Reschedule / Restart
+  const handleRescheduleSubmit = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (rescheduleScope === 'single') {
+      if (!rescheduleTargetId) {
+        toast.error('Please select a match to reschedule.');
+        return;
+      }
+      const targetMatch = matches.find(m => m._id === rescheduleTargetId || m.matchId === rescheduleTargetId);
+      if (!targetMatch) {
+        toast.error('Match not found.');
+        return;
+      }
+
+      setRescheduling(true);
+      try {
+        const payload = {
+          action: 'reschedule',
+          durationMinutes: Number(rescheduleDuration) || targetMatch.durationMinutes || 10,
+          boardNumber: rescheduleBoard !== '' ? Number(rescheduleBoard) : targetMatch.boardNumber,
+          scheduledTime: rescheduleDate ? new Date(rescheduleDate).toISOString() : targetMatch.scheduledTime
+        };
+
+        const res = await chessApi.rescheduleMatch(targetMatch._id || targetMatch.matchId, payload);
+        if (res.success) {
+          toast.success(`Match ${targetMatch.matchId} rescheduled and clocks reset successfully!`);
+          setShowRescheduleModal(false);
+          await loadData(true);
+        } else {
+          toast.error(res.message || 'Failed to reschedule match.');
+        }
+      } catch (err) {
+        toast.error(err.message || 'Error rescheduling match.');
+      } finally {
+        setRescheduling(false);
+      }
+    } else {
+      setRescheduling(true);
+      try {
+        const payload = {
+          durationMinutes: Number(rescheduleDuration) || 10,
+          scheduledTime: rescheduleDate ? new Date(rescheduleDate).toISOString() : undefined,
+          roundName: selectedRoundName
+        };
+
+        const res = await chessApi.rescheduleRound(selectedRound, payload);
+        if (res.success) {
+          toast.success(`All matches in ${selectedRoundName || `Round ${selectedRound}`} rescheduled & clocks reset!`);
+          setShowRescheduleModal(false);
+          await loadData(true);
+        } else {
+          toast.error(res.message || 'Failed to reschedule round.');
+        }
+      } catch (err) {
+        toast.error(err.message || 'Error rescheduling round.');
+      } finally {
+        setRescheduling(false);
+      }
+    }
+  };
+
   // Individual Match Delete
   const handleDeleteMatch = async (id, matchIdLabel) => {
     const isConfirmed = await confirm({
@@ -1028,6 +1125,16 @@ export default function ChessAdminMatchesPage() {
             >
               <Plus className="w-4 h-4" />
               <span>New Custom Match</span>
+            </button>
+
+            {/* Reschedule Match Button */}
+            <button
+              onClick={() => openRescheduleModal()}
+              className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 dark:border-amber-500/40 font-semibold px-3.5 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95"
+              title="Reschedule match date/time, board number, or restart match/round"
+            >
+              <CalendarClock className="w-4 h-4" />
+              <span>Reschedule Match</span>
             </button>
 
             {/* Round Generation Controls (Admin creates and names rounds like Round 1, Semi-Final, Final, Grand Finals) */}
@@ -1670,6 +1777,281 @@ export default function ChessAdminMatchesPage() {
           </div>
         )}
 
+        {/* RESCHEDULE & RESTART MATCH MODAL */}
+        {showRescheduleModal && (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all">
+            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#2B2B28] rounded-2xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 text-[#171715] dark:text-[#FAF8F3] antialiased max-h-[90vh] overflow-y-auto">
+              <div className="border-b border-[#D5CFC5] dark:border-[#262624] pb-3 flex justify-between items-center">
+                <div>
+                  <span className="text-[11px] font-sans font-bold text-[#77736B] dark:text-[#A8A49C] uppercase tracking-[0.14em] block">
+                    MATCH SCHEDULING & CLOCK RESTORATION
+                  </span>
+                  <h3 className="text-xl font-bold font-serif text-[#171715] dark:text-[#FAF8F3] tracking-tight mt-0.5">
+                    Reschedule & Restart Match
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowRescheduleModal(false)}
+                  className="w-8 h-8 flex items-center justify-center rounded-xl bg-[#EFEAE1]/70 dark:bg-[#1E1E1C] hover:bg-[#E4DED5] dark:hover:bg-[#282826] text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715] dark:hover:text-[#FAF8F3] transition-colors cursor-pointer"
+                  aria-label="Close"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Scope Switcher: Single Match vs Entire Stage */}
+              <div className="grid grid-cols-2 gap-1 p-1 bg-[#EFEAE1]/60 dark:bg-[#1E1E1C] rounded-xl border border-[#D5CFC5]/60 dark:border-[#2E2E2B]">
+                <button
+                  type="button"
+                  onClick={() => setRescheduleScope('single')}
+                  className={`py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                    rescheduleScope === 'single'
+                      ? 'bg-[#FAF8F3] dark:bg-[#2A2A27] text-[#171715] dark:text-[#FAF8F3] shadow-xs'
+                      : 'text-[#77736B] hover:text-[#171715] dark:text-[#8E8E93] dark:hover:text-[#FAF8F3]'
+                  }`}
+                >
+                  Single Match
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRescheduleScope('round')}
+                  className={`py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                    rescheduleScope === 'round'
+                      ? 'bg-[#FAF8F3] dark:bg-[#2A2A27] text-[#171715] dark:text-[#FAF8F3] shadow-xs'
+                      : 'text-[#77736B] hover:text-[#171715] dark:text-[#8E8E93] dark:hover:text-[#FAF8F3]'
+                  }`}
+                >
+                  Entire Stage / Round
+                </button>
+              </div>
+
+              {rescheduleScope === 'single' ? (
+                <div className="space-y-4">
+                  {/* Match Selector */}
+                  <div>
+                    <label className="text-[11px] font-sans font-bold text-[#77736B] dark:text-[#A8A49C] uppercase tracking-wider block mb-1.5">
+                      Select Match
+                    </label>
+                    <select
+                      value={rescheduleTargetId}
+                      onChange={(e) => {
+                        const mId = e.target.value;
+                        setRescheduleTargetId(mId);
+                        const m = matches.find(item => item._id === mId || item.matchId === mId);
+                        if (m) {
+                          setRescheduleDuration(m.durationMinutes || 10);
+                          setRescheduleBoard(m.boardNumber !== undefined && m.boardNumber !== null ? m.boardNumber : '');
+                          if (m.scheduledTime) {
+                            try {
+                              setRescheduleDate(new Date(m.scheduledTime).toISOString().slice(0, 16));
+                            } catch {
+                              setRescheduleDate('');
+                            }
+                          } else {
+                            setRescheduleDate('');
+                          }
+                        }
+                      }}
+                      className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#171715] dark:text-[#FAF8F3] focus:outline-none focus:border-[#171715] dark:focus:border-[#FAF8F3]"
+                    >
+                      {matches.length === 0 && <option value="">No matches available</option>}
+                      {matches.map((m) => {
+                        const p1 = m.player1?.fullName || 'TBD';
+                        const p2 = m.player2?.fullName || 'TBD';
+                        const stage = m.stageName || `Round ${m.round}`;
+                        const statusTag = (m.status || 'scheduled').toUpperCase();
+                        return (
+                          <option key={m._id || m.matchId} value={m._id || m.matchId}>
+                            {m.matchId}: {p1} vs {p2} ({stage}) [{statusTag}]
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+
+                  {/* Selected Match Quick Summary Card */}
+                  {(() => {
+                    const selMatch = matches.find(m => m._id === rescheduleTargetId || m.matchId === rescheduleTargetId);
+                    if (!selMatch) return null;
+                    return (
+                      <div className="p-3 bg-[#EFEAE1]/50 dark:bg-[#1B1B19] rounded-xl border border-[#D5CFC5]/70 dark:border-[#282826] text-xs space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono font-bold text-amber-700 dark:text-amber-400">
+                            {selMatch.matchId} • {selMatch.stageName || `Round ${selMatch.round}`}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                            selMatch.status === 'live'
+                              ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 animate-pulse'
+                              : selMatch.status === 'completed'
+                              ? 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/30'
+                              : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30'
+                          }`}>
+                            {selMatch.status || 'scheduled'}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-[11px] text-[#77736B] dark:text-[#A8A49C]">
+                          <span>White: <strong className="text-[#171715] dark:text-[#FAF8F3]">{selMatch.player1?.fullName || 'Player 1'}</strong></span>
+                          <span>Black: <strong className="text-[#171715] dark:text-[#FAF8F3]">{selMatch.player2?.fullName || 'Player 2'}</strong></span>
+                        </div>
+                        {selMatch.winner && (
+                          <p className="text-[11px] text-amber-700 dark:text-amber-400 font-medium">
+                            Current Winner: {selMatch.winner === 'player1' ? selMatch.player1?.fullName : selMatch.player2?.fullName || selMatch.winner} (cleared on restart)
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
+
+                  {/* Reschedule Date & Time */}
+                  <div>
+                    <label className="text-[11px] font-sans font-bold text-[#77736B] dark:text-[#A8A49C] uppercase tracking-wider block mb-1.5">
+                      Scheduled Date & Time (Optional)
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={rescheduleDate}
+                      onChange={(e) => setRescheduleDate(e.target.value)}
+                      className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] rounded-xl px-3.5 py-2 text-xs font-semibold text-[#171715] dark:text-[#FAF8F3] focus:outline-none focus:border-[#171715] dark:focus:border-[#FAF8F3]"
+                    />
+                    <p className="text-[10px] text-[#77736B] dark:text-[#8E8E93] mt-1">
+                      Leave empty to make it available for immediate match start.
+                    </p>
+                  </div>
+
+                  {/* Board Number & Duration Grid */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[11px] font-sans font-bold text-[#77736B] dark:text-[#A8A49C] uppercase tracking-wider block mb-1.5">
+                        Board / Table #
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        placeholder="e.g. 1"
+                        value={rescheduleBoard}
+                        onChange={(e) => setRescheduleBoard(e.target.value)}
+                        className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] rounded-xl px-3.5 py-2 text-xs font-semibold text-[#171715] dark:text-[#FAF8F3] focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-sans font-bold text-[#77736B] dark:text-[#A8A49C] uppercase tracking-wider block mb-1.5">
+                        Duration (Minutes)
+                      </label>
+                      <div className="flex items-center gap-1.5">
+                        {[10, 15, 20].map((mins) => (
+                          <button
+                            key={mins}
+                            type="button"
+                            onClick={() => setRescheduleDuration(mins)}
+                            className={`flex-1 py-2 text-xs font-mono font-bold rounded-xl border transition-all cursor-pointer ${
+                              rescheduleDuration === mins
+                                ? 'bg-amber-500 text-white border-amber-600 shadow-xs'
+                                : 'bg-[#EFEAE1]/70 dark:bg-[#1E1E1C] border-[#D5CFC5] dark:border-[#2E2E2B] text-[#171715] dark:text-[#FAF8F3]'
+                            }`}
+                          >
+                            {mins}m
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* Round Scope */
+                <div className="space-y-4">
+                  <div className="p-4 bg-amber-50 dark:bg-amber-950/20 rounded-xl border border-amber-200 dark:border-amber-900/50 text-xs text-amber-900 dark:text-amber-200 space-y-1">
+                    <p className="font-bold flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                      Reschedule All Matches in {selectedRoundName || `Round ${selectedRound}`}
+                    </p>
+                    <p className="text-[11px] text-amber-800/80 dark:text-amber-300/80">
+                      This will reset clocks to {rescheduleDuration}:00, clear results, and return all matches in this stage to &quot;Scheduled&quot; status.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-sans font-bold text-[#77736B] dark:text-[#A8A49C] uppercase tracking-wider block mb-1.5">
+                      Stage Time (Optional)
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={rescheduleDate}
+                      onChange={(e) => setRescheduleDate(e.target.value)}
+                      className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] rounded-xl px-3.5 py-2 text-xs font-semibold text-[#171715] dark:text-[#FAF8F3] focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-sans font-bold text-[#77736B] dark:text-[#A8A49C] uppercase tracking-wider block mb-1.5">
+                      Clock Duration per Match
+                    </label>
+                    <div className="flex items-center gap-2">
+                      {[5, 10, 15, 20].map((mins) => (
+                        <button
+                          key={mins}
+                          type="button"
+                          onClick={() => setRescheduleDuration(mins)}
+                          className={`flex-1 py-2 text-xs font-mono font-bold rounded-xl border transition-all cursor-pointer ${
+                            rescheduleDuration === mins
+                              ? 'bg-amber-500 text-white border-amber-600 shadow-xs'
+                              : 'bg-[#EFEAE1]/70 dark:bg-[#1E1E1C] border-[#D5CFC5] dark:border-[#2E2E2B] text-[#171715] dark:text-[#FAF8F3]'
+                          }`}
+                        >
+                          {mins}m
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Modal Actions */}
+              <div className="pt-3 border-t border-[#D5CFC5] dark:border-[#262624] flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowRescheduleModal(false)}
+                  className="px-4 py-2.5 border border-[#D5CFC5] dark:border-[#2A2A28] bg-transparent hover:bg-[#EFEAE1] dark:hover:bg-[#1E1E1C] text-[#171715] dark:text-[#FAF8F3] rounded-xl font-semibold text-xs tracking-wider uppercase transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+
+                {rescheduleScope === 'single' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const m = matches.find(item => item._id === rescheduleTargetId || item.matchId === rescheduleTargetId);
+                      if (m) {
+                        setShowRescheduleModal(false);
+                        handleRestartMatch(m);
+                      }
+                    }}
+                    disabled={rescheduling || !rescheduleTargetId}
+                    className="px-4 py-2.5 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-950/60 border border-rose-300 dark:border-rose-900 text-rose-700 dark:text-rose-400 rounded-xl font-semibold text-xs tracking-wider uppercase transition-colors cursor-pointer flex items-center gap-1.5"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Quick Reset</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleRescheduleSubmit}
+                  disabled={rescheduling}
+                  className="px-5 py-2.5 bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] rounded-xl font-semibold text-xs tracking-wider uppercase transition-all shadow-sm cursor-pointer flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
+                >
+                  {rescheduling ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <CalendarClock className="w-4 h-4" />
+                  )}
+                  <span>{rescheduleScope === 'single' ? 'Save & Reschedule' : 'Reschedule Stage'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Click-to-Declare Winner Modal (Direct, No Points / Piece Counts) */}
         {resultModalMatch && (
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all">
@@ -2169,6 +2551,20 @@ export default function ChessAdminMatchesPage() {
                     <RotateCcw className="w-4 h-4" />
                   )}
                   <span>Restart Match</span>
+                </button>
+
+                {/* Reschedule Match Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const m = matchModalMatch;
+                    setMatchModalMatch(null);
+                    openRescheduleModal(m);
+                  }}
+                  className="py-2.5 px-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 dark:hover:bg-amber-950/60 border border-amber-300 dark:border-amber-900 text-amber-800 dark:text-amber-300 font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-xs cursor-pointer transition-all"
+                >
+                  <CalendarClock className="w-4 h-4" />
+                  <span>Reschedule</span>
                 </button>
               </div>
 

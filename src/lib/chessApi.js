@@ -468,6 +468,22 @@ export const chessApi = {
     });
   },
 
+  rescheduleMatch: async (id, data = {}) => {
+    return await safeFetch(`/admin/matches/${id}/reschedule`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ action: 'reschedule', ...data })
+    });
+  },
+
+  rescheduleRound: async (round, data = {}) => {
+    return await safeFetch(`/admin/rounds/${round}/reschedule`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    });
+  },
+
   deleteMatch: async (id) => {
     return await safeFetch(`/admin/matches/${id}`, {
       method: 'DELETE',
