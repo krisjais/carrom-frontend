@@ -44,8 +44,8 @@ export function ChessHeader() {
         
         {/* LEFT: Branding */}
         <Link href="/chess" className="flex items-center gap-2 group shrink-0">
-          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#22221F] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] flex items-center justify-center font-bold text-sm sm:text-base shadow-xs group-hover:scale-105 transition-transform duration-200">
-            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" viewBox="0 0 24 24">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#22221F] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] flex items-center justify-center font-bold text-sm sm:text-base shadow-xs group-hover:scale-105 transition-transform duration-200 shrink-0">
+            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current shrink-0" width="16" height="16" style={{ width: '16px', height: '16px', maxWidth: '16px', maxHeight: '16px' }} viewBox="0 0 24 24">
               <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
             </svg>
           </div>

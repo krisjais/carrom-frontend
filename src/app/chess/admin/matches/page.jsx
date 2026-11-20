@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { chessApi } from '@/lib/chessApi';
 import { AdminSidebar } from '@/components/chess/AdminSidebar';
@@ -73,6 +74,12 @@ export default function ChessAdminMatchesPage() {
   const router = useRouter();
   const toast = useToast();
   const confirm = useConfirm();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [matches, setMatches] = useState([]);
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1448,7 +1455,14 @@ export default function ChessAdminMatchesPage() {
                       </td>
 
                       <td className="py-3.5 px-3 font-mono font-bold text-[#171715] dark:text-[#FAF8F3]">
-                        {m.matchId}
+                        <button
+                          type="button"
+                          onClick={() => setMatchModalMatch(m)}
+                          className="hover:text-amber-700 dark:hover:text-amber-400 hover:underline cursor-pointer flex items-center gap-1"
+                          title="Open Match Dossier & Arbiter Desk"
+                        >
+                          {m.matchId}
+                        </button>
                       </td>
 
                       {/* Custom Round Name Display */}
@@ -1461,7 +1475,7 @@ export default function ChessAdminMatchesPage() {
                           }`}
                         >
                           {isFinalStage && (
-                            <svg className="w-3.5 h-3.5 mr-1 fill-current inline" viewBox="0 0 24 24">
+                            <svg className="w-3.5 h-3.5 mr-1 fill-current inline shrink-0" width="14" height="14" style={{ width: '14px', height: '14px', maxWidth: '14px', maxHeight: '14px' }} viewBox="0 0 24 24">
                               <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
                             </svg>
                           )}
@@ -1679,14 +1693,23 @@ export default function ChessAdminMatchesPage() {
         )}
 
         {/* CREATE MANUAL MATCH MODAL WITH CUSTOM ROUND NAME / GRAND FINAL */}
-        {showCreateModal && (
+        {showCreateModal && mounted && typeof document !== 'undefined' && createPortal(
           <div 
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 999999,
+            }}
             onClick={() => setShowCreateModal(false)}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all cursor-pointer"
+            className="bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto cursor-pointer"
           >
             <div 
+              style={{ position: 'relative', zIndex: 1000000 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#2B2B28] rounded-2xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 text-[#171715] dark:text-[#FAF8F3] antialiased cursor-default"
+              className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#2B2B28] rounded-2xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 text-[#171715] dark:text-[#FAF8F3] antialiased cursor-default my-auto"
             >
               <div className="border-b border-[#D5CFC5] dark:border-[#262624] pb-3 flex justify-between items-center">
                 <div>
@@ -1854,18 +1877,28 @@ export default function ChessAdminMatchesPage() {
                 </div>
               </form>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* RESCHEDULE & RESTART MATCH MODAL */}
-        {showRescheduleModal && (
+        {showRescheduleModal && mounted && typeof document !== 'undefined' && createPortal(
           <div 
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 999999,
+            }}
             onClick={() => setShowRescheduleModal(false)}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all cursor-pointer"
+            className="bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto cursor-pointer"
           >
             <div 
+              style={{ position: 'relative', zIndex: 1000000 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#2B2B28] rounded-2xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 text-[#171715] dark:text-[#FAF8F3] antialiased max-h-[90vh] overflow-y-auto cursor-default"
+              className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#2B2B28] rounded-2xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 text-[#171715] dark:text-[#FAF8F3] antialiased max-h-[90vh] overflow-y-auto cursor-default my-auto"
             >
               <div className="border-b border-[#D5CFC5] dark:border-[#262624] pb-3 flex justify-between items-center">
                 <div>
@@ -2135,18 +2168,28 @@ export default function ChessAdminMatchesPage() {
                 </button>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* Click-to-Declare Winner Modal (Direct, No Points / Piece Counts) */}
-        {resultModalMatch && (
+        {resultModalMatch && mounted && typeof document !== 'undefined' && createPortal(
           <div 
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 999999,
+            }}
             onClick={() => setResultModalMatch(null)}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all cursor-pointer"
+            className="bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto cursor-pointer"
           >
             <div 
+              style={{ position: 'relative', zIndex: 1000000 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#2B2B28] rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 text-[#171715] dark:text-[#FAF8F3] antialiased cursor-default"
+              className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#2B2B28] rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 text-[#171715] dark:text-[#FAF8F3] antialiased cursor-default my-auto"
             >
               <div className="border-b border-[#D5CFC5] dark:border-[#262624] pb-3 flex justify-between items-center">
                 <div>
@@ -2282,18 +2325,28 @@ export default function ChessAdminMatchesPage() {
                 </button>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
       {/* ADJUST MATCH TIME / DURATION MODAL (Like Carrom) */}
-      {timeModalOpen && selectedMatchForTime && (
+      {timeModalOpen && selectedMatchForTime && mounted && typeof document !== 'undefined' && createPortal(
         <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 999999,
+          }}
           onClick={() => setTimeModalOpen(false)}
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 transition-all cursor-pointer"
+          className="bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto cursor-pointer"
         >
           <div 
+            style={{ position: 'relative', zIndex: 1000000 }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#2B2B28] rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 text-[#171715] dark:text-[#FAF8F3] cursor-default"
+            className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#2B2B28] rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 text-[#171715] dark:text-[#FAF8F3] cursor-default my-auto"
           >
             <div className="flex items-center justify-between border-b border-[#D5CFC5] dark:border-[#262624] pb-3">
               <div className="flex items-center gap-3">
@@ -2450,18 +2503,28 @@ export default function ChessAdminMatchesPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* MATCH DETAIL & ARBITER CONTROL MODAL */}
-      {matchModalMatch && (
+      {matchModalMatch && mounted && typeof document !== 'undefined' && createPortal(
         <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 999999,
+          }}
           onClick={() => setMatchModalMatch(null)}
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 cursor-pointer"
+          className="bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto cursor-pointer"
         >
           <div 
+            style={{ position: 'relative', zIndex: 1000000 }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-6 shadow-2xl relative max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-150 cursor-default"
+            className="bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto cursor-default my-auto"
           >
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-4 border-b border-[#D5CFC5] dark:border-[#262624]">
@@ -2781,7 +2844,8 @@ export default function ChessAdminMatchesPage() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       </main>

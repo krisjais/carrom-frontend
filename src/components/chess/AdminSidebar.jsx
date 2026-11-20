@@ -93,8 +93,8 @@ export function AdminSidebar() {
             }}
             className="flex items-center gap-2.5 group"
           >
-            <div className="w-8 h-8 rounded-lg bg-[#22221F] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] flex items-center justify-center font-bold text-sm shadow-2xs group-hover:scale-105 transition-transform">
-              <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+            <div className="w-8 h-8 rounded-lg bg-[#22221F] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] flex items-center justify-center font-bold text-sm shadow-2xs group-hover:scale-105 transition-transform shrink-0">
+              <svg className="w-4 h-4 fill-current shrink-0" width="16" height="16" style={{ width: '16px', height: '16px', maxWidth: '16px', maxHeight: '16px' }} viewBox="0 0 24 24">
                 <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
               </svg>
             </div>
@@ -293,8 +293,8 @@ export function AdminSidebar() {
               }}
               className="flex items-center gap-3 group"
             >
-              <div className="w-9 h-9 rounded-xl bg-[#22221F] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] flex items-center justify-center font-bold text-lg shadow-xs group-hover:scale-105 transition-transform">
-                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+              <div className="w-9 h-9 rounded-xl bg-[#22221F] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] flex items-center justify-center font-bold text-lg shadow-xs group-hover:scale-105 transition-transform shrink-0">
+                <svg className="w-5 h-5 fill-current shrink-0" width="20" height="20" style={{ width: '20px', height: '20px', maxWidth: '20px', maxHeight: '20px' }} viewBox="0 0 24 24">
                   <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
                 </svg>
               </div>
