@@ -4,7 +4,7 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { 
   Trophy, ExternalLink, ZoomIn, ZoomOut, RotateCcw, Crown, Shield, 
-  Play, Pause, Clock, Trash2, Zap, ArrowRight, UserCheck, Sparkles 
+  Play, Pause, Clock, Trash2, Zap, ArrowRight, UserCheck, Sparkles, ArrowRightLeft 
 } from 'lucide-react';
 
 /**
@@ -54,6 +54,9 @@ export function ChessBracketView({
   isAdmin = false,
   onStartMatch,
   onPauseResumeMatch,
+  onSwitchTurnMatch,
+  onQuickAddTime,
+  onOpenTimeModal,
   onOpenResultModal,
   onDeleteMatch,
   startingMatchId = null,
@@ -173,6 +176,9 @@ export function ChessBracketView({
                       isAdmin={isAdmin}
                       onStartMatch={onStartMatch}
                       onPauseResumeMatch={onPauseResumeMatch}
+                      onSwitchTurnMatch={onSwitchTurnMatch}
+                      onQuickAddTime={onQuickAddTime}
+                      onOpenTimeModal={onOpenTimeModal}
                       onOpenResultModal={onOpenResultModal}
                       onDeleteMatch={onDeleteMatch}
                       isStarting={startingMatchId === (match?._id || match?.matchId)}
@@ -206,6 +212,9 @@ function ChessMatchNode({
   isAdmin,
   onStartMatch,
   onPauseResumeMatch,
+  onSwitchTurnMatch,
+  onQuickAddTime,
+  onOpenTimeModal,
   onOpenResultModal,
   onDeleteMatch,
   isStarting,
@@ -420,7 +429,7 @@ function ChessMatchNode({
             </>
           )}
 
-          {/* Live Match -> Pause/Resume Clock & Declare Winner */}
+          {/* Live Match -> Pause/Resume, Switch Turn, Add Time & Declare Winner */}
           {isAdmin && isLive && (
             <>
               <button
@@ -446,6 +455,45 @@ function ChessMatchNode({
                 )}
               </button>
 
+              {/* Admin Tap Turn Switch */}
+              <button
+                type="button"
+                onClick={() => onSwitchTurnMatch && onSwitchTurnMatch(match)}
+                className="bg-amber-600 hover:bg-amber-700 text-white px-2 py-1 rounded-lg uppercase font-bold inline-flex items-center gap-1 shadow-2xs cursor-pointer"
+                title={`Admin tap to switch turn to ${match.activeTurn === 'black' ? 'White' : 'Black'}`}
+              >
+                <ArrowRightLeft className="w-2.5 h-2.5" />
+                <span>Switch ({match.activeTurn === 'black' ? 'W' : 'B'})</span>
+              </button>
+
+              {/* Quick +1m / +2m / +5m and Duration Adjust */}
+              <div className="inline-flex items-center rounded-lg border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1]/70 dark:bg-[#1D1D1B] p-0.5 gap-0.5">
+                <button
+                  type="button"
+                  onClick={() => onQuickAddTime && onQuickAddTime(match, 1)}
+                  className="px-1 py-0.5 rounded text-[9px] font-mono font-bold hover:bg-white dark:hover:bg-[#282826] cursor-pointer"
+                  title="Add 1 minute"
+                >
+                  +1m
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onQuickAddTime && onQuickAddTime(match, 2)}
+                  className="px-1 py-0.5 rounded text-[9px] font-mono font-bold hover:bg-white dark:hover:bg-[#282826] cursor-pointer"
+                  title="Add 2 minutes"
+                >
+                  +2m
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onOpenTimeModal && onOpenTimeModal(match)}
+                  className="px-1 py-0.5 rounded text-[9px] font-mono font-bold hover:bg-white dark:hover:bg-[#282826] cursor-pointer"
+                  title="Set match time / duration"
+                >
+                  <Clock className="w-2.5 h-2.5" />
+                </button>
+              </div>
+
               <button
                 type="button"
                 onClick={() => onOpenResultModal && onOpenResultModal(match)}
@@ -455,6 +503,19 @@ function ChessMatchNode({
                 <span>Declare Winner</span>
               </button>
             </>
+          )}
+
+          {/* Scheduled match duration adjust button */}
+          {isAdmin && isScheduled && !isBye && (
+            <button
+              type="button"
+              onClick={() => onOpenTimeModal && onOpenTimeModal(match)}
+              className="border border-[#D5CFC5] dark:border-[#262624] px-1.5 py-1 rounded-lg text-[9px] font-mono text-[#77736B] hover:text-[#171715] dark:hover:text-[#FAF8F3] inline-flex items-center gap-0.5 cursor-pointer"
+              title="Set match time duration"
+            >
+              <Clock className="w-2.5 h-2.5" />
+              <span>{match.durationMinutes || 10}m</span>
+            </button>
           )}
 
           {/* Edit Result for Completed */}

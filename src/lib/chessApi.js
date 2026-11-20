@@ -278,6 +278,14 @@ export const chessApi = {
     });
   },
 
+  updatePlayerPassword: async (id, newPassword) => {
+    return await safeFetch(`/admin/players/${id}/password`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ password: newPassword, newPassword })
+    });
+  },
+
   deletePlayer: async (id) => {
     return await safeFetch(`/admin/players/${id}`, {
       method: 'DELETE',

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { chessApi } from '@/lib/chessApi';
 import { AdminSidebar } from '@/components/chess/AdminSidebar';
-import { ChessExcelImportModal } from '@/components/chess/ChessExcelImportModal';
+import { ChessCsvImportModal } from '@/components/chess/ChessCsvImportModal';
 import {
   Users,
   CheckCircle,
@@ -12,6 +12,7 @@ import {
   Trash2,
   Search,
   Filter,
+  FileText,
   FileSpreadsheet,
   CheckSquare,
   Square,
@@ -19,7 +20,11 @@ import {
   CheckCircle2,
   Loader2,
   UserPlus,
-  X
+  X,
+  Eye,
+  EyeOff,
+  Key,
+  Lock
 } from 'lucide-react';
 import { useConfirm } from '@/context/ToastContext';
 
@@ -39,6 +44,13 @@ export default function ChessAdminPlayersPage() {
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
+  // Password visibility & editing state
+  const [showPasswords, setShowPasswords] = useState({});
+  const [changePasswordModalOpen, setChangePasswordModalOpen] = useState(false);
+  const [selectedPlayerForPassword, setSelectedPlayerForPassword] = useState(null);
+  const [newPasswordInput, setNewPasswordInput] = useState('');
+  const [savingPassword, setSavingPassword] = useState(false);
+
   // Manual Add Player state
   const [addPlayerModalOpen, setAddPlayerModalOpen] = useState(false);
   const [newPlayerForm, setNewPlayerForm] = useState({
@@ -46,7 +58,8 @@ export default function ChessAdminPlayersPage() {
     department: 'First Year',
     email: '',
     phone: '',
-    status: 'Approved'
+    status: 'Approved',
+    password: 'chess123'
   });
   const [creatingPlayer, setCreatingPlayer] = useState(false);
 
@@ -179,8 +192,40 @@ export default function ChessAdminPlayersPage() {
   };
 
   const handleImportSuccess = (count) => {
-    setFeedback({ type: 'success', message: `Successfully imported ${count} player(s) from spreadsheet.` });
+    setFeedback({ type: 'success', message: `Successfully imported ${count} player(s) from CSV.` });
     loadPlayers();
+  };
+
+  const handleSavePassword = async (e) => {
+    e.preventDefault();
+    if (!selectedPlayerForPassword || !newPasswordInput.trim()) return;
+
+    setSavingPassword(true);
+    try {
+      const pId = selectedPlayerForPassword._id || selectedPlayerForPassword.playerId;
+      const res = await chessApi.updatePlayerPassword(pId, newPasswordInput.trim());
+      if (res.success) {
+        setFeedback({
+          type: 'success',
+          message: `Password for ${selectedPlayerForPassword.fullName} updated to '${newPasswordInput.trim()}'.`
+        });
+        setPlayers((prev) =>
+          prev.map((p) =>
+            (p._id === pId || p.playerId === pId)
+              ? { ...p, plainPassword: newPasswordInput.trim(), password: newPasswordInput.trim() }
+              : p
+          )
+        );
+        setShowPasswords((prev) => ({ ...prev, [pId]: true }));
+        setChangePasswordModalOpen(false);
+      } else {
+        setFeedback({ type: 'error', message: res.message || 'Failed to update password.' });
+      }
+    } catch (err) {
+      setFeedback({ type: 'error', message: err.message || 'Error updating password.' });
+    } finally {
+      setSavingPassword(false);
+    }
   };
 
   const handleAddPlayer = async (e) => {
@@ -199,7 +244,8 @@ export default function ChessAdminPlayersPage() {
           department: 'First Year',
           email: '',
           phone: '',
-          status: 'Approved'
+          status: 'Approved',
+          password: 'chess123'
         });
         setAddPlayerModalOpen(false);
         loadPlayers();
@@ -240,13 +286,13 @@ export default function ChessAdminPlayersPage() {
               <span>+ Add Player</span>
             </button>
 
-            {/* Import Button */}
+            {/* Import CSV Button */}
             <button
               onClick={() => setImportModalOpen(true)}
               className="inline-flex items-center gap-2 bg-[#EFEAE1] dark:bg-[#1D1D1B] hover:bg-[#E4DED5] dark:hover:bg-[#262624] border border-[#D5CFC5] dark:border-[#262624] text-[#171715] dark:text-[#FAF8F3] px-4 py-2.5 rounded-xl font-mono text-xs font-semibold uppercase tracking-wider transition-all shadow-xs cursor-pointer"
             >
-              <FileSpreadsheet className="w-4 h-4" />
-              <span>Import Excel</span>
+              <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <span>Import CSV</span>
             </button>
 
             {/* Total count badge */}
@@ -374,6 +420,7 @@ export default function ChessAdminPlayersPage() {
                 <th className="py-3.5 px-4 font-semibold">Full Name</th>
                 <th className="py-3.5 px-4 font-semibold">Email</th>
                 <th className="py-3.5 px-4 font-semibold">Department</th>
+                <th className="py-3.5 px-4 font-semibold">Password</th>
                 <th className="py-3.5 px-4 text-center font-semibold">Status</th>
                 <th className="py-3.5 px-4 text-right font-semibold">Actions</th>
               </tr>
@@ -381,14 +428,14 @@ export default function ChessAdminPlayersPage() {
             <tbody className="divide-y divide-[#D5CFC5]/50 dark:divide-[#262624]">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-[#77736B] dark:text-[#8E8E93]">
+                  <td colSpan={8} className="py-12 text-center text-[#77736B] dark:text-[#8E8E93]">
                     <div className="inline-block w-6 h-6 border-2 border-[#171715] dark:border-[#FAF8F3] border-t-transparent rounded-full animate-spin mb-2" />
                     <p className="font-mono text-xs uppercase tracking-wider">Loading competitor roster...</p>
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-[#77736B] dark:text-[#8E8E93]">
+                  <td colSpan={8} className="py-12 text-center text-[#77736B] dark:text-[#8E8E93]">
                     No competitors found matching criteria.
                   </td>
                 </tr>
@@ -423,6 +470,44 @@ export default function ChessAdminPlayersPage() {
                       </td>
                       <td className="py-3.5 px-4 font-medium text-[#171715] dark:text-[#FAF8F3]">
                         {p.department}
+                      </td>
+                      <td className="py-3.5 px-4 font-mono text-xs">
+                        <div className="inline-flex items-center gap-1.5 bg-[#EFEAE1]/60 dark:bg-[#1D1D1B] px-2.5 py-1 rounded-lg border border-[#D5CFC5]/60 dark:border-[#262624]">
+                          <span className="font-semibold text-[#171715] dark:text-[#FAF8F3] select-all tracking-wider text-[11px]">
+                            {showPasswords[pId]
+                              ? (p.plainPassword || p.password || (p.playerId ? p.playerId.toLowerCase() : 'chess123'))
+                              : '••••••••'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setShowPasswords((prev) => ({
+                                ...prev,
+                                [pId]: !prev[pId]
+                              }))
+                            }
+                            className="text-[#77736B] hover:text-[#171715] dark:hover:text-[#FAF8F3] p-0.5 transition-colors cursor-pointer"
+                            title={showPasswords[pId] ? 'Hide password' : 'Show password'}
+                          >
+                            {showPasswords[pId] ? (
+                              <EyeOff className="w-3.5 h-3.5" />
+                            ) : (
+                              <Eye className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedPlayerForPassword(p);
+                              setNewPasswordInput(p.plainPassword || p.password || (p.playerId ? p.playerId.toLowerCase() : 'chess123'));
+                              setChangePasswordModalOpen(true);
+                            }}
+                            className="text-[#77736B] hover:text-amber-600 dark:hover:text-amber-400 p-0.5 transition-colors cursor-pointer"
+                            title="Change password"
+                          >
+                            <Key className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </td>
                       <td className="py-3.5 px-4 text-center">
                         <span
@@ -472,12 +557,105 @@ export default function ChessAdminPlayersPage() {
 
       </main>
 
-      {/* Excel / CSV Drag and Drop Import Modal */}
-      <ChessExcelImportModal
+      {/* CSV Drag and Drop Import Modal */}
+      <ChessCsvImportModal
         isOpen={importModalOpen}
         onClose={() => setImportModalOpen(false)}
         onImportSuccess={handleImportSuccess}
       />
+
+      {/* Change Password Modal */}
+      {changePasswordModalOpen && selectedPlayerForPassword && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-5">
+            <div className="flex items-center justify-between border-b border-[#D5CFC5] dark:border-[#262624] pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                  <Key className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono font-semibold uppercase tracking-widest text-[#77736B] dark:text-[#8E8E93] block">
+                    SECURITY & CREDENTIALS
+                  </span>
+                  <h3 className="text-base font-bold font-serif text-[#171715] dark:text-[#FAF8F3]">
+                    Change Player Password
+                  </h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setChangePasswordModalOpen(false)}
+                className="w-8 h-8 rounded-full border border-[#D5CFC5] dark:border-[#262624] flex items-center justify-center text-[#77736B] hover:text-[#171715] dark:hover:text-[#FAF8F3] transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-[#EFEAE1]/60 dark:bg-[#1D1D1B] border border-[#D5CFC5]/80 dark:border-[#262624] text-xs space-y-1">
+              <div className="font-serif font-bold text-[#171715] dark:text-[#FAF8F3]">
+                {selectedPlayerForPassword.fullName}
+              </div>
+              <div className="font-mono text-[11px] text-[#77736B] dark:text-[#8E8E93]">
+                ID: {selectedPlayerForPassword.playerId} • {selectedPlayerForPassword.department}
+              </div>
+            </div>
+
+            <form onSubmit={handleSavePassword} className="space-y-4 text-xs font-sans">
+              <div>
+                <label className="block text-[#77736B] dark:text-[#8E8E93] font-mono uppercase text-[10px] font-semibold mb-1.5">
+                  New Password *
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-[#77736B] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="text"
+                    required
+                    value={newPasswordInput}
+                    onChange={(e) => setNewPasswordInput(e.target.value)}
+                    placeholder="Enter new password"
+                    className="w-full bg-[#EFEAE1]/70 dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl pl-10 pr-4 py-2.5 text-[#171715] dark:text-[#FAF8F3] font-mono text-sm focus:outline-none"
+                  />
+                </div>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-[10px] text-[#77736B] font-mono">Quick set:</span>
+                  <button
+                    type="button"
+                    onClick={() => setNewPasswordInput('chess123')}
+                    className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#EFEAE1] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] hover:bg-[#E4DED5] text-[#171715] dark:text-[#FAF8F3]"
+                  >
+                    chess123
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewPasswordInput(selectedPlayerForPassword.playerId?.toLowerCase() || 'player1')}
+                    className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#EFEAE1] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] hover:bg-[#E4DED5] text-[#171715] dark:text-[#FAF8F3]"
+                  >
+                    {selectedPlayerForPassword.playerId?.toLowerCase()}
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-[#D5CFC5] dark:border-[#262624] flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setChangePasswordModalOpen(false)}
+                  className="px-4 py-2 rounded-xl border border-[#D5CFC5] dark:border-[#262624] text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715] dark:hover:text-[#FAF8F3] font-mono text-xs uppercase"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingPassword || !newPasswordInput.trim()}
+                  className="bg-[#171715] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] px-5 py-2 rounded-xl font-mono text-xs font-semibold uppercase tracking-wider flex items-center gap-2 shadow-xs cursor-pointer disabled:opacity-50"
+                >
+                  {savingPassword ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Key className="w-3.5 h-3.5" />}
+                  <span>Save Password</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Manual Add Player Modal */}
       {addPlayerModalOpen && (
@@ -564,6 +742,25 @@ export default function ChessAdminPlayersPage() {
                     className="w-full bg-[#EFEAE1]/70 dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-4 py-2.5 text-[#171715] dark:text-[#FAF8F3] focus:outline-none"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-[#77736B] dark:text-[#8E8E93] font-mono uppercase text-[10px] font-semibold mb-1">
+                  Initial Password (Optional)
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-[#77736B] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={newPlayerForm.password}
+                    onChange={(e) => setNewPlayerForm({ ...newPlayerForm, password: e.target.value })}
+                    placeholder="Default: chess123"
+                    className="w-full bg-[#EFEAE1]/70 dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl pl-10 pr-4 py-2.5 text-[#171715] dark:text-[#FAF8F3] font-mono focus:outline-none"
+                  />
+                </div>
+                <p className="text-[10px] text-[#77736B] dark:text-[#8E8E93] mt-1 font-mono">
+                  Competitors use their Player ID and this password to log in.
+                </p>
               </div>
 
               <div>

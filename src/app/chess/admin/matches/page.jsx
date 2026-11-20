@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { chessApi } from '@/lib/chessApi';
 import { AdminSidebar } from '@/components/chess/AdminSidebar';
 import { ChessBracketView } from '@/components/chess/ChessBracketView';
-import { Swords, Play, CheckCircle2, XCircle, Trophy, Loader2, Plus, Minus, Trash2, Clock, ShieldCheck, Zap, CheckSquare, Square, ChevronDown, X, LayoutGrid, List, Crown, Sparkles } from 'lucide-react';
+import { Swords, Play, Pause, CheckCircle2, XCircle, Trophy, Loader2, Plus, Minus, Trash2, Clock, ShieldCheck, Zap, CheckSquare, Square, ChevronDown, X, LayoutGrid, List, Crown, Sparkles, ArrowRightLeft, RotateCcw, Timer, Save } from 'lucide-react';
 import { useToast, useConfirm } from '@/context/ToastContext';
 import { getSocket, subscribeToChessLive } from '@/lib/socket';
 
@@ -95,6 +95,12 @@ export default function ChessAdminMatchesPage() {
   const [manualP1, setManualP1] = useState('');
   const [manualP2, setManualP2] = useState('');
   const [creatingMatch, setCreatingMatch] = useState(false);
+
+  // Set Match Time / Duration Modal (like Carrom)
+  const [timeModalOpen, setTimeModalOpen] = useState(false);
+  const [selectedMatchForTime, setSelectedMatchForTime] = useState(null);
+  const [customDurationMinutes, setCustomDurationMinutes] = useState(10);
+  const [savingTime, setSavingTime] = useState(false);
 
   async function loadData(silent = false) {
     if (!chessApi.isAdminAuthenticated()) {
@@ -551,6 +557,218 @@ export default function ChessAdminMatchesPage() {
     }
   };
 
+  // Admin Turn Switch Tap (Admin taps to switch turn between White and Black live!)
+  const handleAdminSwitchTurn = async (match) => {
+    if (!match) return;
+    const mId = match._id || match.matchId;
+    const currentTurn = match.activeTurn && match.activeTurn !== 'none' ? match.activeTurn : 'white';
+    const nextTurn = currentTurn === 'white' ? 'black' : 'white';
+
+    let wSec = typeof match.whiteTimeRemaining === 'number' ? match.whiteTimeRemaining : 600;
+    let bSec = typeof match.blackTimeRemaining === 'number' ? match.blackTimeRemaining : 600;
+
+    if (match.isClockRunning && match.lastClockUpdate) {
+      const elapsed = Math.max(0, Math.floor((Date.now() - new Date(match.lastClockUpdate).getTime()) / 1000));
+      if (currentTurn === 'white') wSec = Math.max(0, wSec - elapsed);
+      else if (currentTurn === 'black') bSec = Math.max(0, bSec - elapsed);
+    }
+    const nextMoves = (match.movesCount || 0) + 1;
+
+    // Optimistic local update
+    setMatches((prev) =>
+      (prev || []).filter(Boolean).map((m) =>
+        m && ((m?._id && m?._id === mId) || (m?.matchId && m?.matchId === mId))
+          ? {
+              ...m,
+              activeTurn: nextTurn,
+              whiteTimeRemaining: wSec,
+              blackTimeRemaining: bSec,
+              movesCount: nextMoves,
+              isClockRunning: true,
+              lastClockUpdate: new Date()
+            }
+          : m
+      )
+    );
+
+    // Broadcast live over BroadcastChannel & Socket.io
+    try {
+      if (typeof window !== 'undefined' && window.BroadcastChannel) {
+        const bc = new BroadcastChannel('chess_tournament_clock');
+        bc.postMessage({
+          matchId: mId,
+          activeTurn: nextTurn,
+          isClockRunning: true,
+          whiteSeconds: wSec,
+          blackSeconds: bSec,
+          movesCount: nextMoves,
+          timestamp: Date.now()
+        });
+        bc.close();
+      }
+      const socket = getSocket();
+      if (socket && socket.connected) {
+        socket.emit('chess:turn_switch', {
+          matchId: mId,
+          activeTurn: nextTurn,
+          isClockRunning: true,
+          whiteSeconds: wSec,
+          blackSeconds: bSec,
+          movesCount: nextMoves,
+          timestamp: Date.now()
+        });
+      }
+    } catch {}
+
+    // Persist to server
+    try {
+      await chessApi.syncMatchClock(mId, {
+        activeTurn: nextTurn,
+        isClockRunning: true,
+        whiteTimeRemaining: wSec,
+        blackTimeRemaining: bSec,
+        movesCount: nextMoves,
+        status: 'live'
+      });
+      toast.success(`Turn passed to ${nextTurn.toUpperCase()} by Admin tap! ⚡`);
+      await loadData(true);
+    } catch (err) {
+      toast.error('Failed to sync turn switch.');
+    }
+  };
+
+  // Quick Time Extension (+1m, +2m, +5m buttons)
+  const handleQuickAddTime = async (match, minutesToAdd) => {
+    if (!match) return;
+    const mId = match._id || match.matchId;
+    const extraSec = Math.round(minutesToAdd * 60);
+
+    const wSec = (match.whiteTimeRemaining || 600) + extraSec;
+    const bSec = (match.blackTimeRemaining || 600) + extraSec;
+    const newDur = (match.durationMinutes || 10) + Math.round(minutesToAdd);
+
+    // Optimistic update
+    setMatches((prev) =>
+      (prev || []).filter(Boolean).map((m) =>
+        m && ((m?._id && m?._id === mId) || (m?.matchId && m?.matchId === mId))
+          ? {
+              ...m,
+              whiteTimeRemaining: wSec,
+              blackTimeRemaining: bSec,
+              durationMinutes: newDur,
+              lastClockUpdate: new Date()
+            }
+          : m
+      )
+    );
+
+    // Broadcast
+    try {
+      if (typeof window !== 'undefined' && window.BroadcastChannel) {
+        const bc = new BroadcastChannel('chess_tournament_clock');
+        bc.postMessage({
+          matchId: mId,
+          whiteSeconds: wSec,
+          blackSeconds: bSec,
+          durationMinutes: newDur,
+          timestamp: Date.now()
+        });
+        bc.close();
+      }
+      const socket = getSocket();
+      if (socket && socket.connected) {
+        socket.emit('chess:turn_switch', {
+          matchId: mId,
+          whiteSeconds: wSec,
+          blackSeconds: bSec,
+          durationMinutes: newDur,
+          timestamp: Date.now()
+        });
+      }
+    } catch {}
+
+    // Save to server
+    try {
+      await chessApi.syncMatchClock(mId, {
+        addMinutes: minutesToAdd
+      });
+      toast.success(`+${minutesToAdd}m added to Match #${match.matchNumber || match.matchId}! ⏱️`);
+      await loadData(true);
+    } catch (err) {
+      toast.error('Failed to increase match time.');
+    }
+  };
+
+  const handleOpenTimeModal = (match) => {
+    setSelectedMatchForTime(match);
+    setCustomDurationMinutes(match.durationMinutes || 10);
+    setTimeModalOpen(true);
+  };
+
+  const handleSaveCustomDuration = async (e) => {
+    e.preventDefault();
+    if (!selectedMatchForTime) return;
+    setSavingTime(true);
+    const mId = selectedMatchForTime._id || selectedMatchForTime.matchId;
+    const dur = Math.max(1, Number(customDurationMinutes) || 10);
+    const totalSec = dur * 60;
+
+    // Optimistic update
+    setMatches((prev) =>
+      (prev || []).filter(Boolean).map((m) =>
+        m && ((m?._id && m?._id === mId) || (m?.matchId && m?.matchId === mId))
+          ? {
+              ...m,
+              durationMinutes: dur,
+              whiteTimeRemaining: totalSec,
+              blackTimeRemaining: totalSec,
+              lastClockUpdate: new Date()
+            }
+          : m
+      )
+    );
+
+    // Broadcast
+    try {
+      if (typeof window !== 'undefined' && window.BroadcastChannel) {
+        const bc = new BroadcastChannel('chess_tournament_clock');
+        bc.postMessage({
+          matchId: mId,
+          durationMinutes: dur,
+          whiteSeconds: totalSec,
+          blackSeconds: totalSec,
+          timestamp: Date.now()
+        });
+        bc.close();
+      }
+      const socket = getSocket();
+      if (socket && socket.connected) {
+        socket.emit('chess:turn_switch', {
+          matchId: mId,
+          durationMinutes: dur,
+          whiteSeconds: totalSec,
+          blackSeconds: totalSec,
+          timestamp: Date.now()
+        });
+      }
+    } catch {}
+
+    try {
+      await chessApi.syncMatchClock(mId, {
+        durationMinutes: dur,
+        whiteTimeRemaining: totalSec,
+        blackTimeRemaining: totalSec
+      });
+      toast.success(`Match #${selectedMatchForTime.matchNumber || selectedMatchForTime.matchId} duration set to ${dur} minutes! ⏱️`);
+      setTimeModalOpen(false);
+      await loadData(true);
+    } catch (err) {
+      toast.error('Failed to update match duration.');
+    } finally {
+      setSavingTime(false);
+    }
+  };
+
   // Individual Match Delete
   const handleDeleteMatch = async (id, matchIdLabel) => {
     const isConfirmed = await confirm({
@@ -839,6 +1057,9 @@ export default function ChessAdminMatchesPage() {
             isAdmin={true}
             onStartMatch={handleStartMatch}
             onPauseResumeMatch={handlePauseResumeMatch}
+            onSwitchTurnMatch={handleAdminSwitchTurn}
+            onQuickAddTime={handleQuickAddTime}
+            onOpenTimeModal={handleOpenTimeModal}
             onOpenResultModal={openResultModal}
             onDeleteMatch={handleDeleteMatch}
             startingMatchId={startingMatchId}
@@ -1019,7 +1240,7 @@ export default function ChessAdminMatchesPage() {
                         {isLive && (
                           <button
                             onClick={() => handlePauseResumeMatch(m)}
-                            className={`text-[10px] font-bold px-3 py-1.5 rounded-lg uppercase shadow-xs transition-colors cursor-pointer inline-flex items-center gap-1 ${
+                            className={`text-[10px] font-bold px-2.5 py-1.5 rounded-lg uppercase shadow-xs transition-colors cursor-pointer inline-flex items-center gap-1 ${
                               m.isClockRunning !== false
                                 ? 'bg-neutral-800 dark:bg-neutral-200 text-white dark:text-neutral-900 hover:bg-black'
                                 : 'bg-emerald-600 hover:bg-emerald-700 text-white animate-pulse'
@@ -1037,6 +1258,64 @@ export default function ChessAdminMatchesPage() {
                                 <span>Resume</span>
                               </>
                             )}
+                          </button>
+                        )}
+
+                        {/* Switch Turn Button (Admin can tap to pass turn!) */}
+                        {isLive && (
+                          <button
+                            onClick={() => handleAdminSwitchTurn(m)}
+                            className="bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg uppercase shadow-xs transition-colors cursor-pointer inline-flex items-center gap-1"
+                            title={`Tap to switch turn from ${m.activeTurn || 'white'} to ${m.activeTurn === 'black' ? 'WHITE' : 'BLACK'}`}
+                          >
+                            <ArrowRightLeft className="w-3 h-3" />
+                            <span>Switch ({m.activeTurn === 'black' ? 'White' : 'Black'})</span>
+                          </button>
+                        )}
+
+                        {/* Quick Time Extension & Duration Presets (like Carrom) */}
+                        {isLive && (
+                          <div className="inline-flex items-center rounded-lg border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1]/70 dark:bg-[#1D1D1B] p-0.5 gap-0.5">
+                            <button
+                              onClick={() => handleQuickAddTime(m, 1)}
+                              className="px-1.5 py-1 rounded text-[10px] font-mono font-bold text-[#171715] dark:text-[#FAF8F3] hover:bg-white dark:hover:bg-[#282826] transition-colors cursor-pointer"
+                              title="Add 1 minute to both clocks"
+                            >
+                              +1m
+                            </button>
+                            <button
+                              onClick={() => handleQuickAddTime(m, 2)}
+                              className="px-1.5 py-1 rounded text-[10px] font-mono font-bold text-[#171715] dark:text-[#FAF8F3] hover:bg-white dark:hover:bg-[#282826] transition-colors cursor-pointer"
+                              title="Add 2 minutes to both clocks"
+                            >
+                              +2m
+                            </button>
+                            <button
+                              onClick={() => handleQuickAddTime(m, 5)}
+                              className="px-1.5 py-1 rounded text-[10px] font-mono font-bold text-[#171715] dark:text-[#FAF8F3] hover:bg-white dark:hover:bg-[#282826] transition-colors cursor-pointer"
+                              title="Add 5 minutes to both clocks"
+                            >
+                              +5m
+                            </button>
+                            <button
+                              onClick={() => handleOpenTimeModal(m)}
+                              className="px-1.5 py-1 rounded text-[10px] font-mono font-bold text-[#77736B] dark:text-[#A8A49C] hover:text-[#171715] dark:hover:text-[#FAF8F3] transition-colors cursor-pointer flex items-center gap-0.5"
+                              title="Set Custom Match Duration / Time"
+                            >
+                              <Clock className="w-3 h-3" />
+                            </button>
+                          </div>
+                        )}
+
+                        {/* For scheduled matches, allow setting match duration before start */}
+                        {!isLive && !isCompleted && !m.isBye && (
+                          <button
+                            onClick={() => handleOpenTimeModal(m)}
+                            className="px-2 py-1 rounded-lg border border-[#D5CFC5] dark:border-[#262624] text-[10px] font-mono font-semibold text-[#77736B] hover:text-[#171715] dark:hover:text-[#FAF8F3] inline-flex items-center gap-1 cursor-pointer"
+                            title="Set match duration"
+                          >
+                            <Clock className="w-3 h-3" />
+                            <span>{m.durationMinutes || 10}m</span>
                           </button>
                         )}
 
@@ -1384,6 +1663,168 @@ export default function ChessAdminMatchesPage() {
             </div>
           </div>
         )}
+
+      {/* ADJUST MATCH TIME / DURATION MODAL (Like Carrom) */}
+      {timeModalOpen && selectedMatchForTime && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 transition-all">
+          <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#2B2B28] rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 text-[#171715] dark:text-[#FAF8F3]">
+            <div className="flex items-center justify-between border-b border-[#D5CFC5] dark:border-[#262624] pb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                  <Clock className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono font-semibold uppercase tracking-widest text-[#77736B] dark:text-[#8E8E93] block">
+                    MATCH TIMER CONTROL
+                  </span>
+                  <h3 className="text-lg font-bold font-serif text-[#171715] dark:text-[#FAF8F3]">
+                    Set Match Time Duration
+                  </h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setTimeModalOpen(false)}
+                className="w-8 h-8 rounded-full border border-[#D5CFC5] dark:border-[#262624] flex items-center justify-center text-[#77736B] hover:text-[#171715] dark:hover:text-[#FAF8F3] transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Match info pill */}
+            <div className="p-3.5 rounded-xl bg-[#EFEAE1]/60 dark:bg-[#1D1D1B] border border-[#D5CFC5]/80 dark:border-[#262624] text-xs space-y-1">
+              <div className="flex items-center justify-between font-mono text-[11px]">
+                <span className="font-bold text-amber-700 dark:text-amber-400">
+                  Match #{selectedMatchForTime.matchNumber || selectedMatchForTime.matchId} • {selectedMatchForTime.roundName}
+                </span>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                  selectedMatchForTime.status === 'live' ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60' : 'bg-neutral-200 dark:bg-neutral-800'
+                }`}>
+                  {selectedMatchForTime.status}
+                </span>
+              </div>
+              <div className="font-serif font-bold text-sm text-[#171715] dark:text-[#FAF8F3]">
+                {selectedMatchForTime.player1?.fullName || 'White'} vs {selectedMatchForTime.player2?.fullName || 'Black'}
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveCustomDuration} className="space-y-4">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-bold text-[#171715] dark:text-[#FAF8F3] uppercase font-mono flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-amber-600" />
+                    <span>How much time will this match take?</span>
+                  </label>
+                  <span className="text-xs font-mono font-bold text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/60 px-2 py-0.5 rounded-md">
+                    {customDurationMinutes} Minutes
+                  </span>
+                </div>
+
+                <p className="text-[11px] text-[#77736B] dark:text-[#8E8E93] mb-3">
+                  Select a duration preset or enter custom minutes for each competitor&apos;s rapid chess clock:
+                </p>
+
+                {/* Quick preset buttons (like Carrom) */}
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                  {[5, 10, 15, 20, 25, 30].map((mVal) => {
+                    const isSelected = Number(customDurationMinutes) === mVal;
+                    return (
+                      <button
+                        key={mVal}
+                        type="button"
+                        onClick={() => setCustomDurationMinutes(mVal)}
+                        className={`py-2 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 ${
+                          isSelected
+                            ? 'bg-[#171715] dark:bg-[#FAF8F3] text-white dark:text-[#0D0D0D] shadow-xs scale-[1.02]'
+                            : 'bg-[#EFEAE1]/60 dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] text-[#171715] dark:text-[#FAF8F3] hover:border-[#171715]'
+                        }`}
+                      >
+                        <span className="text-sm">{mVal}m</span>
+                        <span className="text-[9px] opacity-70 uppercase">min</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Custom Minutes Input */}
+                <div className="relative pt-3">
+                  <input
+                    type="number"
+                    min="1"
+                    max="180"
+                    value={customDurationMinutes}
+                    onChange={(e) => setCustomDurationMinutes(Math.max(1, parseInt(e.target.value) || 1))}
+                    placeholder="Enter custom minutes"
+                    className="w-full h-11 bg-white dark:bg-[#1D1D1B] px-4 pr-20 text-sm font-mono font-bold text-[#171715] dark:text-[#FAF8F3] rounded-xl border border-[#D5CFC5] dark:border-[#262624] focus:outline-none focus:border-amber-600"
+                  />
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 pt-3 text-xs font-mono font-bold text-[#77736B] pointer-events-none">
+                    MINUTES
+                  </span>
+                </div>
+              </div>
+
+              {/* If match is live, note quick add option */}
+              {selectedMatchForTime.status === 'live' && (
+                <div className="pt-2 border-t border-[#D5CFC5] dark:border-[#262624]">
+                  <span className="text-[11px] font-mono text-[#77736B] block mb-1.5">
+                    Or instantly extend running clocks right now:
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleQuickAddTime(selectedMatchForTime, 1);
+                        setTimeModalOpen(false);
+                      }}
+                      className="flex-1 py-1.5 rounded-lg border border-[#D5CFC5] dark:border-[#262624] font-mono text-xs font-bold hover:bg-[#EFEAE1] dark:hover:bg-[#20201E]"
+                    >
+                      +1 Min
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleQuickAddTime(selectedMatchForTime, 2);
+                        setTimeModalOpen(false);
+                      }}
+                      className="flex-1 py-1.5 rounded-lg border border-[#D5CFC5] dark:border-[#262624] font-mono text-xs font-bold hover:bg-[#EFEAE1] dark:hover:bg-[#20201E]"
+                    >
+                      +2 Min
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleQuickAddTime(selectedMatchForTime, 5);
+                        setTimeModalOpen(false);
+                      }}
+                      className="flex-1 py-1.5 rounded-lg border border-[#D5CFC5] dark:border-[#262624] font-mono text-xs font-bold hover:bg-[#EFEAE1] dark:hover:bg-[#20201E]"
+                    >
+                      +5 Min
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-3 border-t border-[#D5CFC5] dark:border-[#262624] flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setTimeModalOpen(false)}
+                  className="px-4 py-2 rounded-xl border border-[#D5CFC5] dark:border-[#262624] text-xs font-mono text-[#77736B] hover:text-[#171715] dark:hover:text-[#FAF8F3]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingTime}
+                  className="bg-[#171715] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-white dark:text-[#0D0D0D] px-5 py-2.5 rounded-xl font-mono text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow-xs cursor-pointer"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  <span>{savingTime ? 'Saving...' : `Save Duration (${customDurationMinutes}m)`}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       </main>
     </div>

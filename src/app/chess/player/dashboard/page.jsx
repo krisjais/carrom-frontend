@@ -401,10 +401,17 @@ export default function ChessPlayerDashboardPage() {
     });
   };
 
-  // Clock pad tap handler (tapping your timer pauses yours & starts opponent's timer)
+  // Clock pad tap handler
+  // Rule: Player CANNOT tap on their opponent's clock. Player taps their OWN timer when it is their turn to end their move and pass turn to opponent.
   const handleClockPadTap = (target) => {
     const match = dashboardData?.currentMatch;
     if (flagFall || !match || match.status === 'completed') return;
+
+    // Disallow tapping on opponent's clock
+    if (target === 'opponent') {
+      toast.info("Opponent's clock is view-only. You cannot tap your opponent's clock. Tap your own clock below when it is your turn.");
+      return;
+    }
 
     try {
       if (typeof navigator !== 'undefined' && navigator.vibrate) {
@@ -415,27 +422,28 @@ export default function ChessPlayerDashboardPage() {
     const myColor = isPlayerWhite ? 'white' : 'black';
     const oppColor = isPlayerWhite ? 'black' : 'white';
 
+    // Initial match start tap
     if (!isClockRunning) {
-      const nextTurn = target === 'player' ? oppColor : myColor;
-      setActiveTurn(nextTurn);
-      setIsClockRunning(true);
-      if (soundEnabled) playClockTone('click');
-      broadcastAndSync({ activeTurn: nextTurn, isClockRunning: true });
+      if (myColor === 'white') {
+        // White makes opening move and switches turn to Black
+        setActiveTurn('black');
+        setIsClockRunning(true);
+        if (soundEnabled) playClockTone('click');
+        broadcastAndSync({ activeTurn: 'black', isClockRunning: true });
+        toast.success("Opening move complete! Turn passed to Black.");
+      } else {
+        // Black player tapped before White made opening move
+        toast.info("White plays first. Waiting for White to make the opening move.");
+      }
       return;
     }
 
-    if (target === 'player') {
-      if (activeTurn === myColor) {
-        handlePassTurn();
-      } else {
-        toast.info("Opponent clock is running. Tap opponent clock above when they move.");
-      }
-    } else if (target === 'opponent') {
-      if (activeTurn === oppColor) {
-        handlePassTurn();
-      } else {
-        toast.info("It's your turn! Tap your clock below when you move your piece.");
-      }
+    // Target is 'player'
+    if (activeTurn === myColor) {
+      handlePassTurn();
+      toast.success("Turn passed to opponent!");
+    } else {
+      toast.info("It is your opponent's turn. Please wait for your opponent to complete their move.");
     }
   };
 
@@ -829,17 +837,15 @@ export default function ChessPlayerDashboardPage() {
                 {/* ------------------------------------------------------------- */}
                 <div className="flex flex-col space-y-2.5 sm:hidden">
                   
-                  {/* UPPER SIDE: OPPONENT TIMER */}
-                  <button
-                    type="button"
+                  {/* UPPER SIDE: OPPONENT TIMER (View Only) */}
+                  <div
                     onClick={() => handleClockPadTap('opponent')}
-                    disabled={!isLive || isCompleted || !!flagFall}
-                    className={`w-full p-4 rounded-2xl border-2 transition-all duration-150 text-left flex flex-col justify-between min-h-[145px] cursor-pointer select-none active:scale-[0.98] ${
+                    className={`w-full p-4 rounded-2xl border-2 transition-all duration-150 text-left flex flex-col justify-between min-h-[145px] select-none cursor-pointer ${
                       flipOpponent ? 'rotate-180' : ''
                     } ${
                       isOpponentTurn
                         ? 'bg-amber-100/90 dark:bg-amber-950/60 border-amber-500 ring-2 ring-amber-500/40 shadow-md'
-                        : 'bg-[#FAF8F3]/70 dark:bg-[#181816] border-[#D5CFC5] dark:border-[#282826] opacity-85'
+                        : 'bg-[#FAF8F3]/70 dark:bg-[#181816] border-[#D5CFC5] dark:border-[#282826] opacity-80'
                     }`}
                   >
                     <div className="flex items-center justify-between text-xs font-mono">
@@ -850,12 +856,13 @@ export default function ChessPlayerDashboardPage() {
                         </span>
                       </div>
                       {isOpponentTurn ? (
-                        <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-bold uppercase tracking-wider animate-pulse">
-                          Clock Ticking
+                        <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-bold uppercase tracking-wider animate-pulse flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                          <span>Opponent Moving</span>
                         </span>
                       ) : (
-                        <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93] font-mono">
-                          {isLive ? 'Tap when opponent moves' : 'Waiting'}
+                        <span className="px-2 py-0.5 rounded-full bg-[#EFEAE1] dark:bg-[#20201E] text-[#77736B] dark:text-[#8E8E93] text-[9px] font-mono uppercase tracking-wider">
+                          View Only
                         </span>
                       )}
                     </div>
@@ -878,11 +885,11 @@ export default function ChessPlayerDashboardPage() {
                       <span className="font-bold text-[#171715] dark:text-[#FAF8F3] truncate max-w-[180px]">
                         {opponentName}
                       </span>
-                      <span className="text-[#77736B] dark:text-[#8E8E93]">
-                        {isOpponentTurn ? 'Opponent Active' : 'Waiting for move'}
+                      <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93]">
+                        {isOpponentTurn ? 'Opponent Clock Ticking' : 'Opponent Paused'}
                       </span>
                     </div>
-                  </button>
+                  </div>
 
                   {/* CENTER CONTROL STRIP (Between Opponent and Player) */}
                   <div className="bg-[#EFEAE1]/90 dark:bg-[#1C1C1A] py-2 px-3 rounded-xl border border-[#D5CFC5] dark:border-[#262624] flex items-center justify-between text-xs font-mono">
@@ -977,12 +984,12 @@ export default function ChessPlayerDashboardPage() {
                     <div className="pt-1">
                       {isMyTurnActive ? (
                         <div className="w-full py-2.5 px-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-mono font-bold text-xs uppercase tracking-wider text-center flex items-center justify-center gap-1.5 shadow-sm animate-pulse">
-                          <span>TAP WHEN YOU MOVE PAWN / PIECE ⇆</span>
+                          <span>👉 TAP HERE AFTER YOUR MOVE ⇆</span>
                         </div>
                       ) : (
                         <div className="text-[11px] font-mono text-[#77736B] dark:text-[#8E8E93] text-center py-1">
                           {isLive
-                            ? 'Your timer is paused. Tapping your timer switches turn to opponent.'
+                            ? "Opponent's turn. Please wait for opponent to complete their move."
                             : 'Match will be started by the official arbiter.'}
                         </div>
                       )}
@@ -1008,13 +1015,18 @@ export default function ChessPlayerDashboardPage() {
                     }`}
                   >
                     <div className="flex items-center justify-between text-xs font-mono">
-                      <span className="font-bold uppercase tracking-wider text-[#77736B] dark:text-[#8E8E93] flex items-center gap-1.5">
+                      <span className="font-bold uppercase tracking-wider text-[#171715] dark:text-[#FAF8F3] flex items-center gap-1.5">
                         <span className={`w-3.5 h-3.5 rounded-full border ${pieceColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
                         You ({pieceColor})
                       </span>
-                      {isMyTurnActive && (
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] font-bold uppercase tracking-wider animate-pulse">
-                          Active Turn
+                      {isMyTurnActive ? (
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] font-bold uppercase tracking-wider animate-pulse flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                          <span>Your Turn • Tap After Move</span>
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93] font-mono">
+                          Opponent Turn
                         </span>
                       )}
                     </div>
@@ -1038,20 +1050,18 @@ export default function ChessPlayerDashboardPage() {
                         {player?.fullName}
                       </h4>
                       <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93] block mt-0.5">
-                        {isMyTurnActive ? 'Click to Pass Turn to Opponent ⇆' : 'Timer Paused'}
+                        {isMyTurnActive ? '👉 Click here after moving to pass turn ⇆' : 'Waiting for opponent to move'}
                       </span>
                     </div>
                   </button>
 
-                  {/* OPPONENT CLOCK PAD */}
-                  <button
-                    type="button"
+                  {/* OPPONENT CLOCK PAD (View Only) */}
+                  <div
                     onClick={() => handleClockPadTap('opponent')}
-                    disabled={!isLive || isCompleted || !!flagFall}
-                    className={`p-5 rounded-2xl border-2 transition-all duration-150 text-center flex flex-col justify-between min-h-[170px] cursor-pointer select-none active:scale-[0.99] ${
+                    className={`p-5 rounded-2xl border-2 transition-all duration-150 text-center flex flex-col justify-between min-h-[170px] select-none cursor-pointer ${
                       isOpponentTurn
                         ? 'bg-amber-100/90 dark:bg-amber-950/60 border-amber-500 ring-4 ring-amber-500/20 shadow-md scale-[1.01]'
-                        : 'bg-[#FAF8F3]/60 dark:bg-[#1A1A18] border-[#D5CFC5] dark:border-[#282826] opacity-85 hover:opacity-100'
+                        : 'bg-[#FAF8F3]/60 dark:bg-[#1A1A18] border-[#D5CFC5] dark:border-[#282826] opacity-80'
                     }`}
                   >
                     <div className="flex items-center justify-between text-xs font-mono">
@@ -1059,9 +1069,14 @@ export default function ChessPlayerDashboardPage() {
                         <span className={`w-3.5 h-3.5 rounded-full border ${opponentColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
                         Opponent ({opponentColor})
                       </span>
-                      {isOpponentTurn && (
-                        <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-bold uppercase tracking-wider animate-pulse">
-                          Active Turn
+                      {isOpponentTurn ? (
+                        <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-bold uppercase tracking-wider animate-pulse flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                          <span>Opponent Moving</span>
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full bg-[#EFEAE1] dark:bg-[#20201E] text-[#77736B] dark:text-[#8E8E93] text-[9px] font-mono uppercase tracking-wider">
+                          View Only
                         </span>
                       )}
                     </div>
@@ -1085,10 +1100,10 @@ export default function ChessPlayerDashboardPage() {
                         {opponentName}
                       </h4>
                       <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93] block mt-0.5">
-                        {isOpponentTurn ? 'Opponent Moving • Click when opponent moves ⇆' : 'Opponent Timer Paused'}
+                        {isOpponentTurn ? 'Opponent Clock Ticking (View Only)' : 'Opponent Timer Paused'}
                       </span>
                     </div>
-                  </button>
+                  </div>
 
                 </div>
 
@@ -1272,17 +1287,15 @@ export default function ChessPlayerDashboardPage() {
       {showFaceToFaceClock && (
         <div className="fixed inset-0 z-50 bg-[#F5F2EB] dark:bg-[#0A0A0A] p-2 sm:p-4 flex flex-col justify-between select-none overflow-hidden animate-in fade-in duration-200">
           
-          {/* UPPER SIDE: OPPONENT TIMER (Faced across table, rotated 180°) */}
-          <button
-            type="button"
+          {/* UPPER SIDE: OPPONENT TIMER (Faced across table, rotated 180°, View Only) */}
+          <div
             onClick={() => handleClockPadTap('opponent')}
-            disabled={!isLive || isCompleted || !!flagFall}
-            className={`flex-1 w-full rounded-3xl p-6 sm:p-8 flex flex-col justify-between items-center transition-all cursor-pointer border-2 shadow-lg active:scale-[0.99] select-none ${
+            className={`flex-1 w-full rounded-3xl p-6 sm:p-8 flex flex-col justify-between items-center transition-all cursor-pointer border-2 shadow-lg select-none ${
               flipOpponent ? 'rotate-180' : ''
             } ${
               isOpponentTurn
                 ? 'bg-amber-100/90 dark:bg-amber-950/70 border-amber-500 ring-4 ring-amber-500/30 text-amber-950 dark:text-amber-100'
-                : 'bg-white/80 dark:bg-[#141414] border-[#D5CFC5] dark:border-[#282826] text-[#171715] dark:text-[#FAF8F3] opacity-85'
+                : 'bg-white/80 dark:bg-[#141414] border-[#D5CFC5] dark:border-[#282826] text-[#171715] dark:text-[#FAF8F3] opacity-80'
             }`}
           >
             <div className="w-full flex items-center justify-between text-xs font-mono">
@@ -1291,11 +1304,12 @@ export default function ChessPlayerDashboardPage() {
                 Opponent ({opponentColor.toUpperCase()}) • {opponentName}
               </span>
               {isOpponentTurn ? (
-                <span className="px-3 py-1 rounded-full bg-amber-500 text-white text-[10px] font-bold uppercase tracking-widest animate-pulse">
-                  Counting Down
+                <span className="px-3 py-1 rounded-full bg-amber-500 text-white text-[10px] font-bold uppercase tracking-widest animate-pulse flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                  <span>Opponent Moving</span>
                 </span>
               ) : (
-                <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93]">Tap When Opponent Moves</span>
+                <span className="px-2.5 py-0.5 rounded-full bg-[#EFEAE1] dark:bg-[#20201E] text-[10px] text-[#77736B] dark:text-[#8E8E93] uppercase">View Only</span>
               )}
             </div>
 
@@ -1314,9 +1328,9 @@ export default function ChessPlayerDashboardPage() {
             </div>
 
             <div className="text-center font-mono text-xs opacity-75">
-              {isOpponentTurn ? 'Opponent Clock Running • Tap to Switch Turn' : 'Waiting for Opponent...'}
+              {isOpponentTurn ? 'Opponent Clock Ticking (View Only)' : 'Waiting for Opponent...'}
             </div>
-          </button>
+          </div>
 
           {/* CENTER CONTROL STRIP (Divider) */}
           <div className="my-2 py-2 px-4 rounded-2xl bg-[#EFEAE1] dark:bg-[#1C1C1A] border border-[#D5CFC5] dark:border-[#282826] flex items-center justify-between gap-3 text-xs font-mono">
