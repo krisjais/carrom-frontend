@@ -10,7 +10,8 @@ import { DualChessClock } from '@/components/chess/DualChessClock';
 import { 
   User, Swords, Clock, Trophy, Crown, Shield, Sparkles, 
   Play, Pause, RotateCcw, Volume2, VolumeX, LogOut, ArrowRight, 
-  CheckCircle2, AlertCircle, RefreshCw, Smartphone, Flag, Maximize2 
+  CheckCircle2, AlertCircle, RefreshCw, Smartphone, Flag, Maximize2,
+  RotateCw, ChevronUp, ChevronDown, Minimize2 
 } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 
@@ -66,6 +67,7 @@ export default function ChessPlayerDashboardPage() {
   const [flagFall, setFlagFall] = useState(null); // 'white' | 'black'
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showFaceToFaceClock, setShowFaceToFaceClock] = useState(false);
+  const [flipOpponent, setFlipOpponent] = useState(false);
   const [lastTurnState, setLastTurnState] = useState(null);
 
   const clockIntervalRef = useRef(null);
@@ -371,6 +373,44 @@ export default function ChessPlayerDashboardPage() {
     });
   };
 
+  // Clock pad tap handler (tapping your timer pauses yours & starts opponent's timer)
+  const handleClockPadTap = (target) => {
+    const match = dashboardData?.currentMatch;
+    if (flagFall || !match || match.status === 'completed') return;
+
+    try {
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(35);
+      }
+    } catch {}
+
+    const myColor = isPlayerWhite ? 'white' : 'black';
+    const oppColor = isPlayerWhite ? 'black' : 'white';
+
+    if (!isClockRunning) {
+      const nextTurn = target === 'player' ? oppColor : myColor;
+      setActiveTurn(nextTurn);
+      setIsClockRunning(true);
+      if (soundEnabled) playClockTone('click');
+      broadcastAndSync({ activeTurn: nextTurn, isClockRunning: true });
+      return;
+    }
+
+    if (target === 'player') {
+      if (activeTurn === myColor) {
+        handlePassTurn();
+      } else {
+        toast.info("Opponent clock is running. Tap opponent clock above when they move.");
+      }
+    } else if (target === 'opponent') {
+      if (activeTurn === oppColor) {
+        handlePassTurn();
+      } else {
+        toast.info("It's your turn! Tap your clock below when you move your piece.");
+      }
+    }
+  };
+
   // Undo accidental turn switch
   const handleUndoTurn = () => {
     const match = dashboardData?.currentMatch;
@@ -435,6 +475,13 @@ export default function ChessPlayerDashboardPage() {
   const isDraw = currentMatch?.winner === 'draw';
 
   const isMyTurn = isClockRunning && activeTurn === pieceColor;
+  const mySeconds = isPlayerWhite ? whiteSeconds : blackSeconds;
+  const opponentSeconds = isPlayerWhite ? blackSeconds : whiteSeconds;
+  const opponentColor = isPlayerWhite ? 'black' : 'white';
+  const isOpponentTurn = isLive && isClockRunning && activeTurn === opponentColor;
+  const isMyTurnActive = isLive && isClockRunning && activeTurn === pieceColor;
+  const isMyUrgent = mySeconds <= 60 && mySeconds > 0;
+  const isOppUrgent = opponentSeconds <= 60 && opponentSeconds > 0;
 
   if (loading && !player) {
     return (
@@ -677,7 +724,7 @@ export default function ChessPlayerDashboardPage() {
               <div className="bg-[#FAF8F3] dark:bg-[#181816] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl p-4 sm:p-6 space-y-4 shadow-sm select-none">
                 
                 {/* Clock Header */}
-                <div className="flex items-center justify-between border-b border-[#D5CFC5]/60 dark:border-[#262624] pb-3 text-xs font-mono">
+                <div className="flex flex-wrap items-center justify-between border-b border-[#D5CFC5]/60 dark:border-[#262624] pb-3 gap-2 text-xs font-mono">
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                     <span className="font-bold uppercase tracking-wider text-[#171715] dark:text-[#FAF8F3]">
@@ -686,16 +733,54 @@ export default function ChessPlayerDashboardPage() {
                     <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93]">({currentMatch.durationMinutes || 10}:00 Rapid)</span>
                   </div>
 
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider ${
-                    isLive
-                      ? 'bg-rose-100 dark:bg-rose-950/40 text-rose-800 dark:text-rose-400 border border-rose-300 dark:border-rose-900/60 inline-flex items-center gap-1.5'
-                      : isCompleted
-                      ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400'
-                      : 'bg-[#EFEAE1] dark:bg-[#20201E] text-[#77736B] dark:text-[#8E8E93]'
-                  }`}>
-                    {isLive && <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />}
-                    {currentMatch.status}
-                  </span>
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    {/* Rotate 180° Flip Toggle */}
+                    <button
+                      type="button"
+                      onClick={() => setFlipOpponent(!flipOpponent)}
+                      className={`p-1.5 rounded-lg border text-xs transition-colors cursor-pointer flex items-center gap-1 ${
+                        flipOpponent
+                          ? 'bg-amber-500 text-white border-amber-600'
+                          : 'bg-[#EFEAE1] dark:bg-[#1E1E1C] border-[#D5CFC5] dark:border-[#282826] text-[#77736B] dark:text-[#8E8E93]'
+                      }`}
+                      title="Rotate Opponent View 180° for Table Play"
+                    >
+                      <RotateCw className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline text-[10px] font-mono font-bold">Flip 180°</span>
+                    </button>
+
+                    {/* Sound Toggle */}
+                    <button
+                      type="button"
+                      onClick={() => setSoundEnabled(!soundEnabled)}
+                      className="p-1.5 rounded-lg bg-[#EFEAE1] dark:bg-[#1E1E1C] border border-[#D5CFC5] dark:border-[#282826] text-[#77736B] dark:text-[#8E8E93] cursor-pointer"
+                      title={soundEnabled ? 'Mute Sound' : 'Enable Sound'}
+                    >
+                      {soundEnabled ? <Volume2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <VolumeX className="w-3.5 h-3.5 text-[#77736B]" />}
+                    </button>
+
+                    {/* Fullscreen Tabletop Mode */}
+                    <button
+                      type="button"
+                      onClick={() => setShowFaceToFaceClock(true)}
+                      className="p-1.5 rounded-lg bg-[#EFEAE1] dark:bg-[#1E1E1C] border border-[#D5CFC5] dark:border-[#282826] text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715] dark:hover:text-white cursor-pointer flex items-center gap-1"
+                      title="Open Fullscreen Tabletop Clock"
+                    >
+                      <Smartphone className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline text-[10px] font-mono font-bold">Tabletop</span>
+                    </button>
+
+                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider ${
+                      isLive
+                        ? 'bg-rose-100 dark:bg-rose-950/40 text-rose-800 dark:text-rose-400 border border-rose-300 dark:border-rose-900/60 inline-flex items-center gap-1.5'
+                        : isCompleted
+                        ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400'
+                        : 'bg-[#EFEAE1] dark:bg-[#20201E] text-[#77736B] dark:text-[#8E8E93]'
+                    }`}>
+                      {isLive && <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />}
+                      {currentMatch.status}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Flag Fall Announcement */}
@@ -711,131 +796,296 @@ export default function ChessPlayerDashboardPage() {
                   </div>
                 )}
 
-                {/* DUAL DISPLAY (YOUR TIME VS OPPONENT TIME) */}
-                <div className="grid grid-cols-2 gap-3">
+                {/* ------------------------------------------------------------- */}
+                {/* 1. MOBILE PHONE VIEW: UPPER OPPONENT TIMER | DOWNSIDE PLAYER  */}
+                {/* ------------------------------------------------------------- */}
+                <div className="flex flex-col space-y-2.5 sm:hidden">
                   
-                  {/* YOUR CLOCK */}
-                  <div className={`p-4 rounded-2xl border-2 text-center transition-all ${
-                    isLive
-                      ? 'bg-amber-100/70 dark:bg-amber-950/40 border-amber-500/80 shadow-xs'
-                      : 'bg-[#EFEAE1]/50 dark:bg-[#1D1D1B] border-[#D5CFC5] dark:border-[#282826]'
-                  }`}>
-                    <span className="text-[10px] font-mono uppercase font-bold text-[#77736B] dark:text-[#8E8E93] block">
-                      Your Time ({isPlayerWhite ? 'White' : 'Black'})
-                    </span>
-                    <span className="text-3xl sm:text-4xl font-mono font-black tracking-tight block py-1 text-[#171715] dark:text-[#FAF8F3]">
-                      {formatClockTime(isPlayerWhite ? whiteSeconds : blackSeconds)}
-                    </span>
-                    <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93] block">
-                      {isPlayerWhite ? 'Opening Pieces' : 'Defending Pieces'}
-                    </span>
-                  </div>
+                  {/* UPPER SIDE: OPPONENT TIMER */}
+                  <button
+                    type="button"
+                    onClick={() => handleClockPadTap('opponent')}
+                    disabled={!isLive || isCompleted || !!flagFall}
+                    className={`w-full p-4 rounded-2xl border-2 transition-all duration-150 text-left flex flex-col justify-between min-h-[145px] cursor-pointer select-none active:scale-[0.98] ${
+                      flipOpponent ? 'rotate-180' : ''
+                    } ${
+                      isOpponentTurn
+                        ? 'bg-amber-100/90 dark:bg-amber-950/60 border-amber-500 ring-2 ring-amber-500/40 shadow-md'
+                        : 'bg-[#FAF8F3]/70 dark:bg-[#181816] border-[#D5CFC5] dark:border-[#282826] opacity-85'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between text-xs font-mono">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`w-3.5 h-3.5 rounded-full border ${opponentColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
+                        <span className="font-bold text-[#171715] dark:text-[#FAF8F3] uppercase tracking-wider">
+                          Opponent ({opponentColor})
+                        </span>
+                      </div>
+                      {isOpponentTurn ? (
+                        <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-bold uppercase tracking-wider animate-pulse">
+                          Clock Ticking
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93] font-mono">
+                          {isLive ? 'Tap when opponent moves' : 'Waiting'}
+                        </span>
+                      )}
+                    </div>
 
-                  {/* OPPONENT CLOCK */}
-                  <div className={`p-4 rounded-2xl border-2 text-center transition-all ${
-                    isLive
-                      ? 'bg-amber-100/70 dark:bg-amber-950/40 border-amber-500/80 shadow-xs'
-                      : 'bg-[#EFEAE1]/50 dark:bg-[#1D1D1B] border-[#D5CFC5] dark:border-[#282826]'
-                  }`}>
-                    <span className="text-[10px] font-mono uppercase font-bold text-[#77736B] dark:text-[#8E8E93] block truncate">
-                      Opponent ({isPlayerWhite ? 'Black' : 'White'})
-                    </span>
-                    <span className="text-3xl sm:text-4xl font-mono font-black tracking-tight block py-1 text-[#171715] dark:text-[#FAF8F3]">
-                      {formatClockTime(isPlayerWhite ? blackSeconds : whiteSeconds)}
-                    </span>
-                    <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93] block truncate">
-                      {opponentName}
-                    </span>
-                  </div>
-
-                </div>
-
-                {/* MATCH STATUS / TAP TO SWITCH PAWN MOVE */}
-                <div className="pt-1">
-                  {isCompleted ? (
-                    <div className="w-full py-4 px-4 rounded-2xl bg-[#EFEAE1] dark:bg-[#1C1C1A] border border-[#D5CFC5] dark:border-[#282826] text-center space-y-1">
-                      <span className="font-mono font-bold text-xs uppercase tracking-wider text-emerald-700 dark:text-emerald-400 block">
-                        ✓ Match Completed & Outcome Decided
-                      </span>
-                      <span className="text-[11px] text-[#77736B] dark:text-[#8E8E93] font-sans">
-                        Winner: {currentMatch.winnerPlayer?.fullName || (currentMatch.winner === 'player1' ? currentMatch.player1?.fullName : currentMatch.winner === 'player2' ? currentMatch.player2?.fullName : currentMatch.winner === 'draw' ? 'Draw' : 'Decided by Arbiter')}
+                    <div className="py-1 text-center">
+                      <span className={`text-5xl font-mono font-black tracking-tight ${
+                        flagFall === opponentColor
+                          ? 'text-rose-600 line-through'
+                          : isOppUrgent
+                          ? 'text-rose-600 animate-pulse'
+                          : isOpponentTurn
+                          ? 'text-amber-600 dark:text-amber-400'
+                          : 'text-[#171715] dark:text-[#FAF8F3]'
+                      }`}>
+                        {formatClockTime(opponentSeconds)}
                       </span>
                     </div>
-                  ) : isLive ? (
-                    <div className="space-y-3">
-                      {/* Clock Control / Paused State / Tap-to-Move */}
-                      {!isClockRunning ? (
-                        <div className="w-full py-4 px-4 rounded-2xl bg-amber-500/10 dark:bg-amber-500/15 border-2 border-amber-500/40 text-center space-y-1">
-                          <div className="flex items-center justify-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
-                            <Pause className="w-4 h-4 fill-current text-amber-600" />
-                            <span>Match Paused by Arbiter</span>
-                          </div>
-                          <p className="text-[11px] text-[#77736B] dark:text-[#8E8E93] font-sans">
-                            Clocks are temporarily held by tournament director. Waiting for arbiter to resume.
-                          </p>
-                        </div>
-                      ) : isMyTurn ? (
+
+                    <div className="flex items-center justify-between text-[11px] font-mono">
+                      <span className="font-bold text-[#171715] dark:text-[#FAF8F3] truncate max-w-[180px]">
+                        {opponentName}
+                      </span>
+                      <span className="text-[#77736B] dark:text-[#8E8E93]">
+                        {isOpponentTurn ? 'Opponent Active' : 'Waiting for move'}
+                      </span>
+                    </div>
+                  </button>
+
+                  {/* CENTER CONTROL STRIP (Between Opponent and Player) */}
+                  <div className="bg-[#EFEAE1]/90 dark:bg-[#1C1C1A] py-2 px-3 rounded-xl border border-[#D5CFC5] dark:border-[#262624] flex items-center justify-between text-xs font-mono">
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2.5 py-1 rounded-lg font-bold text-[10px] flex items-center gap-1 ${
+                        isOpponentTurn
+                          ? 'bg-amber-500 text-white animate-pulse'
+                          : isMyTurnActive
+                          ? 'bg-emerald-600 text-white animate-pulse'
+                          : 'bg-neutral-200 dark:bg-neutral-800 text-[#77736B]'
+                      }`}>
+                        {isOpponentTurn ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                        <span>{isOpponentTurn ? '▲ Opponent Moving' : isMyTurnActive ? '▼ Your Move Now' : isLive ? 'Paused' : 'Scheduled'}</span>
+                      </span>
+
+                      <span className="text-[#77736B] dark:text-[#8E8E93] text-[11px]">
+                        Moves: {movesCount}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      {lastTurnState && isLive && (
                         <button
                           type="button"
-                          onClick={handlePassTurn}
-                          disabled={!isClockRunning || !!flagFall}
-                          className="w-full py-4 sm:py-5 px-4 rounded-2xl font-mono font-bold text-sm sm:text-base uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all duration-150 shadow-md cursor-pointer active:scale-[0.98] select-none bg-amber-600 hover:bg-amber-700 text-white shadow-amber-600/30 ring-4 ring-amber-500/25"
+                          onClick={handleUndoTurn}
+                          className="px-2 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-400/50 text-[10px] font-bold inline-flex items-center gap-1 cursor-pointer"
+                          title="Undo turn"
                         >
-                          <span className="flex items-center gap-2">
-                            TAP WHEN YOU MOVE PAWN / PIECE ⇆
-                          </span>
-                          <span className="text-[11px] font-normal tracking-wide opacity-90 font-sans">
-                            Pauses your time and starts opponent clock immediately
-                          </span>
+                          <RotateCcw className="w-3 h-3" />
+                          <span>Undo</span>
                         </button>
-                      ) : (
-                        <div className="w-full py-4 px-4 rounded-2xl bg-[#EFEAE1]/60 dark:bg-[#1C1C1A] border border-[#D5CFC5]/80 dark:border-[#282826] text-center space-y-1">
-                          <div className="flex items-center justify-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
-                            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                            <span>Opponent's Turn Active ({opponentName})</span>
-                          </div>
-                          <p className="text-[11px] text-[#77736B] dark:text-[#8E8E93] font-sans">
-                            Opponent clock is counting down. Your button activates once opponent moves.
-                          </p>
-                        </div>
                       )}
 
-                      {/* Status Strip & Undo Button */}
-                      <div className="flex items-center justify-between px-1 text-xs font-mono">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                          <span className="text-[#171715] dark:text-[#FAF8F3] font-bold">
-                            {activeTurn === 'white' ? "White's Turn Active" : "Black's Turn Active"}
-                          </span>
-                          <span className="text-[#77736B] dark:text-[#8E8E93] text-[10px]">
-                            ({movesCount} move{movesCount === 1 ? '' : 's'})
-                          </span>
-                        </div>
+                      <button
+                        type="button"
+                        onClick={() => setFlipOpponent(!flipOpponent)}
+                        className={`p-1.5 rounded-lg border text-[10px] cursor-pointer ${
+                          flipOpponent
+                            ? 'bg-amber-500 text-white border-amber-600'
+                            : 'bg-white dark:bg-[#252523] border-[#D5CFC5] dark:border-[#383733] text-[#77736B]'
+                        }`}
+                        title="Rotate Opponent View 180°"
+                      >
+                        <RotateCw className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
 
-                        {lastTurnState && (
-                          <button
-                            type="button"
-                            onClick={handleUndoTurn}
-                            className="px-3 py-1.5 rounded-xl border border-amber-500/50 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 hover:bg-amber-100 text-[11px] font-bold inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
-                            title="Undo accidental turn switch"
-                          >
-                            <RotateCcw className="w-3.5 h-3.5" />
-                            <span>Undo Turn ↩</span>
-                          </button>
-                        )}
+                  {/* DOWNSIDE: PLAYER TIMER (Click on your timer to start other player's timer!) */}
+                  <button
+                    type="button"
+                    onClick={() => handleClockPadTap('player')}
+                    disabled={!isLive || isCompleted || !!flagFall}
+                    className={`w-full p-4 rounded-2xl border-2 transition-all duration-150 text-left flex flex-col justify-between min-h-[155px] cursor-pointer select-none active:scale-[0.98] ${
+                      isMyTurnActive
+                        ? 'bg-amber-100/90 dark:bg-amber-950/70 border-amber-500 ring-4 ring-amber-500/25 shadow-lg'
+                        : 'bg-[#FAF8F3]/70 dark:bg-[#181816] border-[#D5CFC5] dark:border-[#282826] opacity-90'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between text-xs font-mono">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`w-3.5 h-3.5 rounded-full border ${pieceColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
+                        <span className="font-bold text-[#171715] dark:text-[#FAF8F3] uppercase tracking-wider">
+                          You ({pieceColor}) • {player?.fullName || 'You'}
+                        </span>
                       </div>
+                      {isMyTurnActive ? (
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] font-bold uppercase tracking-wider animate-pulse">
+                          Your Turn
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93] font-mono">
+                          {isLive ? 'Waiting for opponent' : 'Ready'}
+                        </span>
+                      )}
                     </div>
-                  ) : (
-                    <div className="w-full py-4 px-4 rounded-2xl bg-[#EFEAE1]/60 dark:bg-[#1C1C1A] border border-[#D5CFC5]/80 dark:border-[#282826] text-center space-y-1">
-                      <span className="font-mono font-bold text-xs uppercase tracking-wider text-[#77736B] dark:text-[#8E8E93] block">
-                        Fixture Scheduled
-                      </span>
-                      <span className="text-[11px] text-[#77736B] dark:text-[#8E8E93] font-sans">
-                        Report to board. Match will be officially started by the tournament arbiter, starting from White's opening turn.
+
+                    <div className="py-1 text-center">
+                      <span className={`text-5xl font-mono font-black tracking-tight ${
+                        flagFall === pieceColor
+                          ? 'text-rose-600 line-through'
+                          : isMyUrgent
+                          ? 'text-rose-600 animate-pulse'
+                          : isMyTurnActive
+                          ? 'text-amber-600 dark:text-amber-400'
+                          : 'text-[#171715] dark:text-[#FAF8F3]'
+                      }`}>
+                        {formatClockTime(mySeconds)}
                       </span>
                     </div>
-                  )}
+
+                    <div className="pt-1">
+                      {isMyTurnActive ? (
+                        <div className="w-full py-2.5 px-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-mono font-bold text-xs uppercase tracking-wider text-center flex items-center justify-center gap-1.5 shadow-sm animate-pulse">
+                          <span>TAP WHEN YOU MOVE PAWN / PIECE ⇆</span>
+                        </div>
+                      ) : (
+                        <div className="text-[11px] font-mono text-[#77736B] dark:text-[#8E8E93] text-center py-1">
+                          {isLive
+                            ? 'Your timer is paused. Tapping your timer switches turn to opponent.'
+                            : 'Match will be started by the official arbiter.'}
+                        </div>
+                      )}
+                    </div>
+                  </button>
+
                 </div>
+
+                {/* ------------------------------------------------------------- */}
+                {/* 2. DESKTOP VIEW: SIDE-BY-SIDE CLICKABLE TOUCH PADS            */}
+                {/* ------------------------------------------------------------- */}
+                <div className="hidden sm:grid sm:grid-cols-2 gap-4">
+                  
+                  {/* PLAYER CLOCK PAD (White or Black) */}
+                  <button
+                    type="button"
+                    onClick={() => handleClockPadTap('player')}
+                    disabled={!isLive || isCompleted || !!flagFall}
+                    className={`p-5 rounded-2xl border-2 transition-all duration-150 text-center flex flex-col justify-between min-h-[170px] cursor-pointer select-none active:scale-[0.99] ${
+                      isMyTurnActive
+                        ? 'bg-amber-100/90 dark:bg-amber-950/60 border-amber-500 ring-4 ring-amber-500/20 shadow-md scale-[1.01]'
+                        : 'bg-[#FAF8F3]/60 dark:bg-[#1A1A18] border-[#D5CFC5] dark:border-[#282826] opacity-85 hover:opacity-100'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between text-xs font-mono">
+                      <span className="font-bold uppercase tracking-wider text-[#77736B] dark:text-[#8E8E93] flex items-center gap-1.5">
+                        <span className={`w-3.5 h-3.5 rounded-full border ${pieceColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
+                        You ({pieceColor})
+                      </span>
+                      {isMyTurnActive && (
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] font-bold uppercase tracking-wider animate-pulse">
+                          Active Turn
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="py-2">
+                      <span className={`text-4xl sm:text-5xl font-mono font-black tracking-tight ${
+                        flagFall === pieceColor
+                          ? 'text-rose-600 line-through'
+                          : isMyUrgent
+                          ? 'text-rose-600 animate-pulse'
+                          : isMyTurnActive
+                          ? 'text-amber-600 dark:text-amber-400'
+                          : 'text-[#171715] dark:text-[#FAF8F3]'
+                      }`}>
+                        {formatClockTime(mySeconds)}
+                      </span>
+                    </div>
+
+                    <div>
+                      <h4 className="font-serif font-bold text-sm text-[#171715] dark:text-[#FAF8F3] truncate">
+                        {player?.fullName}
+                      </h4>
+                      <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93] block mt-0.5">
+                        {isMyTurnActive ? 'Click to Pass Turn to Opponent ⇆' : 'Timer Paused'}
+                      </span>
+                    </div>
+                  </button>
+
+                  {/* OPPONENT CLOCK PAD */}
+                  <button
+                    type="button"
+                    onClick={() => handleClockPadTap('opponent')}
+                    disabled={!isLive || isCompleted || !!flagFall}
+                    className={`p-5 rounded-2xl border-2 transition-all duration-150 text-center flex flex-col justify-between min-h-[170px] cursor-pointer select-none active:scale-[0.99] ${
+                      isOpponentTurn
+                        ? 'bg-amber-100/90 dark:bg-amber-950/60 border-amber-500 ring-4 ring-amber-500/20 shadow-md scale-[1.01]'
+                        : 'bg-[#FAF8F3]/60 dark:bg-[#1A1A18] border-[#D5CFC5] dark:border-[#282826] opacity-85 hover:opacity-100'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between text-xs font-mono">
+                      <span className="font-bold uppercase tracking-wider text-[#77736B] dark:text-[#8E8E93] flex items-center gap-1.5">
+                        <span className={`w-3.5 h-3.5 rounded-full border ${opponentColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
+                        Opponent ({opponentColor})
+                      </span>
+                      {isOpponentTurn && (
+                        <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-bold uppercase tracking-wider animate-pulse">
+                          Active Turn
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="py-2">
+                      <span className={`text-4xl sm:text-5xl font-mono font-black tracking-tight ${
+                        flagFall === opponentColor
+                          ? 'text-rose-600 line-through'
+                          : isOppUrgent
+                          ? 'text-rose-600 animate-pulse'
+                          : isOpponentTurn
+                          ? 'text-amber-600 dark:text-amber-400'
+                          : 'text-[#171715] dark:text-[#FAF8F3]'
+                      }`}>
+                        {formatClockTime(opponentSeconds)}
+                      </span>
+                    </div>
+
+                    <div>
+                      <h4 className="font-serif font-bold text-sm text-[#171715] dark:text-[#FAF8F3] truncate">
+                        {opponentName}
+                      </h4>
+                      <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93] block mt-0.5">
+                        {isOpponentTurn ? 'Opponent Moving • Click when opponent moves ⇆' : 'Opponent Timer Paused'}
+                      </span>
+                    </div>
+                  </button>
+
+                </div>
+
+                {/* MATCH STATUS BANNER IF COMPLETED OR SCHEDULED */}
+                {isCompleted && (
+                  <div className="w-full py-3.5 px-4 rounded-2xl bg-[#EFEAE1] dark:bg-[#1C1C1A] border border-[#D5CFC5] dark:border-[#282826] text-center space-y-1">
+                    <span className="font-mono font-bold text-xs uppercase tracking-wider text-emerald-700 dark:text-emerald-400 block">
+                      ✓ Match Completed & Outcome Decided
+                    </span>
+                    <span className="text-[11px] text-[#77736B] dark:text-[#8E8E93] font-sans">
+                      Winner: {currentMatch.winnerPlayer?.fullName || (currentMatch.winner === 'player1' ? currentMatch.player1?.fullName : currentMatch.winner === 'player2' ? currentMatch.player2?.fullName : currentMatch.winner === 'draw' ? 'Draw' : 'Decided by Arbiter')}
+                    </span>
+                  </div>
+                )}
+
+                {!isLive && !isCompleted && (
+                  <div className="w-full py-3.5 px-4 rounded-2xl bg-[#EFEAE1]/60 dark:bg-[#1C1C1A] border border-[#D5CFC5]/80 dark:border-[#282826] text-center space-y-1">
+                    <span className="font-mono font-bold text-xs uppercase tracking-wider text-[#77736B] dark:text-[#8E8E93] block">
+                      Fixture Scheduled
+                    </span>
+                    <span className="text-[11px] text-[#77736B] dark:text-[#8E8E93] font-sans">
+                      Report to board. Match will be officially started by the tournament arbiter, starting from White's opening turn.
+                    </span>
+                  </div>
+                )}
 
                 {/* Clock Footer Strip */}
                 <div className="flex items-center justify-between text-xs font-mono pt-2 border-t border-[#D5CFC5]/50 dark:border-[#262624]">
@@ -987,6 +1237,179 @@ export default function ChessPlayerDashboardPage() {
         </div>
 
       </main>
+
+      {/* ------------------------------------------------------------- */}
+      {/* FULLSCREEN FACE-TO-FACE TABLETOP DIGITAL CLOCK MODAL          */}
+      {/* ------------------------------------------------------------- */}
+      {showFaceToFaceClock && (
+        <div className="fixed inset-0 z-50 bg-[#F5F2EB] dark:bg-[#0A0A0A] p-2 sm:p-4 flex flex-col justify-between select-none overflow-hidden animate-in fade-in duration-200">
+          
+          {/* UPPER SIDE: OPPONENT TIMER (Faced across table, rotated 180°) */}
+          <button
+            type="button"
+            onClick={() => handleClockPadTap('opponent')}
+            disabled={!isLive || isCompleted || !!flagFall}
+            className={`flex-1 w-full rounded-3xl p-6 sm:p-8 flex flex-col justify-between items-center transition-all cursor-pointer border-2 shadow-lg active:scale-[0.99] select-none ${
+              flipOpponent ? 'rotate-180' : ''
+            } ${
+              isOpponentTurn
+                ? 'bg-amber-100/90 dark:bg-amber-950/70 border-amber-500 ring-4 ring-amber-500/30 text-amber-950 dark:text-amber-100'
+                : 'bg-white/80 dark:bg-[#141414] border-[#D5CFC5] dark:border-[#282826] text-[#171715] dark:text-[#FAF8F3] opacity-85'
+            }`}
+          >
+            <div className="w-full flex items-center justify-between text-xs font-mono">
+              <span className="font-bold uppercase tracking-wider flex items-center gap-1.5">
+                <span className={`w-3.5 h-3.5 rounded-full border ${opponentColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
+                Opponent ({opponentColor.toUpperCase()}) • {opponentName}
+              </span>
+              {isOpponentTurn ? (
+                <span className="px-3 py-1 rounded-full bg-amber-500 text-white text-[10px] font-bold uppercase tracking-widest animate-pulse">
+                  Counting Down
+                </span>
+              ) : (
+                <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93]">Tap When Opponent Moves</span>
+              )}
+            </div>
+
+            <div className="py-4">
+              <span className={`text-6xl sm:text-8xl font-mono font-black tracking-tight ${
+                flagFall === opponentColor
+                  ? 'text-rose-600 line-through'
+                  : isOppUrgent
+                  ? 'text-rose-600 animate-pulse'
+                  : isOpponentTurn
+                  ? 'text-amber-600 dark:text-amber-400'
+                  : 'text-[#171715] dark:text-[#FAF8F3]'
+              }`}>
+                {formatClockTime(opponentSeconds)}
+              </span>
+            </div>
+
+            <div className="text-center font-mono text-xs opacity-75">
+              {isOpponentTurn ? 'Opponent Clock Running • Tap to Switch Turn' : 'Waiting for Opponent...'}
+            </div>
+          </button>
+
+          {/* CENTER CONTROL STRIP (Divider) */}
+          <div className="my-2 py-2 px-4 rounded-2xl bg-[#EFEAE1] dark:bg-[#1C1C1A] border border-[#D5CFC5] dark:border-[#282826] flex items-center justify-between gap-3 text-xs font-mono">
+            <div className="flex items-center gap-2">
+              <span className={`px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 ${
+                isOpponentTurn
+                  ? 'bg-amber-500 text-white animate-pulse'
+                  : isMyTurnActive
+                  ? 'bg-emerald-600 text-white animate-pulse'
+                  : 'bg-neutral-200 dark:bg-neutral-800 text-[#77736B]'
+              }`}>
+                {isOpponentTurn ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                <span>{isOpponentTurn ? 'Opponent Turn' : isMyTurnActive ? 'Your Turn' : 'Paused'}</span>
+              </span>
+
+              <span className="font-bold text-[#171715] dark:text-[#FAF8F3]">
+                Move #{movesCount}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {lastTurnState && isLive && (
+                <button
+                  type="button"
+                  onClick={handleUndoTurn}
+                  className="px-2.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-400/50 text-[11px] font-bold flex items-center gap-1 cursor-pointer"
+                  title="Undo Turn"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Undo</span>
+                </button>
+              )}
+
+              {/* 180° Flip Toggle */}
+              <button
+                type="button"
+                onClick={() => setFlipOpponent(!flipOpponent)}
+                className={`p-2 rounded-xl border transition-colors cursor-pointer ${
+                  flipOpponent
+                    ? 'bg-amber-500 text-white border-amber-600'
+                    : 'bg-white dark:bg-[#252523] border-[#D5CFC5] dark:border-[#383733] text-[#77736B]'
+                }`}
+                title={flipOpponent ? 'Unflip Opponent' : 'Flip Opponent 180° for Table Play'}
+              >
+                <RotateCw className="w-4 h-4" />
+              </button>
+
+              {/* Sound Toggle */}
+              <button
+                type="button"
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                className="p-2 rounded-xl bg-white dark:bg-[#252523] border border-[#D5CFC5] dark:border-[#383733] text-[#77736B] cursor-pointer"
+                title={soundEnabled ? 'Mute' : 'Unmute'}
+              >
+                {soundEnabled ? <Volume2 className="w-4 h-4 text-emerald-600" /> : <VolumeX className="w-4 h-4" />}
+              </button>
+
+              {/* Close Tabletop Mode */}
+              <button
+                type="button"
+                onClick={() => setShowFaceToFaceClock(false)}
+                className="p-2 rounded-xl bg-white dark:bg-[#252523] border border-[#D5CFC5] dark:border-[#383733] text-[#77736B] hover:text-rose-600 cursor-pointer"
+                title="Exit Tabletop Mode"
+              >
+                <Minimize2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* DOWNSIDE: PLAYER TIMER */}
+          <button
+            type="button"
+            onClick={() => handleClockPadTap('player')}
+            disabled={!isLive || isCompleted || !!flagFall}
+            className={`flex-1 w-full rounded-3xl p-6 sm:p-8 flex flex-col justify-between items-center transition-all cursor-pointer border-2 shadow-lg active:scale-[0.99] select-none ${
+              isMyTurnActive
+                ? 'bg-amber-100/90 dark:bg-amber-950/70 border-amber-500 ring-4 ring-amber-500/30 text-amber-950 dark:text-amber-100'
+                : 'bg-white/80 dark:bg-[#141414] border-[#D5CFC5] dark:border-[#282826] text-[#171715] dark:text-[#FAF8F3] opacity-85'
+            }`}
+          >
+            <div className="w-full flex items-center justify-between text-xs font-mono">
+              <span className="font-bold uppercase tracking-wider flex items-center gap-1.5">
+                <span className={`w-3.5 h-3.5 rounded-full border ${pieceColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
+                You ({pieceColor.toUpperCase()}) • {player?.fullName || 'You'}
+              </span>
+              {isMyTurnActive ? (
+                <span className="px-3 py-1 rounded-full bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-widest animate-pulse">
+                  Your Turn Now
+                </span>
+              ) : (
+                <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93]">Waiting for Opponent</span>
+              )}
+            </div>
+
+            <div className="py-4">
+              <span className={`text-6xl sm:text-8xl font-mono font-black tracking-tight ${
+                flagFall === pieceColor
+                  ? 'text-rose-600 line-through'
+                  : isMyUrgent
+                  ? 'text-rose-600 animate-pulse'
+                  : isMyTurnActive
+                  ? 'text-amber-600 dark:text-amber-400'
+                  : 'text-[#171715] dark:text-[#FAF8F3]'
+              }`}>
+                {formatClockTime(mySeconds)}
+              </span>
+            </div>
+
+            <div className="text-center font-mono text-xs">
+              {isMyTurnActive ? (
+                <span className="px-4 py-2 rounded-xl bg-amber-600 text-white font-bold uppercase tracking-wider animate-pulse inline-block shadow-sm">
+                  TAP WHEN YOU MOVE PAWN / PIECE ⇆
+                </span>
+              ) : (
+                <span className="opacity-75">Your clock is paused. Activates after opponent moves.</span>
+              )}
+            </div>
+          </button>
+
+        </div>
+      )}
 
       <ChessFooter />
     </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Pause, RotateCcw, Volume2, VolumeX, Maximize2, Minimize2, Flag, Sparkles } from 'lucide-react';
+import { Play, Pause, RotateCcw, Volume2, VolumeX, Maximize2, Minimize2, Flag, Sparkles, RotateCw, ChevronUp, ChevronDown, Smartphone } from 'lucide-react';
 import { chessApi } from '@/lib/chessApi';
 
 /**
@@ -55,9 +55,10 @@ export function DualChessClock({
   initialMinutes = 10,
   player1Name = 'White Player',
   player2Name = 'Black Player',
+  playerColor = 'white', // 'white' | 'black' (which player the local phone user is)
   onTimeExpired,
   onTurnChange,
-  variant = 'standard', // 'standard' | 'compact' | 'modal'
+  variant = 'standard', // 'standard' | 'compact' | 'phone' | 'modal'
   readOnly = false
 }) {
   const matchId = match?._id || match?.matchId || null;
@@ -89,6 +90,7 @@ export function DualChessClock({
   const [flagFall, setFlagFall] = useState(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [flipOpponent, setFlipOpponent] = useState(false);
   const [lastTurnState, setLastTurnState] = useState(null);
 
   const timerRef = useRef(null);
@@ -357,6 +359,31 @@ export function DualChessClock({
     });
   };
 
+  // Clock pad tap handler (tap your clock -> stops your clock, starts opponent clock)
+  const handleClockPadClick = (color) => {
+    if (readOnly || flagFall) return;
+
+    try {
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(35);
+      }
+    } catch {}
+
+    if (!isRunning) {
+      // If paused or before start: tapping passes turn to the other player and starts ticking
+      const targetNextTurn = color === 'white' ? 'black' : 'white';
+      setActiveTurn(targetNextTurn);
+      setIsRunning(true);
+      if (soundEnabled) playAudioTone('click');
+      broadcastAndSync({ activeTurn: targetNextTurn, isRunning: true });
+      if (onTurnChange) onTurnChange(targetNextTurn);
+      return;
+    }
+
+    // When running: tapping clock passes turn to opponent
+    handleSwitchTurn();
+  };
+
   // Keyboard shortcut (Spacebar = switch turn, P = pause)
   useEffect(() => {
     if (readOnly) return;
@@ -368,12 +395,15 @@ export function DualChessClock({
         e.preventDefault();
         if (isRunning) handlePause();
         else handleStartResume();
+      } else if (e.code === 'Space') {
+        e.preventDefault();
+        handleSwitchTurn();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isRunning, readOnly]);
+  }, [isRunning, readOnly, handleSwitchTurn]);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -386,6 +416,23 @@ export function DualChessClock({
 
   const isWhiteUrgent = p1Time <= 60 && p1Time > 0;
   const isBlackUrgent = p2Time <= 60 && p2Time > 0;
+
+  // Phone view orientation & player assignment
+  const isPlayerWhite = playerColor === 'white';
+  const myColor = isPlayerWhite ? 'white' : 'black';
+  const oppColor = isPlayerWhite ? 'black' : 'white';
+
+  const myTime = isPlayerWhite ? p1Time : p2Time;
+  const oppTime = isPlayerWhite ? p2Time : p1Time;
+
+  const myName = isPlayerWhite ? player1Name : player2Name;
+  const oppName = isPlayerWhite ? player2Name : player1Name;
+
+  const isMyActive = isRunning && activeTurn === myColor;
+  const isOppActive = isRunning && activeTurn === oppColor;
+
+  const isMyUrgent = myTime <= 60 && myTime > 0;
+  const isOppUrgent = oppTime <= 60 && oppTime > 0;
 
   // COMPACT VARIANT (for inline cards or small modals)
   if (variant === 'compact') {
@@ -401,10 +448,13 @@ export function DualChessClock({
 
         <div className="grid grid-cols-2 gap-2">
           {/* White Clock */}
-          <div
-            className={`p-2.5 rounded-xl border text-center transition-all ${
+          <button
+            type="button"
+            onClick={() => handleClockPadClick('white')}
+            disabled={readOnly || !!flagFall}
+            className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer active:scale-95 ${
               isWhiteActive
-                ? 'bg-amber-100 dark:bg-amber-950/60 border-amber-400 dark:border-amber-600 ring-2 ring-amber-400/40'
+                ? 'bg-amber-100 dark:bg-amber-950/60 border-amber-400 dark:border-amber-600 ring-2 ring-amber-400/40 shadow-sm'
                 : 'bg-[#EFEAE1]/60 dark:bg-[#1B1B19] border-[#D5CFC5] dark:border-[#282826]'
             }`}
           >
@@ -414,13 +464,16 @@ export function DualChessClock({
             <span className={`text-xl font-mono font-black ${isWhiteUrgent ? 'text-rose-600 animate-pulse' : 'text-[#171715] dark:text-[#FAF8F3]'}`}>
               {formatTime(p1Time)}
             </span>
-          </div>
+          </button>
 
           {/* Black Clock */}
-          <div
-            className={`p-2.5 rounded-xl border text-center transition-all ${
+          <button
+            type="button"
+            onClick={() => handleClockPadClick('black')}
+            disabled={readOnly || !!flagFall}
+            className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer active:scale-95 ${
               isBlackActive
-                ? 'bg-amber-100 dark:bg-amber-950/60 border-amber-400 dark:border-amber-600 ring-2 ring-amber-400/40'
+                ? 'bg-amber-100 dark:bg-amber-950/60 border-amber-400 dark:border-amber-600 ring-2 ring-amber-400/40 shadow-sm'
                 : 'bg-[#EFEAE1]/60 dark:bg-[#1B1B19] border-[#D5CFC5] dark:border-[#282826]'
             }`}
           >
@@ -430,7 +483,7 @@ export function DualChessClock({
             <span className={`text-xl font-mono font-black ${isBlackUrgent ? 'text-rose-600 animate-pulse' : 'text-[#171715] dark:text-[#FAF8F3]'}`}>
               {formatTime(p2Time)}
             </span>
-          </div>
+          </button>
         </div>
 
         {/* Small Action Strip */}
@@ -473,27 +526,223 @@ export function DualChessClock({
     );
   }
 
-  // STANDARD & FULL-FEATURED DUAL CLOCK
+  // FULLSCREEN FACE-TO-FACE TABLETOP DIGITAL CLOCK
+  if (isExpanded) {
+    return (
+      <div className="fixed inset-0 z-50 bg-[#F5F2EB] dark:bg-[#0A0A0A] p-2 sm:p-4 flex flex-col justify-between select-none overflow-hidden animate-in fade-in duration-200">
+        {/* UPPER SIDE: OPPONENT TIMER (Rotated 180° for Over-the-Board Play) */}
+        <button
+          type="button"
+          onClick={() => handleClockPadClick(oppColor)}
+          disabled={readOnly || !!flagFall}
+          className={`flex-1 w-full rounded-3xl p-6 sm:p-8 flex flex-col justify-between items-center transition-all cursor-pointer border-2 shadow-lg active:scale-[0.99] select-none ${
+            flipOpponent ? 'rotate-180' : ''
+          } ${
+            isOppActive
+              ? 'bg-amber-100/90 dark:bg-amber-950/70 border-amber-500 ring-4 ring-amber-500/30 text-amber-950 dark:text-amber-100'
+              : 'bg-white/80 dark:bg-[#141414] border-[#D5CFC5] dark:border-[#282826] text-[#171715] dark:text-[#FAF8F3] opacity-85'
+          }`}
+        >
+          <div className="w-full flex items-center justify-between text-xs font-mono">
+            <span className="font-bold uppercase tracking-wider flex items-center gap-1.5">
+              <span className={`w-3.5 h-3.5 rounded-full border ${oppColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
+              Opponent ({oppColor.toUpperCase()}) • {oppName}
+            </span>
+            {isOppActive ? (
+              <span className="px-3 py-1 rounded-full bg-amber-500 text-white text-[10px] font-bold uppercase tracking-widest animate-pulse">
+                Counting Down
+              </span>
+            ) : (
+              <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93]">Tap When Opponent Moves</span>
+            )}
+          </div>
+
+          <div className="py-4">
+            <span className={`text-6xl sm:text-8xl font-mono font-black tracking-tight ${
+              flagFall === oppColor
+                ? 'text-rose-600 line-through'
+                : isOppUrgent
+                ? 'text-rose-600 animate-pulse'
+                : isOppActive
+                ? 'text-amber-600 dark:text-amber-400'
+                : 'text-[#171715] dark:text-[#FAF8F3]'
+            }`}>
+              {formatTime(oppTime)}
+            </span>
+          </div>
+
+          <div className="text-center font-mono text-xs opacity-75">
+            {isOppActive ? 'Opponent Clock Running • Tap to Switch Turn' : 'Waiting for Opponent...'}
+          </div>
+        </button>
+
+        {/* CENTER CONTROL STRIP (Divider) */}
+        <div className="my-2 py-2 px-4 rounded-2xl bg-[#EFEAE1] dark:bg-[#1C1C1A] border border-[#D5CFC5] dark:border-[#282826] flex items-center justify-between gap-3 text-xs font-mono">
+          <div className="flex items-center gap-2">
+            {/* Direction Arrow */}
+            <span className={`px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 ${
+              isOppActive
+                ? 'bg-amber-500 text-white animate-pulse'
+                : isMyActive
+                ? 'bg-emerald-600 text-white animate-pulse'
+                : 'bg-neutral-200 dark:bg-neutral-800 text-[#77736B]'
+            }`}>
+              {isOppActive ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              <span>{isOppActive ? 'Opponent Turn' : isMyActive ? 'Your Turn' : 'Paused'}</span>
+            </span>
+
+            <span className="font-bold text-[#171715] dark:text-[#FAF8F3] hidden sm:inline">
+              Move #{movesCount}
+            </span>
+          </div>
+
+          {/* Central Controls */}
+          <div className="flex items-center gap-2">
+            {!readOnly && (
+              isRunning ? (
+                <button
+                  type="button"
+                  onClick={handlePause}
+                  className="px-3.5 py-1.5 rounded-xl bg-[#22221F] dark:bg-[#FAF8F3] text-white dark:text-black font-bold uppercase flex items-center gap-1 cursor-pointer"
+                >
+                  <Pause className="w-3.5 h-3.5 fill-current" />
+                  <span>Pause</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleStartResume}
+                  className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold uppercase flex items-center gap-1 cursor-pointer"
+                >
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                  <span>Resume</span>
+                </button>
+              )
+            )}
+
+            {/* 180° Rotation Toggle for Opponent */}
+            <button
+              type="button"
+              onClick={() => setFlipOpponent(!flipOpponent)}
+              className={`p-2 rounded-xl border transition-colors cursor-pointer ${
+                flipOpponent
+                  ? 'bg-amber-500 text-white border-amber-600'
+                  : 'bg-white dark:bg-[#252523] border-[#D5CFC5] dark:border-[#383733] text-[#77736B] hover:text-[#171715]'
+              }`}
+              title={flipOpponent ? 'Unflip Opponent Screen' : 'Flip Opponent Screen 180° for Table Play'}
+            >
+              <RotateCw className="w-4 h-4" />
+            </button>
+
+            {/* Sound Toggle */}
+            <button
+              type="button"
+              onClick={() => setSoundEnabled(!soundEnabled)}
+              className="p-2 rounded-xl bg-white dark:bg-[#252523] border border-[#D5CFC5] dark:border-[#383733] text-[#77736B] cursor-pointer"
+              title="Sound On/Off"
+            >
+              {soundEnabled ? <Volume2 className="w-4 h-4 text-emerald-600" /> : <VolumeX className="w-4 h-4" />}
+            </button>
+
+            {/* Exit Fullscreen */}
+            <button
+              type="button"
+              onClick={() => setIsExpanded(false)}
+              className="p-2 rounded-xl bg-white dark:bg-[#252523] border border-[#D5CFC5] dark:border-[#383733] text-[#77736B] hover:text-rose-600 cursor-pointer"
+              title="Exit Fullscreen"
+            >
+              <Minimize2 className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* DOWNSIDE: PLAYER TIMER (Facing Player, Tap to Switch) */}
+        <button
+          type="button"
+          onClick={() => handleClockPadClick(myColor)}
+          disabled={readOnly || !!flagFall}
+          className={`flex-1 w-full rounded-3xl p-6 sm:p-8 flex flex-col justify-between items-center transition-all cursor-pointer border-2 shadow-lg active:scale-[0.99] select-none ${
+            isMyActive
+              ? 'bg-amber-100/90 dark:bg-amber-950/70 border-amber-500 ring-4 ring-amber-500/30 text-amber-950 dark:text-amber-100'
+              : 'bg-white/80 dark:bg-[#141414] border-[#D5CFC5] dark:border-[#282826] text-[#171715] dark:text-[#FAF8F3] opacity-85'
+          }`}
+        >
+          <div className="w-full flex items-center justify-between text-xs font-mono">
+            <span className="font-bold uppercase tracking-wider flex items-center gap-1.5">
+              <span className={`w-3.5 h-3.5 rounded-full border ${myColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
+              You ({myColor.toUpperCase()}) • {myName}
+            </span>
+            {isMyActive ? (
+              <span className="px-3 py-1 rounded-full bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-widest animate-pulse">
+                Your Turn Now
+              </span>
+            ) : (
+              <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93]">Waiting for Opponent</span>
+            )}
+          </div>
+
+          <div className="py-4">
+            <span className={`text-6xl sm:text-8xl font-mono font-black tracking-tight ${
+              flagFall === myColor
+                ? 'text-rose-600 line-through'
+                : isMyUrgent
+                ? 'text-rose-600 animate-pulse'
+                : isMyActive
+                ? 'text-amber-600 dark:text-amber-400'
+                : 'text-[#171715] dark:text-[#FAF8F3]'
+            }`}>
+              {formatTime(myTime)}
+            </span>
+          </div>
+
+          <div className="text-center font-mono text-xs">
+            {isMyActive ? (
+              <span className="px-4 py-1.5 rounded-xl bg-amber-600 text-white font-bold uppercase tracking-wider animate-pulse inline-block shadow-sm">
+                TAP TO PASS TURN TO OPPONENT ⇆
+              </span>
+            ) : (
+              <span className="opacity-75">Your clock is paused. Activates after opponent moves.</span>
+            )}
+          </div>
+        </button>
+      </div>
+    );
+  }
+
+  // STANDARD DUAL CLOCK (Mobile Stacked Phone-View + Desktop Side-by-Side)
   return (
-    <div className={`relative bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl p-5 sm:p-7 shadow-xl space-y-6 select-none transition-all ${
-      isExpanded ? 'fixed inset-4 z-50 overflow-y-auto max-w-4xl mx-auto flex flex-col justify-between' : ''
-    }`}>
+    <div className="relative bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl p-4 sm:p-7 shadow-xl space-y-4 sm:space-y-6 select-none transition-all">
       
-      {/* Top Controls Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#D5CFC5]/70 dark:border-[#262624] pb-4">
+      {/* Top Header Controls Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#D5CFC5]/70 dark:border-[#262624] pb-3 sm:pb-4">
         <div className="flex items-center gap-2.5">
           <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
           <div>
             <h3 className="font-serif font-bold text-base sm:text-lg text-[#171715] dark:text-[#FAF8F3] leading-none">
-              Dual 10:00 Tournament Clock
+              Tournament Chess Clock
             </h3>
-            <span className="text-[10px] font-mono uppercase tracking-widest text-[#77736B] dark:text-[#8E8E93] pt-1 block">
-              10 Mins Per Player • Turn-Based Rapid Control
+            <span className="text-[10px] font-mono uppercase tracking-widest text-[#77736B] dark:text-[#8E8E93] pt-0.5 block">
+              10:00 Rapid • Tap Clock to Switch Turns
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Flip 180° Toggle */}
+          <button
+            type="button"
+            onClick={() => setFlipOpponent(!flipOpponent)}
+            className={`p-2 rounded-xl border text-xs transition-colors cursor-pointer flex items-center gap-1 ${
+              flipOpponent
+                ? 'bg-amber-500 text-white border-amber-600'
+                : 'bg-[#EFEAE1] dark:bg-[#1E1E1C] border-[#D5CFC5] dark:border-[#282826] text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715]'
+            }`}
+            title="Rotate Opponent View 180° for Over-the-Board Play"
+          >
+            <RotateCw className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline text-[10px] font-mono font-bold">Flip 180°</span>
+          </button>
+
           {/* Sound Toggle */}
           <button
             type="button"
@@ -504,19 +753,20 @@ export function DualChessClock({
             {soundEnabled ? <Volume2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> : <VolumeX className="w-4 h-4" />}
           </button>
 
-          {/* Expand / Minimize */}
+          {/* Expand Fullscreen Face-to-Face */}
           <button
             type="button"
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="p-2 rounded-xl bg-[#EFEAE1] dark:bg-[#1E1E1C] hover:bg-[#E4DED5] dark:hover:bg-[#282826] text-[#77736B] dark:text-[#8E8E93] transition-colors cursor-pointer"
-            title={isExpanded ? 'Exit full clock' : 'Expand full clock'}
+            onClick={() => setIsExpanded(true)}
+            className="p-2 rounded-xl bg-[#EFEAE1] dark:bg-[#1E1E1C] hover:bg-[#E4DED5] dark:hover:bg-[#282826] text-[#77736B] dark:text-[#8E8E93] transition-colors cursor-pointer flex items-center gap-1"
+            title="Open Fullscreen Tabletop Clock"
           >
-            {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            <Smartphone className="w-4 h-4" />
+            <span className="hidden sm:inline text-[10px] font-mono font-bold">Tabletop Mode</span>
           </button>
         </div>
       </div>
 
-      {/* Flag Fall Banner (Out of time outcome) */}
+      {/* Flag Fall Banner */}
       {flagFall && (
         <div className="bg-gradient-to-r from-rose-500/15 via-rose-500/25 to-rose-500/15 border-2 border-rose-500 rounded-2xl p-4 text-center animate-bounce">
           <div className="inline-flex items-center gap-2 text-rose-600 dark:text-rose-400 font-mono font-bold uppercase text-xs">
@@ -529,15 +779,191 @@ export function DualChessClock({
         </div>
       )}
 
-      {/* DUAL DIGITAL CLOCK DISPLAY (Side-by-Side or Stacked) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+      {/* ------------------------------------------------------------- */}
+      {/* 1. MOBILE PHONE VIEW: UPPER OPPONENT TIMER | DOWNSIDE PLAYER  */}
+      {/* ------------------------------------------------------------- */}
+      <div className="flex flex-col space-y-3 sm:hidden">
+        
+        {/* UPPER SIDE: OPPONENT TIMER */}
+        <button
+          type="button"
+          onClick={() => handleClockPadClick(oppColor)}
+          disabled={readOnly || !!flagFall}
+          className={`w-full p-4 sm:p-5 rounded-2xl border-2 transition-all duration-150 text-left flex flex-col justify-between min-h-[145px] cursor-pointer select-none active:scale-[0.98] ${
+            flipOpponent ? 'rotate-180' : ''
+          } ${
+            isOppActive
+              ? 'bg-amber-100/90 dark:bg-amber-950/60 border-amber-500 ring-2 ring-amber-500/30 shadow-md'
+              : 'bg-[#FAF8F3]/60 dark:bg-[#181816] border-[#D5CFC5] dark:border-[#282826] opacity-80'
+          }`}
+        >
+          <div className="flex items-center justify-between text-xs font-mono">
+            <div className="flex items-center gap-1.5">
+              <span className={`w-3.5 h-3.5 rounded-full border ${oppColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
+              <span className="font-bold text-[#171715] dark:text-[#FAF8F3] uppercase tracking-wider">
+                Opponent ({oppColor})
+              </span>
+            </div>
+            {isOppActive ? (
+              <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-bold uppercase tracking-wider animate-pulse">
+                Clock Ticking
+              </span>
+            ) : (
+              <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93] font-mono">
+                Tap when opponent moves
+              </span>
+            )}
+          </div>
+
+          <div className="py-1 text-center">
+            <span className={`text-5xl font-mono font-black tracking-tight ${
+              flagFall === oppColor
+                ? 'text-rose-600 line-through'
+                : isOppUrgent
+                ? 'text-rose-600 animate-pulse'
+                : isOppActive
+                ? 'text-amber-600 dark:text-amber-400'
+                : 'text-[#171715] dark:text-[#FAF8F3]'
+            }`}>
+              {formatTime(oppTime)}
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between text-[11px] font-mono">
+            <span className="font-bold text-[#171715] dark:text-[#FAF8F3] truncate max-w-[180px]">
+              {oppName}
+            </span>
+            <span className="text-[#77736B] dark:text-[#8E8E93]">
+              {isOppActive ? 'Opponent Active' : 'Waiting'}
+            </span>
+          </div>
+        </button>
+
+        {/* CENTER CONTROL STRIP (Between Opponent and Player) */}
+        <div className="bg-[#EFEAE1]/80 dark:bg-[#1A1A18] py-2 px-3 rounded-xl border border-[#D5CFC5] dark:border-[#262624] flex items-center justify-between text-xs font-mono">
+          <div className="flex items-center gap-2">
+            <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] flex items-center gap-1 ${
+              isOppActive
+                ? 'bg-amber-500 text-white animate-pulse'
+                : isMyActive
+                ? 'bg-emerald-600 text-white animate-pulse'
+                : 'bg-neutral-200 dark:bg-neutral-800 text-[#77736B]'
+            }`}>
+              {isOppActive ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              <span>{isOppActive ? 'Opponent Moving' : isMyActive ? 'Your Move' : 'Paused'}</span>
+            </span>
+
+            <span className="text-[#77736B] dark:text-[#8E8E93] text-[11px]">
+              Moves: {movesCount}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            {!readOnly && (
+              isRunning ? (
+                <button
+                  type="button"
+                  onClick={handlePause}
+                  className="px-2.5 py-1 rounded-lg bg-[#22221F] dark:bg-[#FAF8F3] text-white dark:text-black text-[10px] font-bold uppercase inline-flex items-center gap-1 cursor-pointer"
+                >
+                  <Pause className="w-3 h-3 fill-current" />
+                  <span>Pause</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleStartResume}
+                  className="px-2.5 py-1 rounded-lg bg-amber-600 text-white text-[10px] font-bold uppercase inline-flex items-center gap-1 cursor-pointer"
+                >
+                  <Play className="w-3 h-3 fill-current" />
+                  <span>Resume</span>
+                </button>
+              )
+            )}
+
+            <button
+              type="button"
+              onClick={() => setFlipOpponent(!flipOpponent)}
+              className="p-1 rounded-lg bg-white dark:bg-[#252523] border border-[#D5CFC5] dark:border-[#383733] text-[#77736B] cursor-pointer"
+              title="Flip Opponent 180°"
+            >
+              <RotateCw className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {/* DOWNSIDE: PLAYER TIMER (Click on your timer to start other player's timer!) */}
+        <button
+          type="button"
+          onClick={() => handleClockPadClick(myColor)}
+          disabled={readOnly || !!flagFall}
+          className={`w-full p-4 sm:p-5 rounded-2xl border-2 transition-all duration-150 text-left flex flex-col justify-between min-h-[155px] cursor-pointer select-none active:scale-[0.98] ${
+            isMyActive
+              ? 'bg-amber-100/90 dark:bg-amber-950/60 border-amber-500 ring-4 ring-amber-500/30 shadow-md'
+              : 'bg-[#FAF8F3]/60 dark:bg-[#181816] border-[#D5CFC5] dark:border-[#282826] opacity-80'
+          }`}
+        >
+          <div className="flex items-center justify-between text-xs font-mono">
+            <div className="flex items-center gap-1.5">
+              <span className={`w-3.5 h-3.5 rounded-full border ${myColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
+              <span className="font-bold text-[#171715] dark:text-[#FAF8F3] uppercase tracking-wider">
+                You ({myColor})
+              </span>
+            </div>
+            {isMyActive ? (
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] font-bold uppercase tracking-wider animate-pulse">
+                Your Turn Active
+              </span>
+            ) : (
+              <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93] font-mono">
+                Paused
+              </span>
+            )}
+          </div>
+
+          <div className="py-1 text-center">
+            <span className={`text-5xl font-mono font-black tracking-tight ${
+              flagFall === myColor
+                ? 'text-rose-600 line-through'
+                : isMyUrgent
+                ? 'text-rose-600 animate-pulse'
+                : isMyActive
+                ? 'text-amber-600 dark:text-amber-400'
+                : 'text-[#171715] dark:text-[#FAF8F3]'
+            }`}>
+              {formatTime(myTime)}
+            </span>
+          </div>
+
+          <div className="text-center font-mono text-xs">
+            {isMyActive ? (
+              <span className="w-full py-1.5 px-3 rounded-xl bg-amber-600 text-white font-bold text-[11px] uppercase tracking-wider animate-pulse inline-block shadow-sm">
+                CLICK WHEN YOU MOVE PAWN ⇆
+              </span>
+            ) : (
+              <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93]">
+                Your time is paused. Tapping your timer starts opponent clock.
+              </span>
+            )}
+          </div>
+        </button>
+
+      </div>
+
+      {/* ------------------------------------------------------------- */}
+      {/* 2. DESKTOP VIEW: INTERACTIVE SIDE-BY-SIDE CLICKABLE TOUCH PADS*/}
+      {/* ------------------------------------------------------------- */}
+      <div className="hidden sm:grid sm:grid-cols-2 gap-4 sm:gap-6">
         
         {/* PLAYER 1: WHITE CLOCK PAD */}
-        <div
-          className={`relative p-6 sm:p-8 rounded-3xl border-2 transition-all duration-200 text-center flex flex-col justify-between min-h-[190px] ${
+        <button
+          type="button"
+          onClick={() => handleClockPadClick('white')}
+          disabled={readOnly || !!flagFall}
+          className={`relative p-6 sm:p-8 rounded-3xl border-2 transition-all duration-150 text-center flex flex-col justify-between min-h-[190px] cursor-pointer select-none active:scale-[0.99] ${
             isWhiteActive
               ? 'bg-[#FAF8F3] dark:bg-[#1A1A17] border-amber-500 ring-4 ring-amber-500/20 shadow-2xl scale-[1.02]'
-              : 'bg-[#FAF8F3]/60 dark:bg-[#141414] border-[#D5CFC5] dark:border-[#282826] opacity-80'
+              : 'bg-[#FAF8F3]/60 dark:bg-[#141414] border-[#D5CFC5] dark:border-[#282826] opacity-80 hover:opacity-100'
           }`}
         >
           {/* Header */}
@@ -577,18 +1003,21 @@ export function DualChessClock({
             <h4 className="font-serif font-bold text-sm text-[#171715] dark:text-[#FAF8F3] truncate">
               {player1Name}
             </h4>
-            <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93] block">
-              {isWhiteActive ? 'White Clock Active' : 'Waiting for White...'}
+            <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93] block mt-0.5">
+              {isWhiteActive ? 'Click to Pass Turn to Black ⇆' : 'White Clock Paused'}
             </span>
           </div>
-        </div>
+        </button>
 
         {/* PLAYER 2: BLACK CLOCK PAD */}
-        <div
-          className={`relative p-6 sm:p-8 rounded-3xl border-2 transition-all duration-200 text-center flex flex-col justify-between min-h-[190px] ${
+        <button
+          type="button"
+          onClick={() => handleClockPadClick('black')}
+          disabled={readOnly || !!flagFall}
+          className={`relative p-6 sm:p-8 rounded-3xl border-2 transition-all duration-150 text-center flex flex-col justify-between min-h-[190px] cursor-pointer select-none active:scale-[0.99] ${
             isBlackActive
               ? 'bg-[#171715] text-[#FAF8F3] dark:bg-[#1E1E1B] border-amber-500 ring-4 ring-amber-500/20 shadow-2xl scale-[1.02]'
-              : 'bg-[#2B2925] text-[#FAF8F3] dark:bg-[#161614] border-[#3E3C37] dark:border-[#282826] opacity-80'
+              : 'bg-[#2B2925] text-[#FAF8F3] dark:bg-[#161614] border-[#3E3C37] dark:border-[#282826] opacity-80 hover:opacity-100'
           }`}
         >
           {/* Header */}
@@ -628,15 +1057,15 @@ export function DualChessClock({
             <h4 className="font-serif font-bold text-sm text-white truncate">
               {player2Name}
             </h4>
-            <span className="text-[10px] font-mono text-[#D5CFC5]/80 block">
-              {isBlackActive ? 'Black Clock Active' : 'Waiting for Black...'}
+            <span className="text-[10px] font-mono text-[#D5CFC5]/80 block mt-0.5">
+              {isBlackActive ? 'Click to Pass Turn to White ⇆' : 'Black Clock Paused'}
             </span>
           </div>
-        </div>
+        </button>
 
       </div>
 
-      {/* CENTRAL ACTION BAR */}
+      {/* CENTRAL ACTION BAR (Desktop) */}
       <div className="bg-[#EFEAE1]/70 dark:bg-[#1B1B19] p-4 rounded-2xl border border-[#D5CFC5] dark:border-[#262624] flex flex-wrap items-center justify-between gap-4">
         
         {/* Status Pill */}
@@ -649,11 +1078,11 @@ export function DualChessClock({
           </div>
           <span className="text-[#D5CFC5] dark:text-[#2E2E2B]">|</span>
           <span className="text-[11px] font-mono text-[#77736B] dark:text-[#8E8E93]">
-            Shortcuts: <kbd className="px-1.5 py-0.5 bg-white dark:bg-[#242422] rounded border text-[10px] font-bold">P</kbd> pause/resume
+            Tap clock or press <kbd className="px-1.5 py-0.5 bg-white dark:bg-[#242422] rounded border text-[10px] font-bold">Space</kbd> to switch turns
           </span>
         </div>
 
-        {/* Action Buttons or Read-Only Status */}
+        {/* Action Buttons */}
         {readOnly ? (
           <div className="flex items-center gap-2 font-mono text-xs text-[#77736B] dark:text-[#8E8E93]">
             <span className={`w-2 h-2 rounded-full ${isRunning ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
