@@ -171,7 +171,37 @@ export default function ChessAdminMatchesPage() {
 
       if (matchesRes.status === 'fulfilled' && matchesRes.value?.success) {
         const freshMatches = matchesRes.value.data || [];
-        setMatches(freshMatches);
+        setMatches((prevMatches) => {
+          return freshMatches.map((fresh) => {
+            const existing = (prevMatches || []).find(
+              (p) => p && (p._id === fresh._id || p.matchId === fresh.matchId)
+            );
+            if (fresh.status === 'live' && fresh.isClockRunning !== false) {
+              const turn = fresh.activeTurn || existing?.activeTurn || 'white';
+              let w = typeof fresh.whiteTimeRemaining === 'number' ? fresh.whiteTimeRemaining : 600;
+              let b = typeof fresh.blackTimeRemaining === 'number' ? fresh.blackTimeRemaining : 600;
+              if (fresh.lastClockUpdate) {
+                const elapsed = Math.max(0, Math.floor((Date.now() - new Date(fresh.lastClockUpdate).getTime()) / 1000));
+                if (turn === 'white') w = Math.max(0, w - elapsed);
+                else if (turn === 'black') b = Math.max(0, b - elapsed);
+              }
+              if (existing && existing.status === 'live' && existing.isClockRunning !== false) {
+                if (turn === 'white' && Math.abs((existing.whiteTimeRemaining || 0) - w) <= 2) {
+                  w = existing.whiteTimeRemaining;
+                }
+                if (turn === 'black' && Math.abs((existing.blackTimeRemaining || 0) - b) <= 2) {
+                  b = existing.blackTimeRemaining;
+                }
+              }
+              return {
+                ...fresh,
+                whiteTimeRemaining: w,
+                blackTimeRemaining: b
+              };
+            }
+            return fresh;
+          });
+        });
 
         // Keep active result modal synced with fresh data
         setResultModalMatch((prev) => {
@@ -179,10 +209,33 @@ export default function ChessAdminMatchesPage() {
           return freshMatches.find(m => (m?._id === prev?._id || m?.matchId === prev?.matchId)) || prev;
         });
 
-        // Keep match detail modal synced with fresh data
+        // Keep match detail modal synced with fresh data without jumping
         setMatchModalMatch((prev) => {
           if (!prev) return null;
-          return freshMatches.find(m => (m?._id === prev?._id || m?.matchId === prev?.matchId)) || prev;
+          const fresh = freshMatches.find((m) => m?._id === prev?._id || m?.matchId === prev?.matchId);
+          if (!fresh) return prev;
+          if (fresh.status === 'live' && fresh.isClockRunning !== false) {
+            const turn = fresh.activeTurn || prev.activeTurn || 'white';
+            let w = typeof fresh.whiteTimeRemaining === 'number' ? fresh.whiteTimeRemaining : (prev.whiteTimeRemaining || 600);
+            let b = typeof fresh.blackTimeRemaining === 'number' ? fresh.blackTimeRemaining : (prev.blackTimeRemaining || 600);
+            if (fresh.lastClockUpdate) {
+              const elapsed = Math.max(0, Math.floor((Date.now() - new Date(fresh.lastClockUpdate).getTime()) / 1000));
+              if (turn === 'white') w = Math.max(0, w - elapsed);
+              else if (turn === 'black') b = Math.max(0, b - elapsed);
+            }
+            if (turn === 'white' && Math.abs((prev.whiteTimeRemaining || 0) - w) <= 2) {
+              w = prev.whiteTimeRemaining;
+            }
+            if (turn === 'black' && Math.abs((prev.blackTimeRemaining || 0) - b) <= 2) {
+              b = prev.blackTimeRemaining;
+            }
+            return {
+              ...fresh,
+              whiteTimeRemaining: w,
+              blackTimeRemaining: b
+            };
+          }
+          return fresh;
         });
       }
       if (playersRes.status === 'fulfilled' && playersRes.value?.success) {
@@ -272,6 +325,45 @@ export default function ChessAdminMatchesPage() {
       setSelectedRound(dynamicProgression.targetRound || 1);
     }
   }, [dynamicProgression]);
+
+  // 1-second live countdown ticker for all running matches (bracket view + match dossier modal)
+  useEffect(() => {
+    const tickInterval = setInterval(() => {
+      // 1. Tick active live matches in bracket / table view
+      setMatches((prevMatches) => {
+        if (!prevMatches || prevMatches.length === 0) return prevMatches;
+        let hasActive = false;
+        const next = prevMatches.map((m) => {
+          if (!m || m.status !== 'live' || m.isClockRunning === false) return m;
+          hasActive = true;
+          const turn = m.activeTurn && m.activeTurn !== 'none' ? m.activeTurn : 'white';
+          if (turn === 'white') {
+            const cur = typeof m.whiteTimeRemaining === 'number' ? m.whiteTimeRemaining : ((m.durationMinutes || 10) * 60);
+            return { ...m, whiteTimeRemaining: Math.max(0, cur - 1) };
+          } else {
+            const cur = typeof m.blackTimeRemaining === 'number' ? m.blackTimeRemaining : ((m.durationMinutes || 10) * 60);
+            return { ...m, blackTimeRemaining: Math.max(0, cur - 1) };
+          }
+        });
+        return hasActive ? next : prevMatches;
+      });
+
+      // 2. Tick matchModalMatch if open and clock is running
+      setMatchModalMatch((prev) => {
+        if (!prev || prev.status !== 'live' || prev.isClockRunning === false) return prev;
+        const turn = prev.activeTurn && prev.activeTurn !== 'none' ? prev.activeTurn : 'white';
+        if (turn === 'white') {
+          const cur = typeof prev.whiteTimeRemaining === 'number' ? prev.whiteTimeRemaining : ((prev.durationMinutes || 10) * 60);
+          return { ...prev, whiteTimeRemaining: Math.max(0, cur - 1) };
+        } else {
+          const cur = typeof prev.blackTimeRemaining === 'number' ? prev.blackTimeRemaining : ((prev.durationMinutes || 10) * 60);
+          return { ...prev, blackTimeRemaining: Math.max(0, cur - 1) };
+        }
+      });
+    }, 1000);
+
+    return () => clearInterval(tickInterval);
+  }, []);
 
   useEffect(() => {
     loadData();
@@ -589,6 +681,18 @@ export default function ChessAdminMatchesPage() {
       )
     );
 
+    setMatchModalMatch((prev) => {
+      if (!prev || (prev._id !== mId && prev.matchId !== mId)) return prev;
+      return {
+        ...prev,
+        isClockRunning: nextRunning,
+        whiteTimeRemaining: wSec,
+        blackTimeRemaining: bSec,
+        activeTurn: turn,
+        lastClockUpdate: new Date()
+      };
+    });
+
     // Instant zero-latency Broadcast to player dashboards & audience
     try {
       if (typeof window !== 'undefined' && window.BroadcastChannel) {
@@ -668,6 +772,19 @@ export default function ChessAdminMatchesPage() {
       )
     );
 
+    setMatchModalMatch((prev) => {
+      if (!prev || (prev._id !== mId && prev.matchId !== mId)) return prev;
+      return {
+        ...prev,
+        activeTurn: nextTurn,
+        whiteTimeRemaining: wSec,
+        blackTimeRemaining: bSec,
+        movesCount: nextMoves,
+        isClockRunning: true,
+        lastClockUpdate: new Date()
+      };
+    });
+
     // Broadcast live over BroadcastChannel & Socket.io
     try {
       if (typeof window !== 'undefined' && window.BroadcastChannel) {
@@ -738,6 +855,17 @@ export default function ChessAdminMatchesPage() {
           : m
       )
     );
+
+    setMatchModalMatch((prev) => {
+      if (!prev || (prev._id !== mId && prev.matchId !== mId)) return prev;
+      return {
+        ...prev,
+        whiteTimeRemaining: wSec,
+        blackTimeRemaining: bSec,
+        durationMinutes: newDur,
+        lastClockUpdate: new Date()
+      };
+    });
 
     // Broadcast
     try {
