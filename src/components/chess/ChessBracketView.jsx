@@ -378,6 +378,11 @@ function ChessMatchNode({
           >
             {match.matchId}
           </button>
+          {match.boardNumber && (
+            <span className="font-mono text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#EFEAE1] dark:bg-[#1E1E1C] text-[#77736B] dark:text-[#A8A49C] border border-[#D5CFC5]/60 dark:border-[#282826]">
+              Board #{match.boardNumber}
+            </span>
+          )}
           {isFinal && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/50 text-amber-900 dark:text-amber-300 font-bold uppercase text-[9px] border border-amber-300 dark:border-amber-800">
               <Trophy className="w-3 h-3" />

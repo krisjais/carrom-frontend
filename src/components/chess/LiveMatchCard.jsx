@@ -14,9 +14,14 @@ export function LiveMatchCard({ match }) {
       
       {/* Header */}
       <div className="flex items-center justify-between border-b border-[#D5CFC5]/70 dark:border-[#262624] pb-3 text-xs font-mono">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="font-bold text-[#171715] dark:text-[#FAF8F3]">{match.matchId}</span>
           <span className="text-[#77736B] dark:text-[#8E8E93]">| Round {match.round}</span>
+          {match.boardNumber && (
+            <span className="text-[10px] bg-amber-500/10 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded font-bold">
+              Board #{match.boardNumber}
+            </span>
+          )}
         </div>
         <span className="bg-[#EFEAE1] dark:bg-[#222220] border border-[#D5CFC5] dark:border-[#2E2E2B] text-[#171715] dark:text-[#FAF8F3] px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase flex items-center gap-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-[#171715] dark:bg-emerald-400 animate-pulse" />

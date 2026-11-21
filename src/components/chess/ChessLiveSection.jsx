@@ -53,10 +53,18 @@ export function ChessLiveSection({ liveMatches = [] }) {
                   >
                     {/* Header */}
                     <div className="flex items-center justify-between border-b border-[#D5CFC5]/60 dark:border-[#262624] pb-4 mb-6">
-                      <div className="flex items-center gap-2 font-mono text-xs text-[#77736B] dark:text-[#8E8E93]">
+                      <div className="flex items-center gap-2 font-mono text-xs text-[#77736B] dark:text-[#8E8E93] flex-wrap">
                         <span className="font-bold text-[#171715] dark:text-[#FAF8F3]">{match.matchId}</span>
                         <span>•</span>
                         <span>Round {match.round}</span>
+                        {match.boardNumber && (
+                          <>
+                            <span>•</span>
+                            <span className="text-[10px] bg-amber-500/10 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded font-bold">
+                              Board #{match.boardNumber}
+                            </span>
+                          </>
+                        )}
                       </div>
 
                       <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-700 dark:text-rose-400 text-[10px] font-mono font-bold uppercase">

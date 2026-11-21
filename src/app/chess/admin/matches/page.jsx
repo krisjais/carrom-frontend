@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { chessApi } from '@/lib/chessApi';
 import { AdminSidebar } from '@/components/chess/AdminSidebar';
 import { ChessBracketView } from '@/components/chess/ChessBracketView';
-import { Swords, Play, Pause, CheckCircle2, XCircle, Trophy, Loader2, Plus, Minus, Trash2, Clock, ShieldCheck, Zap, CheckSquare, Square, ChevronDown, X, LayoutGrid, List, Crown, Sparkles, ArrowRightLeft, RotateCcw, Timer, Save, CalendarClock, Calendar } from 'lucide-react';
+import { Swords, Play, Pause, CheckCircle2, XCircle, Trophy, Loader2, Plus, Minus, Trash2, Clock, ShieldCheck, Zap, CheckSquare, Square, ChevronDown, X, LayoutGrid, List, Crown, Sparkles, ArrowRightLeft, RotateCcw, Timer, Save, CalendarClock, Calendar, ArrowRight, Shield } from 'lucide-react';
 import { useToast, useConfirm } from '@/context/ToastContext';
 import { getSocket, subscribeToChessLive } from '@/lib/socket';
 
@@ -133,9 +133,22 @@ export default function ChessAdminMatchesPage() {
   const [showDeleteRoundModal, setShowDeleteRoundModal] = useState(false);
   const [roundToDelete, setRoundToDelete] = useState(null);
 
+  // Multi-Board Arena Control States (Just like Carrom)
+  const [boards, setBoards] = useState([]);
+  const [addBoardModalOpen, setAddBoardModalOpen] = useState(false);
+  const [newBoardData, setNewBoardData] = useState({
+    boardNumber: '',
+    name: '',
+    adminInCharge: ''
+  });
+  const [launchOnBoard, setLaunchOnBoard] = useState(null);
+  const [stoppingBoardId, setStoppingBoardId] = useState(null);
+  const [boardSelectMatch, setBoardSelectMatch] = useState(null);
+  const [launchingMatchId, setLaunchingMatchId] = useState(null);
+
   // Lock body scroll and enable Escape key to close whenever ANY modal is open
   const isAnyModalOpen = Boolean(
-    matchModalMatch || showRescheduleModal || showCreateModal || resultModalMatch || timeModalOpen || showDeleteRoundModal
+    matchModalMatch || showRescheduleModal || showCreateModal || resultModalMatch || timeModalOpen || showDeleteRoundModal || addBoardModalOpen || Boolean(launchOnBoard) || Boolean(boardSelectMatch)
   );
 
   useEffect(() => {
@@ -150,6 +163,9 @@ export default function ChessAdminMatchesPage() {
           setResultModalMatch(null);
           setTimeModalOpen(false);
           setShowDeleteRoundModal(false);
+          setAddBoardModalOpen(false);
+          setLaunchOnBoard(null);
+          setBoardSelectMatch(null);
         }
       };
       window.addEventListener('keydown', handleKeyDown);
@@ -169,9 +185,10 @@ export default function ChessAdminMatchesPage() {
     }
     if (!silent) setLoading(true);
     try {
-      const [matchesRes, playersRes] = await Promise.allSettled([
+      const [matchesRes, playersRes, boardsRes] = await Promise.allSettled([
         chessApi.getAdminMatches(),
-        chessApi.getAdminPlayers()
+        chessApi.getAdminPlayers(),
+        chessApi.getAdminBoards()
       ]);
 
       if (matchesRes.status === 'fulfilled' && matchesRes.value?.success) {
@@ -246,8 +263,11 @@ export default function ChessAdminMatchesPage() {
       if (playersRes.status === 'fulfilled' && playersRes.value?.success) {
         setPlayers(playersRes.value.data || []);
       }
+      if (boardsRes.status === 'fulfilled' && boardsRes.value?.success) {
+        setBoards(boardsRes.value.boards || []);
+      }
     } catch (err) {
-      console.error('Error loading matches & players:', err);
+      console.error('Error loading matches, players & boards:', err);
     } finally {
       if (!silent) setLoading(false);
     }
@@ -365,6 +385,38 @@ export default function ChessAdminMatchesPage() {
           return { ...prev, blackTimeRemaining: Math.max(0, cur - 1) };
         }
       });
+
+      // 3. Tick live matches on boards
+      setBoards((prevBoards) => {
+        if (!prevBoards || prevBoards.length === 0) return prevBoards;
+        let hasLive = false;
+        const next = prevBoards.map((b) => {
+          if (!b || b.status !== 'live' || !b.currentMatch || b.currentMatch.isClockRunning === false) return b;
+          hasLive = true;
+          const m = b.currentMatch;
+          const turn = m.activeTurn && m.activeTurn !== 'none' ? m.activeTurn : 'white';
+          if (turn === 'white') {
+            const cur = typeof m.whiteTimeRemaining === 'number' ? m.whiteTimeRemaining : ((m.durationMinutes || 10) * 60);
+            return {
+              ...b,
+              currentMatch: {
+                ...m,
+                whiteTimeRemaining: Math.max(0, cur - 1)
+              }
+            };
+          } else {
+            const cur = typeof m.blackTimeRemaining === 'number' ? m.blackTimeRemaining : ((m.durationMinutes || 10) * 60);
+            return {
+              ...b,
+              currentMatch: {
+                ...m,
+                blackTimeRemaining: Math.max(0, cur - 1)
+              }
+            };
+          }
+        });
+        return hasLive ? next : prevBoards;
+      });
     }, 1000);
 
     return () => clearInterval(tickInterval);
@@ -443,8 +495,8 @@ export default function ChessAdminMatchesPage() {
 
     const unsubscribeSocket = subscribeToChessLive((data) => {
       handleEventData(data);
-      if (data?.type === 'match_created' || data?.type === 'match_started' || data?.type === 'result_submitted') {
-        fetchMatches();
+      if (data?.type === 'match_created' || data?.type === 'match_started' || data?.type === 'result_submitted' || data?.type === 'board_updated') {
+        loadData(true);
       }
     });
 
@@ -617,11 +669,116 @@ export default function ChessAdminMatchesPage() {
     }
   };
 
-  // Start live match (10-minute clock starts from White's first turn)
-  const handleStartMatch = async (id) => {
+  // Multi-Board Management Handlers
+  const handleAddBoard = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await chessApi.createBoard(newBoardData);
+      if (res.success) {
+        toast.success(res.message || 'Chess board created successfully!');
+        setAddBoardModalOpen(false);
+        setNewBoardData({ boardNumber: '', name: '', adminInCharge: '' });
+        await loadData(true);
+      } else {
+        toast.error(res.message || 'Failed to create board.');
+      }
+    } catch (err) {
+      toast.error(err.message || 'Error creating board.');
+    }
+  };
+
+  const handleDeleteBoard = async (board) => {
+    const isConfirmed = await confirm({
+      title: `Delete ${board.name}?`,
+      message: `Are you sure you want to remove Board #${board.boardNumber}? This desk will be removed from the tournament arena.`,
+      confirmText: 'Delete Board',
+      cancelText: 'Cancel',
+      type: 'danger'
+    });
+    if (!isConfirmed) return;
+
+    try {
+      const res = await chessApi.deleteBoard(board._id || board.boardNumber);
+      if (res.success) {
+        toast.success(res.message || `${board.name} removed successfully.`);
+        await loadData(true);
+      } else {
+        toast.error(res.message || 'Failed to delete board.');
+      }
+    } catch (err) {
+      toast.error(err.message || 'Error deleting board.');
+    }
+  };
+
+  const handleLaunchMatchOnBoard = async (board, match) => {
+    if (!board || !match) return;
+    setLaunchingMatchId(match._id || match.matchId);
+    try {
+      const res = await chessApi.launchMatchOnBoard(board._id || board.boardNumber, match._id || match.matchId);
+      if (res.success) {
+        toast.success(res.message || `Match launched on ${board.name}!`);
+        setLaunchOnBoard(null);
+        setBoardSelectMatch(null);
+        await loadData(true);
+      } else {
+        toast.error(res.message || 'Failed to launch match on board.');
+      }
+    } catch (err) {
+      toast.error(err.message || 'Error launching match on board.');
+    } finally {
+      setLaunchingMatchId(null);
+    }
+  };
+
+  const handleStopBoard = async (board) => {
+    const isConfirmed = await confirm({
+      title: `Vacate ${board.name}?`,
+      message: `Are you sure you want to vacate ${board.name}? The active match will be paused and reverted to scheduled status so another match can take this board.`,
+      confirmText: 'Vacate Board',
+      cancelText: 'Cancel',
+      type: 'danger'
+    });
+    if (!isConfirmed) return;
+
+    setStoppingBoardId(board._id || board.boardNumber);
+    try {
+      const res = await chessApi.stopMatchOnBoard(board._id || board.boardNumber);
+      if (res.success) {
+        toast.success(res.message || `${board.name} vacated.`);
+        await loadData(true);
+      } else {
+        toast.error(res.message || 'Failed to vacate board.');
+      }
+    } catch (err) {
+      toast.error(err.message || 'Error vacating board.');
+    } finally {
+      setStoppingBoardId(null);
+    }
+  };
+
+  // Start live match (10-minute clock starts from White's first turn) with board selection
+  const handleStartMatch = async (id, boardNumber = null, boardName = null) => {
+    const availableBoards = boards.filter((b) => b?.status === 'available');
+
+    // If multiple boards are available and none was specified, prompt arbiter to choose board
+    if (!boardNumber && availableBoards.length > 1) {
+      const targetMatch = matches.find((m) => m?._id === id || m?.matchId === id);
+      if (targetMatch) {
+        setBoardSelectMatch(targetMatch);
+        return;
+      }
+    }
+
+    const targetBoard = boardNumber
+      ? boards.find((b) => b.boardNumber === boardNumber)
+      : (availableBoards[0] || boards[0]);
+
+    const assignedNum = boardNumber || targetBoard?.boardNumber || 1;
+    const assignedTitle = boardName || targetBoard?.name || `Chess Board ${assignedNum}`;
+
     setStartingMatchId(id);
     try {
-      const res = await chessApi.startMatch(id);
+      const res = await chessApi.startMatch(id, assignedNum, assignedTitle);
       if (res.success) {
         // Optimistically update local matches state
         setMatches((prev) =>
@@ -630,6 +787,8 @@ export default function ChessAdminMatchesPage() {
               ? {
                   ...m,
                   status: 'live',
+                  boardNumber: assignedNum,
+                  boardName: assignedTitle,
                   actualStartTime: new Date(),
                   durationMinutes: 10,
                   activeTurn: 'white',
@@ -672,7 +831,8 @@ export default function ChessAdminMatchesPage() {
           }
         } catch {}
 
-        toast.success('Match started! Clock active with White opening turn.');
+        toast.success(`Match started on ${assignedTitle}! Clock active with White opening turn.`);
+        setBoardSelectMatch(null);
         await loadData(true);
       } else {
         toast.error(res.message || 'Failed to start match.');
@@ -1486,6 +1646,265 @@ export default function ChessAdminMatchesPage() {
           </div>
         </div>
 
+        {/* MULTI-BOARD CHESS ARENA MANAGEMENT (Simultaneous Multi-Match Arena Desks) */}
+        <div className="p-5 sm:p-6 rounded-2xl bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] shadow-xs space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#E8E1D5] dark:border-[#262624]">
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                <span className="font-mono text-[10px] uppercase font-bold tracking-wider text-amber-700 dark:text-amber-400">
+                  Multi-Board Arena Control
+                </span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white dark:bg-[#1E1E1C] border border-[#D5CFC5] dark:border-[#383733] text-[#77736B] dark:text-[#8E8E93]">
+                  {boards.length} Board{boards.length !== 1 ? 's' : ''} Total • {boards.filter((b) => b.status === 'live').length} Live
+                </span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#171715] dark:text-[#FAF8F3]">
+                Chess Boards & Live Arena Desks
+              </h2>
+              <p className="text-xs text-[#77736B] dark:text-[#8E8E93]">
+                Arbiters can simultaneously conduct multiple chess games across separate boards with dedicated dual chess clocks.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const nextNum = boards.reduce((max, b) => Math.max(max, b.boardNumber || 0), 0) + 1;
+                  setNewBoardData({
+                    name: `Chess Board ${nextNum}`,
+                    boardNumber: nextNum,
+                    adminInCharge: ''
+                  });
+                  setAddBoardModalOpen(true);
+                }}
+                className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-mono text-xs font-bold shadow-xs flex items-center gap-1.5 uppercase tracking-wider cursor-pointer transition-colors"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Board</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Dynamic Boards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {boards?.filter(Boolean).map((b) => {
+              const isLive = b?.status === 'live' && b?.currentMatch;
+              const currentM = b?.currentMatch;
+              const isMaintenance = b?.status === 'maintenance';
+
+              return (
+                <div
+                  key={b?._id || b?.boardNumber}
+                  className={`p-4 rounded-xl border transition-all flex flex-col justify-between space-y-3 ${
+                    isLive
+                      ? 'bg-white dark:bg-[#1A1A18] border-amber-500 ring-2 ring-amber-500/20 shadow-sm'
+                      : isMaintenance
+                      ? 'bg-neutral-100 dark:bg-[#1E1E1C]/60 border-neutral-300 dark:border-neutral-800 opacity-75'
+                      : 'bg-white dark:bg-[#1A1A18] border-[#D5CFC5] dark:border-[#262624]'
+                  }`}
+                >
+                  {/* Board Card Header */}
+                  <div className="flex items-center justify-between pb-2 border-b border-[#E8E1D5] dark:border-[#282826]">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#FAF8F3] dark:bg-[#252522] border border-[#D5CFC5] dark:border-[#383733] text-[#171715] dark:text-[#FAF8F3] shrink-0">
+                        BOARD #{String(b.boardNumber).padStart(2, '0')}
+                      </span>
+                      <span className="font-serif font-bold text-sm text-[#171715] dark:text-[#FAF8F3] truncate">
+                        {b.name}
+                      </span>
+                    </div>
+
+                    <div className="shrink-0 flex items-center gap-1.5">
+                      {isLive ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 animate-pulse">
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                          <span>LIVE IN PLAY</span>
+                        </span>
+                      ) : isMaintenance ? (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-800/60">
+                          MAINTENANCE
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800/60">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          <span>AVAILABLE</span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Board Card Content */}
+                  {isLive && currentM ? (
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between text-[11px] font-mono">
+                        <div className="flex items-center gap-1 text-amber-700 dark:text-amber-400 font-bold truncate">
+                          <span>{currentM.matchId || `M#${currentM.matchNumber || 1}`}</span>
+                          <span>•</span>
+                          <span>{currentM.roundName || 'Round'}</span>
+                        </div>
+                        <span className={`text-[10px] px-2 py-0.5 rounded font-mono font-bold uppercase ${
+                          currentM.activeTurn === 'white' 
+                            ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700' 
+                            : 'bg-neutral-800 text-neutral-100 dark:bg-neutral-200 dark:text-neutral-900'
+                        }`}>
+                          {currentM.activeTurn === 'white' ? "White's Turn" : "Black's Turn"}
+                        </span>
+                      </div>
+
+                      {/* Players and Dual Clocks */}
+                      <div className="p-2.5 rounded-xl bg-[#FAF8F3] dark:bg-[#151514] border border-[#E2DDD5] dark:border-[#282826] space-y-2">
+                        {/* White Player */}
+                        <div className={`p-2 rounded-lg flex items-center justify-between transition-colors ${
+                          currentM.activeTurn === 'white' && currentM.isClockRunning !== false
+                            ? 'bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/50'
+                            : 'bg-white dark:bg-[#1E1E1C] border border-[#D5CFC5]/40 dark:border-[#383733]/40'
+                        }`}>
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-xs">♔</span>
+                            <span className="font-semibold text-xs text-[#171715] dark:text-[#FAF8F3] truncate max-w-[130px]">
+                              {currentM.player1?.name || currentM.player1Details?.name || 'White Player'}
+                            </span>
+                          </div>
+                          <span className={`font-mono font-bold text-xs px-2 py-0.5 rounded ${
+                            (currentM.whiteTimeRemaining ?? 600) <= 60 
+                              ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 animate-pulse font-extrabold'
+                              : 'bg-neutral-100 dark:bg-neutral-800 text-[#171715] dark:text-[#FAF8F3]'
+                          }`}>
+                            {formatClockTime(currentM.whiteTimeRemaining ?? 600)}
+                          </span>
+                        </div>
+
+                        {/* Black Player */}
+                        <div className={`p-2 rounded-lg flex items-center justify-between transition-colors ${
+                          currentM.activeTurn === 'black' && currentM.isClockRunning !== false
+                            ? 'bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/50'
+                            : 'bg-white dark:bg-[#1E1E1C] border border-[#D5CFC5]/40 dark:border-[#383733]/40'
+                        }`}>
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-xs">♚</span>
+                            <span className="font-semibold text-xs text-[#171715] dark:text-[#FAF8F3] truncate max-w-[130px]">
+                              {currentM.player2?.name || currentM.player2Details?.name || 'Black Player'}
+                            </span>
+                          </div>
+                          <span className={`font-mono font-bold text-xs px-2 py-0.5 rounded ${
+                            (currentM.blackTimeRemaining ?? 600) <= 60 
+                              ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 animate-pulse font-extrabold'
+                              : 'bg-neutral-100 dark:bg-neutral-800 text-[#171715] dark:text-[#FAF8F3]'
+                          }`}>
+                            {formatClockTime(currentM.blackTimeRemaining ?? 600)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between text-[11px] font-mono pt-1 text-[#77736B] dark:text-[#8E8E93]">
+                        <span>Moves: {currentM.movesCount ?? 0}</span>
+                        {b.adminInCharge ? (
+                          <span className="text-[10px] truncate max-w-[120px]">
+                            Arbiter: {b.adminInCharge}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                            Live Game
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="py-4 text-center space-y-2 text-[#77736B] dark:text-[#8E8E93]">
+                      <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto text-xs font-bold font-mono">
+                        {b.boardNumber}
+                      </div>
+                      <p className="text-xs font-mono font-medium">Board is vacant & ready</p>
+                      {b.adminInCharge && (
+                        <span className="inline-block text-[10px] font-mono px-2 py-0.5 rounded bg-[#FAF8F3] dark:bg-[#1E1E1C] border border-[#D5CFC5] dark:border-[#383733]">
+                          Arbiter: {b.adminInCharge}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Board Card Action Footer */}
+                  <div className="pt-2 border-t border-[#E8E1D5] dark:border-[#282826] flex items-center justify-between gap-1.5">
+                    {isLive && currentM ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setMatchModalMatch(currentM)}
+                          className="flex-1 py-1.5 px-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold font-mono shadow-xs flex items-center justify-center gap-1 uppercase tracking-wider cursor-pointer transition-colors"
+                          title="Open Arbiter Dossier & Clock Desk"
+                        >
+                          <span>Arbiter Desk</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleAdminSwitchTurn(currentM)}
+                          className="px-2 py-1.5 rounded-lg bg-[#FAF8F3] dark:bg-[#252522] hover:bg-neutral-200 dark:hover:bg-[#333330] border border-[#D5CFC5] dark:border-[#383733] text-[11px] font-mono font-bold text-[#171715] dark:text-[#FAF8F3] cursor-pointer transition-colors shadow-2xs"
+                          title={`Switch turn to ${currentM.activeTurn === 'white' ? 'Black' : 'White'}`}
+                        >
+                          <ArrowRightLeft className="w-3.5 h-3.5" />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handlePauseResumeMatch(currentM)}
+                          className={`px-2 py-1.5 rounded-lg border text-[11px] font-mono font-bold cursor-pointer transition-colors shadow-2xs ${
+                            currentM.isClockRunning !== false
+                              ? 'bg-neutral-800 text-white dark:bg-neutral-200 dark:text-neutral-900 border-transparent hover:bg-black'
+                              : 'bg-emerald-600 text-white border-transparent hover:bg-emerald-700 animate-pulse'
+                          }`}
+                          title={currentM.isClockRunning !== false ? 'Pause Clock' : 'Resume Clock'}
+                        >
+                          {currentM.isClockRunning !== false ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 fill-current" />}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleStopBoard(b)}
+                          disabled={stoppingBoardId === (b._id || b.boardNumber)}
+                          className="px-2 py-1.5 rounded-lg bg-[#FAF8F3] dark:bg-[#252522] hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-300 dark:border-rose-900/40 text-[11px] font-mono font-bold cursor-pointer transition-colors shadow-2xs"
+                          title="Vacate board (clear current game from this board)"
+                        >
+                          {stoppingBoardId === (b._id || b.boardNumber) ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Square className="w-3.5 h-3.5 fill-current" />
+                          )}
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setLaunchOnBoard(b)}
+                          className="flex-1 py-1.5 px-3 rounded-lg bg-[#FAF8F3] dark:bg-[#1E1E1C] hover:bg-neutral-200 dark:hover:bg-[#282826] border border-[#D5CFC5] dark:border-[#383733] text-[11px] font-bold font-mono text-[#171715] dark:text-[#FAF8F3] flex items-center justify-center gap-1.5 uppercase tracking-wider cursor-pointer shadow-2xs transition-colors"
+                        >
+                          <Play className="w-3 h-3 fill-current text-emerald-600 dark:text-emerald-400" />
+                          <span>Launch Match</span>
+                        </button>
+
+                        {boards?.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteBoard(b)}
+                            className="p-1.5 rounded-lg text-[#77736B] dark:text-[#8E8E93] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors cursor-pointer"
+                            title="Delete this board"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
         {/* BULK ACTIONS FLOATING BAR (Visible when 1 or more matches selected) */}
         {selectedMatchIds.length > 0 && (
           <div className="bg-[#171715] text-[#FAF8F3] dark:bg-[#FAF8F3] dark:text-[#0D0D0D] p-3.5 sm:p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-lg border border-[#383733] dark:border-[#D5CFC5] animate-in fade-in duration-200">
@@ -1658,10 +2077,15 @@ export default function ChessAdminMatchesPage() {
                         <button
                           type="button"
                           onClick={() => setMatchModalMatch(m)}
-                          className="hover:text-amber-700 dark:hover:text-amber-400 hover:underline cursor-pointer flex items-center gap-1"
+                          className="hover:text-amber-700 dark:hover:text-amber-400 hover:underline cursor-pointer flex items-center gap-1.5"
                           title="Open Match Dossier & Arbiter Desk"
                         >
-                          {m.matchId}
+                          <span>{m.matchId}</span>
+                          {m.boardNumber && (
+                            <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#FAF8F3] dark:bg-[#252522] border border-[#D5CFC5] dark:border-[#383733] text-[#77736B] dark:text-[#8E8E93]">
+                              B#{m.boardNumber}
+                            </span>
+                          )}
                         </button>
                       </td>
 
@@ -2862,7 +3286,7 @@ export default function ChessAdminMatchesPage() {
                   <Swords className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="flex items-center gap-2 font-mono text-xs">
+                  <div className="flex items-center gap-2 font-mono text-xs flex-wrap">
                     <span className="font-bold text-[#171715] dark:text-[#FAF8F3] tracking-wider">
                       {matchModalMatch.matchId}
                     </span>
@@ -2870,6 +3294,14 @@ export default function ChessAdminMatchesPage() {
                     <span className="text-[#77736B] dark:text-[#8E8E93]">
                       {matchModalMatch.roundName || `Round ${matchModalMatch.round}`}
                     </span>
+                    {matchModalMatch.boardNumber && (
+                      <>
+                        <span>•</span>
+                        <span className="text-[10px] bg-amber-500/10 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded font-bold">
+                          Board #{matchModalMatch.boardNumber}
+                        </span>
+                      </>
+                    )}
                   </div>
                   <h3 className="font-serif font-bold text-lg text-[#171715] dark:text-[#FAF8F3] leading-tight">
                     Match Dossier & Arbiter Desk
@@ -3171,6 +3603,426 @@ export default function ChessAdminMatchesPage() {
                   Close
                 </button>
               </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* MODAL 1: ADD NEW CHESS BOARD */}
+      {addBoardModalOpen && mounted && typeof document !== 'undefined' && createPortal(
+        <div
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999999 }}
+          onClick={() => setAddBoardModalOpen(false)}
+          className="bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto cursor-pointer"
+        >
+          <div
+            style={{ position: 'relative', zIndex: 1000000 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[#FAF8F3] dark:bg-[#171715] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-6 max-w-md w-full shadow-2xl cursor-default space-y-4"
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-[#E2DDD5] dark:border-[#282826]">
+              <div className="flex items-center gap-2">
+                <span className="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                  <Crown className="w-5 h-5" />
+                </span>
+                <div>
+                  <h3 className="font-serif font-bold text-lg text-[#171715] dark:text-[#FAF8F3]">
+                    Add Chess Board
+                  </h3>
+                  <p className="text-[11px] font-mono text-[#77736B] dark:text-[#8E8E93]">
+                    Expand the multi-match tournament arena
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAddBoardModalOpen(false)}
+                className="p-1 rounded-lg text-[#77736B] hover:text-[#171715] dark:hover:text-[#FAF8F3] cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddBoard} className="space-y-4">
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs font-bold text-[#171715] dark:text-[#FAF8F3] uppercase font-mono block mb-1">
+                    Board Number:
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={newBoardData.boardNumber}
+                    onChange={(e) => setNewBoardData({ ...newBoardData, boardNumber: e.target.value })}
+                    className="w-full h-10 bg-white dark:bg-[#1E1E1C] px-3 text-xs text-[#171715] dark:text-[#FAF8F3] rounded-xl border border-[#D5CFC5] dark:border-[#383733] focus:outline-none focus:border-amber-500 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-[#171715] dark:text-[#FAF8F3] uppercase font-mono block mb-1">
+                    Board Name / Desk Label:
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Chess Board 3 - Arena C"
+                    value={newBoardData.name}
+                    onChange={(e) => setNewBoardData({ ...newBoardData, name: e.target.value })}
+                    className="w-full h-10 bg-white dark:bg-[#1E1E1C] px-3 text-xs text-[#171715] dark:text-[#FAF8F3] rounded-xl border border-[#D5CFC5] dark:border-[#383733] focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-[#171715] dark:text-[#FAF8F3] uppercase font-mono block mb-1">
+                    Arbiter / Admin In Charge (Optional):
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Arbiter Rohit"
+                    value={newBoardData.adminInCharge}
+                    onChange={(e) => setNewBoardData({ ...newBoardData, adminInCharge: e.target.value })}
+                    className="w-full h-10 bg-white dark:bg-[#1E1E1C] px-3 text-xs text-[#171715] dark:text-[#FAF8F3] rounded-xl border border-[#D5CFC5] dark:border-[#383733] focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E2DDD5] dark:border-[#282826]">
+                <button
+                  type="button"
+                  onClick={() => setAddBoardModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715] dark:hover:text-[#FAF8F3] cursor-pointer font-mono"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={creatingBoard}
+                  className="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold font-mono px-5 py-2.5 rounded-xl shadow-xs transition-all cursor-pointer uppercase tracking-wider flex items-center gap-1.5"
+                >
+                  {creatingBoard ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+                  <span>{creatingBoard ? 'Adding Board...' : 'Create Board'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* MODAL 2: SELECT BOARD TO START MATCH (Prompted when multiple boards available) */}
+      {boardSelectMatch && mounted && typeof document !== 'undefined' && createPortal(
+        <div
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999999 }}
+          onClick={() => setBoardSelectMatch(null)}
+          className="bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto cursor-pointer"
+        >
+          <div
+            style={{ position: 'relative', zIndex: 1000000 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[#FAF8F3] dark:bg-[#171715] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-6 max-w-lg w-full shadow-2xl cursor-default space-y-4"
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-[#E2DDD5] dark:border-[#282826]">
+              <div className="space-y-0.5">
+                <span className="font-mono text-[10px] text-amber-700 dark:text-amber-400 uppercase font-bold">
+                  Select Match Arena
+                </span>
+                <h3 className="font-serif font-bold text-lg text-[#171715] dark:text-[#FAF8F3]">
+                  Choose Board for {boardSelectMatch.matchId || `Match #${boardSelectMatch.matchNumber || 1}`}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setBoardSelectMatch(null)}
+                className="p-1 rounded-lg text-[#77736B] hover:text-[#171715] dark:hover:text-[#FAF8F3] cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Match Card Preview */}
+            <div className="p-3.5 rounded-xl bg-white dark:bg-[#1E1E1C] border border-[#D5CFC5] dark:border-[#383733] space-y-1">
+              <div className="flex items-center justify-between text-xs font-mono">
+                <span className="font-bold text-amber-700 dark:text-amber-400">
+                  {boardSelectMatch.matchId || 'Match'} • {boardSelectMatch.roundName || 'Round'}
+                </span>
+                <span className="text-[10px] bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 rounded text-[#77736B] dark:text-[#8E8E93]">
+                  10:00 Rapid
+                </span>
+              </div>
+              <div className="font-serif font-bold text-sm text-[#171715] dark:text-[#FAF8F3] flex items-center justify-between">
+                <span>♔ {boardSelectMatch.player1?.name || boardSelectMatch.player1Details?.name || 'Player 1'}</span>
+                <span className="text-xs font-mono text-[#77736B]">vs</span>
+                <span>♚ {boardSelectMatch.player2?.name || boardSelectMatch.player2Details?.name || 'Player 2'}</span>
+              </div>
+            </div>
+
+            {/* Boards Selection List */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-[#171715] dark:text-[#FAF8F3] uppercase font-mono block">
+                Select available Chess Board desk:
+              </label>
+
+              <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                {boards?.filter(Boolean).map((b) => {
+                  const isAvailable = b?.status === 'available';
+                  const isLive = b?.status === 'live';
+
+                  return (
+                    <div
+                      key={b?._id || b?.boardNumber}
+                      className={`p-3.5 rounded-xl border flex items-center justify-between transition-all ${
+                        isAvailable
+                          ? 'bg-white dark:bg-[#1E1E1C] border-[#D5CFC5] dark:border-[#383733] hover:border-amber-500'
+                          : 'bg-neutral-100 dark:bg-[#151514] border-[#E2DDD5] dark:border-[#262624] opacity-70'
+                      }`}
+                    >
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#FAF8F3] dark:bg-[#252522] border border-[#D5CFC5] dark:border-[#383733] text-[#171715] dark:text-[#FAF8F3]">
+                            Board #{b?.boardNumber}
+                          </span>
+                          <span className="font-serif font-bold text-xs text-[#171715] dark:text-[#FAF8F3]">
+                            {b?.name}
+                          </span>
+                        </div>
+                        <p className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93]">
+                          {isLive
+                            ? `Occupied by ${b?.currentMatch?.matchId || 'Live Match'}`
+                            : 'Ready & Available'}
+                        </p>
+                      </div>
+
+                      {isAvailable ? (
+                        <button
+                          type="button"
+                          onClick={() => handleStartMatch(boardSelectMatch._id || boardSelectMatch.matchId, b.boardNumber, b.name)}
+                          disabled={startingMatchId === (boardSelectMatch._id || boardSelectMatch.matchId)}
+                          className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-mono text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors"
+                        >
+                          <Play className="w-3 h-3 fill-current" />
+                          <span>Launch Here</span>
+                        </button>
+                      ) : (
+                        <span className="text-[10px] font-mono text-rose-600 dark:text-rose-400 font-bold uppercase px-2 py-1 rounded bg-rose-500/10 border border-rose-500/30">
+                          In Use
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end pt-3 border-t border-[#E2DDD5] dark:border-[#282826]">
+              <button
+                type="button"
+                onClick={() => setBoardSelectMatch(null)}
+                className="px-4 py-2 rounded-xl text-xs text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715] dark:hover:text-[#FAF8F3] cursor-pointer font-mono"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* MODAL 3: CHOOSE MATCH TO LAUNCH ON BOARD (With Smart Contestant Conflict Detection) */}
+      {launchOnBoard && mounted && typeof document !== 'undefined' && createPortal(
+        <div
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999999 }}
+          onClick={() => setLaunchOnBoard(null)}
+          className="bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto cursor-pointer"
+        >
+          <div
+            style={{ position: 'relative', zIndex: 1000000 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[#FAF8F3] dark:bg-[#171715] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-6 max-w-2xl w-full shadow-2xl cursor-default space-y-4"
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-[#E2DDD5] dark:border-[#282826]">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-[#FAF8F3] dark:bg-[#252522] border border-[#D5CFC5] dark:border-[#383733] text-[#171715] dark:text-[#FAF8F3]">
+                    BOARD #{launchOnBoard.boardNumber}
+                  </span>
+                  <span className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 font-bold uppercase">
+                    Vacant Desk Ready
+                  </span>
+                </div>
+                <h3 className="font-serif font-bold text-lg text-[#171715] dark:text-[#FAF8F3]">
+                  Launch Match on {launchOnBoard.name}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setLaunchOnBoard(null)}
+                className="p-1 rounded-lg text-[#77736B] hover:text-[#171715] dark:hover:text-[#FAF8F3] cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Match Selection List with Conflict Check */}
+            <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+              {(() => {
+                const liveMatches = matches.filter((m) => m?.status === 'live');
+                const livePlayerIds = new Set();
+                liveMatches.forEach((lm) => {
+                  const p1 = lm?.player1?._id || lm?.player1;
+                  const p2 = lm?.player2?._id || lm?.player2;
+                  if (p1) livePlayerIds.add(String(p1));
+                  if (p2) livePlayerIds.add(String(p2));
+                });
+
+                const scheduledMatches = matches.filter((m) => {
+                  if (m?.status !== 'scheduled' || m?.isBye || !m?.player1 || !m?.player2) return false;
+                  return true;
+                });
+
+                if (scheduledMatches.length === 0) {
+                  return (
+                    <div className="py-8 text-center text-xs text-[#77736B] dark:text-[#8E8E93] border border-dashed border-[#D5CFC5] dark:border-[#262624] rounded-xl font-mono">
+                      No scheduled matches waiting to be played.
+                    </div>
+                  );
+                }
+
+                const readyList = [];
+                const conflictList = [];
+
+                scheduledMatches.forEach((m) => {
+                  const p1Id = m?.player1?._id || m?.player1;
+                  const p2Id = m?.player2?._id || m?.player2;
+                  const hasConflict = (p1Id && livePlayerIds.has(String(p1Id))) || (p2Id && livePlayerIds.has(String(p2Id)));
+
+                  const conflictingLiveMatch = hasConflict
+                    ? liveMatches.find((lm) => {
+                        const lmP1 = lm?.player1?._id || lm?.player1;
+                        const lmP2 = lm?.player2?._id || lm?.player2;
+                        return (p1Id && (String(p1Id) === String(lmP1) || String(p1Id) === String(lmP2))) ||
+                               (p2Id && (String(p2Id) === String(lmP1) || String(p2Id) === String(lmP2)));
+                      })
+                    : null;
+
+                  if (hasConflict) {
+                    conflictList.push({ match: m, conflictingLiveMatch });
+                  } else {
+                    readyList.push({ match: m });
+                  }
+                });
+
+                return (
+                  <div className="space-y-4">
+                    {/* Ready Matches */}
+                    {readyList.length > 0 && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400 px-1">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                          <span>AVAILABLE TO LAUNCH ON BOARD #{launchOnBoard.boardNumber} ({readyList.length})</span>
+                        </div>
+
+                        {readyList.map(({ match: m }, idx) => (
+                          <div
+                            key={m?._id || m?.matchId || idx}
+                            className="p-3.5 rounded-xl border border-emerald-300 dark:border-emerald-800/40 bg-emerald-50/20 dark:bg-emerald-950/10 hover:border-emerald-500 flex items-center justify-between gap-3 transition-all"
+                          >
+                            <div className="space-y-1 min-w-0 flex-1">
+                              <div className="flex items-center gap-2 flex-wrap text-[11px] font-mono">
+                                <span className="font-bold text-amber-700 dark:text-amber-400">{m?.matchId || `M#${idx + 1}`}</span>
+                                <span>•</span>
+                                <span className="font-semibold">{m?.roundName || 'Round'}</span>
+                                <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold bg-emerald-100 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded">
+                                  Ready to Play
+                                </span>
+                              </div>
+                              <div className="font-serif font-bold text-xs sm:text-sm text-[#171715] dark:text-[#FAF8F3] truncate">
+                                ♔ {m?.player1?.name || m?.player1Details?.name || 'Player 1'} vs ♚ {m?.player2?.name || m?.player2Details?.name || 'Player 2'}
+                              </div>
+                              <div className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400">
+                                ✓ Both contestants free & available right now
+                              </div>
+                            </div>
+
+                            <div className="shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => handleLaunchMatchOnBoard(launchOnBoard, m)}
+                                disabled={launchingMatchId === (m?._id || m?.matchId)}
+                                className="bg-amber-500 hover:bg-amber-600 text-white px-3.5 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors"
+                              >
+                                {launchingMatchId === (m?._id || m?.matchId) ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <Play className="w-3 h-3 fill-current" />
+                                )}
+                                <span>Launch Match</span>
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Conflict Matches */}
+                    {conflictList.length > 0 && (
+                      <div className="space-y-2 pt-2 border-t border-[#E2DDD5] dark:border-[#282826]">
+                        <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-amber-700 dark:text-amber-400 px-1">
+                          <span>⚠️ CONTESTANT CURRENTLY IN MATCH ON ANOTHER BOARD ({conflictList.length})</span>
+                        </div>
+
+                        {conflictList.map(({ match: m, conflictingLiveMatch }, idx) => (
+                          <div
+                            key={m?._id || m?.matchId || idx}
+                            className="p-3.5 rounded-xl border border-amber-300 dark:border-amber-800/40 bg-amber-50/40 dark:bg-amber-950/20 flex items-center justify-between gap-3 transition-all"
+                          >
+                            <div className="space-y-1 min-w-0 flex-1">
+                              <div className="flex items-center gap-2 flex-wrap text-[11px] font-mono">
+                                <span className="font-bold text-amber-700 dark:text-amber-400">{m?.matchId || `M#${idx + 1}`}</span>
+                                <span>•</span>
+                                <span className="font-semibold">{m?.roundName || 'Round'}</span>
+                              </div>
+                              <div className="font-serif font-bold text-xs sm:text-sm text-[#171715] dark:text-[#FAF8F3] truncate">
+                                ♔ {m?.player1?.name || m?.player1Details?.name || 'Player 1'} vs ♚ {m?.player2?.name || m?.player2Details?.name || 'Player 2'}
+                              </div>
+                              <div className="text-[10px] font-mono text-amber-800 dark:text-amber-300 font-semibold">
+                                ⚠️ Contestant is live on Board #{conflictingLiveMatch?.boardNumber || 1} ({conflictingLiveMatch?.matchId}). Wait for board to finish or Force Launch.
+                              </div>
+                            </div>
+
+                            <div className="shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => handleLaunchMatchOnBoard(launchOnBoard, m)}
+                                disabled={launchingMatchId === (m?._id || m?.matchId)}
+                                className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-xl text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer shadow-xs transition-colors"
+                              >
+                                {launchingMatchId === (m?._id || m?.matchId) ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <Play className="w-3 h-3 fill-current" />
+                                )}
+                                <span>Force Launch</span>
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+
+            <div className="flex items-center justify-end pt-3 border-t border-[#E2DDD5] dark:border-[#282826]">
+              <button
+                type="button"
+                onClick={() => setLaunchOnBoard(null)}
+                className="px-4 py-2 rounded-xl text-xs text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715] dark:hover:text-[#FAF8F3] cursor-pointer font-mono"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>,

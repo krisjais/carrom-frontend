@@ -453,11 +453,11 @@ export const chessApi = {
     });
   },
 
-  startMatch: async (id) => {
+  startMatch: async (id, boardNumber = null, boardName = null) => {
     return await safeFetch(`/admin/matches/${id}/start`, {
       method: 'POST',
       headers: getHeaders(),
-      body: JSON.stringify({ action: 'start', status: 'live' })
+      body: JSON.stringify({ action: 'start', status: 'live', boardNumber, boardName })
     });
   },
 
@@ -549,6 +549,53 @@ export const chessApi = {
 
   resetTournamentData: async () => {
     return await safeFetch('/admin/reset', {
+      method: 'POST',
+      headers: getHeaders()
+    });
+  },
+
+  // Multi-Board Chess Arena Controls
+  getBoards: async () => {
+    return await safeFetch('/boards');
+  },
+
+  getAdminBoards: async () => {
+    return await safeFetch('/admin/boards', { headers: getHeaders() });
+  },
+
+  createBoard: async (boardData) => {
+    return await safeFetch('/admin/boards', {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(boardData)
+    });
+  },
+
+  updateBoard: async (id, boardData) => {
+    return await safeFetch(`/admin/boards/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(boardData)
+    });
+  },
+
+  deleteBoard: async (id) => {
+    return await safeFetch(`/admin/boards/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
+  },
+
+  launchMatchOnBoard: async (boardId, matchId) => {
+    return await safeFetch(`/admin/boards/${boardId}/launch`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ matchId })
+    });
+  },
+
+  stopMatchOnBoard: async (boardId) => {
+    return await safeFetch(`/admin/boards/${boardId}/stop`, {
       method: 'POST',
       headers: getHeaders()
     });
