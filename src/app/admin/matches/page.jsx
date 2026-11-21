@@ -40,6 +40,23 @@ import { CategoryCoinPair } from '@/components/ui/CarromElements';
 import { CarromMatchTimer, formatMatchDurationTaken } from '@/components/common/CarromMatchTimer';
 import { SubstitutePartnerModal } from '@/components/admin/SubstitutePartnerModal';
 
+const getCarromTeamName = (team, fallback = 'TBD') => {
+  if (!team) return fallback;
+  if (typeof team === 'string') return team;
+  if (team.name && team.name.trim() && !team.name.startsWith('team_') && !team.name.startsWith('Team ')) {
+    return team.name;
+  }
+  if (team.player1 && team.player2) {
+    const p1 = team.player1.name || team.player1.fullName || 'Player 1';
+    const p2 = team.player2.name || team.player2.fullName || 'Player 2';
+    return `${p1} & ${p2}`;
+  }
+  if (team.player1) {
+    return team.player1.name || team.player1.fullName || team.name || fallback;
+  }
+  return team.name || fallback;
+};
+
 export default function AdminMatchesPage() {
   const router = useRouter();
   const toast = useToast();
@@ -550,7 +567,7 @@ export default function AdminMatchesPage() {
                     <div className="p-2.5 rounded-lg bg-white dark:bg-[#15191C] border border-[#E8E1D5] dark:border-[#2B3034] space-y-1.5">
                       <div className="flex items-center justify-between text-xs">
                         <span className="font-semibold truncate max-w-[140px] text-[#3E342B] dark:text-[#F5F1E8]">
-                          {currentM.team1?.name || 'Team 1'}
+                          {getCarromTeamName(currentM.team1, 'Team 1')}
                         </span>
                         <span className="font-mono font-bold text-sm text-[#3E342B] dark:text-[#F5F1E8]">
                           {currentM.boards?.[0]?.team1Score ?? 0}
@@ -558,7 +575,7 @@ export default function AdminMatchesPage() {
                       </div>
                       <div className="flex items-center justify-between text-xs">
                         <span className="font-semibold truncate max-w-[140px] text-[#3E342B] dark:text-[#F5F1E8]">
-                          {currentM.team2?.name || 'Team 2'}
+                          {getCarromTeamName(currentM.team2, 'Team 2')}
                         </span>
                         <span className="font-mono font-bold text-sm text-[#3E342B] dark:text-[#F5F1E8]">
                           {currentM.boards?.[0]?.team2Score ?? 0}
@@ -1494,7 +1511,7 @@ export default function AdminMatchesPage() {
               )}
             </div>
             <div className="font-serif font-bold text-[#3E342B] dark:text-[#F5F1E8] text-base">
-              {boardSelectMatch?.team1?.name || 'TBD'} vs {boardSelectMatch?.team2?.name || 'TBD'}
+              {getCarromTeamName(boardSelectMatch?.team1)} vs {getCarromTeamName(boardSelectMatch?.team2)}
             </div>
           </div>
 
@@ -1697,7 +1714,7 @@ export default function AdminMatchesPage() {
                               </span>
                             </div>
                             <div className="font-serif font-bold text-xs sm:text-sm text-[#3E342B] dark:text-[#F5F1E8] truncate">
-                              {m?.team1?.name} vs {m?.team2?.name}
+                              {getCarromTeamName(m?.team1)} vs {getCarromTeamName(m?.team2)}
                             </div>
                             <div className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                               <span>✓ Contestants are available and free to play now</span>
@@ -1740,7 +1757,7 @@ export default function AdminMatchesPage() {
                               <CategoryBadge category={m?.category} />
                             </div>
                             <div className="font-serif font-bold text-xs sm:text-sm text-[#3E342B] dark:text-[#F5F1E8] truncate">
-                              {m?.team1?.name} vs {m?.team2?.name}
+                              {getCarromTeamName(m?.team1)} vs {getCarromTeamName(m?.team2)}
                             </div>
                             <div className="text-[10px] font-mono text-amber-800 dark:text-amber-300 font-semibold flex items-center gap-1">
                               <span>⚠️ Contestant is currently live on Court #{conflictingLiveMatch?.carromBoardNumber || 1} (Match #{conflictingLiveMatch?.matchNumber}). Wait for court to finish or Force Launch.</span>

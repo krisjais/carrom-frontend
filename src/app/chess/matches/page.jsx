@@ -245,8 +245,8 @@ export default function ChessMatchesPage() {
                   </thead>
                   <tbody className="divide-y divide-[#D5CFC5]/40 dark:divide-[#262624]">
                     {(filteredMatches || []).filter(Boolean).map((m, mIdx) => {
-                      const p1 = m?.player1?.fullName || (m?.isBye ? (m?.byePlayer?.fullName || 'Player') : 'TBD');
-                      const p2 = m?.player2?.fullName || (m?.isBye ? 'BYE' : 'TBD');
+                      const p1 = m?.player1?.fullName || m?.player1?.name || (m?.isBye ? (m?.byePlayer?.fullName || m?.byePlayer?.name || 'Player') : 'TBD');
+                      const p2 = m?.player2?.fullName || m?.player2?.name || (m?.isBye ? 'BYE' : 'TBD');
                       const isCompleted = m?.status === 'completed';
                       const isLive = m?.status === 'live';
 
@@ -311,8 +311,8 @@ export default function ChessMatchesPage() {
               {/* Mobile Card List */}
               <div className="md:hidden space-y-3">
                 {(filteredMatches || []).filter(Boolean).map((m, mIdx) => {
-                  const p1 = m?.player1?.fullName || (m?.isBye ? (m?.byePlayer?.fullName || 'Player') : 'TBD');
-                  const p2 = m?.player2?.fullName || (m?.isBye ? 'BYE' : 'TBD');
+                  const p1 = m?.player1?.fullName || m?.player1?.name || (m?.isBye ? (m?.byePlayer?.fullName || m?.byePlayer?.name || 'Player') : 'TBD');
+                  const p2 = m?.player2?.fullName || m?.player2?.name || (m?.isBye ? 'BYE' : 'TBD');
                   return (
                     <Link
                       key={m?._id || m?.matchId || mIdx}

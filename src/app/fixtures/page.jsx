@@ -8,6 +8,23 @@ import { Calendar, Clock, RefreshCw, Trophy, ArrowRight, Crown } from 'lucide-re
 import { StatusBadge, MainBoardBadge, CategoryBadge } from '@/components/ui/Badge';
 import { CarromCoin } from '@/components/ui/CarromElements';
 
+const getCarromTeamName = (team, fallback = 'TBD') => {
+  if (!team) return fallback;
+  if (typeof team === 'string') return team;
+  if (team.name && team.name.trim() && !team.name.startsWith('team_') && !team.name.startsWith('Team ')) {
+    return team.name;
+  }
+  if (team.player1 && team.player2) {
+    const p1 = team.player1.name || team.player1.fullName || 'Player 1';
+    const p2 = team.player2.name || team.player2.fullName || 'Player 2';
+    return `${p1} & ${p2}`;
+  }
+  if (team.player1) {
+    return team.player1.name || team.player1.fullName || team.name || fallback;
+  }
+  return team.name || fallback;
+};
+
 export default function FixturesPage() {
   const [matches, setMatches] = useState([]);
   const [selectedCat, setSelectedCat] = useState('');
@@ -96,7 +113,7 @@ export default function FixturesPage() {
                   <div className="p-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] flex items-center justify-between">
                     <div className="flex items-center gap-2 truncate pr-2">
                       <CarromCoin type={m.team1 ? "black" : "white"} size="xs" />
-                      <span className="truncate font-semibold">{m.team1 ? m.team1.name : 'Waiting for Round...'}</span>
+                      <span className="truncate font-semibold">{m.team1 ? getCarromTeamName(m.team1) : 'Waiting for Round...'}</span>
                     </div>
                     {isT1Win && (
                       <span className="text-[10px] text-[#E74C3C] dark:text-[#D4A94C] font-mono font-bold flex items-center gap-1 shrink-0">
@@ -111,7 +128,7 @@ export default function FixturesPage() {
                   <div className="p-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-[#3E342B] dark:text-[#F5F1E8] flex items-center justify-between">
                     <div className="flex items-center gap-2 truncate pr-2">
                       <CarromCoin type={m.isBye ? "white" : m.team2 ? "black" : "white"} size="xs" />
-                      <span className="truncate font-semibold">{m.isBye ? 'BYE (Automatic Advance)' : m.team2 ? m.team2.name : 'Waiting for Round...'}</span>
+                      <span className="truncate font-semibold">{m.isBye ? 'BYE (Automatic Advance)' : m.team2 ? getCarromTeamName(m.team2) : 'Waiting for Round...'}</span>
                     </div>
                     {isT2Win && (
                       <span className="text-[10px] text-[#E74C3C] dark:text-[#D4A94C] font-mono font-bold flex items-center gap-1 shrink-0">

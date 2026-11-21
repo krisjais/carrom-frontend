@@ -6,8 +6,13 @@ import { MatchTimer } from './MatchTimer';
 import { ArrowRight } from 'lucide-react';
 
 export function LiveMatchCard({ match }) {
-  const p1 = match?.player1 || { fullName: 'Player 1', department: 'Dept' };
-  const p2 = match?.player2 || { fullName: 'Player 2', department: 'Dept' };
+  const p1Name = (match?.player1?.fullName || match?.player1?.name || match?.player1Details?.fullName || 'Player 1').trim();
+  const p1Dept = match?.player1?.department || match?.player1Details?.department || 'Dept';
+  const p2Name = (match?.player2?.fullName || match?.player2?.name || match?.player2Details?.fullName || 'Player 2').trim();
+  const p2Dept = match?.player2?.department || match?.player2Details?.department || 'Dept';
+
+  const p1Initials = p1Name ? p1Name.split(' ').map((n) => n[0]).filter(Boolean).slice(0, 2).join('') : 'P1';
+  const p2Initials = p2Name ? p2Name.split(' ').map((n) => n[0]).filter(Boolean).slice(0, 2).join('') : 'P2';
 
   return (
     <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-5 shadow-xs space-y-4 hover:border-[#171715] dark:hover:border-[#FAF8F3] hover:-translate-y-0.5 transition-all group">
@@ -35,12 +40,12 @@ export function LiveMatchCard({ match }) {
         {/* Player 1 */}
         <div className="col-span-2 flex flex-col items-center space-y-1">
           <div className="w-11 h-11 rounded-full bg-[#22221F] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] border border-[#D5CFC5] dark:border-[#383733] flex items-center justify-center font-bold text-xs font-serif group-hover:scale-105 transition-transform">
-            {p1.fullName.split(' ').map((n) => n[0]).join('')}
+            {p1Initials}
           </div>
           <h4 className="text-xs font-bold text-[#171715] dark:text-[#FAF8F3] truncate max-w-[100px]">
-            {p1.fullName}
+            {p1Name}
           </h4>
-          <span className="text-[9px] text-[#77736B] dark:text-[#8E8E93]">{p1.department}</span>
+          <span className="text-[9px] text-[#77736B] dark:text-[#8E8E93]">{p1Dept}</span>
           <span className="text-[10px] font-mono font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full mt-0.5">
             ♔ White
           </span>
@@ -57,12 +62,12 @@ export function LiveMatchCard({ match }) {
         {/* Player 2 */}
         <div className="col-span-2 flex flex-col items-center space-y-1">
           <div className="w-11 h-11 rounded-full bg-[#4E4C47] dark:bg-[#2E2E2B] text-[#FAF8F3] border border-[#D5CFC5] dark:border-[#383733] flex items-center justify-center font-bold text-xs font-serif group-hover:scale-105 transition-transform">
-            {p2.fullName.split(' ').map((n) => n[0]).join('')}
+            {p2Initials}
           </div>
           <h4 className="text-xs font-bold text-[#171715] dark:text-[#FAF8F3] truncate max-w-[100px]">
-            {p2.fullName}
+            {p2Name}
           </h4>
-          <span className="text-[9px] text-[#77736B] dark:text-[#8E8E93]">{p2.department}</span>
+          <span className="text-[9px] text-[#77736B] dark:text-[#8E8E93]">{p2Dept}</span>
           <span className="text-[10px] font-mono font-bold text-[#77736B] dark:text-[#8E8E93] bg-[#EFEAE1] dark:bg-[#20201E] px-2 py-0.5 rounded-full mt-0.5">
             ♚ Black
           </span>

@@ -146,6 +146,46 @@ export default function ChessAdminMatchesPage() {
   const [boardSelectMatch, setBoardSelectMatch] = useState(null);
   const [launchingMatchId, setLaunchingMatchId] = useState(null);
 
+  // Bulletproof Player Display Name Resolver (Handles populated objects, string IDs, fullName/name fallbacks)
+  const getPlayerDisplayName = (playerOrId, fallback = 'Player') => {
+    if (!playerOrId) return fallback;
+    if (typeof playerOrId === 'object') {
+      if (playerOrId.fullName && playerOrId.fullName.trim()) return playerOrId.fullName.trim();
+      if (playerOrId.name && playerOrId.name.trim()) return playerOrId.name.trim();
+      if (playerOrId.username && playerOrId.username.trim()) return playerOrId.username.trim();
+      const id = (playerOrId._id || playerOrId.playerId || playerOrId.id)?.toString();
+      if (id && Array.isArray(players) && players.length > 0) {
+        const found = players.find((p) => p && ((p._id && p._id.toString() === id) || (p.playerId && p.playerId.toString() === id)));
+        if (found?.fullName && found.fullName.trim()) return found.fullName.trim();
+        if (found?.name && found.name.trim()) return found.name.trim();
+      }
+    } else if (typeof playerOrId === 'string') {
+      if (Array.isArray(players) && players.length > 0) {
+        const found = players.find((p) => p && ((p._id && p._id.toString() === playerOrId) || (p.playerId && p.playerId.toString() === playerOrId)));
+        if (found?.fullName && found.fullName.trim()) return found.fullName.trim();
+        if (found?.name && found.name.trim()) return found.name.trim();
+      }
+      return playerOrId;
+    }
+    return fallback;
+  };
+
+  const getPlayerDeptName = (playerOrId, fallback = '') => {
+    if (!playerOrId) return fallback;
+    if (typeof playerOrId === 'object') {
+      if (playerOrId.department && playerOrId.department.trim()) return playerOrId.department.trim();
+      const id = (playerOrId._id || playerOrId.playerId || playerOrId.id)?.toString();
+      if (id && Array.isArray(players) && players.length > 0) {
+        const found = players.find((p) => p && ((p._id && p._id.toString() === id) || (p.playerId && p.playerId.toString() === id)));
+        if (found?.department) return found.department;
+      }
+    } else if (typeof playerOrId === 'string' && Array.isArray(players) && players.length > 0) {
+      const found = players.find((p) => p && ((p._id && p._id.toString() === playerOrId) || (p.playerId && p.playerId.toString() === playerOrId)));
+      if (found?.department) return found.department;
+    }
+    return fallback;
+  };
+
   // Lock body scroll and enable Escape key to close whenever ANY modal is open
   const isAnyModalOpen = Boolean(
     matchModalMatch || showRescheduleModal || showCreateModal || resultModalMatch || timeModalOpen || showDeleteRoundModal || addBoardModalOpen || Boolean(launchOnBoard) || Boolean(boardSelectMatch)
@@ -1764,7 +1804,7 @@ export default function ChessAdminMatchesPage() {
                           <div className="flex items-center gap-2 min-w-0">
                             <span className="text-xs">♔</span>
                             <span className="font-semibold text-xs text-[#171715] dark:text-[#FAF8F3] truncate max-w-[130px]">
-                              {currentM.player1?.name || currentM.player1Details?.name || 'White Player'}
+                              {getPlayerDisplayName(currentM.player1, 'White Player')}
                             </span>
                           </div>
                           <span className={`font-mono font-bold text-xs px-2 py-0.5 rounded ${
@@ -1785,7 +1825,7 @@ export default function ChessAdminMatchesPage() {
                           <div className="flex items-center gap-2 min-w-0">
                             <span className="text-xs">♚</span>
                             <span className="font-semibold text-xs text-[#171715] dark:text-[#FAF8F3] truncate max-w-[130px]">
-                              {currentM.player2?.name || currentM.player2Details?.name || 'Black Player'}
+                              {getPlayerDisplayName(currentM.player2, 'Black Player')}
                             </span>
                           </div>
                           <span className={`font-mono font-bold text-xs px-2 py-0.5 rounded ${
@@ -3752,9 +3792,9 @@ export default function ChessAdminMatchesPage() {
                 </span>
               </div>
               <div className="font-serif font-bold text-sm text-[#171715] dark:text-[#FAF8F3] flex items-center justify-between">
-                <span>♔ {boardSelectMatch.player1?.name || boardSelectMatch.player1Details?.name || 'Player 1'}</span>
+                <span>♔ {getPlayerDisplayName(boardSelectMatch.player1, 'Player 1 (White)')}</span>
                 <span className="text-xs font-mono text-[#77736B]">vs</span>
-                <span>♚ {boardSelectMatch.player2?.name || boardSelectMatch.player2Details?.name || 'Player 2'}</span>
+                <span>♚ {getPlayerDisplayName(boardSelectMatch.player2, 'Player 2 (Black)')}</span>
               </div>
             </div>
 
@@ -3938,7 +3978,12 @@ export default function ChessAdminMatchesPage() {
                                 </span>
                               </div>
                               <div className="font-serif font-bold text-xs sm:text-sm text-[#171715] dark:text-[#FAF8F3] truncate">
-                                ♔ {m?.player1?.name || m?.player1Details?.name || 'Player 1'} vs ♚ {m?.player2?.name || m?.player2Details?.name || 'Player 2'}
+                                ♔ {getPlayerDisplayName(m?.player1, 'Player 1 (White)')} vs ♚ {getPlayerDisplayName(m?.player2, 'Player 2 (Black)')}
+                              </div>
+                              <div className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93] flex items-center gap-2 flex-wrap">
+                                <span>♔ White: {getPlayerDisplayName(m?.player1, 'Player 1')}{getPlayerDeptName(m?.player1) ? ` (${getPlayerDeptName(m?.player1)})` : ''}</span>
+                                <span>•</span>
+                                <span>♚ Black: {getPlayerDisplayName(m?.player2, 'Player 2')}{getPlayerDeptName(m?.player2) ? ` (${getPlayerDeptName(m?.player2)})` : ''}</span>
                               </div>
                               <div className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400">
                                 ✓ Both contestants free & available right now
@@ -3984,7 +4029,12 @@ export default function ChessAdminMatchesPage() {
                                 <span className="font-semibold">{m?.roundName || 'Round'}</span>
                               </div>
                               <div className="font-serif font-bold text-xs sm:text-sm text-[#171715] dark:text-[#FAF8F3] truncate">
-                                ♔ {m?.player1?.name || m?.player1Details?.name || 'Player 1'} vs ♚ {m?.player2?.name || m?.player2Details?.name || 'Player 2'}
+                                ♔ {getPlayerDisplayName(m?.player1, 'Player 1 (White)')} vs ♚ {getPlayerDisplayName(m?.player2, 'Player 2 (Black)')}
+                              </div>
+                              <div className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93] flex items-center gap-2 flex-wrap">
+                                <span>♔ White: {getPlayerDisplayName(m?.player1, 'Player 1')}{getPlayerDeptName(m?.player1) ? ` (${getPlayerDeptName(m?.player1)})` : ''}</span>
+                                <span>•</span>
+                                <span>♚ Black: {getPlayerDisplayName(m?.player2, 'Player 2')}{getPlayerDeptName(m?.player2) ? ` (${getPlayerDeptName(m?.player2)})` : ''}</span>
                               </div>
                               <div className="text-[10px] font-mono text-amber-800 dark:text-amber-300 font-semibold">
                                 ⚠️ Contestant is live on Board #{conflictingLiveMatch?.boardNumber || 1} ({conflictingLiveMatch?.matchId}). Wait for board to finish or Force Launch.

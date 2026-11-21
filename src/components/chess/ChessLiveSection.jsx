@@ -43,8 +43,12 @@ export function ChessLiveSection({ liveMatches = [] }) {
           {hasLive ? (
             <div className="space-y-4">
               {(liveMatches || []).slice(0, 2).filter(Boolean).map((match, mIdx) => {
-                const p1 = match?.player1 || { fullName: 'Player 1', department: 'Dept' };
-                const p2 = match?.player2 || { fullName: 'Player 2', department: 'Dept' };
+                const p1Name = (match?.player1?.fullName || match?.player1?.name || match?.player1Details?.fullName || 'Player 1').trim();
+                const p1Dept = match?.player1?.department || match?.player1Details?.department || 'Dept';
+                const p2Name = (match?.player2?.fullName || match?.player2?.name || match?.player2Details?.fullName || 'Player 2').trim();
+                const p2Dept = match?.player2?.department || match?.player2Details?.department || 'Dept';
+                const p1Initials = p1Name ? p1Name.split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('') : 'P1';
+                const p2Initials = p2Name ? p2Name.split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('') : 'P2';
 
                 return (
                   <div
@@ -79,12 +83,12 @@ export function ChessLiveSection({ liveMatches = [] }) {
                       {/* Player 1 */}
                       <div className="col-span-2 space-y-1">
                         <div className="w-12 h-12 rounded-full bg-[#22221F] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] font-serif font-bold text-sm flex items-center justify-center mx-auto shadow-xs">
-                          {p1.fullName.split(' ').map(n => n[0]).join('')}
+                          {p1Initials}
                         </div>
                         <h4 className="text-sm font-bold font-serif text-[#171715] dark:text-[#FAF8F3] truncate max-w-[140px] mx-auto">
-                          {p1.fullName}
+                          {p1Name}
                         </h4>
-                        <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93] block">{p1.department}</span>
+                        <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93] block">{p1Dept}</span>
                         <span className="inline-block mt-1 text-[10px] font-mono font-bold uppercase text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full">
                           ♔ White
                         </span>
@@ -99,12 +103,12 @@ export function ChessLiveSection({ liveMatches = [] }) {
                       {/* Player 2 */}
                       <div className="col-span-2 space-y-1">
                         <div className="w-12 h-12 rounded-full bg-[#4E4C47] dark:bg-[#262624] text-[#FAF8F3] font-serif font-bold text-sm flex items-center justify-center mx-auto shadow-xs">
-                          {p2.fullName.split(' ').map(n => n[0]).join('')}
+                          {p2Initials}
                         </div>
                         <h4 className="text-sm font-bold font-serif text-[#171715] dark:text-[#FAF8F3] truncate max-w-[140px] mx-auto">
-                          {p2.fullName}
+                          {p2Name}
                         </h4>
-                        <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93] block">{p2.department}</span>
+                        <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93] block">{p2Dept}</span>
                         <span className="inline-block mt-1 text-[10px] font-mono font-bold uppercase text-[#77736B] dark:text-[#8E8E93] bg-[#EFEAE1] dark:bg-[#20201E] px-2.5 py-0.5 rounded-full">
                           ♚ Black
                         </span>
