@@ -136,6 +136,7 @@ export default function ChessAdminMatchesPage() {
   // Multi-Board Arena Control States (Just like Carrom)
   const [boards, setBoards] = useState([]);
   const [addBoardModalOpen, setAddBoardModalOpen] = useState(false);
+  const [creatingBoard, setCreatingBoard] = useState(false);
   const [newBoardData, setNewBoardData] = useState({
     boardNumber: '',
     name: '',
@@ -712,6 +713,7 @@ export default function ChessAdminMatchesPage() {
   // Multi-Board Management Handlers
   const handleAddBoard = async (e) => {
     e.preventDefault();
+    setCreatingBoard(true);
     try {
       const res = await chessApi.createBoard(newBoardData);
       if (res.success) {
@@ -724,6 +726,8 @@ export default function ChessAdminMatchesPage() {
       }
     } catch (err) {
       toast.error(err.message || 'Error creating board.');
+    } finally {
+      setCreatingBoard(false);
     }
   };
 
