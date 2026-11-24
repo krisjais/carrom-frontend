@@ -3,6 +3,7 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
+import { subscribeToCarromRoster } from '@/lib/socket';
 import { CATEGORIES } from '@/lib/constants';
 import { BracketView } from '@/components/bracket/BracketView';
 import { RefreshCw } from 'lucide-react';
@@ -33,6 +34,13 @@ function BracketsContent() {
 
   useEffect(() => {
     fetchBracket(selectedCategory);
+  }, [selectedCategory]);
+
+  useEffect(() => {
+    const unsub = subscribeToCarromRoster(() => {
+      fetchBracket(selectedCategory);
+    });
+    return unsub;
   }, [selectedCategory]);
 
   return (

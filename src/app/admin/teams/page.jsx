@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+import { subscribeToCarromRoster } from '@/lib/socket';
 import { CATEGORIES } from '@/lib/constants';
 import {
   Users,
@@ -59,6 +60,13 @@ export default function AdminTeamsPage() {
 
   useEffect(() => {
     fetchTeams();
+  }, [selectedCat]);
+
+  useEffect(() => {
+    const unsub = subscribeToCarromRoster(() => {
+      fetchTeams();
+    });
+    return unsub;
   }, [selectedCat]);
 
   const handleAutoPopulate = async (category = '') => {

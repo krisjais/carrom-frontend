@@ -134,6 +134,26 @@ export function subscribeToCarromLive(callback) {
 }
 
 /**
+ * Subscribe to Carrom roster, registration, and team pairing updates
+ */
+export function subscribeToCarromRoster(callback) {
+  const socket = getSocket();
+  if (!socket) return () => {};
+
+  socket.emit('join_carrom_live');
+
+  const handleRosterUpdate = (data) => {
+    if (callback) callback(data);
+  };
+
+  socket.on('carrom:roster_updated', handleRosterUpdate);
+
+  return () => {
+    socket.off('carrom:roster_updated', handleRosterUpdate);
+  };
+}
+
+/**
  * Subscribe to tournament-wide live Chess updates
  */
 export function subscribeToChessLive(callback) {

@@ -81,6 +81,7 @@ export const Navbar = () => {
   const navLinks = [
     { name: 'Home', href: '/' },
     { name: 'Tournaments', href: '/tournament' },
+    { name: 'Participants', href: '/participants' },
     { name: 'Live Board', href: '/live', isLive: true },
     { name: 'Results', href: '/results' },
     { name: 'Leaderboard', href: '/champions' },

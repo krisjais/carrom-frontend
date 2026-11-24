@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
+import { subscribeToCarromRoster } from '@/lib/socket';
 import { CATEGORIES } from '@/lib/constants';
 import { Calendar, Clock, RefreshCw, Trophy, ArrowRight, Crown } from 'lucide-react';
 import { StatusBadge, MainBoardBadge, CategoryBadge } from '@/components/ui/Badge';
@@ -30,22 +31,30 @@ export default function FixturesPage() {
   const [selectedCat, setSelectedCat] = useState('');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchFixtures = async () => {
-      setLoading(true);
-      try {
-        const params = {};
-        if (selectedCat) params.category = selectedCat;
-        const res = await api.getMatches(params);
-        if (res.success) setMatches(res.matches || []);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchFixtures();
+  const fetchFixtures = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = {};
+      if (selectedCat) params.category = selectedCat;
+      const res = await api.getMatches(params);
+      if (res.success) setMatches(res.matches || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   }, [selectedCat]);
+
+  useEffect(() => {
+    fetchFixtures();
+  }, [fetchFixtures]);
+
+  useEffect(() => {
+    const unsub = subscribeToCarromRoster(() => {
+      fetchFixtures();
+    });
+    return unsub;
+  }, [fetchFixtures]);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10 bg-[#FAF9F6] dark:bg-[#0B0D0E] text-[#4A4238] dark:text-[#F5F1E8] transition-colors duration-200">

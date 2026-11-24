@@ -17,6 +17,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { CarromCoin } from '@/components/ui/CarromElements';
+import { PartnerSearchSelect } from '@/components/common/PartnerSearchSelect';
 
 export default function RegistrationPage() {
   const [activeTab, setActiveTab] = useState('register'); // 'register' | 'lookup'
@@ -29,7 +30,9 @@ export default function RegistrationPage() {
     participateSingles: true,
     participateDoubles: false,
     participateMixedDoubles: false,
+    doublesPartnerId: '',
     doublesPartnerName: '',
+    mixedDoublesPartnerId: '',
     mixedDoublesPartnerName: '',
   });
 
@@ -46,10 +49,20 @@ export default function RegistrationPage() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    setFormData((prev) => {
+      const next = {
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value
+      };
+      // Reset selected partners when player gender changes so gender rules remain enforced
+      if (name === 'gender' && value !== prev.gender) {
+        next.doublesPartnerId = '';
+        next.doublesPartnerName = '';
+        next.mixedDoublesPartnerId = '';
+        next.mixedDoublesPartnerName = '';
+      }
+      return next;
+    });
   };
 
   const handleToggleDivision = (field) => {
@@ -83,13 +96,13 @@ export default function RegistrationPage() {
       return;
     }
 
-    if (formData.participateDoubles && !formData.doublesPartnerName.trim()) {
-      setError(`Please provide your ${formData.gender === 'male' ? 'Boys' : 'Girls'} Doubles partner name.`);
+    if (formData.participateDoubles && !formData.doublesPartnerId) {
+      setError(`Please search and select your ${formData.gender === 'male' ? 'Boys' : 'Girls'} Doubles partner from existing registered participants.`);
       return;
     }
 
-    if (formData.participateMixedDoubles && !formData.mixedDoublesPartnerName.trim()) {
-      setError('Please provide your Mixed Doubles partner name.');
+    if (formData.participateMixedDoubles && !formData.mixedDoublesPartnerId) {
+      setError('Please search and select your Mixed Doubles partner from existing registered participants.');
       return;
     }
 
@@ -98,7 +111,9 @@ export default function RegistrationPage() {
     try {
       const payload = {
         ...formData,
+        doublesPartnerId: formData.participateDoubles ? formData.doublesPartnerId : '',
         doublesPartnerName: formData.participateDoubles ? formData.doublesPartnerName.trim() : '',
+        mixedDoublesPartnerId: formData.participateMixedDoubles ? formData.mixedDoublesPartnerId : '',
         mixedDoublesPartnerName: formData.participateMixedDoubles ? formData.mixedDoublesPartnerName.trim() : ''
       };
 
@@ -681,9 +696,9 @@ export default function RegistrationPage() {
             ) : (
               <>
                 <div className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] text-xs space-y-1 text-[#7E7060] dark:text-[#B8B1A5]">
-                  <p className="font-bold text-[#3E342B] dark:text-[#F5F1E8] uppercase text-[11px] font-mono">Partner Auto-Registration:</p>
+                  <p className="font-bold text-[#3E342B] dark:text-[#F5F1E8] uppercase text-[11px] font-mono">Search Registered Partners:</p>
                   <p>
-                    Partners are chosen by you (never randomly assigned). <strong>If your partner only plays Doubles or Mixed Doubles with you, they do NOT need to register separately!</strong> The system automatically registers them and links your team upon approval.
+                    Search and select your partner from existing registered participants. Gender rules and duplicate team checks are enforced automatically.
                   </p>
                 </div>
 
@@ -691,16 +706,23 @@ export default function RegistrationPage() {
                   {formData.participateDoubles && (
                     <div>
                       <label className="text-[11px] text-[#4A4238] dark:text-[#F5F1E8] font-bold block mb-1.5 uppercase font-mono">
-                        {formData.gender === 'male' ? 'Boys Doubles Partner Full Name *' : 'Girls Doubles Partner Full Name *'}
+                        {formData.gender === 'male' ? 'Boys Doubles Partner *' : 'Girls Doubles Partner *'}
                       </label>
-                      <input
-                        type="text"
-                        name="doublesPartnerName"
+                      <PartnerSearchSelect
+                        category={formData.gender === 'male' ? 'boys_doubles' : 'girls_doubles'}
+                        playerGender={formData.gender}
+                        excludeName={formData.fullName}
+                        valueId={formData.doublesPartnerId}
+                        valueName={formData.doublesPartnerName}
                         required
-                        value={formData.doublesPartnerName}
-                        onChange={handleChange}
-                        placeholder={formData.gender === 'male' ? 'e.g. Siddharth Rao (Male)' : 'e.g. Priya Nair (Female)'}
-                        className="w-full h-11 bg-[#FAF9F6] dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#E8E1D5] dark:border-[#2B3034] focus:outline-none focus:border-[#4A4238] dark:focus:border-[#D4A94C]"
+                        onChange={(candidate) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            doublesPartnerId: candidate?._id || '',
+                            doublesPartnerName: candidate?.fullName || ''
+                          }))
+                        }
+                        placeholder={formData.gender === 'male' ? 'Search registered male participant...' : 'Search registered female participant...'}
                       />
                     </div>
                   )}
@@ -708,16 +730,23 @@ export default function RegistrationPage() {
                   {formData.participateMixedDoubles && (
                     <div>
                       <label className="text-[11px] text-[#4A4238] dark:text-[#F5F1E8] font-bold block mb-1.5 uppercase font-mono">
-                        Mixed Doubles Partner Full Name *
+                        Mixed Doubles Partner *
                       </label>
-                      <input
-                        type="text"
-                        name="mixedDoublesPartnerName"
+                      <PartnerSearchSelect
+                        category="mixed_doubles"
+                        playerGender={formData.gender}
+                        excludeName={formData.fullName}
+                        valueId={formData.mixedDoublesPartnerId}
+                        valueName={formData.mixedDoublesPartnerName}
                         required
-                        value={formData.mixedDoublesPartnerName}
-                        onChange={handleChange}
-                        placeholder={formData.gender === 'male' ? 'e.g. Ananya Patel (Female)' : 'e.g. Siddharth Rao (Male)'}
-                        className="w-full h-11 bg-[#FAF9F6] dark:bg-[#181C1F] px-4 text-xs text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#E8E1D5] dark:border-[#2B3034] focus:outline-none focus:border-[#4A4238] dark:focus:border-[#D4A94C]"
+                        onChange={(candidate) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            mixedDoublesPartnerId: candidate?._id || '',
+                            mixedDoublesPartnerName: candidate?.fullName || ''
+                          }))
+                        }
+                        placeholder={formData.gender === 'male' ? 'Search registered female participant...' : 'Search registered male participant...'}
                       />
                     </div>
                   )}

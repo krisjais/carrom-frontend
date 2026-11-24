@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
+import { subscribeToCarromRoster } from '@/lib/socket';
 import { CATEGORIES } from '@/lib/constants';
 import { Trophy, ArrowRight, Shield, RefreshCw } from 'lucide-react';
 import { CategoryBadge } from '@/components/ui/Badge';
@@ -13,20 +14,28 @@ export default function CategoriesPage() {
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchTeams = async () => {
-      setLoading(true);
-      try {
-        const res = await api.getTeams(selectedCat);
-        if (res.success) setTeams(res.teams || []);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchTeams();
+  const fetchTeams = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await api.getTeams(selectedCat);
+      if (res.success) setTeams(res.teams || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   }, [selectedCat]);
+
+  useEffect(() => {
+    fetchTeams();
+  }, [fetchTeams]);
+
+  useEffect(() => {
+    const unsub = subscribeToCarromRoster(() => {
+      fetchTeams();
+    });
+    return unsub;
+  }, [fetchTeams]);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10 bg-[#FAF9F6] dark:bg-[#0B0D0E] text-[#4A4238] dark:text-[#F5F1E8] transition-colors duration-200">

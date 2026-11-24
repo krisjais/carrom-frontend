@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
+import { subscribeToCarromRoster } from '@/lib/socket';
+import { PartnerSearchSelect } from '@/components/common/PartnerSearchSelect';
 import {
   UserCheck,
   Search,
@@ -62,7 +64,9 @@ export default function AdminRegistrationsPage() {
     participateSingles: true,
     participateDoubles: false,
     participateMixedDoubles: false,
+    doublesPartnerId: '',
     doublesPartnerName: '',
+    mixedDoublesPartnerId: '',
     mixedDoublesPartnerName: '',
     adminNotes: ''
   });
@@ -76,7 +80,9 @@ export default function AdminRegistrationsPage() {
     participateSingles: true,
     participateDoubles: false,
     participateMixedDoubles: false,
+    doublesPartnerId: '',
     doublesPartnerName: '',
+    mixedDoublesPartnerId: '',
     mixedDoublesPartnerName: ''
   });
   const [addPlayerLoading, setAddPlayerLoading] = useState(false);
@@ -89,7 +95,9 @@ export default function AdminRegistrationsPage() {
       participateSingles: true,
       participateDoubles: false,
       participateMixedDoubles: false,
+      doublesPartnerId: '',
       doublesPartnerName: '',
+      mixedDoublesPartnerId: '',
       mixedDoublesPartnerName: ''
     });
   };
@@ -118,7 +126,9 @@ export default function AdminRegistrationsPage() {
         participateSingles: addPlayerForm.participateSingles,
         participateDoubles: addPlayerForm.participateDoubles,
         participateMixedDoubles: addPlayerForm.participateMixedDoubles,
+        doublesPartnerId: addPlayerForm.participateDoubles ? addPlayerForm.doublesPartnerId : '',
         doublesPartnerName: addPlayerForm.participateDoubles ? addPlayerForm.doublesPartnerName.trim() : '',
+        mixedDoublesPartnerId: addPlayerForm.participateMixedDoubles ? addPlayerForm.mixedDoublesPartnerId : '',
         mixedDoublesPartnerName: addPlayerForm.participateMixedDoubles ? addPlayerForm.mixedDoublesPartnerName.trim() : ''
       });
 
@@ -591,6 +601,13 @@ export default function AdminRegistrationsPage() {
     fetchRegistrations();
   }, [statusFilter, genderFilter, searchTerm]);
 
+  useEffect(() => {
+    const unsub = subscribeToCarromRoster(() => {
+      fetchRegistrations();
+    });
+    return unsub;
+  }, [statusFilter, genderFilter, searchTerm]);
+
   const handleToggleSelect = (id) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
@@ -721,7 +738,9 @@ export default function AdminRegistrationsPage() {
       participateSingles: reg.participateSingles !== undefined ? reg.participateSingles : true,
       participateDoubles: reg.participateDoubles !== undefined ? reg.participateDoubles : !!reg.doublesPartnerName,
       participateMixedDoubles: reg.participateMixedDoubles !== undefined ? reg.participateMixedDoubles : !!reg.mixedDoublesPartnerName,
+      doublesPartnerId: reg.doublesPartnerId || reg.doublesValidation?.partner?._id || '',
       doublesPartnerName: reg.doublesPartnerName || '',
+      mixedDoublesPartnerId: reg.mixedDoublesPartnerId || reg.mixedDoublesValidation?.partner?._id || '',
       mixedDoublesPartnerName: reg.mixedDoublesPartnerName || '',
       adminNotes: reg.adminNotes || ''
     });
@@ -1360,31 +1379,51 @@ export default function AdminRegistrationsPage() {
             </div>
           </div>
 
-          <div>
-            <label className="text-xs font-semibold text-[#3E342B] dark:text-[#F5F1E8] block mb-1 uppercase">
-              Doubles Partner Name
-            </label>
-            <input
-              type="text"
-              value={editFormData.doublesPartnerName}
-              onChange={(e) => setEditFormData({ ...editFormData, doublesPartnerName: e.target.value })}
-              placeholder="Partner's Full Name (Optional)"
-              className="w-full h-11 bg-white dark:bg-[#181C1F] px-4 text-sm font-normal text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
-            />
-          </div>
+          {editFormData.participateDoubles && (
+            <div>
+              <label className="text-xs font-semibold text-[#3E342B] dark:text-[#F5F1E8] block mb-1 uppercase">
+                {(selectedReg?.participantId?.gender || 'male') === 'male' ? 'Boys Doubles Partner' : 'Girls Doubles Partner'}
+              </label>
+              <PartnerSearchSelect
+                category={(selectedReg?.participantId?.gender || 'male') === 'male' ? 'boys_doubles' : 'girls_doubles'}
+                playerGender={selectedReg?.participantId?.gender || 'male'}
+                excludeId={selectedReg?.participantId?._id || ''}
+                valueId={editFormData.doublesPartnerId}
+                valueName={editFormData.doublesPartnerName}
+                onChange={(candidate) =>
+                  setEditFormData((prev) => ({
+                    ...prev,
+                    doublesPartnerId: candidate?._id || '',
+                    doublesPartnerName: candidate?.fullName || ''
+                  }))
+                }
+                placeholder="Search registered partner..."
+              />
+            </div>
+          )}
 
-          <div>
-            <label className="text-xs font-semibold text-[#3E342B] dark:text-[#F5F1E8] block mb-1 uppercase">
-              Mixed Doubles Partner Name
-            </label>
-            <input
-              type="text"
-              value={editFormData.mixedDoublesPartnerName}
-              onChange={(e) => setEditFormData({ ...editFormData, mixedDoublesPartnerName: e.target.value })}
-              placeholder="Partner's Full Name (Optional)"
-              className="w-full h-11 bg-white dark:bg-[#181C1F] px-4 text-sm font-normal text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
-            />
-          </div>
+          {editFormData.participateMixedDoubles && (
+            <div>
+              <label className="text-xs font-semibold text-[#3E342B] dark:text-[#F5F1E8] block mb-1 uppercase">
+                Mixed Doubles Partner
+              </label>
+              <PartnerSearchSelect
+                category="mixed_doubles"
+                playerGender={selectedReg?.participantId?.gender || 'male'}
+                excludeId={selectedReg?.participantId?._id || ''}
+                valueId={editFormData.mixedDoublesPartnerId}
+                valueName={editFormData.mixedDoublesPartnerName}
+                onChange={(candidate) =>
+                  setEditFormData((prev) => ({
+                    ...prev,
+                    mixedDoublesPartnerId: candidate?._id || '',
+                    mixedDoublesPartnerName: candidate?.fullName || ''
+                  }))
+                }
+                placeholder="Search registered mixed doubles partner..."
+              />
+            </div>
+          )}
 
           <div>
             <label className="text-xs font-semibold text-[#3E342B] dark:text-[#F5F1E8] block mb-1 uppercase">
@@ -1525,7 +1564,10 @@ export default function AdminRegistrationsPage() {
             </label>
             <select
               value={selectedPairCategory}
-              onChange={(e) => setSelectedPairCategory(e.target.value)}
+              onChange={(e) => {
+                setSelectedPairCategory(e.target.value);
+                setSelectedPartnerId('');
+              }}
               className="w-full h-11 bg-white dark:bg-[#181C1F] px-4 text-sm text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
             >
               {selectedReg?.participantId?.gender === 'male' && (
@@ -1540,35 +1582,17 @@ export default function AdminRegistrationsPage() {
 
           <div>
             <label className="text-xs font-semibold text-[#3E342B] dark:text-[#F5F1E8] block mb-1.5 uppercase">
-              Select Player 2 (From Approved Athletes) *
+              Search & Select Player 2 (Registered Participants) *
             </label>
-            <select
-              value={selectedPartnerId}
-              onChange={(e) => setSelectedPartnerId(e.target.value)}
+            <PartnerSearchSelect
+              category={selectedPairCategory}
+              playerGender={selectedReg?.participantId?.gender || 'male'}
+              excludeId={selectedReg?.participantId?._id || ''}
+              valueId={selectedPartnerId}
               required
-              className="w-full h-11 bg-white dark:bg-[#181C1F] px-4 text-sm text-[#3E342B] dark:text-[#F5F1E8] rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] focus:outline-none focus:border-[#E74C3C]"
-            >
-              <option value="">-- Choose Partner --</option>
-              {(registrations || [])
-                .filter(
-                  (r) =>
-                    r &&
-                    r.status === 'approved' &&
-                    r.participantId &&
-                    (r.participantId?._id || r.participantId) !== (selectedReg?.participantId?._id || selectedReg?.participantId)
-                )
-                .map((r, rIdx) => {
-                  const pId = r?.participantId?._id || r?.participantId || r?._id || rIdx;
-                  const pName = r.participantId?.fullName || r.fullName || 'Participant';
-                  const pGender = r.participantId?.gender || r.gender || '-';
-                  const pDept = r.participantId?.department || r.department || '-';
-                  return (
-                    <option key={pId} value={pId}>
-                      {pName} ({pGender} - {pDept})
-                    </option>
-                  );
-                })}
-            </select>
+              onChange={(candidate) => setSelectedPartnerId(candidate?._id || '')}
+              placeholder="Search eligible partner by name or department..."
+            />
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#E8E1D5] dark:border-[#2B3034]">
@@ -1911,7 +1935,16 @@ export default function AdminRegistrationsPage() {
               <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034]">
                 <button
                   type="button"
-                  onClick={() => setAddPlayerForm((prev) => ({ ...prev, gender: 'male' }))}
+                  onClick={() =>
+                    setAddPlayerForm((prev) => ({
+                      ...prev,
+                      gender: 'male',
+                      doublesPartnerId: '',
+                      doublesPartnerName: '',
+                      mixedDoublesPartnerId: '',
+                      mixedDoublesPartnerName: ''
+                    }))
+                  }
                   className={`py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer text-center ${
                     addPlayerForm.gender === 'male'
                       ? 'bg-blue-600 text-white shadow-xs'
@@ -1922,7 +1955,16 @@ export default function AdminRegistrationsPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setAddPlayerForm((prev) => ({ ...prev, gender: 'female' }))}
+                  onClick={() =>
+                    setAddPlayerForm((prev) => ({
+                      ...prev,
+                      gender: 'female',
+                      doublesPartnerId: '',
+                      doublesPartnerName: '',
+                      mixedDoublesPartnerId: '',
+                      mixedDoublesPartnerName: ''
+                    }))
+                  }
                   className={`py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer text-center ${
                     addPlayerForm.gender === 'female'
                       ? 'bg-pink-600 text-white shadow-xs'
@@ -1988,7 +2030,7 @@ export default function AdminRegistrationsPage() {
             </div>
           </div>
 
-          {/* Doubles Partner (Gender Dynamic) */}
+          {/* Doubles Partner (Gender Dynamic Search) */}
           {addPlayerForm.participateDoubles && (
             <div>
               <div className="flex items-center justify-between mb-1">
@@ -1996,13 +2038,21 @@ export default function AdminRegistrationsPage() {
                   {addPlayerForm.gender === 'male' ? 'Boys Doubles Partner *' : 'Girls Doubles Partner *'}
                 </label>
               </div>
-              <input
-                type="text"
+              <PartnerSearchSelect
+                category={addPlayerForm.gender === 'male' ? 'boys_doubles' : 'girls_doubles'}
+                playerGender={addPlayerForm.gender}
+                excludeName={addPlayerForm.fullName}
+                valueId={addPlayerForm.doublesPartnerId}
+                valueName={addPlayerForm.doublesPartnerName}
                 required
-                value={addPlayerForm.doublesPartnerName}
-                onChange={(e) => setAddPlayerForm((prev) => ({ ...prev, doublesPartnerName: e.target.value }))}
-                placeholder={addPlayerForm.gender === 'male' ? "Male Partner's Full Name" : "Female Partner's Full Name"}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] bg-white dark:bg-[#121517] text-sm font-normal text-[#3E342B] dark:text-[#F5F1E8] focus:outline-hidden focus:border-[#E74C3C] dark:focus:border-[#D4A94C]"
+                onChange={(candidate) =>
+                  setAddPlayerForm((prev) => ({
+                    ...prev,
+                    doublesPartnerId: candidate?._id || '',
+                    doublesPartnerName: candidate?.fullName || ''
+                  }))
+                }
+                placeholder={addPlayerForm.gender === 'male' ? 'Search registered male partner...' : 'Search registered female partner...'}
               />
             </div>
           )}
@@ -2015,13 +2065,21 @@ export default function AdminRegistrationsPage() {
                   Mixed Doubles Partner *
                 </label>
               </div>
-              <input
-                type="text"
+              <PartnerSearchSelect
+                category="mixed_doubles"
+                playerGender={addPlayerForm.gender}
+                excludeName={addPlayerForm.fullName}
+                valueId={addPlayerForm.mixedDoublesPartnerId}
+                valueName={addPlayerForm.mixedDoublesPartnerName}
                 required
-                value={addPlayerForm.mixedDoublesPartnerName}
-                onChange={(e) => setAddPlayerForm((prev) => ({ ...prev, mixedDoublesPartnerName: e.target.value }))}
-                placeholder={addPlayerForm.gender === 'male' ? "Female Mixed Partner's Full Name" : "Male Mixed Partner's Full Name"}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#D5C4A1] dark:border-[#2B3034] bg-white dark:bg-[#121517] text-sm font-normal text-[#3E342B] dark:text-[#F5F1E8] focus:outline-hidden focus:border-[#E74C3C] dark:focus:border-[#D4A94C]"
+                onChange={(candidate) =>
+                  setAddPlayerForm((prev) => ({
+                    ...prev,
+                    mixedDoublesPartnerId: candidate?._id || '',
+                    mixedDoublesPartnerName: candidate?.fullName || ''
+                  }))
+                }
+                placeholder={addPlayerForm.gender === 'male' ? 'Search registered female mixed partner...' : 'Search registered male mixed partner...'}
               />
             </div>
           )}

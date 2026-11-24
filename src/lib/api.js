@@ -191,6 +191,18 @@ export const api = {
   },
 
   // Registrations
+  searchPartners: async (params = {}) => {
+    const clean = {};
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== '') clean[k] = v;
+    });
+    const query = new URLSearchParams(clean).toString();
+    const res = await fetchWithRetry(`${API_BASE}/registrations/partners/search${query ? `?${query}` : ''}`, {
+      headers: getHeaders()
+    });
+    return handleResponse(res);
+  },
+
   submitRegistration: async (formData) => {
     const res = await fetchWithRetry(`${API_BASE}/registrations`, {
       method: 'POST',
@@ -543,6 +555,18 @@ export const api = {
   // Stats & Audit
   getOverviewStats: async () => {
     const res = await fetchWithRetry(`${API_BASE}/stats/overview`, {
+      headers: getHeaders()
+    });
+    return handleResponse(res);
+  },
+
+  getParticipantsDirectory: async (params = {}) => {
+    const clean = {};
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== '') clean[k] = v;
+    });
+    const query = new URLSearchParams(clean).toString();
+    const res = await fetchWithRetry(`${API_BASE}/stats/participants${query ? `?${query}` : ''}`, {
       headers: getHeaders()
     });
     return handleResponse(res);
