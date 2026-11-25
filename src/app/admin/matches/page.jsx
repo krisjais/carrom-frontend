@@ -67,6 +67,10 @@ export default function AdminMatchesPage() {
   const [boards, setBoards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [substituteMatch, setSubstituteMatch] = useState(null);
+  const [manualMatchModalOpen, setManualMatchModalOpen] = useState(false);
+  const [creatingManualMatch, setCreatingManualMatch] = useState(false);
+  const [manualTeam1Id, setManualTeam1Id] = useState('');
+  const [manualTeam2Id, setManualTeam2Id] = useState('');
 
   // Multi-Board Carrom Arena Management
   const [addBoardModalOpen, setAddBoardModalOpen] = useState(false);
@@ -379,6 +383,16 @@ export default function AdminMatchesPage() {
     return matches.filter((m) => m.category === activeCategory);
   }, [matches, activeCategory]);
 
+  const availableManualTeams = useMemo(() => {
+    const assignedTeamIds = new Set(
+      categoryMatches
+        .flatMap((match) => [match.team1?._id || match.team1, match.team2?._id || match.team2])
+        .filter(Boolean)
+        .map((teamId) => String(teamId))
+    );
+    return teams.filter((team) => team.isApproved && !assignedTeamIds.has(String(team._id)));
+  }, [categoryMatches, teams]);
+
   const roundGroups = useMemo(() => {
     const map = {};
     categoryMatches.forEach((m) => {
@@ -423,6 +437,32 @@ export default function AdminMatchesPage() {
   const currentMatch = arenaState?.currentMatch;
   const isBoardOccupied = Boolean(currentMatch);
 
+  const handleManualMatchSubmit = async (e) => {
+    e.preventDefault();
+    if (!manualTeam1Id) return;
+    if (availableManualTeams.length > 1 && (!manualTeam2Id || manualTeam1Id === manualTeam2Id)) return;
+
+    setCreatingManualMatch(true);
+    try {
+      const res = await api.createAdditionalMatch({
+        category: activeCategory,
+        team1Id: manualTeam1Id,
+        team2Id: manualTeam2Id || null
+      });
+      if (res.success) {
+        toast.success(res.message || 'Manual match added to the active bracket.');
+        setManualMatchModalOpen(false);
+        setManualTeam1Id('');
+        setManualTeam2Id('');
+        await fetchMatchesAndTeams();
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to create the manual match.');
+    } finally {
+      setCreatingManualMatch(false);
+    }
+  };
+
   return (
     <div className="space-y-8 max-w-6xl mx-auto text-[#4A4238] dark:text-[#F5F1E8] transition-colors duration-200">
       {/* 1. Standard Header */}
@@ -442,7 +482,24 @@ export default function AdminMatchesPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          {knockoutRoundCount > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                setManualTeam1Id('');
+                setManualTeam2Id('');
+                setManualMatchModalOpen(true);
+              }}
+              disabled={loading || creatingManualMatch}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] hover:border-[#3E342B] dark:hover:border-[#D4A94C] text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] transition-colors cursor-pointer shadow-xs disabled:opacity-50"
+              title={`Manually add a match or BYE to the active ${CATEGORIES.find((cat) => cat.id === activeCategory)?.name} bracket round.`}
+            >
+              <Plus className="w-3.5 h-3.5 text-[#E74C3C]" aria-hidden="true" />
+              <span>Create Manual Match</span>
+            </button>
+          )}
+
           <button
             onClick={() => setSchedulerModalOpen(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] hover:border-[#3E342B] dark:hover:border-[#D4A94C] text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] transition-colors cursor-pointer shadow-xs"
@@ -1164,7 +1221,7 @@ export default function AdminMatchesPage() {
                   Restart Matches to 0-0 (Reset Scores & Timers)
                 </span>
                 <p className="text-[11px] font-mono text-[#7E7060] dark:text-[#B8B1A5]">
-                  When checked, completed and live matches in the selected category will be reset to 0-0, their timer and boards cleared, and returned to the scheduled queue for a fresh start.
+                  When checked, the active round restarts at 0-0. Later generated rounds return to TBD and enter the queue after the current round advances; earlier completed rounds stay complete.
                 </p>
               </div>
             </label>
@@ -1800,6 +1857,90 @@ export default function AdminMatchesPage() {
             </button>
           </div>
         </div>
+      </Modal>
+
+      {/* Manual Match Modal */}
+      <Modal
+        isOpen={manualMatchModalOpen}
+        onClose={() => setManualMatchModalOpen(false)}
+        title="Create Manual Match"
+        maxWidth="max-w-xl"
+      >
+        <form onSubmit={handleManualMatchSubmit} className="space-y-5">
+          <div className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] space-y-2">
+            <div className="flex items-center gap-2">
+              <CategoryBadge category={activeCategory} />
+              <span className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8]">
+                {availableManualTeams.length === 1 ? 'Manual BYE advancement' : 'Manual bracket matchup'}
+              </span>
+            </div>
+            <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] leading-relaxed">
+              {availableManualTeams.length === 1
+                ? 'One approved entry is available. Add it with a BYE; it advances automatically when the active round is ready.'
+                : 'Choose approved entries not already assigned in this category. The match joins the active bracket round, and its winner advances.'}
+            </p>
+          </div>
+
+          {availableManualTeams.length === 0 ? (
+            <div className="p-4 rounded-xl border border-amber-300 dark:border-amber-800/50 bg-amber-50/70 dark:bg-amber-950/20 text-xs text-amber-900 dark:text-amber-200">
+              <span>No approved, unassigned entries are available. Register and approve the late entry first. </span>
+              <Link href="/admin/teams" className="font-bold underline underline-offset-2">Open Teams & Entries</Link>
+            </div>
+          ) : (
+            <div className={`grid grid-cols-1 ${availableManualTeams.length > 1 ? 'sm:grid-cols-2' : ''} gap-4`}>
+              <div className="space-y-1.5">
+                <label htmlFor="manual-match-team-1" className="text-xs font-bold uppercase font-mono text-[#3E342B] dark:text-[#F5F1E8]">Entry 1</label>
+                <select
+                  id="manual-match-team-1"
+                  required
+                  value={manualTeam1Id}
+                  onChange={(e) => setManualTeam1Id(e.target.value)}
+                  className="w-full h-11 px-3 rounded-xl bg-white dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-xs text-[#3E342B] dark:text-[#F5F1E8] focus:outline-none focus:ring-2 focus:ring-[#E74C3C]/50"
+                >
+                  <option value="">Select entry</option>
+                  {availableManualTeams.map((team) => <option key={team._id} value={team._id}>{getCarromTeamName(team)}</option>)}
+                </select>
+              </div>
+
+              {availableManualTeams.length > 1 && (
+                <div className="space-y-1.5">
+                  <label htmlFor="manual-match-team-2" className="text-xs font-bold uppercase font-mono text-[#3E342B] dark:text-[#F5F1E8]">Entry 2</label>
+                  <select
+                    id="manual-match-team-2"
+                    required
+                    value={manualTeam2Id}
+                    onChange={(e) => setManualTeam2Id(e.target.value)}
+                    className="w-full h-11 px-3 rounded-xl bg-white dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-xs text-[#3E342B] dark:text-[#F5F1E8] focus:outline-none focus:ring-2 focus:ring-[#E74C3C]/50"
+                  >
+                    <option value="">Select entry</option>
+                    {availableManualTeams.filter((team) => team._id !== manualTeam1Id).map((team) => <option key={team._id} value={team._id}>{getCarromTeamName(team)}</option>)}
+                  </select>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E8E1D5] dark:border-[#2B3034]">
+            <button
+              type="button"
+              onClick={() => setManualMatchModalOpen(false)}
+              className="px-4 py-2 rounded-xl text-xs font-bold text-[#7E7060] dark:text-[#817B72] hover:text-[#3E342B] dark:hover:text-[#F5F1E8] cursor-pointer font-mono"
+            >Cancel</button>
+            <button
+              type="submit"
+              disabled={
+                creatingManualMatch
+                || availableManualTeams.length === 0
+                || !manualTeam1Id
+                || (availableManualTeams.length > 1 && (!manualTeam2Id || manualTeam1Id === manualTeam2Id))
+              }
+              className="btn-primary text-xs font-bold px-6 py-2.5 shadow-xs transition-all cursor-pointer uppercase tracking-wider inline-flex items-center gap-2 disabled:opacity-50"
+            >
+              <Plus className="w-4 h-4" aria-hidden="true" />
+              <span>{creatingManualMatch ? 'Creating...' : availableManualTeams.length === 1 ? 'Add with BYE' : 'Create Match'}</span>
+            </button>
+          </div>
+        </form>
       </Modal>
 
       {/* Substitute Partner Modal */}

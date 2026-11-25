@@ -75,6 +75,7 @@ function AdminDrawsContent() {
   }, [selectedCat]);
 
   const N = teams.filter((team) => team.isApproved).length;
+  const hasGeneratedBracket = (bracketData?.rawMatches?.length || 0) > 0;
   const firstRoundMatches = (bracketData?.rawMatches || []).filter((match) => match.roundNumber === 1);
   const bracketEntryIds = new Set(
     firstRoundMatches
@@ -186,15 +187,19 @@ function AdminDrawsContent() {
   const handleCreateAdditionalMatch = async (e) => {
     e.preventDefault();
     if (!manualTeam1Id) return;
-    if (availableLateTeams.length > 1 && (!manualTeam2Id || manualTeam1Id === manualTeam2Id)) return;
+    if (manualTeam1Id === manualTeam2Id) return;
+    if (hasGeneratedBracket && availableLateTeams.length > 1 && !manualTeam2Id) return;
+    if (!hasGeneratedBracket && (availableLateTeams.length < 2 || !manualTeam2Id)) return;
 
     setCreatingManualMatch(true);
     try {
-      const res = await api.createAdditionalMatch({
-        category: selectedCat,
-        team1Id: manualTeam1Id,
-        team2Id: manualTeam2Id || null
-      });
+      const res = hasGeneratedBracket
+        ? await api.createAdditionalMatch({
+            category: selectedCat,
+            team1Id: manualTeam1Id,
+            team2Id: manualTeam2Id || null
+          })
+        : await api.generateManualCategoryDraw(selectedCat, manualTeam1Id, manualTeam2Id);
       if (res.success) {
         setFeedbackMessage({ type: 'success', text: res.message });
         setManualMatchModalOpen(false);
@@ -241,7 +246,7 @@ function AdminDrawsContent() {
 
         {/* Generate / Lock Action Buttons */}
         <div className="flex flex-wrap items-center justify-end gap-3">
-          {bracketData?.rawMatches?.length > 0 && (
+          {(hasGeneratedBracket || N >= 2) && (
             <button
               type="button"
               onClick={() => {
@@ -250,11 +255,11 @@ function AdminDrawsContent() {
                 setManualMatchModalOpen(true);
               }}
               disabled={actionLoading || creatingManualMatch}
-              title="Add approved late entries to the currently active bracket round."
+              title={hasGeneratedBracket ? 'Add approved late entries to the active bracket round.' : 'Choose the first manual pairing before creating the bracket.'}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] hover:border-[#3E342B] dark:hover:border-[#D4A94C] text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] transition-colors cursor-pointer disabled:opacity-50"
             >
               <Plus className="w-4 h-4 text-[#E74C3C]" aria-hidden="true" />
-              <span>Add Late Match</span>
+              <span>{hasGeneratedBracket ? 'Add Late Match' : 'Create Manual Match'}</span>
             </button>
           )}
 
@@ -371,7 +376,7 @@ function AdminDrawsContent() {
       <Modal
         isOpen={manualMatchModalOpen}
         onClose={() => setManualMatchModalOpen(false)}
-        title="Add Late Match to Active Round"
+        title={hasGeneratedBracket ? 'Add Late Match to Active Round' : 'Create Manual Match'}
         maxWidth="max-w-xl"
       >
         <form onSubmit={handleCreateAdditionalMatch} className="space-y-5">
@@ -379,22 +384,34 @@ function AdminDrawsContent() {
             <div className="flex items-center gap-2">
               <CategoryBadge category={selectedCat} />
               <span className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8]">
-                {availableLateTeams.length === 1 ? 'Late-entry BYE advancement' : 'Late-entry bracket match'}
+                {!hasGeneratedBracket
+                  ? 'First-round manual pairing'
+                  : availableLateTeams.length === 1
+                    ? 'Late-entry BYE advancement'
+                    : 'Late-entry bracket match'}
               </span>
             </div>
             <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] leading-relaxed">
-              {availableLateTeams.length === 1
-                ? 'Only one approved entry is left. Add it with an automatic BYE; it will advance when the active round is ready. Any live match keeps running.'
-                : 'Pick two approved entries that are not already in a match. The fixture joins the currently active round, its winner continues through the bracket, and any live match keeps running.'}
+              {!hasGeneratedBracket
+                ? 'Choose the two entries for Match #1. Other approved entries will be paired into the new bracket automatically, and any BYE will advance by itself.'
+                : availableLateTeams.length === 1
+                  ? 'Only one approved entry is left. Add it with an automatic BYE; it will advance when the active round is ready. Any live match keeps running.'
+                  : 'Pick two approved entries that are not already in a match. The fixture joins the currently active round, its winner continues through the bracket, and any live match keeps running.'}
             </p>
           </div>
 
           {availableLateTeams.length === 0 ? (
             <div className="p-4 rounded-xl border border-amber-300 dark:border-amber-800/50 bg-amber-50/70 dark:bg-amber-950/20 text-xs text-amber-900 dark:text-amber-200">
-              <span>No approved entries are currently available to add. Register and approve a late entry first. </span>
+              <span>{hasGeneratedBracket
+                ? 'No approved entries are currently available to add. Register and approve a late entry first. '
+                : 'There are no approved entries available for a manual match. '}</span>
               <Link href="/admin/teams" className="font-bold underline underline-offset-2 focus:outline-none focus:ring-2 focus:ring-amber-600 rounded-sm">
                 Open Teams & Entries
               </Link>
+            </div>
+          ) : !hasGeneratedBracket && availableLateTeams.length < 2 ? (
+            <div className="p-4 rounded-xl border border-amber-300 dark:border-amber-800/50 bg-amber-50/70 dark:bg-amber-950/20 text-xs text-amber-900 dark:text-amber-200">
+              At least two approved entries are needed to create the first manual match. Add and approve another entry first.
             </div>
           ) : (
             <div className={`grid grid-cols-1 ${availableLateTeams.length > 1 ? 'sm:grid-cols-2' : ''} gap-4`}>
@@ -443,12 +460,19 @@ function AdminDrawsContent() {
                 creatingManualMatch
                 || availableLateTeams.length === 0
                 || !manualTeam1Id
+                || (!hasGeneratedBracket && (availableLateTeams.length < 2 || !manualTeam2Id))
                 || (availableLateTeams.length > 1 && (!manualTeam2Id || manualTeam1Id === manualTeam2Id))
               }
               className="btn-primary text-xs font-bold px-6 py-2.5 shadow-xs transition-all cursor-pointer uppercase tracking-wider inline-flex items-center gap-2 disabled:opacity-50"
             >
               <Plus className="w-4 h-4" aria-hidden="true" />
-              <span>{creatingManualMatch ? 'Adding...' : availableLateTeams.length === 1 ? 'Add with BYE' : 'Add to Active Round'}</span>
+              <span>{creatingManualMatch
+                ? (hasGeneratedBracket ? 'Adding...' : 'Creating...')
+                : !hasGeneratedBracket
+                  ? 'Create Manual Bracket'
+                  : availableLateTeams.length === 1
+                    ? 'Add with BYE'
+                    : 'Add to Active Round'}</span>
             </button>
           </div>
         </form>
