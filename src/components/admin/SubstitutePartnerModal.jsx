@@ -129,7 +129,10 @@ export const SubstitutePartnerModal = ({
     try {
       const payload = {
         slot: selectedSlot,
-        reason: reason.trim() || 'Partner substitution requested by admin'
+        reason: reason.trim() || 'Partner substitution requested by admin',
+        matchNumber: match.matchNumber,
+        category: match.category,
+        targetTeamId: activeTeam?._id || activeTeam
       };
 
       if (subMode === 'custom') {
@@ -150,7 +153,7 @@ export const SubstitutePartnerModal = ({
         payload.newName = previewName;
       }
 
-      const res = await api.substituteMatchPartner(match._id, payload);
+      const res = await api.substituteMatchPartner(match._id || match.id || 'lookup', payload);
       if (res.success) {
         toast.success(res.message || 'Partner updated and match name synchronized!');
         if (onSuccess) {
