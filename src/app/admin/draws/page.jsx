@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, Suspense } from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { CATEGORIES } from '@/lib/constants';
@@ -13,7 +14,9 @@ import {
   RefreshCw,
   AlertTriangle,
   CheckCircle2,
-  Trophy
+  Trophy,
+  Plus,
+  Trash2
 } from 'lucide-react';
 import { CategoryBadge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
@@ -28,6 +31,10 @@ function AdminDrawsContent() {
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [manualMatchModalOpen, setManualMatchModalOpen] = useState(false);
+  const [creatingManualMatch, setCreatingManualMatch] = useState(false);
+  const [manualTeam1Id, setManualTeam1Id] = useState('');
+  const [manualTeam2Id, setManualTeam2Id] = useState('');
   const [feedbackMessage, setFeedbackMessage] = useState(null);
 
   // In-app Modals
@@ -41,7 +48,14 @@ function AdminDrawsContent() {
 
   const fetchCategoryData = async () => {
     setLoading(true);
+    setBracketData(null);
+    setTeams([]);
     try {
+      try {
+        await api.attachLateMatchesToActiveRound(selectedCat);
+      } catch (err) {
+        console.warn('Could not attach legacy late matches to the active bracket round:', err);
+      }
       const [bRes, tRes] = await Promise.all([
         api.getBracketTree(selectedCat),
         api.getTeams(selectedCat)
@@ -60,10 +74,25 @@ function AdminDrawsContent() {
     fetchCategoryData();
   }, [selectedCat]);
 
-  const N = teams.length;
-  const r1Matches = N >= 2 ? Math.floor(N / 2) : 0;
-  const r1Byes = N >= 2 ? N % 2 : 0;
-  const r2Advancing = N >= 2 ? r1Matches + r1Byes : 0;
+  const N = teams.filter((team) => team.isApproved).length;
+  const firstRoundMatches = (bracketData?.rawMatches || []).filter((match) => match.roundNumber === 1);
+  const bracketEntryIds = new Set(
+    firstRoundMatches
+      .flatMap((match) => [match.team1?._id || match.team1, match.team2?._id || match.team2])
+      .filter(Boolean)
+      .map((teamId) => String(teamId))
+  );
+  const pairingEntryCount = firstRoundMatches.length > 0 ? bracketEntryIds.size : N;
+  const assignedTeamIds = new Set(
+    (bracketData?.rawMatches || [])
+      .flatMap((match) => [match.team1?._id || match.team1, match.team2?._id || match.team2])
+      .filter(Boolean)
+      .map((teamId) => String(teamId))
+  );
+  const availableLateTeams = teams.filter((team) => team.isApproved && !assignedTeamIds.has(String(team._id)));
+  const r1Matches = pairingEntryCount >= 2 ? Math.floor(pairingEntryCount / 2) : 0;
+  const r1Byes = pairingEntryCount >= 2 ? pairingEntryCount % 2 : 0;
+  const r2Advancing = pairingEntryCount >= 2 ? r1Matches + r1Byes : 0;
 
   const handleGenerateDraw = () => {
     if (N < 2) {
@@ -129,6 +158,57 @@ function AdminDrawsContent() {
     });
   };
 
+  const handleDeleteAllMatches = () => {
+    const matchCount = bracketData?.rawMatches?.length || 0;
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete All Matches?',
+      message: `Permanently delete all ${matchCount} matches, scores, and results in ${selectedCat.replace('_', ' ').toUpperCase()}? This will unlock and unpublish the draw so you can generate it again. This action cannot be undone, and it is blocked while a match in this category is live.`,
+      confirmText: 'Delete All Matches',
+      action: async () => {
+        setActionLoading(true);
+        try {
+          const res = await api.deleteCategoryMatches(selectedCat);
+          if (res.success) {
+            setFeedbackMessage({ type: 'success', text: res.message });
+            await fetchCategoryData();
+          }
+        } catch (err) {
+          setFeedbackMessage({ type: 'error', text: err.message || 'Failed to delete matches.' });
+        } finally {
+          setActionLoading(false);
+          setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+        }
+      }
+    });
+  };
+
+  const handleCreateAdditionalMatch = async (e) => {
+    e.preventDefault();
+    if (!manualTeam1Id) return;
+    if (availableLateTeams.length > 1 && (!manualTeam2Id || manualTeam1Id === manualTeam2Id)) return;
+
+    setCreatingManualMatch(true);
+    try {
+      const res = await api.createAdditionalMatch({
+        category: selectedCat,
+        team1Id: manualTeam1Id,
+        team2Id: manualTeam2Id || null
+      });
+      if (res.success) {
+        setFeedbackMessage({ type: 'success', text: res.message });
+        setManualMatchModalOpen(false);
+        setManualTeam1Id('');
+        setManualTeam2Id('');
+        await fetchCategoryData();
+      }
+    } catch (err) {
+      setFeedbackMessage({ type: 'error', text: err.message || 'Failed to add the match.' });
+    } finally {
+      setCreatingManualMatch(false);
+    }
+  };
+
   return (
     <div className="space-y-8 max-w-6xl mx-auto text-[#4A4238] dark:text-[#F5F1E8] transition-colors duration-200">
       {/* Feedback Banner */}
@@ -160,7 +240,37 @@ function AdminDrawsContent() {
         </div>
 
         {/* Generate / Lock Action Buttons */}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          {bracketData?.rawMatches?.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                setManualTeam1Id('');
+                setManualTeam2Id('');
+                setManualMatchModalOpen(true);
+              }}
+              disabled={actionLoading || creatingManualMatch}
+              title="Add approved late entries to the currently active bracket round."
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] hover:border-[#3E342B] dark:hover:border-[#D4A94C] text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] transition-colors cursor-pointer disabled:opacity-50"
+            >
+              <Plus className="w-4 h-4 text-[#E74C3C]" aria-hidden="true" />
+              <span>Add Late Match</span>
+            </button>
+          )}
+
+          {bracketData?.rawMatches?.length > 0 && (
+            <button
+              type="button"
+              onClick={handleDeleteAllMatches}
+              disabled={actionLoading}
+              title={`Delete all ${selectedCat.replace('_', ' ')} matches and unlock this draw for regeneration.`}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-[#15191C] border border-red-300 dark:border-red-900/60 hover:border-red-500 dark:hover:border-red-700 text-xs font-bold text-red-700 dark:text-red-300 transition-colors cursor-pointer disabled:opacity-50"
+            >
+              <Trash2 className="w-4 h-4" aria-hidden="true" />
+              <span>Delete All Matches</span>
+            </button>
+          )}
+
           {!bracketData?.isLocked && (
             <button
               onClick={handleGenerateDraw}
@@ -257,6 +367,92 @@ function AdminDrawsContent() {
           onMatchUpdated={fetchCategoryData}
         />
       )}
+
+      <Modal
+        isOpen={manualMatchModalOpen}
+        onClose={() => setManualMatchModalOpen(false)}
+        title="Add Late Match to Active Round"
+        maxWidth="max-w-xl"
+      >
+        <form onSubmit={handleCreateAdditionalMatch} className="space-y-5">
+          <div className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#E8E1D5] dark:border-[#2B3034] space-y-2">
+            <div className="flex items-center gap-2">
+              <CategoryBadge category={selectedCat} />
+              <span className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8]">
+                {availableLateTeams.length === 1 ? 'Late-entry BYE advancement' : 'Late-entry bracket match'}
+              </span>
+            </div>
+            <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] leading-relaxed">
+              {availableLateTeams.length === 1
+                ? 'Only one approved entry is left. Add it with an automatic BYE; it will advance when the active round is ready. Any live match keeps running.'
+                : 'Pick two approved entries that are not already in a match. The fixture joins the currently active round, its winner continues through the bracket, and any live match keeps running.'}
+            </p>
+          </div>
+
+          {availableLateTeams.length === 0 ? (
+            <div className="p-4 rounded-xl border border-amber-300 dark:border-amber-800/50 bg-amber-50/70 dark:bg-amber-950/20 text-xs text-amber-900 dark:text-amber-200">
+              <span>No approved entries are currently available to add. Register and approve a late entry first. </span>
+              <Link href="/admin/teams" className="font-bold underline underline-offset-2 focus:outline-none focus:ring-2 focus:ring-amber-600 rounded-sm">
+                Open Teams & Entries
+              </Link>
+            </div>
+          ) : (
+            <div className={`grid grid-cols-1 ${availableLateTeams.length > 1 ? 'sm:grid-cols-2' : ''} gap-4`}>
+              <div className="space-y-1.5">
+                <label htmlFor="late-match-team-1" className="text-xs font-bold uppercase font-mono text-[#3E342B] dark:text-[#F5F1E8]">Entry 1</label>
+                <select
+                  id="late-match-team-1"
+                  required
+                  value={manualTeam1Id}
+                  onChange={(e) => setManualTeam1Id(e.target.value)}
+                  className="w-full h-11 px-3 rounded-xl bg-white dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-xs text-[#3E342B] dark:text-[#F5F1E8] focus:outline-none focus:ring-2 focus:ring-[#E74C3C]/50"
+                >
+                  <option value="">Select entry</option>
+                  {availableLateTeams.map((team) => <option key={team._id} value={team._id}>{team.name}</option>)}
+                </select>
+              </div>
+              {availableLateTeams.length > 1 && (
+                <div className="space-y-1.5">
+                  <label htmlFor="late-match-team-2" className="text-xs font-bold uppercase font-mono text-[#3E342B] dark:text-[#F5F1E8]">Entry 2</label>
+                  <select
+                    id="late-match-team-2"
+                    required
+                    value={manualTeam2Id}
+                    onChange={(e) => setManualTeam2Id(e.target.value)}
+                    className="w-full h-11 px-3 rounded-xl bg-white dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] text-xs text-[#3E342B] dark:text-[#F5F1E8] focus:outline-none focus:ring-2 focus:ring-[#E74C3C]/50"
+                  >
+                    <option value="">Select entry</option>
+                    {availableLateTeams.filter((team) => team._id !== manualTeam1Id).map((team) => <option key={team._id} value={team._id}>{team.name}</option>)}
+                  </select>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E8E1D5] dark:border-[#2B3034]">
+            <button
+              type="button"
+              onClick={() => setManualMatchModalOpen(false)}
+              className="px-4 py-2 rounded-xl text-xs font-bold text-[#7E7060] dark:text-[#817B72] hover:text-[#3E342B] dark:hover:text-[#F5F1E8] cursor-pointer font-mono"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={
+                creatingManualMatch
+                || availableLateTeams.length === 0
+                || !manualTeam1Id
+                || (availableLateTeams.length > 1 && (!manualTeam2Id || manualTeam1Id === manualTeam2Id))
+              }
+              className="btn-primary text-xs font-bold px-6 py-2.5 shadow-xs transition-all cursor-pointer uppercase tracking-wider inline-flex items-center gap-2 disabled:opacity-50"
+            >
+              <Plus className="w-4 h-4" aria-hidden="true" />
+              <span>{creatingManualMatch ? 'Adding...' : availableLateTeams.length === 1 ? 'Add with BYE' : 'Add to Active Round'}</span>
+            </button>
+          </div>
+        </form>
+      </Modal>
 
       {/* In-App Confirmation Modal */}
       <Modal

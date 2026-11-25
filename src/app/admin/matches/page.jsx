@@ -419,6 +419,7 @@ export default function AdminMatchesPage() {
     };
   }, [categoryMatches, teams]);
 
+  const knockoutRoundCount = roundGroups.filter((group) => group.roundNumber > 0).length;
   const currentMatch = arenaState?.currentMatch;
   const isBoardOccupied = Boolean(currentMatch);
 
@@ -715,7 +716,7 @@ export default function AdminMatchesPage() {
                 {CATEGORIES.find((c) => c.id === activeCategory)?.name}
               </h2>
               <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] font-mono mt-0.5">
-                {categoryStats.totalPlayers} Approved Entries • {roundGroups.length} Knockout Rounds
+                {categoryStats.totalPlayers} Approved Entries • {knockoutRoundCount} Knockout Rounds
               </p>
             </div>
           </div>
@@ -761,7 +762,7 @@ export default function AdminMatchesPage() {
                 onClick={() => setSelectedRoundStage('all')}
                 className={`pill-tab cursor-pointer ${selectedRoundStage === 'all' ? 'pill-tab-active' : 'pill-tab-inactive'}`}
               >
-                All Rounds ({roundGroups.length})
+                All Matches ({roundGroups.length})
               </button>
 
               {roundGroups.map((rg) => {
@@ -818,7 +819,7 @@ export default function AdminMatchesPage() {
                       {rg.roundName}
                     </h3>
                     <span className="text-xs text-[#7E7060] dark:text-[#817B72] font-mono">
-                      (Round {rg.roundNumber} of {roundGroups.length})
+                      {rg.roundNumber === 0 ? '(Additional fixture outside the knockout bracket)' : `(Round ${rg.roundNumber} of ${knockoutRoundCount})`}
                     </span>
                   </div>
 
@@ -867,6 +868,11 @@ export default function AdminMatchesPage() {
                                 <span className="font-mono font-bold text-[#3E342B] dark:text-[#F5F1E8] text-[11px]">
                                   M#{m.matchNumber}
                                 </span>
+                                {m.isManual && (
+                                  <span className="px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-800/50 text-[9px] font-mono font-bold uppercase text-amber-800 dark:text-amber-300">
+                                    Late entry
+                                  </span>
+                                )}
                                 <StatusBadge status={m.status} queuePosition={m.queuePosition} />
                               </div>
                               <span className="text-[10px] font-mono text-[#7E7060] dark:text-[#817B72]">

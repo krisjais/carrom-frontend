@@ -190,6 +190,11 @@ const MatchNode = ({ match, isFinal, isAdmin, onSubstitute }) => {
       <div className="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-[#E8E1D5] dark:border-[#2B3034] text-[10px]">
         <div className="flex items-center gap-1.5">
           <span className="font-mono font-bold text-[#3E342B] dark:text-[#F5F1E8] text-[11px]">M#{match.matchNumber}</span>
+          {match.isManual && (
+            <span className="px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-800/50 text-[9px] font-mono font-bold uppercase text-amber-800 dark:text-amber-300">
+              Late entry
+            </span>
+          )}
           {isFinal && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FDEDEC] dark:bg-[#E74C3C]/15 text-[#E74C3C] font-bold uppercase font-mono text-[9px] border border-[#E74C3C]/30">
               <CarromCoin type="queen" size="xs" />

@@ -371,6 +371,22 @@ export const api = {
     return handleResponse(res);
   },
 
+  attachLateMatchesToActiveRound: async (category) => {
+    const res = await fetchWithRetry(`${API_BASE}/draws/category/${category}/attach-late-matches`, {
+      method: 'POST',
+      headers: getHeaders(true)
+    });
+    return handleResponse(res);
+  },
+
+  deleteCategoryMatches: async (category) => {
+    const res = await fetchWithRetry(`${API_BASE}/draws/category/${category}/matches`, {
+      method: 'DELETE',
+      headers: getHeaders(true)
+    });
+    return handleResponse(res);
+  },
+
   publishAndLockDraw: async (category) => {
     const res = await fetchWithRetry(`${API_BASE}/draws/publish-lock`, {
       method: 'POST',
@@ -394,6 +410,15 @@ export const api = {
     const query = new URLSearchParams(params).toString();
     const res = await fetchWithRetry(`${API_BASE}/matches?${query}`, {
       headers: getHeaders()
+    });
+    return handleResponse(res);
+  },
+
+  createAdditionalMatch: async (matchData) => {
+    const res = await fetchWithRetry(`${API_BASE}/matches/manual`, {
+      method: 'POST',
+      headers: getHeaders(true),
+      body: JSON.stringify(matchData)
     });
     return handleResponse(res);
   },
