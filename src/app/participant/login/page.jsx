@@ -24,7 +24,7 @@ export default function ParticipantLoginPage() {
     setLoading(true);
 
     try {
-      await login(email.trim(), password);
+      await login(email.trim(), password.trim());
       router.push('/participant/dashboard');
     } catch (err) {
       setError(err.message || 'Login failed. Please check your student credentials.');
