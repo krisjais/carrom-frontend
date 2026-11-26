@@ -70,15 +70,8 @@ export default function ParticipantDashboardPage() {
                 Verified Competitor
               </span>
             </div>
-            <p className="text-xs font-sans text-[#6F6A60] dark:text-[#A8A194] flex flex-wrap items-center gap-1.5">
-              {participant?.studentId && (
-                <span className="font-mono font-bold text-[#171614] dark:text-[#C2A268] bg-white dark:bg-[#24221E] px-2 py-0.5 rounded border border-[#DCD6C8] dark:border-[#38342C]">
-                  {participant.studentId}
-                </span>
-              )}
-              <span>
-                {participant?.department || 'Department'}{participant?.email ? ` • ${participant?.email}` : ''}
-              </span>
+            <p className="text-xs font-sans text-[#6F6A60] dark:text-[#A8A194]">
+              {participant?.department || 'Department'}{participant?.email ? ` • ${participant?.email}` : ''}
             </p>
           </div>
         </div>

@@ -60,7 +60,7 @@ export default function ParticipantLoginPage() {
             Athlete Sign In
           </h1>
           <p className="text-xs text-[#F7F4EC]/70 font-sans max-w-xs mx-auto">
-            Sign in with your Player ID (e.g. CAR-ABDULLA or abdulla), Email, Full Name, or WhatsApp Number and password (name123).
+            Sign in with your Registered Email, Full Name, or WhatsApp Number and password (for seeded players, your password is your registered WhatsApp number).
           </p>
         </div>
 
@@ -74,14 +74,14 @@ export default function ParticipantLoginPage() {
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
           <div className="space-y-1.5 text-left">
             <label className="text-xs font-semibold text-[#F7F4EC]/90 block">
-              Player ID, Email, Full Name, or Phone
+              Registered Email, Full Name, or WhatsApp Number
             </label>
             <input
               type="text"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="e.g. CAR-ABDULLA, abdulla, or Abdulla Shaikh"
+              placeholder="e.g. Abdulla Shaikh, 8454097769, or email"
               autoComplete="username"
               className="w-full h-11 sm:h-12 bg-white/10 hover:bg-white/[0.14] focus:bg-white/15 px-4 text-sm text-white placeholder:text-white/40 rounded-xl border border-white/20 focus:outline-none focus:border-[#C2A268] transition-all"
             />
