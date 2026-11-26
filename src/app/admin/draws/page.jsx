@@ -193,13 +193,11 @@ function AdminDrawsContent() {
 
     setCreatingManualMatch(true);
     try {
-      const res = hasGeneratedBracket
-        ? await api.createAdditionalMatch({
-            category: selectedCat,
-            team1Id: manualTeam1Id,
-            team2Id: manualTeam2Id || null
-          })
-        : await api.generateManualCategoryDraw(selectedCat, manualTeam1Id, manualTeam2Id);
+      const res = await api.createAdditionalMatch({
+        category: selectedCat,
+        team1Id: manualTeam1Id,
+        team2Id: manualTeam2Id || null
+      });
       if (res.success) {
         setFeedbackMessage({ type: 'success', text: res.message });
         setManualMatchModalOpen(false);
@@ -259,7 +257,9 @@ function AdminDrawsContent() {
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-[#15191C] border border-[#D5C4A1] dark:border-[#2B3034] hover:border-[#3E342B] dark:hover:border-[#D4A94C] text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8] transition-colors cursor-pointer disabled:opacity-50"
             >
               <Plus className="w-4 h-4 text-[#E74C3C]" aria-hidden="true" />
-              <span>{hasGeneratedBracket ? 'Add Late Match' : 'Create Manual Match'}</span>
+              <span>{hasGeneratedBracket
+                ? (availableLateTeams.length > 0 ? 'Add Manual Match' : 'Add Late Match')
+                : 'Create Manual Match'}</span>
             </button>
           )}
 
@@ -376,7 +376,9 @@ function AdminDrawsContent() {
       <Modal
         isOpen={manualMatchModalOpen}
         onClose={() => setManualMatchModalOpen(false)}
-        title={hasGeneratedBracket ? 'Add Late Match to Active Round' : 'Create Manual Match'}
+        title={hasGeneratedBracket
+          ? (availableLateTeams.length > 0 ? 'Add Manual Match to Active Round' : 'Add Late Match to Active Round')
+          : 'Create Manual Match'}
         maxWidth="max-w-xl"
       >
         <form onSubmit={handleCreateAdditionalMatch} className="space-y-5">
@@ -386,17 +388,17 @@ function AdminDrawsContent() {
               <span className="text-xs font-bold text-[#3E342B] dark:text-[#F5F1E8]">
                 {!hasGeneratedBracket
                   ? 'First-round manual pairing'
-                  : availableLateTeams.length === 1
-                    ? 'Late-entry BYE advancement'
-                    : 'Late-entry bracket match'}
+                : availableLateTeams.length === 1
+                    ? 'Manual BYE advancement'
+                    : 'Manual bracket match'}
               </span>
             </div>
             <p className="text-xs text-[#7E7060] dark:text-[#B8B1A5] leading-relaxed">
               {!hasGeneratedBracket
-                ? 'Choose the two entries for Match #1. Other approved entries will be paired into the new bracket automatically, and any BYE will advance by itself.'
+                ? 'Choose two approved entries for Match #1. This creates only this match; other entries stay unpaired until you add their matches. Winners advance when the round is ready.'
                 : availableLateTeams.length === 1
                   ? 'Only one approved entry is left. Add it with an automatic BYE; it will advance when the active round is ready. Any live match keeps running.'
-                  : 'Pick two approved entries that are not already in a match. The fixture joins the currently active round, its winner continues through the bracket, and any live match keeps running.'}
+                  : 'Choose two approved entries not already assigned. Only this match is added to the active round; its winner advances when the round is ready.'}
             </p>
           </div>
 
@@ -469,10 +471,10 @@ function AdminDrawsContent() {
               <span>{creatingManualMatch
                 ? (hasGeneratedBracket ? 'Adding...' : 'Creating...')
                 : !hasGeneratedBracket
-                  ? 'Create Manual Bracket'
+                  ? 'Create Match'
                   : availableLateTeams.length === 1
                     ? 'Add with BYE'
-                    : 'Add to Active Round'}</span>
+                    : 'Add Match'}</span>
             </button>
           </div>
         </form>

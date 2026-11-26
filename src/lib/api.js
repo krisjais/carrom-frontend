@@ -364,15 +364,6 @@ export const api = {
     return handleResponse(res);
   },
 
-  generateManualCategoryDraw: async (category, team1Id, team2Id) => {
-    const res = await fetchWithRetry(`${API_BASE}/draws/manual`, {
-      method: 'POST',
-      headers: getHeaders(true),
-      body: JSON.stringify({ category, team1Id, team2Id })
-    });
-    return handleResponse(res);
-  },
-
   getBracketTree: async (category) => {
     const res = await fetchWithRetry(`${API_BASE}/draws/category/${category}`, {
       headers: getHeaders()
