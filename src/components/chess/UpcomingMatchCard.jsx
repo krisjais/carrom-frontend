@@ -56,14 +56,14 @@ export function UpcomingMatchCard({ match }) {
 
       {/* Avatars & Names with Large VS */}
       <div className="grid grid-cols-5 items-center gap-2 py-2">
-        <div className="col-span-2 flex flex-col items-center space-y-1.5">
+        <div className="col-span-2 min-w-0 flex flex-col items-center space-y-1.5">
           <div className="w-12 h-12 rounded-2xl bg-[#22221F] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] border border-[#D5CFC5] dark:border-[#383733] flex items-center justify-center font-serif font-bold text-sm">
             {p1.name.split(' ').map((n) => n[0]).join('')}
           </div>
-          <h4 className="text-xs font-bold text-[#171715] dark:text-[#FAF8F3] font-serif truncate max-w-[95px]">
+          <h4 className="text-xs font-bold text-[#171715] dark:text-[#FAF8F3] font-serif truncate max-w-full px-1">
             {p1.name}
           </h4>
-          <span className="text-[9px] text-[#77736B] dark:text-[#8E8E93]">{p1.dept}</span>
+          <span className="text-[9px] text-[#77736B] dark:text-[#8E8E93] truncate max-w-full px-1">{p1.dept}</span>
         </div>
 
         {/* Large Minimal VS Treatment */}
@@ -73,14 +73,14 @@ export function UpcomingMatchCard({ match }) {
           </span>
         </div>
 
-        <div className="col-span-2 flex flex-col items-center space-y-1.5">
+        <div className="col-span-2 min-w-0 flex flex-col items-center space-y-1.5">
           <div className="w-12 h-12 rounded-2xl bg-[#4E4C47] dark:bg-[#2A2A28] text-[#FAF8F3] border border-[#D5CFC5] dark:border-[#383733] flex items-center justify-center font-serif font-bold text-sm">
             {p2.name.split(' ').map((n) => n[0]).join('')}
           </div>
-          <h4 className="text-xs font-bold text-[#171715] dark:text-[#FAF8F3] font-serif truncate max-w-[95px]">
+          <h4 className="text-xs font-bold text-[#171715] dark:text-[#FAF8F3] font-serif truncate max-w-full px-1">
             {p2.name}
           </h4>
-          <span className="text-[9px] text-[#77736B] dark:text-[#8E8E93]">{p2.dept}</span>
+          <span className="text-[9px] text-[#77736B] dark:text-[#8E8E93] truncate max-w-full px-1">{p2.dept}</span>
         </div>
       </div>
 

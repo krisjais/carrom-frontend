@@ -18,7 +18,7 @@ export function LiveMatchCard({ match }) {
     <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl p-5 shadow-xs space-y-4 hover:border-[#171715] dark:hover:border-[#FAF8F3] hover:-translate-y-0.5 transition-all group">
       
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-[#D5CFC5]/70 dark:border-[#262624] pb-3 text-xs font-mono">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#D5CFC5]/70 dark:border-[#262624] pb-3 text-xs font-mono">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-bold text-[#171715] dark:text-[#FAF8F3]">{match.matchId}</span>
           <span className="text-[#77736B] dark:text-[#8E8E93]">| Round {match.round}</span>
@@ -28,7 +28,7 @@ export function LiveMatchCard({ match }) {
             </span>
           )}
         </div>
-        <span className="bg-[#EFEAE1] dark:bg-[#222220] border border-[#D5CFC5] dark:border-[#2E2E2B] text-[#171715] dark:text-[#FAF8F3] px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase flex items-center gap-1.5">
+        <span className="bg-[#EFEAE1] dark:bg-[#222220] border border-[#D5CFC5] dark:border-[#2E2E2B] text-[#171715] dark:text-[#FAF8F3] px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase flex items-center gap-1.5 shrink-0">
           <span className="w-1.5 h-1.5 rounded-full bg-[#171715] dark:bg-emerald-400 animate-pulse" />
           <span>LIVE</span>
         </span>
@@ -38,14 +38,14 @@ export function LiveMatchCard({ match }) {
       <div className="grid grid-cols-5 items-center gap-2 py-1 text-center">
         
         {/* Player 1 */}
-        <div className="col-span-2 flex flex-col items-center space-y-1">
+        <div className="col-span-2 min-w-0 flex flex-col items-center space-y-1">
           <div className="w-11 h-11 rounded-full bg-[#22221F] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] border border-[#D5CFC5] dark:border-[#383733] flex items-center justify-center font-bold text-xs font-serif group-hover:scale-105 transition-transform">
             {p1Initials}
           </div>
-          <h4 className="text-xs font-bold text-[#171715] dark:text-[#FAF8F3] truncate max-w-[100px]">
+          <h4 className="text-xs font-bold text-[#171715] dark:text-[#FAF8F3] truncate max-w-full px-1">
             {p1Name}
           </h4>
-          <span className="text-[9px] text-[#77736B] dark:text-[#8E8E93]">{p1Dept}</span>
+          <span className="text-[9px] text-[#77736B] dark:text-[#8E8E93] truncate max-w-full px-1">{p1Dept}</span>
           <span className="text-[10px] font-mono font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full mt-0.5">
             ♔ White
           </span>
@@ -60,14 +60,14 @@ export function LiveMatchCard({ match }) {
         </div>
 
         {/* Player 2 */}
-        <div className="col-span-2 flex flex-col items-center space-y-1">
+        <div className="col-span-2 min-w-0 flex flex-col items-center space-y-1">
           <div className="w-11 h-11 rounded-full bg-[#4E4C47] dark:bg-[#2E2E2B] text-[#FAF8F3] border border-[#D5CFC5] dark:border-[#383733] flex items-center justify-center font-bold text-xs font-serif group-hover:scale-105 transition-transform">
             {p2Initials}
           </div>
-          <h4 className="text-xs font-bold text-[#171715] dark:text-[#FAF8F3] truncate max-w-[100px]">
+          <h4 className="text-xs font-bold text-[#171715] dark:text-[#FAF8F3] truncate max-w-full px-1">
             {p2Name}
           </h4>
-          <span className="text-[9px] text-[#77736B] dark:text-[#8E8E93]">{p2Dept}</span>
+          <span className="text-[9px] text-[#77736B] dark:text-[#8E8E93] truncate max-w-full px-1">{p2Dept}</span>
           <span className="text-[10px] font-mono font-bold text-[#77736B] dark:text-[#8E8E93] bg-[#EFEAE1] dark:bg-[#20201E] px-2 py-0.5 rounded-full mt-0.5">
             ♚ Black
           </span>

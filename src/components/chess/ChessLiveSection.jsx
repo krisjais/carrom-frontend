@@ -56,7 +56,7 @@ export function ChessLiveSection({ liveMatches = [] }) {
                     className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl p-6 sm:p-8 shadow-sm transition-all hover:shadow-md"
                   >
                     {/* Header */}
-                    <div className="flex items-center justify-between border-b border-[#D5CFC5]/60 dark:border-[#262624] pb-4 mb-6">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#D5CFC5]/60 dark:border-[#262624] pb-4 mb-6">
                       <div className="flex items-center gap-2 font-mono text-xs text-[#77736B] dark:text-[#8E8E93] flex-wrap">
                         <span className="font-bold text-[#171715] dark:text-[#FAF8F3]">{match.matchId}</span>
                         <span>•</span>
@@ -71,24 +71,24 @@ export function ChessLiveSection({ liveMatches = [] }) {
                         )}
                       </div>
 
-                      <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-700 dark:text-rose-400 text-[10px] font-mono font-bold uppercase">
+                      <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-700 dark:text-rose-400 text-[10px] font-mono font-bold uppercase shrink-0">
                         <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
                         <span>LIVE NOW</span>
                       </div>
                     </div>
 
                     {/* Arena Body */}
-                    <div className="grid grid-cols-5 items-center gap-4 text-center">
+                    <div className="grid grid-cols-5 items-center gap-2 sm:gap-4 text-center">
                       
                       {/* Player 1 */}
-                      <div className="col-span-2 space-y-1">
-                        <div className="w-12 h-12 rounded-full bg-[#22221F] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] font-serif font-bold text-sm flex items-center justify-center mx-auto shadow-xs">
+                      <div className="col-span-2 min-w-0 space-y-1">
+                        <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#22221F] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] font-serif font-bold text-sm flex items-center justify-center mx-auto shadow-xs">
                           {p1Initials}
                         </div>
-                        <h4 className="text-sm font-bold font-serif text-[#171715] dark:text-[#FAF8F3] truncate max-w-[140px] mx-auto">
+                        <h4 className="text-xs sm:text-sm font-bold font-serif text-[#171715] dark:text-[#FAF8F3] truncate max-w-full px-1 mx-auto">
                           {p1Name}
                         </h4>
-                        <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93] block">{p1Dept}</span>
+                        <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93] block truncate px-1">{p1Dept}</span>
                         <span className="inline-block mt-1 text-[10px] font-mono font-bold uppercase text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full">
                           ♔ White
                         </span>
@@ -101,14 +101,14 @@ export function ChessLiveSection({ liveMatches = [] }) {
                       </div>
 
                       {/* Player 2 */}
-                      <div className="col-span-2 space-y-1">
-                        <div className="w-12 h-12 rounded-full bg-[#4E4C47] dark:bg-[#262624] text-[#FAF8F3] font-serif font-bold text-sm flex items-center justify-center mx-auto shadow-xs">
+                      <div className="col-span-2 min-w-0 space-y-1">
+                        <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#4E4C47] dark:bg-[#262624] text-[#FAF8F3] font-serif font-bold text-sm flex items-center justify-center mx-auto shadow-xs">
                           {p2Initials}
                         </div>
-                        <h4 className="text-sm font-bold font-serif text-[#171715] dark:text-[#FAF8F3] truncate max-w-[140px] mx-auto">
+                        <h4 className="text-xs sm:text-sm font-bold font-serif text-[#171715] dark:text-[#FAF8F3] truncate max-w-full px-1 mx-auto">
                           {p2Name}
                         </h4>
-                        <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93] block">{p2Dept}</span>
+                        <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93] block truncate px-1">{p2Dept}</span>
                         <span className="inline-block mt-1 text-[10px] font-mono font-bold uppercase text-[#77736B] dark:text-[#8E8E93] bg-[#EFEAE1] dark:bg-[#20201E] px-2.5 py-0.5 rounded-full">
                           ♚ Black
                         </span>

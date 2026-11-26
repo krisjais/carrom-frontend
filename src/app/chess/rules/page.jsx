@@ -155,14 +155,14 @@ export function ChessRulesPage() {
         {/* Embedded PDF Viewer (Expandable) */}
         {showPdfViewer && (
           <div className="bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl p-4 sm:p-6 shadow-md space-y-4 animate-in fade-in duration-200">
-            <div className="flex items-center justify-between border-b border-[#D5CFC5] dark:border-[#262624] pb-3">
-              <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#171715] dark:text-[#FAF8F3]">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#D5CFC5] dark:border-[#262624] pb-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <FileText className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#171715] dark:text-[#FAF8F3] truncate">
                   Nexcore_Chess_Rules.pdf (Interactive Document Viewer)
                 </span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <a
                   href="/Nexcore_Chess_Rules.pdf"
                   target="_blank"
@@ -181,7 +181,7 @@ export function ChessRulesPage() {
                 </button>
               </div>
             </div>
-            <div className="w-full h-[650px] rounded-2xl overflow-hidden border border-[#D5CFC5]/80 dark:border-[#262624] bg-[#EFEAE1]/40">
+            <div className="w-full h-[60vh] sm:h-[650px] rounded-2xl overflow-hidden border border-[#D5CFC5]/80 dark:border-[#262624] bg-[#EFEAE1]/40">
               <iframe
                 src="/Nexcore_Chess_Rules.pdf#toolbar=1"
                 className="w-full h-full"
@@ -224,9 +224,9 @@ export function ChessRulesPage() {
 
         {/* Match Decision & Progression Banner */}
         <div className="bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl p-6 sm:p-8 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-[#D5CFC5]/70 dark:border-[#262624] pb-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#D5CFC5]/70 dark:border-[#262624] pb-3">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-[#EFEAE1] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] flex items-center justify-center text-[#171715] dark:text-[#FAF8F3]">
+              <div className="w-8 h-8 rounded-xl bg-[#EFEAE1] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] flex items-center justify-center text-[#171715] dark:text-[#FAF8F3] shrink-0">
                 <Trophy className="w-4 h-4 text-amber-500" />
               </div>
               <h3 className="text-base font-bold font-serif text-[#171715] dark:text-[#FAF8F3] tracking-tight">
@@ -284,16 +284,16 @@ export function ChessRulesPage() {
               key={rule.num}
               className="bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl p-6 sm:p-8 shadow-xs flex flex-col justify-between space-y-4 hover:border-[#171715] dark:hover:border-[#FAF8F3] transition-colors"
             >
-              <div className="flex items-center justify-between border-b border-[#D5CFC5]/70 dark:border-[#262624] pb-3">
-                <div className="flex items-center gap-2.5">
-                  <span className="font-mono text-xl font-bold text-[#77736B] dark:text-[#8E8E93]">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#D5CFC5]/70 dark:border-[#262624] pb-3">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span className="font-mono text-xl font-bold text-[#77736B] dark:text-[#8E8E93] shrink-0">
                     {rule.num}
                   </span>
                   <h3 className="text-base font-bold font-serif text-[#171715] dark:text-[#FAF8F3] tracking-tight">
                     {rule.title}
                   </h3>
                 </div>
-                <span className="text-[10px] font-mono font-semibold tracking-wider px-2.5 py-0.5 rounded-full bg-[#EFEAE1] dark:bg-[#1E1E1C] border border-[#D5CFC5] dark:border-[#2E2E2B] text-[#77736B] dark:text-[#8E8E93]">
+                <span className="text-[10px] font-mono font-semibold tracking-wider px-2.5 py-0.5 rounded-full bg-[#EFEAE1] dark:bg-[#1E1E1C] border border-[#D5CFC5] dark:border-[#2E2E2B] text-[#77736B] dark:text-[#8E8E93] shrink-0">
                   {rule.tag}
                 </span>
               </div>

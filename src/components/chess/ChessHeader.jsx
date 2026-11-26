@@ -105,7 +105,7 @@ export function ChessHeader() {
               title="Open My Match Clocks"
             >
               <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-              <span className="hidden xs:inline">My Clock</span>
+              <span>My Clock</span>
             </Link>
           ) : (
             <>
@@ -123,7 +123,7 @@ export function ChessHeader() {
                 className="inline-flex items-center gap-1 bg-[#22221F] dark:bg-[#FAF8F3] hover:bg-[#000000] dark:hover:bg-[#FFFFFF] text-[#FAF8F3] dark:text-[#0D0D0D] font-semibold px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs uppercase tracking-wider transition-all duration-200 shadow-xs shrink-0"
               >
                 <span>Register</span>
-                <ArrowRight className="w-3 h-3 hidden xs:inline" />
+                <ArrowRight className="w-3 h-3 hidden sm:inline" />
               </Link>
             </>
           )}
@@ -163,37 +163,70 @@ export function ChessHeader() {
             })}
           </div>
 
-          <div className="pt-3 border-t border-[#D5CFC5] dark:border-[#262624] flex items-center justify-between">
-            {playerAuth.isAuthenticated ? (
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-xs font-mono font-bold text-[#171715] dark:text-[#FAF8F3]">
-                  {playerAuth.player?.fullName || playerAuth.player?.playerId}
-                </span>
-              </div>
-            ) : (
-              <span className="text-[10px] font-mono uppercase tracking-widest text-[#77736B] dark:text-[#8E8E93]">
-                Appearance
-              </span>
-            )}
-
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1] dark:bg-[#1D1D1B] text-[#171715] dark:text-[#FAF8F3] text-xs font-semibold cursor-pointer"
-            >
-              {mounted && theme === 'dark' ? (
-                <>
-                  <Sun className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Light Mode</span>
-                </>
+          <div className="pt-3 border-t border-[#D5CFC5] dark:border-[#262624] space-y-3">
+            <div className="flex items-center gap-2">
+              {playerAuth.isAuthenticated ? (
+                <Link
+                  href="/chess/player/dashboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-amber-600/40 bg-amber-500/10 text-amber-800 dark:text-amber-300 text-xs font-semibold uppercase tracking-wider"
+                >
+                  <Clock className="w-3.5 h-3.5 text-amber-600" />
+                  <span>My Clock Portal</span>
+                </Link>
               ) : (
                 <>
-                  <Moon className="w-3.5 h-3.5 text-[#171715]" />
-                  <span>Dark Mode</span>
+                  <Link
+                    href="/chess/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1]/70 dark:bg-[#1D1D1B] text-[#171715] dark:text-[#FAF8F3] text-xs font-semibold uppercase tracking-wider"
+                  >
+                    <span>Player Login</span>
+                  </Link>
+                  <Link
+                    href="/chess/register"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-[#22221F] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] text-xs font-semibold uppercase tracking-wider"
+                  >
+                    <span>Register</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </Link>
                 </>
               )}
-            </button>
+            </div>
+
+            <div className="flex items-center justify-between gap-2">
+              {playerAuth.isAuthenticated ? (
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                  <span className="text-xs font-mono font-bold text-[#171715] dark:text-[#FAF8F3] truncate">
+                    {playerAuth.player?.fullName || playerAuth.player?.playerId}
+                  </span>
+                </div>
+              ) : (
+                <span className="text-[10px] font-mono uppercase tracking-widest text-[#77736B] dark:text-[#8E8E93]">
+                  Appearance
+                </span>
+              )}
+
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1] dark:bg-[#1D1D1B] text-[#171715] dark:text-[#FAF8F3] text-xs font-semibold cursor-pointer shrink-0"
+              >
+                {mounted && theme === 'dark' ? (
+                  <>
+                    <Sun className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Light Mode</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="w-3.5 h-3.5 text-[#171715]" />
+                    <span>Dark Mode</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}
