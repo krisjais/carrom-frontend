@@ -167,8 +167,15 @@ export default function ParticipantsDirectoryPage() {
                   <tr key={p._id} className="hover:bg-[#FAF9F6]/70 dark:hover:bg-[#181C1F]/60 transition-colors">
                     <td className="py-3.5 text-center font-mono text-[#7E7060]">{idx + 1}</td>
                     <td className="py-3.5">
-                      <div className="font-serif font-bold text-sm text-[#3E342B] dark:text-[#F5F1E8]">
-                        {p.fullName}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="font-serif font-bold text-sm text-[#3E342B] dark:text-[#F5F1E8]">
+                          {p.fullName}
+                        </div>
+                        {p.studentId && (
+                          <span className="px-2 py-0.5 rounded-md bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] font-mono text-[10px] font-bold text-[#3E342B] dark:text-[#C2A268]">
+                            {p.studentId}
+                          </span>
+                        )}
                       </div>
                       <span className="text-[11px] capitalize text-[#7E7060] dark:text-[#817B72]">
                         {p.gender} · {p.status}

@@ -1130,7 +1130,14 @@ export default function AdminRegistrationsPage() {
 
                       <td className="py-4 align-top">
                         <div className="space-y-1">
-                          <span className="font-semibold text-[#3E342B] dark:text-[#F5F1E8] text-sm block">{p.fullName}</span>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="font-semibold text-[#3E342B] dark:text-[#F5F1E8] text-sm">{p.fullName}</span>
+                            {p.studentId && (
+                              <span className="px-1.5 py-0.5 rounded bg-[#FAF9F6] dark:bg-[#181C1F] border border-[#D5C4A1] dark:border-[#2B3034] font-mono text-[10px] font-bold text-[#3E342B] dark:text-[#C2A268]">
+                                {p.studentId}
+                              </span>
+                            )}
+                          </div>
                           <span className="text-xs text-[#7E7060] dark:text-[#817B72] block capitalize">
                             {p.gender}
                           </span>
