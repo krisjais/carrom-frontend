@@ -60,7 +60,7 @@ export default function ChessAdminPlayersPage() {
     email: '',
     phone: '',
     status: 'Approved',
-    password: 'chess123'
+    password: ''
   });
   const [creatingPlayer, setCreatingPlayer] = useState(false);
 
@@ -310,7 +310,7 @@ export default function ChessAdminPlayersPage() {
           email: '',
           phone: '',
           status: 'Approved',
-          password: 'chess123'
+          password: ''
         });
         setAddPlayerModalOpen(false);
         loadPlayers();
@@ -964,7 +964,7 @@ export default function ChessAdminPlayersPage() {
                     type="text"
                     value={newPlayerForm.password}
                     onChange={(e) => setNewPlayerForm({ ...newPlayerForm, password: e.target.value })}
-                    placeholder="Default: chess123"
+                    placeholder="Auto: <name>123 (leave blank)"
                     className="w-full bg-[#EFEAE1]/70 dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl pl-10 pr-4 py-2.5 text-[#171715] dark:text-[#FAF8F3] font-mono focus:outline-none"
                   />
                 </div>
