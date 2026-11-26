@@ -212,6 +212,32 @@ function AdminDrawsContent() {
     }
   };
 
+  const handleAwardWalkover = (match, winnerTeam) => {
+    if (!match || !winnerTeam) return;
+    const winnerName = winnerTeam.name || 'the remaining entry';
+    setConfirmModal({
+      isOpen: true,
+      title: 'Award Walkover Win?',
+      message: `Confirm that the opponent in Match #${match.matchNumber} is absent or deleted. This will award ${winnerName} the win and advance them when the round is ready.`,
+      confirmText: 'Award Walkover',
+      action: async () => {
+        setActionLoading(true);
+        try {
+          const res = await api.confirmMatch(match._id, { winnerTeamId: winnerTeam._id || winnerTeam });
+          if (res.success) {
+            setFeedbackMessage({ type: 'success', text: res.message });
+            await fetchCategoryData();
+          }
+        } catch (err) {
+          setFeedbackMessage({ type: 'error', text: err.message || 'Failed to award the walkover.' });
+        } finally {
+          setActionLoading(false);
+          setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+        }
+      }
+    });
+  };
+
   return (
     <div className="space-y-8 max-w-6xl mx-auto text-[#4A4238] dark:text-[#F5F1E8] transition-colors duration-200">
       {/* Feedback Banner */}
@@ -370,6 +396,7 @@ function AdminDrawsContent() {
           isLocked={bracketData?.isLocked}
           isPublished={bracketData?.isPublished}
           onMatchUpdated={fetchCategoryData}
+          onAwardWalkover={handleAwardWalkover}
         />
       )}
 

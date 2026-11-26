@@ -9,7 +9,7 @@ import { CarromCoin } from '@/components/ui/CarromElements';
 import { CarromMatchTimer, formatMatchDurationTaken } from '@/components/common/CarromMatchTimer';
 import { SubstitutePartnerModal } from '@/components/admin/SubstitutePartnerModal';
 
-export const BracketView = ({ rounds, category, isLocked, isPublished, onMatchUpdated }) => {
+export const BracketView = ({ rounds, category, isLocked, isPublished, onMatchUpdated, onAwardWalkover }) => {
   const { isAdmin } = useAuth();
   const [zoom, setZoom] = useState(1);
   const [substituteModal, setSubstituteModal] = useState({
@@ -135,6 +135,7 @@ export const BracketView = ({ rounds, category, isLocked, isPublished, onMatchUp
                       isFinal={isFinal}
                       isAdmin={isAdmin}
                       onSubstitute={handleOpenSubstitute}
+                      onAwardWalkover={onAwardWalkover}
                     />
                   ))}
                 </div>
@@ -158,12 +159,13 @@ export const BracketView = ({ rounds, category, isLocked, isPublished, onMatchUp
   );
 };
 
-const MatchNode = ({ match, isFinal, isAdmin, onSubstitute }) => {
+const MatchNode = ({ match, isFinal, isAdmin, onSubstitute, onAwardWalkover }) => {
   if (!match) return null;
   const isLive = match.status === 'live';
   const isCompleted = match.status === 'completed';
   const isScheduled = match.status === 'scheduled';
   const isBye = match.isBye || match.status === 'bye';
+  const hasSingleEntry = Boolean(match.team1) !== Boolean(match.team2);
 
   const winnerId = (match?.winnerTeam?._id || match?.winnerTeam)?.toString();
   const t1Id = (match?.team1?._id || match?.team1)?.toString();
@@ -190,6 +192,11 @@ const MatchNode = ({ match, isFinal, isAdmin, onSubstitute }) => {
       <div className="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-[#E8E1D5] dark:border-[#2B3034] text-[10px]">
         <div className="flex items-center gap-1.5">
           <span className="font-mono font-bold text-[#3E342B] dark:text-[#F5F1E8] text-[11px]">M#{match.matchNumber}</span>
+          {match.isWalkover && (
+            <span className="px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-800/50 text-[9px] font-mono font-bold uppercase text-amber-800 dark:text-amber-300">
+              Walkover
+            </span>
+          )}
           {match.isManual && (
             <span className="px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-800/50 text-[9px] font-mono font-bold uppercase text-amber-800 dark:text-amber-300">
               Late entry
@@ -218,7 +225,7 @@ const MatchNode = ({ match, isFinal, isAdmin, onSubstitute }) => {
         <div className="flex items-center gap-2 truncate pr-1">
           <CarromCoin type={match.team1 ? "black" : "white"} size="xs" />
           <span className="truncate">
-            {match.team1 ? match.team1.name : 'TBD (Round Winner)'}
+            {match.team1 ? match.team1.name : match.isWalkover ? 'Absent / No Show' : 'TBD (Round Winner)'}
           </span>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
@@ -259,7 +266,7 @@ const MatchNode = ({ match, isFinal, isAdmin, onSubstitute }) => {
         <div className="flex items-center gap-2 truncate pr-1">
           <CarromCoin type={isBye ? "white" : match.team2 ? "black" : "white"} size="xs" />
           <span className="truncate">
-            {isBye ? 'BYE (Automatic Advance)' : match.team2 ? match.team2.name : 'TBD (Round Winner)'}
+            {isBye ? 'BYE (Automatic Advance)' : match.team2 ? match.team2.name : match.isWalkover ? 'Absent / No Show' : 'TBD (Round Winner)'}
           </span>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
@@ -289,8 +296,8 @@ const MatchNode = ({ match, isFinal, isAdmin, onSubstitute }) => {
       {isCompleted && (
         <div className="mt-2.5 pt-2 border-t border-[#E8E1D5] dark:border-[#2B3034] flex items-center justify-between text-[11px] font-mono">
           <span className="inline-flex items-center gap-1.5 font-bold text-[#3E342B] dark:text-[#F5F1E8] bg-[#FAF9F6] dark:bg-[#181C1F] px-2 py-0.5 rounded-md border border-[#E8E1D5] dark:border-[#2B3034]">
-            <Clock className="w-3 h-3 text-[#E74C3C]" />
-            <span>{formatMatchDurationTaken(match)}</span>
+            {match.isWalkover ? <Crown className="w-3 h-3 text-[#E74C3C]" /> : <Clock className="w-3 h-3 text-[#E74C3C]" />}
+            <span>{match.isWalkover ? 'WALKOVER' : formatMatchDurationTaken(match)}</span>
           </span>
           <div className="flex items-center gap-2">
             {isAdmin && (
@@ -304,7 +311,7 @@ const MatchNode = ({ match, isFinal, isAdmin, onSubstitute }) => {
                 <span>Substitute</span>
               </button>
             )}
-            {isAdmin && (
+            {isAdmin && !match.isWalkover && (
               <Link
                 href={`/admin/matches/${match?._id || match?.matchId}/score`}
                 className="text-[#E74C3C] dark:text-[#D4A94C] hover:underline flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider"
@@ -351,14 +358,24 @@ const MatchNode = ({ match, isFinal, isAdmin, onSubstitute }) => {
         <div className="mt-2.5 pt-2 border-t border-[#E8E1D5] dark:border-[#2B3034] flex items-center justify-between text-[10px] font-mono">
           <button
             type="button"
-            onClick={() => onSubstitute && onSubstitute(match, 'team1')}
+            onClick={() => onSubstitute && onSubstitute(match, match.team1 ? 'team1' : 'team2')}
             className="flex items-center gap-1 text-[#7E7060] dark:text-[#B8B1A5] hover:text-[#E74C3C] dark:hover:text-[#E74C3C] font-bold transition-colors uppercase tracking-wider cursor-pointer"
             title="Change partner or player name in this match fixture"
           >
             <Users className="w-3 h-3 text-[#E74C3C]" />
             <span>Change Partner</span>
           </button>
-          {match?.team1 && match?.team2 && (
+          {hasSingleEntry && onAwardWalkover ? (
+            <button
+              type="button"
+              onClick={() => onAwardWalkover(match, match.team1 || match.team2)}
+              className="flex items-center gap-1 font-bold text-[#E74C3C] dark:text-[#D4A94C] hover:underline transition-colors uppercase tracking-wider cursor-pointer"
+              title="Award the remaining entry a walkover because its opponent is absent or deleted"
+            >
+              <Crown className="w-3 h-3" />
+              <span>Award Walkover</span>
+            </button>
+          ) : match?.team1 && match?.team2 ? (
             <Link
               href={`/admin/matches/${match?._id || match?.matchId}/score`}
               className="flex items-center gap-1 font-bold text-[#E74C3C] dark:text-[#D4A94C] hover:underline transition-colors uppercase tracking-wider"
@@ -366,7 +383,7 @@ const MatchNode = ({ match, isFinal, isAdmin, onSubstitute }) => {
               <span>Score Match</span>
               <ExternalLink className="w-3 h-3" />
             </Link>
-          )}
+          ) : null}
         </div>
       )}
     </div>
