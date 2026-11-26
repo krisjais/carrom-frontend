@@ -24,7 +24,8 @@ import {
   Eye,
   EyeOff,
   Key,
-  Lock
+  Lock,
+  Pencil
 } from 'lucide-react';
 import { useConfirm } from '@/context/ToastContext';
 
@@ -62,6 +63,19 @@ export default function ChessAdminPlayersPage() {
     password: 'chess123'
   });
   const [creatingPlayer, setCreatingPlayer] = useState(false);
+
+  // Edit Player Modal state
+  const [editPlayerModalOpen, setEditPlayerModalOpen] = useState(false);
+  const [selectedPlayerForEdit, setSelectedPlayerForEdit] = useState(null);
+  const [editPlayerForm, setEditPlayerForm] = useState({
+    fullName: '',
+    department: 'First Year',
+    email: '',
+    phone: '',
+    status: 'Approved',
+    password: ''
+  });
+  const [savingEditPlayer, setSavingEditPlayer] = useState(false);
 
   async function loadPlayers() {
     if (!chessApi.isAdminAuthenticated()) {
@@ -225,6 +239,57 @@ export default function ChessAdminPlayersPage() {
       setFeedback({ type: 'error', message: err.message || 'Error updating password.' });
     } finally {
       setSavingPassword(false);
+    }
+  };
+
+  const handleOpenEditPlayer = (player) => {
+    setSelectedPlayerForEdit(player);
+    setEditPlayerForm({
+      fullName: player.fullName || '',
+      department: player.department || 'First Year',
+      email: player.email || '',
+      phone: player.phone || '',
+      status: player.status || 'Approved',
+      password: ''
+    });
+    setEditPlayerModalOpen(true);
+  };
+
+  const handleSaveEditPlayer = async (e) => {
+    e.preventDefault();
+    if (!selectedPlayerForEdit) return;
+    if (!editPlayerForm.fullName.trim() || !editPlayerForm.department.trim()) {
+      setFeedback({ type: 'error', message: 'Full Name and Department are required.' });
+      return;
+    }
+
+    setSavingEditPlayer(true);
+    try {
+      const pId = selectedPlayerForEdit._id || selectedPlayerForEdit.playerId;
+      const payload = {
+        fullName: editPlayerForm.fullName.trim(),
+        department: editPlayerForm.department.trim(),
+        email: editPlayerForm.email.trim(),
+        phone: editPlayerForm.phone.trim(),
+        status: editPlayerForm.status
+      };
+      if (editPlayerForm.password.trim()) {
+        payload.password = editPlayerForm.password.trim();
+      }
+
+      const res = await chessApi.updatePlayer(pId, payload);
+      if (res.success) {
+        setFeedback({ type: 'success', message: res.message || `Player ${payload.fullName} updated successfully.` });
+        setEditPlayerModalOpen(false);
+        setSelectedPlayerForEdit(null);
+        loadPlayers();
+      } else {
+        setFeedback({ type: 'error', message: res.message || 'Failed to update player.' });
+      }
+    } catch (err) {
+      setFeedback({ type: 'error', message: err.message || 'Error updating player.' });
+    } finally {
+      setSavingEditPlayer(false);
     }
   };
 
@@ -396,8 +461,144 @@ export default function ChessAdminPlayersPage() {
           </div>
         </div>
 
-        {/* Table with Selection Checkboxes */}
-        <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl shadow-xs overflow-x-auto">
+        {/* Mobile Card View */}
+        <div className="md:hidden space-y-3 chess-content-fade-in">
+          {loading ? (
+            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl py-12 text-center text-[#77736B] dark:text-[#8E8E93]">
+              <div className="inline-block w-6 h-6 border-2 border-[#171715] dark:border-[#FAF8F3] border-t-transparent rounded-full animate-spin mb-2" />
+              <p className="font-mono text-xs uppercase tracking-wider">Loading competitor roster...</p>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl py-12 text-center text-xs text-[#77736B] dark:text-[#8E8E93]">
+              No competitors found matching criteria.
+            </div>
+          ) : (
+            (filtered || []).filter(Boolean).map((p, pIdx) => {
+              const pId = p?._id || p?.playerId || pIdx;
+              const isSelected = selectedIds.includes(pId);
+
+              return (
+                <div
+                  key={`mob-${pId}`}
+                  className={`bg-[#FAF8F3] dark:bg-[#151514] border rounded-2xl p-4 space-y-3 shadow-xs ${
+                    isSelected
+                      ? 'border-[#171715] dark:border-[#FAF8F3]'
+                      : 'border-[#D5CFC5] dark:border-[#262624]'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start gap-2.5 min-w-0">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => handleToggleSelect(pId)}
+                        className="mt-1 rounded border-[#D5CFC5] accent-[#171715] dark:accent-[#FAF8F3] cursor-pointer shrink-0"
+                      />
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="font-mono text-xs font-bold text-[#171715] dark:text-[#FAF8F3]">
+                            {p.playerId}
+                          </span>
+                          <span className="text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93]">
+                            • {p.department}
+                          </span>
+                        </div>
+                        <h3 className="font-serif font-bold text-base text-[#171715] dark:text-[#FAF8F3] truncate mt-0.5">
+                          {p.fullName}
+                        </h3>
+                        <p className="font-mono text-[11px] text-[#77736B] dark:text-[#8E8E93] truncate">
+                          {p.email || '—'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold shrink-0 ${
+                        p.status === 'Approved'
+                          ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800/60'
+                          : p.status === 'Rejected'
+                          ? 'bg-rose-100 dark:bg-rose-950/40 text-rose-800 dark:text-rose-400 border border-rose-300 dark:border-rose-800/60'
+                          : 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-800/60'
+                      }`}
+                    >
+                      {p.status}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#D5CFC5]/50 dark:border-[#262624]">
+                    <div className="inline-flex items-center gap-1.5 bg-[#EFEAE1]/60 dark:bg-[#1D1D1B] px-2.5 py-1 rounded-lg border border-[#D5CFC5]/60 dark:border-[#262624] font-mono text-[11px]">
+                      <span className="font-semibold text-[#171715] dark:text-[#FAF8F3] select-all tracking-wider">
+                        {showPasswords[pId]
+                          ? (p.plainPassword || p.password || (p.playerId ? p.playerId.toLowerCase() : 'chess123'))
+                          : '••••••••'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowPasswords((prev) => ({ ...prev, [pId]: !prev[pId] }))}
+                        className="text-[#77736B] hover:text-[#171715] dark:hover:text-[#FAF8F3] p-0.5 cursor-pointer"
+                        title={showPasswords[pId] ? 'Hide password' : 'Show password'}
+                      >
+                        {showPasswords[pId] ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedPlayerForPassword(p);
+                          setNewPasswordInput(p.plainPassword || p.password || (p.playerId ? p.playerId.toLowerCase() : 'chess123'));
+                          setChangePasswordModalOpen(true);
+                        }}
+                        className="text-[#77736B] hover:text-amber-600 dark:hover:text-amber-400 p-0.5 cursor-pointer"
+                        title="Change password"
+                      >
+                        <Key className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEditPlayer(p)}
+                        className="inline-flex items-center gap-1 border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1]/70 dark:bg-[#1D1D1B] hover:bg-[#E4DED5] dark:hover:bg-[#262624] text-[#171715] dark:text-[#FAF8F3] text-[10px] font-semibold px-2.5 py-1 rounded-lg uppercase cursor-pointer"
+                      >
+                        <Pencil className="w-3 h-3" />
+                        <span>Edit</span>
+                      </button>
+                      {p.status !== 'Approved' && (
+                        <button
+                          type="button"
+                          onClick={() => handleStatusUpdate(p._id, 'Approved')}
+                          className="bg-[#171715] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] text-[10px] font-semibold px-2.5 py-1 rounded-lg uppercase cursor-pointer"
+                        >
+                          Approve
+                        </button>
+                      )}
+                      {p.status !== 'Rejected' && (
+                        <button
+                          type="button"
+                          onClick={() => handleStatusUpdate(p._id, 'Rejected')}
+                          className="border border-[#D5CFC5] dark:border-[#262624] text-rose-600 dark:text-rose-400 text-[10px] font-semibold px-2.5 py-1 rounded-lg uppercase cursor-pointer"
+                        >
+                          Reject
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(p._id)}
+                        className="text-[#77736B] hover:text-rose-600 dark:hover:text-rose-400 p-1 cursor-pointer"
+                        title="Delete Player"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop Table with Selection Checkboxes */}
+        <div className="hidden md:block bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-2xl shadow-xs overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
               <tr className="border-b border-[#D5CFC5]/80 dark:border-[#262624] bg-[#EFEAE1]/70 dark:bg-[#1D1D1B] text-[#77736B] dark:text-[#8E8E93] font-mono uppercase text-[10px]">
@@ -516,30 +717,44 @@ export default function ChessAdminPlayersPage() {
                           {p.status}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-right space-x-2">
-                        {p.status !== 'Approved' && (
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="inline-flex items-center justify-end gap-1.5 whitespace-nowrap">
                           <button
-                            onClick={() => handleStatusUpdate(p._id, 'Approved')}
-                            className="bg-[#171715] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] text-[10px] font-semibold px-2.5 py-1 rounded-lg uppercase shadow-xs transition-colors"
+                            type="button"
+                            onClick={() => handleOpenEditPlayer(p)}
+                            className="inline-flex items-center gap-1 border border-[#D5CFC5] dark:border-[#262624] bg-[#EFEAE1]/70 dark:bg-[#1D1D1B] hover:bg-[#E4DED5] dark:hover:bg-[#262624] text-[#171715] dark:text-[#FAF8F3] text-[10px] font-semibold px-2.5 py-1 rounded-lg uppercase shadow-xs transition-colors cursor-pointer"
+                            title="Edit Player"
                           >
-                            Approve
+                            <Pencil className="w-3 h-3" />
+                            <span>Edit</span>
                           </button>
-                        )}
-                        {p.status !== 'Rejected' && (
+                          {p.status !== 'Approved' && (
+                            <button
+                              type="button"
+                              onClick={() => handleStatusUpdate(p._id, 'Approved')}
+                              className="bg-[#171715] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] text-[10px] font-semibold px-2.5 py-1 rounded-lg uppercase shadow-xs transition-colors cursor-pointer"
+                            >
+                              Approve
+                            </button>
+                          )}
+                          {p.status !== 'Rejected' && (
+                            <button
+                              type="button"
+                              onClick={() => handleStatusUpdate(p._id, 'Rejected')}
+                              className="border border-[#D5CFC5] dark:border-[#262624] text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-[10px] font-semibold px-2.5 py-1 rounded-lg uppercase shadow-xs transition-colors cursor-pointer"
+                            >
+                              Reject
+                            </button>
+                          )}
                           <button
-                            onClick={() => handleStatusUpdate(p._id, 'Rejected')}
-                            className="border border-[#D5CFC5] dark:border-[#262624] text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-[10px] font-semibold px-2.5 py-1 rounded-lg uppercase shadow-xs transition-colors"
+                            type="button"
+                            onClick={() => handleDelete(p._id)}
+                            className="text-[#77736B] hover:text-rose-600 dark:hover:text-rose-400 p-1 transition-colors cursor-pointer"
+                            title="Delete Player"
                           >
-                            Reject
+                            <Trash2 className="w-4 h-4 inline" />
                           </button>
-                        )}
-                        <button
-                          onClick={() => handleDelete(p._id)}
-                          className="text-[#77736B] hover:text-rose-600 dark:hover:text-rose-400 p-1 transition-colors"
-                          title="Delete Player"
-                        >
-                          <Trash2 className="w-4 h-4 inline" />
-                        </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -707,6 +922,7 @@ export default function ChessAdminPlayersPage() {
                   <option value="IT Team">IT Team</option>
                   <option value="MJ Team">MJ Team</option>
                   <option value="HR Team">HR Team</option>
+                  <option value="Staff">Staff</option>
                 </select>
               </div>
 
@@ -786,6 +1002,159 @@ export default function ChessAdminPlayersPage() {
                 >
                   {creatingPlayer ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
                   <span>Add Player</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Player Modal */}
+      {editPlayerModalOpen && selectedPlayerForEdit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl p-6 sm:p-8 max-w-lg w-full max-h-[92vh] overflow-y-auto shadow-2xl space-y-6">
+            <div className="flex items-center justify-between border-b border-[#D5CFC5] dark:border-[#262624] pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-[#171715] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] flex items-center justify-center">
+                  <Pencil className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono font-semibold uppercase tracking-widest text-[#77736B] dark:text-[#8E8E93] block">
+                    COMPETITOR PROFILE • {selectedPlayerForEdit.playerId}
+                  </span>
+                  <h3 className="text-lg font-bold font-serif text-[#171715] dark:text-[#FAF8F3]">
+                    Edit Player Details
+                  </h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditPlayerModalOpen(false);
+                  setSelectedPlayerForEdit(null);
+                }}
+                className="w-8 h-8 rounded-full border border-[#D5CFC5] dark:border-[#262624] flex items-center justify-center text-[#77736B] hover:text-[#171715] dark:hover:text-[#FAF8F3] transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditPlayer} className="space-y-4 text-xs font-sans">
+              <div>
+                <label className="block text-[#77736B] dark:text-[#8E8E93] font-mono uppercase text-[10px] font-semibold mb-1">
+                  Full Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editPlayerForm.fullName}
+                  onChange={(e) => setEditPlayerForm({ ...editPlayerForm, fullName: e.target.value })}
+                  placeholder="Player full name"
+                  className="w-full bg-[#EFEAE1]/70 dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-4 py-2.5 text-[#171715] dark:text-[#FAF8F3] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[#77736B] dark:text-[#8E8E93] font-mono uppercase text-[10px] font-semibold mb-1">
+                  Department / Team *
+                </label>
+                <select
+                  value={editPlayerForm.department}
+                  onChange={(e) => setEditPlayerForm({ ...editPlayerForm, department: e.target.value })}
+                  className="w-full bg-[#EFEAE1]/70 dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-4 py-2.5 text-[#171715] dark:text-[#FAF8F3] focus:outline-none cursor-pointer"
+                >
+                  <option value="First Year">First Year</option>
+                  <option value="Second Year">Second Year</option>
+                  <option value="IT Team">IT Team</option>
+                  <option value="MJ Team">MJ Team</option>
+                  <option value="HR Team">HR Team</option>
+                  <option value="Staff">Staff</option>
+                  {!['First Year', 'Second Year', 'IT Team', 'MJ Team', 'HR Team', 'Staff'].includes(editPlayerForm.department) && editPlayerForm.department && (
+                    <option value={editPlayerForm.department}>{editPlayerForm.department}</option>
+                  )}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[#77736B] dark:text-[#8E8E93] font-mono uppercase text-[10px] font-semibold mb-1">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    value={editPlayerForm.email}
+                    onChange={(e) => setEditPlayerForm({ ...editPlayerForm, email: e.target.value })}
+                    placeholder="player@example.com"
+                    className="w-full bg-[#EFEAE1]/70 dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-4 py-2.5 text-[#171715] dark:text-[#FAF8F3] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[#77736B] dark:text-[#8E8E93] font-mono uppercase text-[10px] font-semibold mb-1">
+                    Phone
+                  </label>
+                  <input
+                    type="tel"
+                    value={editPlayerForm.phone}
+                    onChange={(e) => setEditPlayerForm({ ...editPlayerForm, phone: e.target.value })}
+                    placeholder="+91 9876543210"
+                    className="w-full bg-[#EFEAE1]/70 dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-4 py-2.5 text-[#171715] dark:text-[#FAF8F3] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[#77736B] dark:text-[#8E8E93] font-mono uppercase text-[10px] font-semibold mb-1">
+                  Registration Status
+                </label>
+                <select
+                  value={editPlayerForm.status}
+                  onChange={(e) => setEditPlayerForm({ ...editPlayerForm, status: e.target.value })}
+                  className="w-full bg-[#EFEAE1]/70 dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-4 py-2.5 text-[#171715] dark:text-[#FAF8F3] focus:outline-none cursor-pointer"
+                >
+                  <option value="Approved">Approved (Ready for pairing)</option>
+                  <option value="Registered">Registered (Pending approval)</option>
+                  <option value="Active">Active</option>
+                  <option value="Rejected">Rejected</option>
+                  <option value="Eliminated">Eliminated</option>
+                  <option value="Completed">Completed</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[#77736B] dark:text-[#8E8E93] font-mono uppercase text-[10px] font-semibold mb-1">
+                  New Password (Leave blank to keep current)
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-[#77736B] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={editPlayerForm.password}
+                    onChange={(e) => setEditPlayerForm({ ...editPlayerForm, password: e.target.value })}
+                    placeholder="Optional new password"
+                    className="w-full bg-[#EFEAE1]/70 dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl pl-10 pr-4 py-2.5 text-[#171715] dark:text-[#FAF8F3] font-mono focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-[#D5CFC5] dark:border-[#262624] flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditPlayerModalOpen(false);
+                    setSelectedPlayerForEdit(null);
+                  }}
+                  className="px-4 py-2.5 rounded-xl border border-[#D5CFC5] dark:border-[#262624] text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715] dark:hover:text-[#FAF8F3] font-mono text-xs uppercase cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingEditPlayer}
+                  className="bg-[#171715] dark:bg-[#FAF8F3] hover:bg-black dark:hover:bg-white text-[#FAF8F3] dark:text-[#0D0D0D] px-6 py-2.5 rounded-xl font-mono text-xs font-semibold uppercase tracking-wider flex items-center gap-2 shadow-xs cursor-pointer disabled:opacity-50"
+                >
+                  {savingEditPlayer ? <Loader2 className="w-4 h-4 animate-spin" /> : <Pencil className="w-4 h-4" />}
+                  <span>Save Changes</span>
                 </button>
               </div>
             </form>
