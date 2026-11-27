@@ -92,7 +92,6 @@ export function DualChessClock({
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
   const [flipOpponent, setFlipOpponent] = useState(false);
-  const [lastTurnState, setLastTurnState] = useState(null);
 
   const timerRef = useRef(null);
   const channelRef = useRef(null);
@@ -294,14 +293,6 @@ export function DualChessClock({
       }
     }
 
-    // Save snapshot for Undo
-    setLastTurnState({
-      activeTurn,
-      p1Time,
-      p2Time,
-      movesCount
-    });
-
     const nextMoves = activeTurn === 'black' ? movesCount + 1 : movesCount;
     setActiveTurn(nextTurn);
     setIsRunning(true);
@@ -321,39 +312,6 @@ export function DualChessClock({
       onTurnChange(nextTurn);
     }
   }, [flagFall, isRunning, activeTurn, movesCount, soundEnabled, p1Time, p2Time, onTurnChange, broadcastAndSync]);
-
-  // Undo accidental turn switch
-  const handleUndoTurn = () => {
-    if (flagFall) return;
-
-    let targetTurn = activeTurn === 'white' ? 'black' : 'white';
-    let targetP1 = p1Time;
-    let targetP2 = p2Time;
-    let targetMoves = Math.max(0, movesCount - 1);
-
-    if (lastTurnState) {
-      targetTurn = lastTurnState.activeTurn;
-      targetP1 = lastTurnState.p1Time;
-      targetP2 = lastTurnState.p2Time;
-      targetMoves = Math.max(0, lastTurnState.movesCount);
-      setLastTurnState(null);
-    }
-
-    setActiveTurn(targetTurn);
-    setP1Time(targetP1);
-    setP2Time(targetP2);
-    setMovesCount(targetMoves);
-
-    if (soundEnabled) playAudioTone('click');
-
-    broadcastAndSync({
-      activeTurn: targetTurn,
-      p1Time: targetP1,
-      p2Time: targetP2,
-      movesCount: targetMoves,
-      isRunning
-    });
-  };
 
   // Reset clock
   const handleReset = () => {

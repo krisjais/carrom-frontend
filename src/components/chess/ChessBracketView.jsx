@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { 
-  Trophy, ExternalLink, ZoomIn, ZoomOut, RotateCcw, Crown, Shield, 
+  Trophy, ExternalLink, ZoomIn, ZoomOut, RotateCcw, Undo2, Crown, Shield, 
   Play, Pause, Clock, Trash2, Zap, ArrowRight, UserCheck, Sparkles, ArrowRightLeft, Loader2, Move 
 } from 'lucide-react';
 
@@ -65,6 +65,7 @@ export function ChessBracketView({
   onStartMatch,
   onPauseResumeMatch,
   onSwitchTurnMatch,
+  onUndoTurnMatch,
   onQuickAddTime,
   onOpenTimeModal,
   onOpenMatchModal,
@@ -304,6 +305,7 @@ export function ChessBracketView({
                       onStartMatch={onStartMatch}
                       onPauseResumeMatch={onPauseResumeMatch}
                       onSwitchTurnMatch={onSwitchTurnMatch}
+                      onUndoTurnMatch={onUndoTurnMatch}
                       onQuickAddTime={onQuickAddTime}
                       onOpenTimeModal={onOpenTimeModal}
                       onOpenMatchModal={onOpenMatchModal}
@@ -342,6 +344,7 @@ function ChessMatchNode({
   onStartMatch,
   onPauseResumeMatch,
   onSwitchTurnMatch,
+  onUndoTurnMatch,
   onQuickAddTime,
   onOpenTimeModal,
   onOpenMatchModal,
@@ -651,6 +654,22 @@ function ChessMatchNode({
                   <ArrowRightLeft className="w-2.5 h-2.5" />
                   <span>Switch ({match.activeTurn === 'black' ? 'W' : 'B'})</span>
                 </button>
+
+                {onUndoTurnMatch && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onUndoTurnMatch(match);
+                    }}
+                    disabled={!match.previousClockState?.activeTurn && !(match.movesCount > 0) && match.activeTurn !== 'black'}
+                    className="px-2 py-1 rounded-lg uppercase font-bold text-[10px] border border-amber-400/60 bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 hover:bg-amber-100 transition-colors inline-flex items-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    title="Admin Only: Undo last turn switch"
+                  >
+                    <Undo2 className="w-2.5 h-2.5" />
+                    <span>Undo</span>
+                  </button>
+                )}
 
                 <button
                   type="button"

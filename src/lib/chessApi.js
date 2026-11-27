@@ -531,6 +531,13 @@ export const chessApi = {
     });
   },
 
+  undoMatchTurn: async (id) => {
+    return await safeFetch(`/admin/matches/${id}/undo`, {
+      method: 'POST',
+      headers: getHeaders()
+    });
+  },
+
   // Settings
   updateSettings: async (settingsData) => {
     return await safeFetch('/admin/settings', {

@@ -69,7 +69,6 @@ export default function ChessPlayerDashboardPage() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showFaceToFaceClock, setShowFaceToFaceClock] = useState(false);
   const [flipOpponent, setFlipOpponent] = useState(false);
-  const [lastTurnState, setLastTurnState] = useState(null);
 
   const clockIntervalRef = useRef(null);
   const channelRef = useRef(null);
@@ -371,14 +370,6 @@ export default function ChessPlayerDashboardPage() {
     const match = dashboardData?.currentMatch;
     if (flagFall || !match || match.status !== 'live') return;
 
-    // Save state snapshot for Undo
-    setLastTurnState({
-      activeTurn,
-      whiteSeconds,
-      blackSeconds,
-      movesCount
-    });
-
     const nextTurn = activeTurn === 'white' ? 'black' : 'white';
     const nextMoves = movesCount + 1;
     setActiveTurn(nextTurn);
@@ -445,34 +436,6 @@ export default function ChessPlayerDashboardPage() {
     } else {
       toast.info("It is your opponent's turn. Please wait for your opponent to complete their move.");
     }
-  };
-
-  // Undo accidental turn switch
-  const handleUndoTurn = () => {
-    const match = dashboardData?.currentMatch;
-    if (flagFall || !lastTurnState || match?.status !== 'live') return;
-
-    const prevTurn = lastTurnState.activeTurn;
-    const prevW = lastTurnState.whiteSeconds;
-    const prevB = lastTurnState.blackSeconds;
-    const prevMoves = lastTurnState.movesCount;
-
-    setActiveTurn(prevTurn);
-    setWhiteSeconds(prevW);
-    setBlackSeconds(prevB);
-    setMovesCount(prevMoves);
-    setLastTurnState(null);
-
-    if (soundEnabled) playClockTone('click');
-    toast.info('Turn switch undone.');
-
-    broadcastAndSync({
-      activeTurn: prevTurn,
-      isClockRunning: true,
-      movesCount: prevMoves,
-      whiteSeconds: prevW,
-      blackSeconds: prevB
-    });
   };
 
   const handleLogout = () => {
@@ -911,18 +874,6 @@ export default function ChessPlayerDashboardPage() {
                     </div>
 
                     <div className="flex items-center gap-1.5">
-                      {lastTurnState && isLive && (
-                        <button
-                          type="button"
-                          onClick={handleUndoTurn}
-                          className="px-2 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-400/50 text-[10px] font-bold inline-flex items-center gap-1 cursor-pointer"
-                          title="Undo turn"
-                        >
-                          <RotateCcw className="w-3 h-3" />
-                          <span>Undo</span>
-                        </button>
-                      )}
-
                       <button
                         type="button"
                         onClick={() => setFlipOpponent(!flipOpponent)}
@@ -1353,18 +1304,6 @@ export default function ChessPlayerDashboardPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              {lastTurnState && isLive && (
-                <button
-                  type="button"
-                  onClick={handleUndoTurn}
-                  className="px-2.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-400/50 text-[11px] font-bold flex items-center gap-1 cursor-pointer"
-                  title="Undo Turn"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Undo</span>
-                </button>
-              )}
-
               {/* 180° Flip Toggle */}
               <button
                 type="button"
