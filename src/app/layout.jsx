@@ -6,8 +6,20 @@ import { ChessThemeProvider } from '@/context/ChessThemeContext';
 import { AppShell } from '@/components/layout/AppShell';
 
 export const metadata = {
-  title: 'Carrom & Chess Championship 2026 | Intra-College Management System',
-  description: 'Official Collegiate Championship platform for Carrom and Chess tournaments with live scoring, pairings, and standings.',
+  title: 'Alliance Companies Staff Championship 2026 | Carrom & Chess',
+  description: 'Official Carrom and Chess championship for Alliance Companies staff, featuring fixtures, live scores, and standings.',
+  openGraph: {
+    title: 'Alliance Companies Staff Championship 2026 | Carrom & Chess',
+    description: 'Official Carrom and Chess championship for Alliance Companies staff, featuring fixtures, live scores, and standings.',
+    siteName: 'Alliance Companies Staff Championship',
+    type: 'website',
+    locale: 'en_IN',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Alliance Companies Staff Championship 2026 | Carrom & Chess',
+    description: 'Official Carrom and Chess championship for Alliance Companies staff, featuring fixtures, live scores, and standings.',
+  },
   icons: {
     icon: '/icon.svg',
     shortcut: '/icon.svg',
