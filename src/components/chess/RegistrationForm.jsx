@@ -126,18 +126,18 @@ export function RegistrationForm() {
         </div>
 
         {/* Player Profile Summary */}
-        <div className="text-left bg-[#EFEAE1]/40 dark:bg-[#1B1B19]/60 rounded-2xl p-5 border border-[#D5CFC5]/70 dark:border-[#282826] space-y-2.5 text-xs text-[#4E4C47] dark:text-[#9E9B93]">
-          <div className="flex justify-between border-b border-[#D5CFC5]/50 dark:border-[#262624] pb-2">
-            <span className="font-mono uppercase text-[10px]">Competitor:</span>
-            <span className="text-[#171715] dark:text-[#FAF8F3] font-serif font-bold text-sm">{registeredPlayer.fullName}</span>
+        <div className="text-left bg-[#EFEAE1]/40 dark:bg-[#1B1B19]/60 rounded-2xl p-4 sm:p-5 border border-[#D5CFC5]/70 dark:border-[#282826] space-y-2.5 text-xs text-[#4E4C47] dark:text-[#9E9B93]">
+          <div className="flex justify-between items-center gap-3 border-b border-[#D5CFC5]/50 dark:border-[#262624] pb-2 min-w-0">
+            <span className="font-mono uppercase text-[10px] shrink-0">Competitor:</span>
+            <span className="text-[#171715] dark:text-[#FAF8F3] font-serif font-bold text-sm truncate">{registeredPlayer.fullName}</span>
           </div>
-          <div className="flex justify-between border-b border-[#D5CFC5]/50 dark:border-[#262624] pb-2">
-            <span className="font-mono uppercase text-[10px]">Email:</span>
-            <span className="text-[#171715] dark:text-[#FAF8F3] font-mono">{registeredPlayer.email}</span>
+          <div className="flex justify-between items-center gap-3 border-b border-[#D5CFC5]/50 dark:border-[#262624] pb-2 min-w-0">
+            <span className="font-mono uppercase text-[10px] shrink-0">Email:</span>
+            <span className="text-[#171715] dark:text-[#FAF8F3] font-mono truncate">{registeredPlayer.email}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="font-mono uppercase text-[10px]">Division:</span>
-            <span className="text-[#171715] dark:text-[#FAF8F3] font-medium">{registeredPlayer.department}</span>
+          <div className="flex justify-between items-center gap-3 min-w-0">
+            <span className="font-mono uppercase text-[10px] shrink-0">Division:</span>
+            <span className="text-[#171715] dark:text-[#FAF8F3] font-medium truncate">{registeredPlayer.department}</span>
           </div>
         </div>
 
@@ -170,7 +170,7 @@ export function RegistrationForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl p-7 sm:p-10 shadow-xs space-y-6">
+    <form onSubmit={handleSubmit} className="bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl p-5 sm:p-10 shadow-xs space-y-6">
       
       <div className="border-b border-[#D5CFC5]/70 dark:border-[#262624] pb-5">
         <span className="text-[10px] font-mono font-semibold text-[#77736B] dark:text-[#8E8E93] uppercase tracking-[0.2em] block mb-1">

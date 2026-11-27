@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { 
-  Trophy, ExternalLink, ZoomIn, ZoomOut, RotateCcw, Crown, Shield, 
+  Trophy, ExternalLink, ZoomIn, ZoomOut, RotateCcw, Undo2, Crown, Shield, 
   Play, Pause, Clock, Trash2, Zap, ArrowRight, UserCheck, Sparkles, ArrowRightLeft, Loader2, Move 
 } from 'lucide-react';
 
@@ -65,6 +65,7 @@ export function ChessBracketView({
   onStartMatch,
   onPauseResumeMatch,
   onSwitchTurnMatch,
+  onUndoTurnMatch,
   onQuickAddTime,
   onOpenTimeModal,
   onOpenMatchModal,
@@ -76,11 +77,16 @@ export function ChessBracketView({
   deletingMatchId = null
 }) {
   const [zoom, setZoom] = useState(1);
+  const [mobileRoundFilter, setMobileRoundFilter] = useState('all');
   const containerRef = useRef(null);
   const [isPanning, setIsPanning] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0, scrollLeft: 0, scrollTop: 0 });
 
   const stages = useMemo(() => groupMatchesIntoStages(matches), [matches]);
+  const visibleStages = useMemo(() => {
+    if (mobileRoundFilter === 'all') return stages;
+    return stages.filter((s) => String(s.roundNumber) === String(mobileRoundFilter));
+  }, [stages, mobileRoundFilter]);
 
   // Mouse drag-to-pan implementation
   const handleMouseDown = (e) => {
@@ -202,6 +208,37 @@ export function ChessBracketView({
         </div>
       </div>
 
+      {/* Mobile Round Jump Tabs (Easy one-handed navigation on phones) */}
+      {totalStages > 1 && (
+        <div className="flex md:hidden items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+          <button
+            type="button"
+            onClick={() => setMobileRoundFilter('all')}
+            className={`px-3 py-1.5 rounded-xl font-mono text-[11px] font-bold uppercase whitespace-nowrap transition-colors shrink-0 cursor-pointer ${
+              mobileRoundFilter === 'all'
+                ? 'bg-[#171715] text-[#FAF8F3] dark:bg-[#FAF8F3] dark:text-[#0D0D0D]'
+                : 'bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] text-[#77736B] dark:text-[#8E8E93]'
+            }`}
+          >
+            All Stages ({totalStages})
+          </button>
+          {stages.map((stage) => (
+            <button
+              key={stage.roundNumber}
+              type="button"
+              onClick={() => setMobileRoundFilter(String(stage.roundNumber))}
+              className={`px-3 py-1.5 rounded-xl font-mono text-[11px] font-bold whitespace-nowrap transition-colors shrink-0 cursor-pointer ${
+                String(mobileRoundFilter) === String(stage.roundNumber)
+                  ? 'bg-[#171715] text-[#FAF8F3] dark:bg-[#FAF8F3] dark:text-[#0D0D0D]'
+                  : 'bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] text-[#77736B] dark:text-[#8E8E93]'
+              }`}
+            >
+              {stage.roundName}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Bracket Tree Container with both horizontal and vertical scrolling + panning */}
       <div 
         ref={containerRef}
@@ -209,20 +246,25 @@ export function ChessBracketView({
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
         onMouseLeave={handleMouseUpOrLeave}
-        className={`w-full overflow-x-auto overflow-y-auto max-h-[82vh] pb-12 pt-6 rounded-3xl bg-[#FAF8F3] dark:bg-[#101010] border border-[#D5CFC5] dark:border-[#262624] p-6 sm:p-8 min-h-[580px] shadow-xs relative transition-colors ${
+        className={`w-full overflow-x-auto overflow-y-auto max-h-[82vh] pb-10 sm:pb-12 pt-4 sm:pt-6 rounded-2xl sm:rounded-3xl bg-[#FAF8F3] dark:bg-[#101010] border border-[#D5CFC5] dark:border-[#262624] p-3.5 sm:p-8 min-h-[380px] sm:min-h-[580px] shadow-xs relative transition-colors ${
           isPanning ? 'cursor-grabbing select-none' : 'cursor-grab'
         }`}
         style={{ scrollBehavior: isPanning ? 'auto' : 'smooth' }}
       >
         <div
-          className="flex items-stretch gap-12 sm:gap-16 min-w-max transition-transform origin-top-left relative"
+          className={`flex items-stretch gap-6 sm:gap-16 ${mobileRoundFilter !== 'all' ? 'w-full md:min-w-max' : 'min-w-max'} transition-transform origin-top-left relative`}
           style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}
         >
-          {stages.map((stage, sIdx) => {
-            const isFinalStage = sIdx === totalStages - 1;
+          {visibleStages.map((stage, sIdx) => {
+            const isFinalStage = stage.roundNumber === stages[totalStages - 1]?.roundNumber;
 
             return (
-              <div key={stage.roundNumber} className="flex flex-col w-80 shrink-0 relative">
+              <div
+                key={stage.roundNumber}
+                className={`flex flex-col shrink-0 relative ${
+                  mobileRoundFilter !== 'all' ? 'w-full md:w-80' : 'w-[272px] sm:w-80'
+                }`}
+              >
                 
                 {/* Stage Header with Stage name and Direct Round Delete option for Admins */}
                 <div className="pb-3 mb-6 border-b border-[#D5CFC5] dark:border-[#262624] relative">
@@ -263,6 +305,7 @@ export function ChessBracketView({
                       onStartMatch={onStartMatch}
                       onPauseResumeMatch={onPauseResumeMatch}
                       onSwitchTurnMatch={onSwitchTurnMatch}
+                      onUndoTurnMatch={onUndoTurnMatch}
                       onQuickAddTime={onQuickAddTime}
                       onOpenTimeModal={onOpenTimeModal}
                       onOpenMatchModal={onOpenMatchModal}
@@ -301,6 +344,7 @@ function ChessMatchNode({
   onStartMatch,
   onPauseResumeMatch,
   onSwitchTurnMatch,
+  onUndoTurnMatch,
   onQuickAddTime,
   onOpenTimeModal,
   onOpenMatchModal,
@@ -365,8 +409,8 @@ function ChessMatchNode({
       }`}
     >
       {/* Node Meta: Match # & Status */}
-      <div className="flex items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-[#D5CFC5]/70 dark:border-[#262624] text-[10px] font-mono">
-        <div className="flex items-center gap-1.5">
+      <div className="flex flex-wrap items-center justify-between gap-1.5 pb-2.5 mb-2.5 border-b border-[#D5CFC5]/70 dark:border-[#262624] text-[10px] font-mono">
+        <div className="flex flex-wrap items-center gap-1.5 min-w-0">
           <button
             type="button"
             onClick={(e) => {
@@ -578,7 +622,7 @@ function ChessMatchNode({
 
         {/* Row 2: Quick Arbiter Actions */}
         {isAdmin && !isBye && (
-          <div className="flex items-center justify-between gap-1.5 pt-0.5">
+          <div className="flex flex-wrap items-center justify-between gap-1.5 pt-0.5">
             {isLive ? (
               <>
                 <button
@@ -610,6 +654,22 @@ function ChessMatchNode({
                   <ArrowRightLeft className="w-2.5 h-2.5" />
                   <span>Switch ({match.activeTurn === 'black' ? 'W' : 'B'})</span>
                 </button>
+
+                {onUndoTurnMatch && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onUndoTurnMatch(match);
+                    }}
+                    disabled={!match.previousClockState?.activeTurn && !(match.movesCount > 0) && match.activeTurn !== 'black'}
+                    className="px-2 py-1 rounded-lg uppercase font-bold text-[10px] border border-amber-400/60 bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 hover:bg-amber-100 transition-colors inline-flex items-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    title="Admin Only: Undo last turn switch"
+                  >
+                    <Undo2 className="w-2.5 h-2.5" />
+                    <span>Undo</span>
+                  </button>
+                )}
 
                 <button
                   type="button"

@@ -69,7 +69,6 @@ export default function ChessPlayerDashboardPage() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showFaceToFaceClock, setShowFaceToFaceClock] = useState(false);
   const [flipOpponent, setFlipOpponent] = useState(false);
-  const [lastTurnState, setLastTurnState] = useState(null);
 
   const clockIntervalRef = useRef(null);
   const channelRef = useRef(null);
@@ -371,14 +370,6 @@ export default function ChessPlayerDashboardPage() {
     const match = dashboardData?.currentMatch;
     if (flagFall || !match || match.status !== 'live') return;
 
-    // Save state snapshot for Undo
-    setLastTurnState({
-      activeTurn,
-      whiteSeconds,
-      blackSeconds,
-      movesCount
-    });
-
     const nextTurn = activeTurn === 'white' ? 'black' : 'white';
     const nextMoves = movesCount + 1;
     setActiveTurn(nextTurn);
@@ -447,34 +438,6 @@ export default function ChessPlayerDashboardPage() {
     }
   };
 
-  // Undo accidental turn switch
-  const handleUndoTurn = () => {
-    const match = dashboardData?.currentMatch;
-    if (flagFall || !lastTurnState || match?.status !== 'live') return;
-
-    const prevTurn = lastTurnState.activeTurn;
-    const prevW = lastTurnState.whiteSeconds;
-    const prevB = lastTurnState.blackSeconds;
-    const prevMoves = lastTurnState.movesCount;
-
-    setActiveTurn(prevTurn);
-    setWhiteSeconds(prevW);
-    setBlackSeconds(prevB);
-    setMovesCount(prevMoves);
-    setLastTurnState(null);
-
-    if (soundEnabled) playClockTone('click');
-    toast.info('Turn switch undone.');
-
-    broadcastAndSync({
-      activeTurn: prevTurn,
-      isClockRunning: true,
-      movesCount: prevMoves,
-      whiteSeconds: prevW,
-      blackSeconds: prevB
-    });
-  };
-
   const handleLogout = () => {
     chessApi.logoutPlayer();
     router.push('/chess/login');
@@ -539,21 +502,21 @@ export default function ChessPlayerDashboardPage() {
       <main className="flex-1 p-3 sm:p-6 max-w-4xl mx-auto w-full space-y-5">
         
         {/* TOP MOBILE COMPETITOR CARD */}
-        <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl p-5 sm:p-6 shadow-xs flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="w-13 h-13 rounded-2xl bg-[#171715] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] flex items-center justify-center font-serif font-bold text-lg shadow-sm">
+        <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl p-4 sm:p-6 shadow-xs flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="w-12 h-12 rounded-2xl bg-[#171715] dark:bg-[#FAF8F3] text-[#FAF8F3] dark:text-[#0D0D0D] flex items-center justify-center font-serif font-bold text-lg shadow-sm shrink-0">
               {player?.fullName ? player.fullName.split(' ').map(n => n[0]).slice(0, 2).join('') : '♟'}
             </div>
-            <div>
-              <div className="flex items-center gap-2">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="font-mono text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/30">
                   {player?.playerId}
                 </span>
-                <span className="text-[10px] font-mono uppercase text-[#77736B] dark:text-[#8E8E93]">
+                <span className="text-[10px] font-mono uppercase text-[#77736B] dark:text-[#8E8E93] truncate">
                   {player?.department}
                 </span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-serif font-bold text-[#171715] dark:text-[#FAF8F3] tracking-tight mt-0.5">
+              <h1 className="text-xl sm:text-2xl font-serif font-bold text-[#171715] dark:text-[#FAF8F3] tracking-tight mt-0.5 truncate">
                 {player?.fullName}
               </h1>
             </div>
@@ -672,40 +635,40 @@ export default function ChessPlayerDashboardPage() {
             <div className="space-y-4">
               
               {/* Color Role Callout */}
-              <div className={`p-3.5 rounded-2xl border flex items-center justify-between text-xs font-mono ${
+              <div className={`p-3.5 rounded-2xl border flex flex-wrap items-center justify-between gap-2 text-xs font-mono ${
                 isPlayerWhite
                   ? 'bg-amber-500/10 border-amber-500/30 text-amber-900 dark:text-amber-300'
                   : 'bg-[#171715]/10 dark:bg-white/10 border-[#171715]/20 dark:border-white/20 text-[#171715] dark:text-[#FAF8F3]'
               }`}>
-                <div className="flex items-center gap-2">
-                  <span className="text-lg select-none">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-lg select-none shrink-0">
                     {isPlayerWhite ? '♔' : '♚'}
                   </span>
-                  <div>
+                  <div className="min-w-0">
                     <span className="font-bold uppercase block text-xs">
                       {isPlayerWhite ? 'You play WHITE Pieces' : 'You play BLACK Pieces'}
                     </span>
-                    <span className="text-[10px] opacity-80">
+                    <span className="text-[10px] opacity-80 block">
                       {isPlayerWhite ? 'You make the opening move' : 'Opponent moves first'}
                     </span>
                   </div>
                 </div>
 
-                <span className="font-bold uppercase text-[10px] bg-white dark:bg-[#1E1E1C] px-2.5 py-1 rounded-lg border border-current shadow-2xs">
+                <span className="font-bold uppercase text-[10px] bg-white dark:bg-[#1E1E1C] px-2.5 py-1 rounded-lg border border-current shadow-2xs shrink-0">
                   {currentMatch.durationMinutes || 10}m Rapid
                 </span>
               </div>
 
               {/* Opponent Card */}
-              <div className="grid grid-cols-5 items-center gap-2 p-4 bg-[#EFEAE1]/60 dark:bg-[#191917] rounded-2xl border border-[#D5CFC5]/80 dark:border-[#282826] text-center">
-                <div className="col-span-2">
+              <div className="grid grid-cols-5 items-center gap-2 p-3 sm:p-4 bg-[#EFEAE1]/60 dark:bg-[#191917] rounded-2xl border border-[#D5CFC5]/80 dark:border-[#282826] text-center">
+                <div className="col-span-2 min-w-0">
                   <span className="text-[10px] font-mono uppercase text-[#77736B] dark:text-[#8E8E93] block">
                     You ({isPlayerWhite ? 'White' : 'Black'})
                   </span>
-                  <h4 className="font-serif font-bold text-sm text-[#171715] dark:text-[#FAF8F3] truncate mt-0.5">
+                  <h4 className="font-serif font-bold text-sm text-[#171715] dark:text-[#FAF8F3] truncate mt-0.5 px-1">
                     {player?.fullName}
                   </h4>
-                  <span className="text-xs font-mono font-bold uppercase text-amber-700 dark:text-amber-400 block mt-1">
+                  <span className="text-[11px] sm:text-xs font-mono font-bold uppercase text-amber-700 dark:text-amber-400 block mt-1">
                     {isPlayerWhite ? '♔ Opening Move' : '♚ Defending'}
                   </span>
                 </div>
@@ -716,14 +679,14 @@ export default function ChessPlayerDashboardPage() {
                   </span>
                 </div>
 
-                <div className="col-span-2">
+                <div className="col-span-2 min-w-0">
                   <span className="text-[10px] font-mono uppercase text-[#77736B] dark:text-[#8E8E93] block">
                     Opponent ({isPlayerWhite ? 'Black' : 'White'})
                   </span>
-                  <h4 className="font-serif font-bold text-sm text-[#171715] dark:text-[#FAF8F3] truncate mt-0.5">
+                  <h4 className="font-serif font-bold text-sm text-[#171715] dark:text-[#FAF8F3] truncate mt-0.5 px-1">
                     {opponentName}
                   </h4>
-                  <span className="text-xs font-mono font-bold uppercase text-amber-700 dark:text-amber-400 block mt-1">
+                  <span className="text-[11px] sm:text-xs font-mono font-bold uppercase text-amber-700 dark:text-amber-400 block mt-1">
                     {isPlayerWhite ? '♚ Defending' : '♔ Opening Move'}
                   </span>
                 </div>
@@ -848,20 +811,20 @@ export default function ChessPlayerDashboardPage() {
                         : 'bg-[#FAF8F3]/70 dark:bg-[#181816] border-[#D5CFC5] dark:border-[#282826] opacity-80'
                     }`}
                   >
-                    <div className="flex items-center justify-between text-xs font-mono">
-                      <div className="flex items-center gap-1.5">
-                        <span className={`w-3.5 h-3.5 rounded-full border ${opponentColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
-                        <span className="font-bold text-[#171715] dark:text-[#FAF8F3] uppercase tracking-wider">
+                    <div className="flex items-center justify-between gap-2 text-xs font-mono min-w-0">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className={`w-3.5 h-3.5 rounded-full border shrink-0 ${opponentColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
+                        <span className="font-bold text-[#171715] dark:text-[#FAF8F3] uppercase tracking-wider truncate">
                           Opponent ({opponentColor})
                         </span>
                       </div>
                       {isOpponentTurn ? (
-                        <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-bold uppercase tracking-wider animate-pulse flex items-center gap-1">
+                        <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-bold uppercase tracking-wider animate-pulse flex items-center gap-1 shrink-0">
                           <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
-                          <span>Opponent Moving</span>
+                          <span>Moving</span>
                         </span>
                       ) : (
-                        <span className="px-2 py-0.5 rounded-full bg-[#EFEAE1] dark:bg-[#20201E] text-[#77736B] dark:text-[#8E8E93] text-[9px] font-mono uppercase tracking-wider">
+                        <span className="px-2 py-0.5 rounded-full bg-[#EFEAE1] dark:bg-[#20201E] text-[#77736B] dark:text-[#8E8E93] text-[9px] font-mono uppercase tracking-wider shrink-0">
                           View Only
                         </span>
                       )}
@@ -881,18 +844,18 @@ export default function ChessPlayerDashboardPage() {
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between text-[11px] font-mono">
-                      <span className="font-bold text-[#171715] dark:text-[#FAF8F3] truncate max-w-[180px]">
+                    <div className="flex items-center justify-between gap-2 text-[11px] font-mono min-w-0">
+                      <span className="font-bold text-[#171715] dark:text-[#FAF8F3] truncate">
                         {opponentName}
                       </span>
-                      <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93]">
-                        {isOpponentTurn ? 'Opponent Clock Ticking' : 'Opponent Paused'}
+                      <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93] shrink-0">
+                        {isOpponentTurn ? 'Ticking' : 'Paused'}
                       </span>
                     </div>
                   </div>
 
                   {/* CENTER CONTROL STRIP (Between Opponent and Player) */}
-                  <div className="bg-[#EFEAE1]/90 dark:bg-[#1C1C1A] py-2 px-3 rounded-xl border border-[#D5CFC5] dark:border-[#262624] flex items-center justify-between text-xs font-mono">
+                  <div className="bg-[#EFEAE1]/90 dark:bg-[#1C1C1A] py-2 px-3 rounded-xl border border-[#D5CFC5] dark:border-[#262624] flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
                     <div className="flex items-center gap-2">
                       <span className={`px-2.5 py-1 rounded-lg font-bold text-[10px] flex items-center gap-1 ${
                         isOpponentTurn
@@ -911,18 +874,6 @@ export default function ChessPlayerDashboardPage() {
                     </div>
 
                     <div className="flex items-center gap-1.5">
-                      {lastTurnState && isLive && (
-                        <button
-                          type="button"
-                          onClick={handleUndoTurn}
-                          className="px-2 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-400/50 text-[10px] font-bold inline-flex items-center gap-1 cursor-pointer"
-                          title="Undo turn"
-                        >
-                          <RotateCcw className="w-3 h-3" />
-                          <span>Undo</span>
-                        </button>
-                      )}
-
                       <button
                         type="button"
                         onClick={() => setFlipOpponent(!flipOpponent)}
@@ -949,20 +900,20 @@ export default function ChessPlayerDashboardPage() {
                         : 'bg-[#FAF8F3]/70 dark:bg-[#181816] border-[#D5CFC5] dark:border-[#282826] opacity-90'
                     }`}
                   >
-                    <div className="flex items-center justify-between text-xs font-mono">
-                      <div className="flex items-center gap-1.5">
-                        <span className={`w-3.5 h-3.5 rounded-full border ${pieceColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
-                        <span className="font-bold text-[#171715] dark:text-[#FAF8F3] uppercase tracking-wider">
+                    <div className="w-full flex items-center justify-between gap-2 text-xs font-mono min-w-0">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className={`w-3.5 h-3.5 rounded-full border shrink-0 ${pieceColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
+                        <span className="font-bold text-[#171715] dark:text-[#FAF8F3] uppercase tracking-wider truncate">
                           You ({pieceColor}) • {player?.fullName || 'You'}
                         </span>
                       </div>
                       {isMyTurnActive ? (
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] font-bold uppercase tracking-wider animate-pulse">
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] font-bold uppercase tracking-wider animate-pulse shrink-0">
                           Your Turn
                         </span>
                       ) : (
-                        <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93] font-mono">
-                          {isLive ? 'Waiting for opponent' : 'Ready'}
+                        <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93] font-mono shrink-0">
+                          {isLive ? 'Waiting' : 'Ready'}
                         </span>
                       )}
                     </div>
@@ -1131,14 +1082,14 @@ export default function ChessPlayerDashboardPage() {
                 )}
 
                 {/* Clock Footer Strip */}
-                <div className="flex items-center justify-between text-xs font-mono pt-2 border-t border-[#D5CFC5]/50 dark:border-[#262624]">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono pt-2 border-t border-[#D5CFC5]/50 dark:border-[#262624]">
                   <span className="text-[#77736B] dark:text-[#8E8E93]">
                     Knockout Single Elimination
                   </span>
 
                   <Link
                     href={`/chess/matches/${currentMatch._id || currentMatch.matchId}`}
-                    className="text-amber-700 dark:text-amber-400 hover:underline text-[10px] font-bold uppercase tracking-wider pl-1"
+                    className="text-amber-700 dark:text-amber-400 hover:underline text-[10px] font-bold uppercase tracking-wider pl-1 shrink-0"
                   >
                     Match Dossier →
                   </Link>
@@ -1154,8 +1105,8 @@ export default function ChessPlayerDashboardPage() {
         {/* ------------------------------------------------------------- */}
         {/* MATCH HISTORY & BRACKET PROGRESS                              */}
         {/* ------------------------------------------------------------- */}
-        <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-[#D5CFC5]/70 dark:border-[#262624] pb-3 text-xs font-mono">
+        <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl p-4 sm:p-6 shadow-xs space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#D5CFC5]/70 dark:border-[#262624] pb-3 text-xs font-mono">
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#77736B] dark:text-[#8E8E93] block">
                 COMPETITOR TOURNAMENT RECORD
@@ -1209,9 +1160,9 @@ export default function ChessPlayerDashboardPage() {
                     key={m._id || m.matchId}
                     className="p-3.5 rounded-2xl bg-[#EFEAE1]/50 dark:bg-[#1A1A18] border border-[#D5CFC5]/60 dark:border-[#262624] space-y-2 text-xs"
                   >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="flex items-center gap-1.5 font-mono text-[10px] text-[#77736B] dark:text-[#8E8E93]">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-1.5 font-mono text-[10px] text-[#77736B] dark:text-[#8E8E93]">
                           <span className="font-bold text-[#171715] dark:text-[#FAF8F3]">{m.matchId}</span>
                           <span>•</span>
                           <span>{m.roundName || `Round ${m.round}`}</span>
@@ -1286,12 +1237,12 @@ export default function ChessPlayerDashboardPage() {
       {/* FULLSCREEN FACE-TO-FACE TABLETOP DIGITAL CLOCK MODAL          */}
       {/* ------------------------------------------------------------- */}
       {showFaceToFaceClock && (
-        <div className="fixed inset-0 z-50 bg-[#F5F2EB] dark:bg-[#0A0A0A] p-2 sm:p-4 flex flex-col justify-between select-none overflow-hidden animate-in fade-in duration-200">
+        <div className="fixed inset-0 h-dvh z-50 bg-[#F5F2EB] dark:bg-[#0A0A0A] p-2 sm:p-4 flex flex-col justify-between select-none overflow-hidden animate-in fade-in duration-200">
           
           {/* UPPER SIDE: OPPONENT TIMER (Faced across table, rotated 180°, View Only) */}
           <div
             onClick={() => handleClockPadTap('opponent')}
-            className={`flex-1 w-full rounded-3xl p-6 sm:p-8 flex flex-col justify-between items-center transition-all cursor-pointer border-2 shadow-lg select-none ${
+            className={`flex-1 min-h-0 w-full rounded-2xl sm:rounded-3xl p-3.5 sm:p-8 flex flex-col justify-between items-center transition-all cursor-pointer border-2 shadow-lg select-none ${
               flipOpponent ? 'rotate-180' : ''
             } ${
               isOpponentTurn
@@ -1299,23 +1250,23 @@ export default function ChessPlayerDashboardPage() {
                 : 'bg-white/80 dark:bg-[#141414] border-[#D5CFC5] dark:border-[#282826] text-[#171715] dark:text-[#FAF8F3] opacity-80'
             }`}
           >
-            <div className="w-full flex items-center justify-between text-xs font-mono">
-              <span className="font-bold uppercase tracking-wider flex items-center gap-1.5">
-                <span className={`w-3.5 h-3.5 rounded-full border ${opponentColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
-                Opponent ({opponentColor.toUpperCase()}) • {opponentName}
+            <div className="w-full flex items-center justify-between gap-2 text-xs font-mono min-w-0">
+              <span className="font-bold uppercase tracking-wider flex items-center gap-1.5 min-w-0 truncate">
+                <span className={`w-3.5 h-3.5 rounded-full border shrink-0 ${opponentColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
+                <span className="truncate">Opponent ({opponentColor.toUpperCase()}) • {opponentName}</span>
               </span>
               {isOpponentTurn ? (
-                <span className="px-3 py-1 rounded-full bg-amber-500 text-white text-[10px] font-bold uppercase tracking-widest animate-pulse flex items-center gap-1">
+                <span className="px-2.5 sm:px-3 py-1 rounded-full bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider animate-pulse flex items-center gap-1 shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
-                  <span>Opponent Moving</span>
+                  <span>Moving</span>
                 </span>
               ) : (
-                <span className="px-2.5 py-0.5 rounded-full bg-[#EFEAE1] dark:bg-[#20201E] text-[10px] text-[#77736B] dark:text-[#8E8E93] uppercase">View Only</span>
+                <span className="px-2.5 py-0.5 rounded-full bg-[#EFEAE1] dark:bg-[#20201E] text-[10px] text-[#77736B] dark:text-[#8E8E93] uppercase shrink-0">View Only</span>
               )}
             </div>
 
-            <div className="py-4">
-              <span className={`text-6xl sm:text-8xl font-mono font-black tracking-tight ${
+            <div className="py-1 sm:py-4">
+              <span className={`text-5xl sm:text-8xl leading-none font-mono font-black tracking-tight ${
                 flagFall === opponentColor
                   ? 'text-rose-600 line-through'
                   : isOppUrgent
@@ -1328,13 +1279,13 @@ export default function ChessPlayerDashboardPage() {
               </span>
             </div>
 
-            <div className="text-center font-mono text-xs opacity-75">
+            <div className="text-center font-mono text-[11px] sm:text-xs opacity-75 px-2">
               {isOpponentTurn ? 'Opponent Clock Ticking (View Only)' : 'Waiting for Opponent...'}
             </div>
           </div>
 
           {/* CENTER CONTROL STRIP (Divider) */}
-          <div className="my-2 py-2 px-4 rounded-2xl bg-[#EFEAE1] dark:bg-[#1C1C1A] border border-[#D5CFC5] dark:border-[#282826] flex items-center justify-between gap-3 text-xs font-mono">
+          <div className="my-1.5 sm:my-2 py-2 px-3 sm:px-4 rounded-2xl bg-[#EFEAE1] dark:bg-[#1C1C1A] border border-[#D5CFC5] dark:border-[#282826] flex flex-wrap items-center justify-between gap-2 text-xs font-mono shrink-0">
             <div className="flex items-center gap-2">
               <span className={`px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 ${
                 isOpponentTurn
@@ -1353,18 +1304,6 @@ export default function ChessPlayerDashboardPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              {lastTurnState && isLive && (
-                <button
-                  type="button"
-                  onClick={handleUndoTurn}
-                  className="px-2.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-400/50 text-[11px] font-bold flex items-center gap-1 cursor-pointer"
-                  title="Undo Turn"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Undo</span>
-                </button>
-              )}
-
               {/* 180° Flip Toggle */}
               <button
                 type="button"
@@ -1406,28 +1345,28 @@ export default function ChessPlayerDashboardPage() {
             type="button"
             onClick={() => handleClockPadTap('player')}
             disabled={!isLive || isCompleted || !!flagFall}
-            className={`flex-1 w-full rounded-3xl p-6 sm:p-8 flex flex-col justify-between items-center transition-all cursor-pointer border-2 shadow-lg active:scale-[0.99] select-none ${
+            className={`flex-1 min-h-0 w-full rounded-2xl sm:rounded-3xl p-3.5 sm:p-8 flex flex-col justify-between items-center transition-all cursor-pointer border-2 shadow-lg active:scale-[0.99] select-none ${
               isMyTurnActive
                 ? 'bg-amber-100/90 dark:bg-amber-950/70 border-amber-500 ring-4 ring-amber-500/30 text-amber-950 dark:text-amber-100'
                 : 'bg-white/80 dark:bg-[#141414] border-[#D5CFC5] dark:border-[#282826] text-[#171715] dark:text-[#FAF8F3] opacity-85'
             }`}
           >
-            <div className="w-full flex items-center justify-between text-xs font-mono">
-              <span className="font-bold uppercase tracking-wider flex items-center gap-1.5">
-                <span className={`w-3.5 h-3.5 rounded-full border ${pieceColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
-                You ({pieceColor.toUpperCase()}) • {player?.fullName || 'You'}
+            <div className="w-full flex items-center justify-between gap-2 text-xs font-mono min-w-0">
+              <span className="font-bold uppercase tracking-wider flex items-center gap-1.5 min-w-0 truncate">
+                <span className={`w-3.5 h-3.5 rounded-full border shrink-0 ${pieceColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
+                <span className="truncate">You ({pieceColor.toUpperCase()}) • {player?.fullName || 'You'}</span>
               </span>
               {isMyTurnActive ? (
-                <span className="px-3 py-1 rounded-full bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-widest animate-pulse">
+                <span className="px-2.5 sm:px-3 py-1 rounded-full bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-wider animate-pulse shrink-0">
                   Your Turn Now
                 </span>
               ) : (
-                <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93]">Waiting for Opponent</span>
+                <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93] shrink-0">Waiting</span>
               )}
             </div>
 
-            <div className="py-4">
-              <span className={`text-6xl sm:text-8xl font-mono font-black tracking-tight ${
+            <div className="py-1 sm:py-4">
+              <span className={`text-5xl sm:text-8xl leading-none font-mono font-black tracking-tight ${
                 flagFall === pieceColor
                   ? 'text-rose-600 line-through'
                   : isMyUrgent
@@ -1440,9 +1379,9 @@ export default function ChessPlayerDashboardPage() {
               </span>
             </div>
 
-            <div className="text-center font-mono text-xs">
+            <div className="text-center font-mono text-[11px] sm:text-xs px-2">
               {isMyTurnActive ? (
-                <span className="px-4 py-2 rounded-xl bg-amber-600 text-white font-bold uppercase tracking-wider animate-pulse inline-block shadow-sm">
+                <span className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-amber-600 text-white font-bold uppercase tracking-wider animate-pulse inline-block shadow-sm">
                   TAP WHEN YOU MOVE PAWN / PIECE ⇆
                 </span>
               ) : (

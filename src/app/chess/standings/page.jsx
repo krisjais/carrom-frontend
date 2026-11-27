@@ -330,7 +330,7 @@ export default function ChessPublicStandingsPage() {
                     </div>
                   </div>
 
-                  <div className="pt-2 flex items-center justify-between text-xs">
+                  <div className="pt-2 flex flex-wrap items-center justify-between gap-2 text-xs">
                     <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl font-semibold border ${victory.color}`}>
                       <span>{victory.icon}</span>
                       <span>{victory.label}</span>
@@ -338,7 +338,7 @@ export default function ChessPublicStandingsPage() {
 
                     <Link
                       href={`/chess/matches/${m._id}`}
-                      className="text-xs font-semibold hover:underline flex items-center gap-1"
+                      className="text-xs font-semibold hover:underline flex items-center gap-1 shrink-0"
                     >
                       <span>View Board</span>
                       <ArrowRight className="w-3.5 h-3.5" />

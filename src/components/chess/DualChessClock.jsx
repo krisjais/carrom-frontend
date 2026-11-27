@@ -92,7 +92,6 @@ export function DualChessClock({
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
   const [flipOpponent, setFlipOpponent] = useState(false);
-  const [lastTurnState, setLastTurnState] = useState(null);
 
   const timerRef = useRef(null);
   const channelRef = useRef(null);
@@ -294,14 +293,6 @@ export function DualChessClock({
       }
     }
 
-    // Save snapshot for Undo
-    setLastTurnState({
-      activeTurn,
-      p1Time,
-      p2Time,
-      movesCount
-    });
-
     const nextMoves = activeTurn === 'black' ? movesCount + 1 : movesCount;
     setActiveTurn(nextTurn);
     setIsRunning(true);
@@ -321,39 +312,6 @@ export function DualChessClock({
       onTurnChange(nextTurn);
     }
   }, [flagFall, isRunning, activeTurn, movesCount, soundEnabled, p1Time, p2Time, onTurnChange, broadcastAndSync]);
-
-  // Undo accidental turn switch
-  const handleUndoTurn = () => {
-    if (flagFall) return;
-
-    let targetTurn = activeTurn === 'white' ? 'black' : 'white';
-    let targetP1 = p1Time;
-    let targetP2 = p2Time;
-    let targetMoves = Math.max(0, movesCount - 1);
-
-    if (lastTurnState) {
-      targetTurn = lastTurnState.activeTurn;
-      targetP1 = lastTurnState.p1Time;
-      targetP2 = lastTurnState.p2Time;
-      targetMoves = Math.max(0, lastTurnState.movesCount);
-      setLastTurnState(null);
-    }
-
-    setActiveTurn(targetTurn);
-    setP1Time(targetP1);
-    setP2Time(targetP2);
-    setMovesCount(targetMoves);
-
-    if (soundEnabled) playAudioTone('click');
-
-    broadcastAndSync({
-      activeTurn: targetTurn,
-      p1Time: targetP1,
-      p2Time: targetP2,
-      movesCount: targetMoves,
-      isRunning
-    });
-  };
 
   // Reset clock
   const handleReset = () => {
@@ -543,13 +501,13 @@ export function DualChessClock({
   // FULLSCREEN FACE-TO-FACE TABLETOP DIGITAL CLOCK
   if (isExpanded) {
     return (
-      <div className="fixed inset-0 z-50 bg-[#F5F2EB] dark:bg-[#0A0A0A] p-2 sm:p-4 flex flex-col justify-between select-none overflow-hidden animate-in fade-in duration-200">
+      <div className="fixed inset-0 h-dvh z-50 bg-[#F5F2EB] dark:bg-[#0A0A0A] p-2 sm:p-4 flex flex-col justify-between select-none overflow-hidden animate-in fade-in duration-200">
         {/* UPPER SIDE: OPPONENT TIMER (Rotated 180° for Over-the-Board Play) */}
         <button
           type="button"
           onClick={() => handleClockPadClick(oppColor)}
           disabled={readOnly || !!flagFall}
-          className={`flex-1 w-full rounded-3xl p-6 sm:p-8 flex flex-col justify-between items-center transition-all cursor-pointer border-2 shadow-lg active:scale-[0.99] select-none ${
+          className={`flex-1 min-h-0 w-full rounded-2xl sm:rounded-3xl p-3.5 sm:p-8 flex flex-col justify-between items-center transition-all cursor-pointer border-2 shadow-lg active:scale-[0.99] select-none ${
             flipOpponent ? 'rotate-180' : ''
           } ${
             isOppActive
@@ -557,22 +515,22 @@ export function DualChessClock({
               : 'bg-white/80 dark:bg-[#141414] border-[#D5CFC5] dark:border-[#282826] text-[#171715] dark:text-[#FAF8F3] opacity-85'
           }`}
         >
-          <div className="w-full flex items-center justify-between text-xs font-mono">
-            <span className="font-bold uppercase tracking-wider flex items-center gap-1.5">
-              <span className={`w-3.5 h-3.5 rounded-full border ${oppColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
-              Opponent ({oppColor.toUpperCase()}) • {oppName}
+          <div className="w-full flex items-center justify-between gap-2 text-xs font-mono min-w-0">
+            <span className="font-bold uppercase tracking-wider flex items-center gap-1.5 min-w-0 truncate">
+              <span className={`w-3.5 h-3.5 rounded-full border shrink-0 ${oppColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
+              <span className="truncate">Opponent ({oppColor.toUpperCase()}) • {oppName}</span>
             </span>
             {isOppActive ? (
-              <span className="px-3 py-1 rounded-full bg-amber-500 text-white text-[10px] font-bold uppercase tracking-widest animate-pulse">
+              <span className="px-2.5 sm:px-3 py-1 rounded-full bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider animate-pulse shrink-0">
                 Counting Down
               </span>
             ) : (
-              <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93]">Tap When Opponent Moves</span>
+              <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93] shrink-0">Tap on Move</span>
             )}
           </div>
 
-          <div className="py-4">
-            <span className={`text-6xl sm:text-8xl font-mono font-black tracking-tight ${
+          <div className="py-1 sm:py-4">
+            <span className={`text-5xl sm:text-8xl leading-none font-mono font-black tracking-tight ${
               flagFall === oppColor
                 ? 'text-rose-600 line-through'
                 : isOppUrgent
@@ -585,13 +543,13 @@ export function DualChessClock({
             </span>
           </div>
 
-          <div className="text-center font-mono text-xs opacity-75">
+          <div className="text-center font-mono text-[11px] sm:text-xs opacity-75 px-2">
             {isOppActive ? 'Opponent Clock Running • Tap to Switch Turn' : 'Waiting for Opponent...'}
           </div>
         </button>
 
         {/* CENTER CONTROL STRIP (Divider) */}
-        <div className="my-2 py-2 px-4 rounded-2xl bg-[#EFEAE1] dark:bg-[#1C1C1A] border border-[#D5CFC5] dark:border-[#282826] flex items-center justify-between gap-3 text-xs font-mono">
+        <div className="my-1.5 sm:my-2 py-2 px-3 sm:px-4 rounded-2xl bg-[#EFEAE1] dark:bg-[#1C1C1A] border border-[#D5CFC5] dark:border-[#282826] flex flex-wrap items-center justify-between gap-2 text-xs font-mono shrink-0">
           <div className="flex items-center gap-2">
             {/* Direction Arrow */}
             <span className={`px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 ${
@@ -675,28 +633,28 @@ export function DualChessClock({
           type="button"
           onClick={() => handleClockPadClick(myColor)}
           disabled={readOnly || !!flagFall}
-          className={`flex-1 w-full rounded-3xl p-6 sm:p-8 flex flex-col justify-between items-center transition-all cursor-pointer border-2 shadow-lg active:scale-[0.99] select-none ${
+          className={`flex-1 min-h-0 w-full rounded-2xl sm:rounded-3xl p-3.5 sm:p-8 flex flex-col justify-between items-center transition-all cursor-pointer border-2 shadow-lg active:scale-[0.99] select-none ${
             isMyActive
               ? 'bg-amber-100/90 dark:bg-amber-950/70 border-amber-500 ring-4 ring-amber-500/30 text-amber-950 dark:text-amber-100'
               : 'bg-white/80 dark:bg-[#141414] border-[#D5CFC5] dark:border-[#282826] text-[#171715] dark:text-[#FAF8F3] opacity-85'
           }`}
         >
-          <div className="w-full flex items-center justify-between text-xs font-mono">
-            <span className="font-bold uppercase tracking-wider flex items-center gap-1.5">
-              <span className={`w-3.5 h-3.5 rounded-full border ${myColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
-              You ({myColor.toUpperCase()}) • {myName}
+          <div className="w-full flex items-center justify-between gap-2 text-xs font-mono min-w-0">
+            <span className="font-bold uppercase tracking-wider flex items-center gap-1.5 min-w-0 truncate">
+              <span className={`w-3.5 h-3.5 rounded-full border shrink-0 ${myColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
+              <span className="truncate">You ({myColor.toUpperCase()}) • {myName}</span>
             </span>
             {isMyActive ? (
-              <span className="px-3 py-1 rounded-full bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-widest animate-pulse">
+              <span className="px-2.5 sm:px-3 py-1 rounded-full bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-wider animate-pulse shrink-0">
                 Your Turn Now
               </span>
             ) : (
-              <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93]">Waiting for Opponent</span>
+              <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93] shrink-0">Waiting</span>
             )}
           </div>
 
-          <div className="py-4">
-            <span className={`text-6xl sm:text-8xl font-mono font-black tracking-tight ${
+          <div className="py-1 sm:py-4">
+            <span className={`text-5xl sm:text-8xl leading-none font-mono font-black tracking-tight ${
               flagFall === myColor
                 ? 'text-rose-600 line-through'
                 : isMyUrgent
@@ -709,9 +667,9 @@ export function DualChessClock({
             </span>
           </div>
 
-          <div className="text-center font-mono text-xs">
+          <div className="text-center font-mono text-[11px] sm:text-xs px-2">
             {isMyActive ? (
-              <span className="px-4 py-1.5 rounded-xl bg-amber-600 text-white font-bold uppercase tracking-wider animate-pulse inline-block shadow-sm">
+              <span className="px-3 sm:px-4 py-1.5 rounded-xl bg-amber-600 text-white font-bold uppercase tracking-wider animate-pulse inline-block shadow-sm">
                 TAP TO PASS TURN TO OPPONENT ⇆
               </span>
             ) : (
@@ -811,20 +769,20 @@ export function DualChessClock({
               : 'bg-[#FAF8F3]/60 dark:bg-[#181816] border-[#D5CFC5] dark:border-[#282826] opacity-80'
           }`}
         >
-          <div className="flex items-center justify-between text-xs font-mono">
-            <div className="flex items-center gap-1.5">
-              <span className={`w-3.5 h-3.5 rounded-full border ${oppColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
-              <span className="font-bold text-[#171715] dark:text-[#FAF8F3] uppercase tracking-wider">
+          <div className="flex items-center justify-between gap-2 text-xs font-mono min-w-0">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className={`w-3.5 h-3.5 rounded-full border shrink-0 ${oppColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
+              <span className="font-bold text-[#171715] dark:text-[#FAF8F3] uppercase tracking-wider truncate">
                 Opponent ({oppColor})
               </span>
             </div>
             {isOppActive ? (
-              <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-bold uppercase tracking-wider animate-pulse">
+              <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-bold uppercase tracking-wider animate-pulse shrink-0">
                 Clock Ticking
               </span>
             ) : (
-              <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93] font-mono">
-                Tap when opponent moves
+              <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93] font-mono shrink-0">
+                Tap on Move
               </span>
             )}
           </div>
@@ -843,18 +801,18 @@ export function DualChessClock({
             </span>
           </div>
 
-          <div className="flex items-center justify-between text-[11px] font-mono">
-            <span className="font-bold text-[#171715] dark:text-[#FAF8F3] truncate max-w-[180px]">
+          <div className="flex items-center justify-between gap-2 text-[11px] font-mono min-w-0">
+            <span className="font-bold text-[#171715] dark:text-[#FAF8F3] truncate">
               {oppName}
             </span>
-            <span className="text-[#77736B] dark:text-[#8E8E93]">
+            <span className="text-[#77736B] dark:text-[#8E8E93] shrink-0">
               {isOppActive ? 'Opponent Active' : 'Waiting'}
             </span>
           </div>
         </button>
 
         {/* CENTER CONTROL STRIP (Between Opponent and Player) */}
-        <div className="bg-[#EFEAE1]/80 dark:bg-[#1A1A18] py-2 px-3 rounded-xl border border-[#D5CFC5] dark:border-[#262624] flex items-center justify-between text-xs font-mono">
+        <div className="bg-[#EFEAE1]/80 dark:bg-[#1A1A18] py-2 px-3 rounded-xl border border-[#D5CFC5] dark:border-[#262624] flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
           <div className="flex items-center gap-2">
             <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] flex items-center gap-1 ${
               isOppActive
@@ -917,19 +875,19 @@ export function DualChessClock({
               : 'bg-[#FAF8F3]/60 dark:bg-[#181816] border-[#D5CFC5] dark:border-[#282826] opacity-80'
           }`}
         >
-          <div className="flex items-center justify-between text-xs font-mono">
-            <div className="flex items-center gap-1.5">
-              <span className={`w-3.5 h-3.5 rounded-full border ${myColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
-              <span className="font-bold text-[#171715] dark:text-[#FAF8F3] uppercase tracking-wider">
+          <div className="flex items-center justify-between gap-2 text-xs font-mono min-w-0">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className={`w-3.5 h-3.5 rounded-full border shrink-0 ${myColor === 'white' ? 'bg-white border-[#D5CFC5]' : 'bg-black border-white/40'}`} />
+              <span className="font-bold text-[#171715] dark:text-[#FAF8F3] uppercase tracking-wider truncate">
                 You ({myColor})
               </span>
             </div>
             {isMyActive ? (
-              <span className="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] font-bold uppercase tracking-wider animate-pulse">
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] font-bold uppercase tracking-wider animate-pulse shrink-0">
                 Your Turn Active
               </span>
             ) : (
-              <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93] font-mono">
+              <span className="text-[10px] text-[#77736B] dark:text-[#8E8E93] font-mono shrink-0">
                 Paused
               </span>
             )}

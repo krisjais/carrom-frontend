@@ -34,7 +34,7 @@ export default function ChessLoginPage() {
     e.preventDefault();
     setError('');
     if (!playerIdentifier.trim()) {
-      setError('Please enter your Player ID (e.g. CHS-001) or registered Email.');
+      setError('Please enter your Player ID (e.g. CHS-SAAD or saad), name, or registered Email.');
       return;
     }
     if (!playerPassword.trim()) {
@@ -223,7 +223,7 @@ export default function ChessLoginPage() {
                   Player Sign In
                 </h1>
                 <p className="text-xs text-[#4E4C47] dark:text-[#8E8E93] leading-relaxed">
-                  Enter your assigned Player ID (e.g. <span className="font-mono font-bold text-[#171715] dark:text-[#FAF8F3]">CHS-001</span>) or registered email to view your match and mobile clock.
+                  Enter your name-based Player ID (e.g. <span className="font-mono font-bold text-[#171715] dark:text-[#FAF8F3]">CHS-SAAD</span> or <span className="font-mono font-bold text-[#171715] dark:text-[#FAF8F3]">saad</span>), name, or registered email to view your match and mobile clock.
                 </p>
               </div>
 
@@ -237,13 +237,13 @@ export default function ChessLoginPage() {
               <form onSubmit={handlePlayerLogin} className="space-y-4">
                 <div className="space-y-1.5">
                   <label className="block text-xs font-mono font-semibold text-[#171715] dark:text-[#FAF8F3] uppercase tracking-wider">
-                    Player ID or Registered Email
+                    Player ID, Name, or Email
                   </label>
                   <input
                     type="text"
                     value={playerIdentifier}
                     onChange={(e) => setPlayerIdentifier(e.target.value)}
-                    placeholder="e.g. CHS-001 or name@example.com"
+                    placeholder="e.g. CHS-SAAD, saad, or saad@gmail.com"
                     required
                     autoFocus
                     autoCapitalize="none"
@@ -251,7 +251,7 @@ export default function ChessLoginPage() {
                     className="w-full bg-[#F5F2EB] dark:bg-[#1D1D1B] border border-[#D5CFC5] dark:border-[#262624] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-4 py-3 text-sm font-mono text-[#171715] dark:text-[#FAF8F3] placeholder-[#77736B] focus:outline-none transition-all"
                   />
                   <p className="text-[11px] text-[#77736B] dark:text-[#8E8E93] font-sans">
-                    You received your Player ID upon registration (e.g. CHS-001, CHS-002...).
+                    Your Player ID and password match your name (e.g. ID: CHS-SAAD / saad, Password: saad123).
                   </p>
                 </div>
 

@@ -93,38 +93,38 @@ export default function ChessMatchesPage() {
 
         {/* View Mode Switcher */}
         <div className="flex flex-wrap items-center justify-between gap-3 bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] p-3 sm:p-4 rounded-2xl shadow-xs">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono uppercase font-bold text-[#77736B] dark:text-[#8E8E93] mr-2">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <span className="text-[10px] font-mono uppercase font-bold text-[#77736B] dark:text-[#8E8E93] mr-1 w-full sm:w-auto">
               Championship View:
             </span>
             <button
               type="button"
               onClick={() => setViewMode('bracket')}
-              className={`px-3.5 py-1.5 rounded-xl font-mono text-xs font-bold uppercase transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`flex-1 sm:flex-none px-3 py-1.5 rounded-xl font-mono text-[11px] sm:text-xs font-bold uppercase transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 viewMode === 'bracket'
                   ? 'bg-[#171715] text-[#FAF8F3] dark:bg-[#FAF8F3] dark:text-[#0D0D0D] shadow-xs'
                   : 'bg-[#EFEAE1]/60 dark:bg-[#1B1B19] text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715]'
               }`}
             >
-              <LayoutGrid className="w-3.5 h-3.5" />
-              <span>Bracket Tree View</span>
+              <LayoutGrid className="w-3.5 h-3.5 shrink-0" />
+              <span>Bracket Tree</span>
             </button>
             <button
               type="button"
               onClick={() => setViewMode('table')}
-              className={`px-3.5 py-1.5 rounded-xl font-mono text-xs font-bold uppercase transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`flex-1 sm:flex-none px-3 py-1.5 rounded-xl font-mono text-[11px] sm:text-xs font-bold uppercase transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 viewMode === 'table'
                   ? 'bg-[#171715] text-[#FAF8F3] dark:bg-[#FAF8F3] dark:text-[#0D0D0D] shadow-xs'
                   : 'bg-[#EFEAE1]/60 dark:bg-[#1B1B19] text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715]'
               }`}
             >
-              <List className="w-3.5 h-3.5" />
-              <span>Table & Fixtures List</span>
+              <List className="w-3.5 h-3.5 shrink-0" />
+              <span>Fixtures List</span>
             </button>
           </div>
 
           <div className="flex items-center gap-2 text-xs font-mono text-amber-700 dark:text-amber-400 font-semibold">
-            <Clock className="w-3.5 h-3.5" />
+            <Clock className="w-3.5 h-3.5 shrink-0" />
             <span>10:00 Dual Rapid Clocks</span>
           </div>
         </div>
@@ -138,15 +138,15 @@ export default function ChessMatchesPage() {
         {viewMode === 'table' && (
           <div className="space-y-8">
             {/* Filter Bar */}
-            <div className="flex flex-wrap gap-4 justify-between items-center bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] p-3 sm:p-4 rounded-2xl">
-              <div className="flex flex-wrap items-center gap-3 text-xs">
-                <div className="flex items-center gap-2">
-                  <Filter className="w-3.5 h-3.5 text-[#77736B] dark:text-[#8E8E93]" />
-                  <span className="font-mono text-[11px] uppercase tracking-wider text-[#77736B] dark:text-[#8E8E93]">Status:</span>
+            <div className="flex flex-wrap gap-3 sm:gap-4 justify-between items-center bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] p-3 sm:p-4 rounded-2xl">
+              <div className="flex flex-wrap items-center gap-3 text-xs w-full sm:w-auto">
+                <div className="flex items-center gap-2 flex-1 sm:flex-none min-w-[140px]">
+                  <Filter className="w-3.5 h-3.5 text-[#77736B] dark:text-[#8E8E93] shrink-0" />
+                  <span className="font-mono text-[11px] uppercase tracking-wider text-[#77736B] dark:text-[#8E8E93] hidden sm:inline">Status:</span>
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="bg-[#EFEAE1]/60 dark:bg-[#1B1B19] border border-[#D5CFC5]/70 dark:border-[#282826] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-3 py-2 text-xs font-mono text-[#171715] dark:text-[#FAF8F3] focus:outline-none transition-colors cursor-pointer"
+                    className="w-full sm:w-auto bg-[#EFEAE1]/60 dark:bg-[#1B1B19] border border-[#D5CFC5]/70 dark:border-[#282826] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-3 py-2 text-xs font-mono text-[#171715] dark:text-[#FAF8F3] focus:outline-none transition-colors cursor-pointer"
                   >
                     <option value="all">All Statuses</option>
                     <option value="scheduled">Scheduled</option>
@@ -156,13 +156,13 @@ export default function ChessMatchesPage() {
                   </select>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-3.5 h-3.5 text-[#77736B] dark:text-[#8E8E93]" />
-                  <span className="font-mono text-[11px] uppercase tracking-wider text-[#77736B] dark:text-[#8E8E93]">Round:</span>
+                <div className="flex items-center gap-2 flex-1 sm:flex-none min-w-[140px]">
+                  <Calendar className="w-3.5 h-3.5 text-[#77736B] dark:text-[#8E8E93] shrink-0" />
+                  <span className="font-mono text-[11px] uppercase tracking-wider text-[#77736B] dark:text-[#8E8E93] hidden sm:inline">Round:</span>
                   <select
                     value={roundFilter}
                     onChange={(e) => setRoundFilter(e.target.value)}
-                    className="bg-[#EFEAE1]/60 dark:bg-[#1B1B19] border border-[#D5CFC5]/70 dark:border-[#282826] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-3 py-2 text-xs font-mono text-[#171715] dark:text-[#FAF8F3] focus:outline-none transition-colors cursor-pointer"
+                    className="w-full sm:w-auto bg-[#EFEAE1]/60 dark:bg-[#1B1B19] border border-[#D5CFC5]/70 dark:border-[#282826] focus:border-[#171715] dark:focus:border-[#FAF8F3] rounded-xl px-3 py-2 text-xs font-mono text-[#171715] dark:text-[#FAF8F3] focus:outline-none transition-colors cursor-pointer"
                   >
                     <option value="all">All Rounds</option>
                     <option value="1">Round 1</option>
@@ -319,15 +319,15 @@ export default function ChessMatchesPage() {
                       href={`/chess/matches/${m?._id || m?.matchId}`}
                       className="block bg-[#EFEAE1]/50 dark:bg-[#1B1B19] border border-[#D5CFC5]/70 dark:border-[#282826] rounded-2xl p-4 space-y-2.5 shadow-xs"
                     >
-                      <div className="flex justify-between items-center text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93]">
-                        <span>{m?.matchId} • {m?.roundName || `Round ${m?.round}`}</span>
-                        <span className="uppercase font-bold">{m?.status}</span>
+                      <div className="flex justify-between items-center gap-2 text-[10px] font-mono text-[#77736B] dark:text-[#8E8E93]">
+                        <span className="truncate">{m?.matchId} • {m?.roundName || `Round ${m?.round}`}</span>
+                        <span className="uppercase font-bold shrink-0">{m?.status}</span>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <div className="font-serif font-bold text-[#171715] dark:text-[#FAF8F3] text-sm">
+                      <div className="flex flex-wrap justify-between items-center gap-2">
+                        <div className="font-serif font-bold text-[#171715] dark:text-[#FAF8F3] text-sm min-w-0">
                           {p1} <span className="text-xs text-[#77736B] font-sans font-normal">vs</span> {p2}
                         </div>
-                        <div className="font-mono font-bold text-xs text-amber-700 dark:text-amber-400">
+                        <div className="font-mono font-bold text-xs text-amber-700 dark:text-amber-400 shrink-0">
                           {m?.status === 'completed'
                             ? (m?.winnerPlayer?.fullName ? `👑 ${m?.winnerPlayer.fullName.split(' ')[0]}` : m?.winner === 'draw' ? 'Draw' : 'Completed')
                             : (m?.status === 'live' ? 'Live' : 'Pending')}

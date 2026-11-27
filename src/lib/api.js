@@ -127,10 +127,15 @@ const handleResponse = async (res) => {
 export const api = {
   // Auth
   login: async (credentials) => {
+    const identifier = credentials?.identifier || credentials?.email || '';
     const res = await fetchWithRetry(`${API_BASE}/auth/login`, {
       method: 'POST',
       headers: getHeaders(),
-      body: JSON.stringify(credentials)
+      body: JSON.stringify({
+        email: identifier,
+        identifier,
+        password: credentials?.password || ''
+      })
     });
     return handleResponse(res);
   },

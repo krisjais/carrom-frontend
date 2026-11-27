@@ -225,7 +225,7 @@ export default function ChessMatchDetailPage() {
       <main className="flex-1 p-4 sm:p-8 max-w-5xl mx-auto w-full space-y-6">
         
         {/* Navigation & Live Broadcast Pill */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <Link
             href="/chess/matches"
             className="inline-flex items-center gap-2 text-xs font-mono font-medium tracking-widest text-[#77736B] dark:text-[#8E8E93] hover:text-[#171715] dark:hover:text-[#FAF8F3] transition-colors"
@@ -262,7 +262,7 @@ export default function ChessMatchDetailPage() {
           <div className="space-y-6">
             
             {/* Grand Match Scoreboard */}
-            <div className="bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl p-6 sm:p-10 shadow-xs space-y-6">
+            <div className="bg-[#FAF8F3] dark:bg-[#141414] border border-[#D5CFC5] dark:border-[#262624] rounded-3xl p-4 sm:p-10 shadow-xs space-y-6">
               
               {/* Header Bar */}
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#D5CFC5]/70 dark:border-[#262624] pb-4">
@@ -292,12 +292,12 @@ export default function ChessMatchDetailPage() {
 
               {/* Match Completed Winner Banner */}
               {isCompleted && winnerName && (
-                <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/20 to-amber-500/10 border border-amber-500/40 rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-lg">
+                <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/20 to-amber-500/10 border border-amber-500/40 rounded-2xl p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3 sm:gap-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-lg shrink-0">
                       <Crown className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <span className="text-[10px] font-mono uppercase tracking-widest text-amber-700 dark:text-amber-400 font-bold block">
                         OFFICIAL OUTCOME DECIDED
                       </span>
@@ -309,7 +309,7 @@ export default function ChessMatchDetailPage() {
                       )}
                     </div>
                   </div>
-                  <div className="text-right font-mono">
+                  <div className="text-left sm:text-right font-mono">
                     <span className="text-[10px] uppercase text-[#77736B] dark:text-[#8E8E93] block">Method</span>
                     <span className="text-xs font-bold capitalize text-amber-700 dark:text-amber-400">
                       {match.resultType ? match.resultType.replace('_', ' ') : 'Points'}
@@ -320,9 +320,9 @@ export default function ChessMatchDetailPage() {
 
               {/* Flag Fall Notice */}
               {isLive && flagFall && (
-                <div className="bg-rose-500/15 border border-rose-500/40 rounded-2xl p-3 sm:p-4 flex items-center justify-between text-xs">
+                <div className="bg-rose-500/15 border border-rose-500/40 rounded-2xl p-3 sm:p-4 flex flex-wrap items-center justify-between gap-2 text-xs">
                   <div className="flex items-center gap-2 text-rose-700 dark:text-rose-400 font-semibold font-mono">
-                    <Clock className="w-4 h-4" />
+                    <Clock className="w-4 h-4 shrink-0" />
                     <span>Time expired! Flag fell on {flagFall.toUpperCase()} ({flagFall === 'white' ? player1.fullName : player2.fullName})!</span>
                   </div>
                   <span className="font-mono text-[11px] text-[#77736B] dark:text-[#A8A49C]">
@@ -509,16 +509,16 @@ export default function ChessMatchDetailPage() {
               </div>
 
               {/* Match Details Meta Banner */}
-              <div className="bg-[#EFEAE1]/60 dark:bg-[#1A1A18] border border-[#D5CFC5]/70 dark:border-[#262624] rounded-2xl p-4 flex flex-wrap items-center justify-around gap-4 text-center font-mono text-xs">
+              <div className="bg-[#EFEAE1]/60 dark:bg-[#1A1A18] border border-[#D5CFC5]/70 dark:border-[#262624] rounded-2xl p-4 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-center font-mono text-xs">
                 <div>
                   <span className="text-[9px] uppercase tracking-wider text-[#77736B] dark:text-[#8E8E93] block">Time Control</span>
                   <span className="font-bold text-[#171715] dark:text-[#FAF8F3]">{match.durationMinutes || 10} Min Rapid</span>
                 </div>
-                <div className="border-l border-[#D5CFC5]/50 dark:border-[#262624] pl-4">
+                <div className="border-t pt-3 sm:border-t-0 sm:pt-0 sm:border-l border-[#D5CFC5]/50 dark:border-[#262624] sm:pl-4">
                   <span className="text-[9px] uppercase tracking-wider text-[#77736B] dark:text-[#8E8E93] block">Round Format</span>
                   <span className="font-bold text-[#171715] dark:text-[#FAF8F3]">Knockout Single Elimination</span>
                 </div>
-                <div className="border-l border-[#D5CFC5]/50 dark:border-[#262624] pl-4">
+                <div className="border-t pt-3 sm:border-t-0 sm:pt-0 sm:border-l border-[#D5CFC5]/50 dark:border-[#262624] sm:pl-4">
                   <span className="text-[9px] uppercase tracking-wider text-[#77736B] dark:text-[#8E8E93] block">Advancement</span>
                   <span className="font-bold text-[#171715] dark:text-[#FAF8F3]">Winner Advances to Next Round</span>
                 </div>

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { chessApi } from '@/lib/chessApi';
 import { AdminSidebar } from '@/components/chess/AdminSidebar';
 import { ChessBracketView } from '@/components/chess/ChessBracketView';
-import { Swords, Play, Pause, CheckCircle2, XCircle, Trophy, Loader2, Plus, Minus, Trash2, Clock, ShieldCheck, Zap, CheckSquare, Square, ChevronDown, X, LayoutGrid, List, Crown, Sparkles, ArrowRightLeft, RotateCcw, Timer, Save, CalendarClock, Calendar, ArrowRight, Shield } from 'lucide-react';
+import { Swords, Play, Pause, CheckCircle2, XCircle, Trophy, Loader2, Plus, Minus, Trash2, Clock, ShieldCheck, Zap, CheckSquare, Square, ChevronDown, X, LayoutGrid, List, Crown, Sparkles, ArrowRightLeft, RotateCcw, Undo2, Timer, Save, CalendarClock, Calendar, ArrowRight, Shield } from 'lucide-react';
 import { useToast, useConfirm } from '@/context/ToastContext';
 import { getSocket, subscribeToChessLive } from '@/lib/socket';
 
@@ -1072,6 +1072,53 @@ export default function ChessAdminMatchesPage() {
     }
   };
 
+  // Admin Only: Undo last turn switch on a live match
+  const handleAdminUndoTurn = async (match) => {
+    if (!match || match.status !== 'live') return;
+    const mId = match._id || match.matchId;
+    try {
+      const res = await chessApi.undoMatchTurn(mId);
+      if (res.success && res.data) {
+        const updated = res.data;
+        setMatches((prev) =>
+          (prev || []).filter(Boolean).map((m) =>
+            m && ((m?._id && m?._id === mId) || (m?.matchId && m?.matchId === mId)) ? updated : m
+          )
+        );
+        setMatchModalMatch((prev) =>
+          prev && (prev._id === mId || prev.matchId === mId) ? updated : prev
+        );
+
+        try {
+          const payload = {
+            matchId: mId,
+            activeTurn: updated.activeTurn,
+            isClockRunning: updated.isClockRunning,
+            whiteSeconds: updated.whiteTimeRemaining,
+            blackSeconds: updated.blackTimeRemaining,
+            movesCount: updated.movesCount,
+            timestamp: Date.now()
+          };
+          if (typeof window !== 'undefined' && window.BroadcastChannel) {
+            const bc = new BroadcastChannel('chess_tournament_clock');
+            bc.postMessage(payload);
+            bc.close();
+          }
+          const socket = getSocket();
+          if (socket && socket.connected) {
+            socket.emit('chess:turn_switch', payload);
+          }
+        } catch {}
+
+        toast.success(res.message || `Turn undone! Active turn: ${(updated.activeTurn || 'white').toUpperCase()}`);
+      } else {
+        toast.error(res.message || 'Unable to undo turn.');
+      }
+    } catch (err) {
+      toast.error(err.message || 'Unable to undo turn.');
+    }
+  };
+
   // Quick Time Extension (+1m, +2m, +5m buttons)
   const handleQuickAddTime = async (match, minutesToAdd) => {
     if (!match) return;
@@ -1532,7 +1579,7 @@ export default function ChessAdminMatchesPage() {
     <div className="min-h-screen bg-[#F5F2EB] dark:bg-[#0D0D0D] flex flex-col lg:flex-row font-sans text-[#171715] dark:text-[#FAF8F3] antialiased transition-colors">
       <AdminSidebar />
 
-      <main className="flex-1 p-3.5 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-4 sm:space-y-6">
+      <main className="flex-1 min-w-0 p-3.5 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-4 sm:space-y-6">
         
         {/* Header Bar */}
         <div className="bg-[#FAF8F3] dark:bg-[#151514] border border-[#D5CFC5] dark:border-[#262624] p-5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-xs space-y-4">
@@ -1894,6 +1941,16 @@ export default function ChessAdminMatchesPage() {
 
                         <button
                           type="button"
+                          onClick={() => handleAdminUndoTurn(currentM)}
+                          disabled={!currentM.previousClockState?.activeTurn && !(currentM.movesCount > 0) && currentM.activeTurn !== 'black'}
+                          className="px-2 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 border border-amber-400/60 text-[11px] font-mono font-bold text-amber-800 dark:text-amber-300 cursor-pointer transition-colors shadow-2xs disabled:opacity-40 disabled:cursor-not-allowed"
+                          title="Admin Only: Undo last turn switch"
+                        >
+                          <Undo2 className="w-3.5 h-3.5" />
+                        </button>
+
+                        <button
+                          type="button"
                           onClick={() => handlePauseResumeMatch(currentM)}
                           className={`px-2 py-1.5 rounded-lg border text-[11px] font-mono font-bold cursor-pointer transition-colors shadow-2xs ${
                             currentM.isClockRunning !== false
@@ -2027,6 +2084,7 @@ export default function ChessAdminMatchesPage() {
             onStartMatch={handleStartMatch}
             onPauseResumeMatch={handlePauseResumeMatch}
             onSwitchTurnMatch={handleAdminSwitchTurn}
+            onUndoTurnMatch={handleAdminUndoTurn}
             onQuickAddTime={handleQuickAddTime}
             onOpenTimeModal={handleOpenTimeModal}
             onOpenMatchModal={(m) => setMatchModalMatch(m)}
@@ -2254,6 +2312,19 @@ export default function ChessAdminMatchesPage() {
                           >
                             <ArrowRightLeft className="w-3 h-3" />
                             <span>Switch ({m.activeTurn === 'black' ? 'White' : 'Black'})</span>
+                          </button>
+                        )}
+
+                        {/* Admin-Only Undo Turn Button */}
+                        {isLive && (
+                          <button
+                            onClick={() => handleAdminUndoTurn(m)}
+                            disabled={!m.previousClockState?.activeTurn && !(m.movesCount > 0) && m.activeTurn !== 'black'}
+                            className="border border-amber-400/60 bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 text-amber-800 dark:text-amber-300 text-[10px] font-bold px-2.5 py-1.5 rounded-lg uppercase shadow-xs transition-colors cursor-pointer inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
+                            title="Admin Only: Undo last turn switch"
+                          >
+                            <Undo2 className="w-3 h-3" />
+                            <span>Undo</span>
                           </button>
                         )}
 
@@ -3490,16 +3561,28 @@ export default function ChessAdminMatchesPage() {
                   </div>
                 )}
 
-                {/* Switch Turn Button */}
+                {/* Switch Turn & Admin Undo */}
                 {matchModalMatch.status === 'live' ? (
-                  <button
-                    type="button"
-                    onClick={() => handleAdminSwitchTurn(matchModalMatch)}
-                    className="py-2.5 px-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-sm cursor-pointer transition-all"
-                  >
-                    <ArrowRightLeft className="w-4 h-4" />
-                    <span>Switch ({matchModalMatch.activeTurn === 'black' ? 'White' : 'Black'})</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleAdminSwitchTurn(matchModalMatch)}
+                      className="flex-1 py-2.5 px-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-sm cursor-pointer transition-all"
+                    >
+                      <ArrowRightLeft className="w-4 h-4" />
+                      <span>Switch ({matchModalMatch.activeTurn === 'black' ? 'White' : 'Black'})</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAdminUndoTurn(matchModalMatch)}
+                      disabled={!matchModalMatch.previousClockState?.activeTurn && !(matchModalMatch.movesCount > 0) && matchModalMatch.activeTurn !== 'black'}
+                      className="py-2.5 px-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 border border-amber-400/60 text-amber-800 dark:text-amber-300 font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-xs cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                      title="Admin Only: Undo last turn switch"
+                    >
+                      <Undo2 className="w-4 h-4" />
+                      <span>Undo</span>
+                    </button>
+                  </div>
                 ) : (
                   <button
                     type="button"
